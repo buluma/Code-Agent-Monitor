@@ -57,7 +57,7 @@ if (!globalThis.sessionStorage) {
   });
 }
 
-/** Pin locale to English — LanguageDetector may otherwise pick up zh/vi from the host OS. */
+/** Pin locale to English — LanguageDetector may otherwise pick up a non-English locale from the host OS. */
 beforeEach(() => {
   i18n.changeLanguage("en");
 });

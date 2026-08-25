@@ -6,11 +6,17 @@ Comprehensive documentation for the Agent Dashboard project.
 
 ## Quick Links
 
-- [Operator Handbook](https://github.com/buluma/Code-Agent-Monitor/wiki) - Task-oriented usage, operations, automation, and troubleshooting
-- [Localized Product Wiki](https://hoangsonww.github.io/Claude-Code-Agent-Monitor/wiki/) - English, Vietnamese, Chinese, Korean, and Spanish product and architecture tour
-- [Architecture Overview](../ARCHITECTURE.md) - System design and technical reference
-- [I18N Architecture](./I18N.md) - Internationalization architecture and usage guide
-- [CLI Reference](./CLI.md) - The `ccam` terminal CLI: every command, discovery, safety model
+- [Operator Handbook](https://github.com/buluma/Code-Agent-Monitor/wiki) -
+  Task-oriented usage, operations, automation, and troubleshooting
+- [Localized Product Wiki](https://hoangsonww.github.io/Claude-Code-Agent-Monitor/wiki/) -
+  English, Vietnamese, Chinese, Korean, and Spanish product and architecture
+  tour
+- [Architecture Overview](../ARCHITECTURE.md) - System design and technical
+  reference
+- [I18N Architecture](./I18N.md) - Internationalization architecture and usage
+  guide
+- [CLI Reference](./CLI.md) - The `ccam` terminal CLI: every command, discovery,
+  safety model
 - [Setup Guide](../SETUP.md) - Installation and configuration
 - [Installation](../INSTALL.md) - Detailed installation instructions
 
@@ -18,16 +24,17 @@ Comprehensive documentation for the Agent Dashboard project.
 
 ## Choose a Reading Path
 
-Start with the smallest set of documents for the job at hand, then use the catalog below as a reference:
+Start with the smallest set of documents for the job at hand, then use the
+catalog below as a reference:
 
-| Goal | Start here | Continue with |
-| --- | --- | --- |
+| Goal                                | Start here                                                       | Continue with                                                                                                        |
+| ----------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | Use or troubleshoot CCAM day to day | [GitHub Wiki](https://github.com/buluma/Code-Agent-Monitor/wiki) | [Localized product Wiki](https://hoangsonww.github.io/Claude-Code-Agent-Monitor/wiki/) or the exact references below |
-| Run CCAM locally | [INSTALL.md](../INSTALL.md) | [SETUP.md](../SETUP.md), then the dashboard |
-| Integrate with the API or WebSocket | [API.md](./API.md) | [MCP.md](./MCP.md) for an MCP-based integration |
-| Understand captured activity | [HOOKS.md](./HOOKS.md) | [DATABASE.md](./DATABASE.md) and [ARCHITECTURE.md](../ARCHITECTURE.md) |
-| Operate CCAM in production | [DEPLOYMENT.md](./DEPLOYMENT.md) | [server/README.md](../server/README.md) and [monitoring/README.md](../monitoring/README.md) |
-| Extend the UI or localization | [client/README.md](../client/README.md) | [I18N.md](./I18N.md) |
+| Run CCAM locally                    | [INSTALL.md](../INSTALL.md)                                      | [SETUP.md](../SETUP.md), then the dashboard                                                                          |
+| Integrate with the API or WebSocket | [API.md](./API.md)                                               | [MCP.md](./MCP.md) for an MCP-based integration                                                                      |
+| Understand captured activity        | [HOOKS.md](./HOOKS.md)                                           | [DATABASE.md](./DATABASE.md) and [ARCHITECTURE.md](../ARCHITECTURE.md)                                               |
+| Operate CCAM in production          | [DEPLOYMENT.md](./DEPLOYMENT.md)                                 | [server/README.md](../server/README.md) and [monitoring/README.md](../monitoring/README.md)                          |
+| Extend the UI or localization       | [client/README.md](../client/README.md)                          | [I18N.md](./I18N.md)                                                                                                 |
 
 ---
 
@@ -59,18 +66,18 @@ graph TB
 
 ### 📋 Documentation Catalog
 
-| Document | Description | Audience |
-|----------|-------------|----------|
-| [client/README.md](../client/README.md) | React frontend architecture, components, state management | Frontend developers |
-| [server/README.md](../server/README.md) | Express backend, database, WebSocket, API | Backend developers |
-| [API.md](./API.md) | REST API endpoints (sessions, agents, events, stats, analytics, hooks, pricing, workflows, settings, import history, **cc-config**, **run**), WebSocket protocol (including `run_stream` / `run_status` / `run_input_ack` for the Run page) | Integration developers |
-| [DATABASE.md](./DATABASE.md) | SQLite schema, queries, performance | Database administrators |
-| [HOOKS.md](./HOOKS.md) | Claude Code hook system integration | Hook developers |
-| [MCP.md](./MCP.md) | MCP server setup and tool reference | MCP integrators |
-| [DEPLOYMENT.md](./DEPLOYMENT.md) | Production deployment strategies | DevOps engineers |
-| [I18N.md](./I18N.md) | Language architecture, locale strategy, and rollout checklist | Frontend and product teams |
-| [CLI.md](./CLI.md) | `ccam` command reference — monitoring, browsing, insights, alerts, pricing, import, administration | Terminal users and CI scripting |
-| [monitoring/README.md](../monitoring/README.md) | Prometheus + Grafana stack (`npm run monitoring:up` or Docker) | DevOps / observability |
+| Document                                        | Description                                                                                                                                                                                                                                 | Audience                        |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| [client/README.md](../client/README.md)         | React frontend architecture, components, state management                                                                                                                                                                                   | Frontend developers             |
+| [server/README.md](../server/README.md)         | Express backend, database, WebSocket, API                                                                                                                                                                                                   | Backend developers              |
+| [API.md](./API.md)                              | REST API endpoints (sessions, agents, events, stats, analytics, hooks, pricing, workflows, settings, import history, **cc-config**, **run**), WebSocket protocol (including `run_stream` / `run_status` / `run_input_ack` for the Run page) | Integration developers          |
+| [DATABASE.md](./DATABASE.md)                    | SQLite schema, queries, performance                                                                                                                                                                                                         | Database administrators         |
+| [HOOKS.md](./HOOKS.md)                          | Claude Code hook system integration                                                                                                                                                                                                         | Hook developers                 |
+| [MCP.md](./MCP.md)                              | MCP server setup and tool reference                                                                                                                                                                                                         | MCP integrators                 |
+| [DEPLOYMENT.md](./DEPLOYMENT.md)                | Production deployment strategies                                                                                                                                                                                                            | DevOps engineers                |
+| [I18N.md](./I18N.md)                            | Language architecture, locale strategy, and rollout checklist                                                                                                                                                                               | Frontend and product teams      |
+| [CLI.md](./CLI.md)                              | `ccam` command reference — monitoring, browsing, insights, alerts, pricing, import, administration                                                                                                                                          | Terminal users and CI scripting |
+| [monitoring/README.md](../monitoring/README.md) | Prometheus + Grafana stack (`npm run monitoring:up` or Docker)                                                                                                                                                                              | DevOps / observability          |
 
 ---
 
@@ -229,26 +236,27 @@ graph TB
 
 **Technology Stack:**
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | React 19, TypeScript 5.7, Vite 7, Tailwind CSS |
-| **Backend** | Node.js 22.22+, Express 4.22, WebSocket |
-| **Database** | SQLite 3 (better-sqlite3 or node:sqlite) |
-| **Integration** | Claude Code Hooks, MCP Server |
+| Layer           | Technology                                     |
+| --------------- | ---------------------------------------------- |
+| **Frontend**    | React 19, TypeScript 5.7, Vite 7, Tailwind CSS |
+| **Backend**     | Node.js 22.22+, Express 4.22, WebSocket        |
+| **Database**    | SQLite 3 (better-sqlite3 or node:sqlite)       |
+| **Integration** | Claude Code Hooks, MCP Server                  |
 
-### Internationalization Support (en/zh/vi/ko/es)
+### Internationalization Support (en)
 
 ```mermaid
 flowchart LR
-    A["User language preference<br/>en / zh / vi / ko / es"] --> B["i18next detector<br/>localStorage + navigator"]
+    A["Browser language detection"] --> B["i18next detector<br/>localStorage + navigator"]
     B --> C["Namespace JSON resources"]
     C --> D["React useTranslation hooks"]
-    D --> E["Localized UI + a11y labels"]
+    D --> E["English UI + a11y labels"]
     E --> F["Locale-aware date/number formatting"]
     F --> G["formatModelName() — human-friendly model display"]
 ```
 
-Supported language codes are explicitly `en`, `zh`, `vi`, `ko`, and `es`. The sidebar uses a custom language dropdown that scales as locales are added. Use [I18N.md](./I18N.md) for architecture details, naming conventions, language switching flow, localization behavior, and rollout guidance.
+The application is English-only. Use [I18N.md](./I18N.md) for architecture
+details, naming conventions, and localization behavior.
 
 ---
 
@@ -275,6 +283,7 @@ sequenceDiagram
 ```
 
 **Documentation:**
+
 - [WebSocket Protocol](./API.md#websocket-api)
 - [Client Integration](../client/README.md#websocket-integration)
 - [Server Broadcasting](../server/README.md#websocket-protocol)
@@ -300,6 +309,7 @@ graph TB
 ```
 
 **Documentation:**
+
 - [Pricing API](./API.md#pricing)
 - [Database Schema](./DATABASE.md#pricing_rules)
 - [Server Implementation](../server/README.md#pricing-calculation)
@@ -321,6 +331,7 @@ graph LR
 ```
 
 **Documentation:**
+
 - [Hook System Guide](./HOOKS.md)
 - [Hook Processing](../server/README.md#hook-processing)
 - [Installation](../SETUP.md#install-hooks)
@@ -331,16 +342,16 @@ graph LR
 
 ### REST API Summary
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/sessions` | GET | List sessions |
-| `/api/sessions/:id` | GET | Get session |
-| `/api/sessions/:id/agents` | GET | List session agents |
-| `/api/agents/:id` | GET | Get agent |
-| `/api/agents/:id/tools` | GET | List agent tools |
-| `/api/pricing` | GET | List pricing rules |
-| `/api/pricing` | POST | Create pricing rule |
-| `/api/pricing/:pattern` | DELETE | Delete pricing rule |
+| Endpoint                   | Method | Description         |
+| -------------------------- | ------ | ------------------- |
+| `/api/sessions`            | GET    | List sessions       |
+| `/api/sessions/:id`        | GET    | Get session         |
+| `/api/sessions/:id/agents` | GET    | List session agents |
+| `/api/agents/:id`          | GET    | Get agent           |
+| `/api/agents/:id/tools`    | GET    | List agent tools    |
+| `/api/pricing`             | GET    | List pricing rules  |
+| `/api/pricing`             | POST   | Create pricing rule |
+| `/api/pricing/:pattern`    | DELETE | Delete pricing rule |
 
 **Full Reference:** [API.md](./API.md#rest-api)
 
@@ -348,14 +359,14 @@ graph LR
 
 ### WebSocket Events
 
-| Event Type | Triggered By |
-|------------|--------------|
-| `session.created` | SessionStart hook |
-| `session.updated` | Any session update |
-| `agent.created` | New agent started |
-| `agent.updated` | Agent status/cost change |
-| `tool.executed` | Tool execution completed |
-| `notification.received` | System notification |
+| Event Type              | Triggered By             |
+| ----------------------- | ------------------------ |
+| `session.created`       | SessionStart hook        |
+| `session.updated`       | Any session update       |
+| `agent.created`         | New agent started        |
+| `agent.updated`         | Agent status/cost change |
+| `tool.executed`         | Tool execution completed |
+| `notification.received` | System notification      |
 
 **Full Reference:** [API.md](./API.md#websocket-api)
 
@@ -430,15 +441,16 @@ graph TB
 
 ### Benchmarks
 
-| Metric | Target | Actual |
-|--------|--------|--------|
-| Hook processing | < 100ms | ~70ms |
-| API response time | < 50ms | ~30ms |
-| WebSocket latency | < 10ms | ~5ms |
-| Database query | < 10ms | ~5ms |
-| Session list (50) | < 20ms | ~10ms |
+| Metric            | Target  | Actual |
+| ----------------- | ------- | ------ |
+| Hook processing   | < 100ms | ~70ms  |
+| API response time | < 50ms  | ~30ms  |
+| WebSocket latency | < 10ms  | ~5ms   |
+| Database query    | < 10ms  | ~5ms   |
+| Session list (50) | < 20ms  | ~10ms  |
 
 **Optimization Details:**
+
 - [Server Performance](../server/README.md#performance)
 - [Database Tuning](./DATABASE.md#performance-optimization)
 - [Client Performance](../client/README.md#performance)
@@ -465,7 +477,9 @@ graph LR
 
 **Before submitting:**
 
-1. Run tests: `npm test` (server `node --test` + client Vitest, including per-screen render snapshots — regenerate intentional UI changes with `cd client && npx vitest run -u`)
+1. Run tests: `npm test` (server `node --test` + client Vitest, including
+   per-screen render snapshots — regenerate intentional UI changes with
+   `cd client && npx vitest run -u`)
 2. Check formatting: `npm run format:check`
 3. Build: `npm run build`
 4. Update docs if needed
@@ -476,8 +490,10 @@ graph LR
 
 ### Getting Help
 
-- **Issues:** [GitHub Issues](https://github.com/your-org/agent-dashboard/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/your-org/agent-dashboard/discussions)
+- **Issues:**
+  [GitHub Issues](https://github.com/your-org/agent-dashboard/issues)
+- **Discussions:**
+  [GitHub Discussions](https://github.com/your-org/agent-dashboard/discussions)
 - **Documentation:** This folder
 
 ### Additional Resources
@@ -492,7 +508,8 @@ graph LR
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](../LICENSE) for details.
+This project is licensed under the MIT License. See [LICENSE](../LICENSE) for
+details.
 
 ---
 
@@ -505,7 +522,9 @@ This documentation covers:
 - ✅ **Deployment guides** - Docker, PM2, systemd, cloud
 - ✅ **Performance tuning** - Database, server, client optimizations
 - ✅ **Integration guides** - Hooks, MCP, custom clients
-- ✅ **Internationalization** - Language resources, switching flow, locale formatting, rollout checklist
+- ✅ **Internationalization** - Language resources, switching flow, locale
+  formatting, rollout checklist
 - ✅ **Development guides** - Setup, testing, contributing
 
-**Start with:** [SETUP.md](../SETUP.md) for installation, then explore specific areas based on your role.
+**Start with:** [SETUP.md](../SETUP.md) for installation, then explore specific
+areas based on your role.

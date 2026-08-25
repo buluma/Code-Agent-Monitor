@@ -11,12 +11,11 @@
  *    value is unambiguously UTC, then relies on `toLocale*` to render it back in the
  *    viewer's local zone. Timestamps that already carry a `Z` or `±HH:MM` offset are
  *    parsed as-is.
- * 2. **Locale awareness.** The dashboard ships five UI languages (English, Chinese,
- *    Vietnamese, Korean, Spanish). {@link getCurrentLocale} maps the active i18next language to a
- *    BCP-47 tag (`en-US`, `zh-CN`, `vi-VN`, `ko-KR`, `es-ES`) that the `Intl`/`toLocale*` APIs
+ * 2. **Locale awareness.** The dashboard is English-only. {@link getCurrentLocale} maps the
+ *    active i18next language to a BCP-47 tag (`en-US`) that the `Intl`/`toLocale*` APIs
  *    understand, so month names, AM/PM vs. 24-hour clocks, digit grouping and currency
- *    punctuation all follow the chosen language. Relative-time strings ("5m ago") are
- *    instead produced from translated i18next keys rather than `Intl.RelativeTimeFormat`.
+ *    punctuation all follow English conventions. Relative-time strings ("5m ago") are
+ *    produced from translated i18next keys rather than `Intl.RelativeTimeFormat`.
  *
  * Number/cost helpers ({@link fmt}, {@link fmtCost}, {@link fmtCostFull}) guard against
  * non-finite and negative input, and abbreviate large magnitudes with K/M/B suffixes for
@@ -188,48 +187,17 @@ function parseDate(iso: string): Date {
   return new Date(iso.replace(" ", "T") + "Z");
 }
 
-/** The five UI languages the dashboard localizes formatting for. */
-type SupportedLanguage = "en" | "zh" | "vi" | "ko" | "es";
-
-/**
- * Resolve the active i18next language down to one of the five {@link SupportedLanguage}
- * codes, defaulting to English for anything unrecognized.
- * @returns `"en" | "zh" | "vi" | "ko" | "es"`.
- * @remarks Reads `resolvedLanguage` first (the language i18next actually settled on after
- *   detection/fallback), then `language`, then `"en"`. The value is lowercased and its
- *   region subtag stripped (`split("-")[0]`), so `"en-US"`, `"zh-Hans-CN"` etc. collapse
- *   to their base language before the whitelist check.
- */
-function getCurrentLanguage(): SupportedLanguage {
-  const language = (i18n.resolvedLanguage ?? i18n.language ?? "en").toLowerCase().split("-")[0];
-  if (
-    language === "zh" ||
-    language === "vi" ||
-    language === "ko" ||
-    language === "es" ||
-    language === "en"
-  ) {
-    return language;
-  }
-  return "en"; // any other/undetected language -> English
-}
-
 /**
  * Maps the active i18next language to a `toLocaleString` BCP-47 locale tag,
  * so date/number formatting matches the UI's chosen language. Falls back to
  * "en-US" for any language not explicitly supported.
- * @returns One of `"zh-CN" | "vi-VN" | "ko-KR" | "es-ES" | "en-US"`.
- * @remarks The region subtag matters: it drives clock convention (English/Korean use
- *   12-hour AM/PM here via the `hour: "2-digit"` options, Chinese/Vietnamese lean 24-hour),
- *   month-name localization, and digit-group/decimal separators used by {@link fmtCostFull}.
+ * @returns `"en-US"`.
+ * @remarks The region subtag matters: it drives clock convention (12-hour AM/PM
+ *   via the `hour: "2-digit"` options), month-name localization, and
+ *   digit-group/decimal separators used by {@link fmtCostFull}.
  */
 export function getCurrentLocale(): string {
-  const language = getCurrentLanguage();
-  if (language === "zh") return "zh-CN"; // Simplified Chinese (mainland)
-  if (language === "vi") return "vi-VN"; // Vietnamese
-  if (language === "ko") return "ko-KR"; // Korean
-  if (language === "es") return "es-ES"; // Spanish (Spain)
-  return "en-US"; // default: US English
+  return "en-US"; // English only
 }
 
 // ===========================================================================

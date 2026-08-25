@@ -54,7 +54,7 @@
  *
  * ----------------------------------------------------------------------------- */
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { NavLink } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -79,7 +79,6 @@ import {
   Plug,
   Clock,
   Gauge,
-  Check,
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
@@ -87,7 +86,6 @@ import type { LucideIcon } from "lucide-react";
 import { api } from "../lib/api";
 import { eventBus } from "../lib/eventBus";
 import type { UpdateStatusPayload, WSMessage } from "../lib/types";
-import { Select } from "./Select";
 
 function isUpdatePayload(x: unknown): x is UpdateStatusPayload {
   return typeof x === "object" && x !== null && "git_repo" in x && "update_available" in x;
@@ -108,12 +106,6 @@ const NAV_KEYS = [
 const STORAGE_KEY = "sidebar-collapsed";
 const STATS_STORAGE_KEY = "sidebar-connection-stats";
 const RECENT_EVENTS_CAP = 8;
-const SUPPORTED_LANGUAGES = ["en", "zh", "vi", "ko", "es"] as const;
-type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
-
-const COLLAPSED_LANGUAGE_MENU_WIDTH = 240;
-const VIEWPORT_GUTTER = 12;
-const LANGUAGE_MENU_MAX_HEIGHT = 288;
 
 interface PersistedStats {
   eventCount: number;
@@ -172,169 +164,14 @@ function loadStats(): PersistedStats {
   }
 }
 
-function normalizeLanguage(language: string): SupportedLanguage {
-  const base = language.toLowerCase().split("-")[0];
-  if (base === "zh" || base === "vi" || base === "en" || base === "ko" || base === "es") {
-    return base;
-  }
-  return "en";
-}
-
 interface SidebarProps {
   wsConnected: boolean;
   collapsed: boolean;
   onToggle: () => void;
 }
 
-interface CollapsedLanguagePickerProps {
-  value: SupportedLanguage;
-  options: Array<{ value: SupportedLanguage; label: string; hint: string }>;
-  label: string;
-  onChange: (language: SupportedLanguage) => void;
-}
-
-/**
- * Keeps the collapsed-sidebar language control compact without forcing the
- * full option list into the narrow rail. The list is portalled to the body so
- * the sidebar's intentional overflow clipping cannot constrain it.
- */
-function CollapsedLanguagePicker({
-  value,
-  options,
-  label,
-  onChange,
-}: CollapsedLanguagePickerProps) {
-  const [open, setOpen] = useState(false);
-  const [menuPosition, setMenuPosition] = useState<{ left: number; top?: number; bottom?: number }>(
-    {
-      left: VIEWPORT_GUTTER,
-      top: VIEWPORT_GUTTER,
-    }
-  );
-  const triggerRef = useRef<HTMLButtonElement | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  const menuId = useId();
-
-  const positionMenu = useCallback(() => {
-    const trigger = triggerRef.current;
-    if (!trigger) return;
-
-    const rect = trigger.getBoundingClientRect();
-    const width = Math.min(COLLAPSED_LANGUAGE_MENU_WIDTH, window.innerWidth - VIEWPORT_GUTTER * 2);
-    const left = Math.min(
-      Math.max(VIEWPORT_GUTTER, rect.left),
-      Math.max(VIEWPORT_GUTTER, window.innerWidth - width - VIEWPORT_GUTTER)
-    );
-    const opensAbove =
-      window.innerHeight - rect.bottom < LANGUAGE_MENU_MAX_HEIGHT &&
-      rect.top > window.innerHeight - rect.bottom;
-
-    setMenuPosition(
-      opensAbove
-        ? { left, bottom: Math.max(VIEWPORT_GUTTER, window.innerHeight - rect.top + 8) }
-        : { left, top: Math.min(window.innerHeight - VIEWPORT_GUTTER, rect.bottom + 8) }
-    );
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
-
-    positionMenu();
-    const closeOnOutsidePress = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (triggerRef.current?.contains(target) || menuRef.current?.contains(target)) return;
-      setOpen(false);
-    };
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpen(false);
-        triggerRef.current?.focus();
-      }
-    };
-
-    document.addEventListener("mousedown", closeOnOutsidePress);
-    document.addEventListener("keydown", closeOnEscape);
-    window.addEventListener("resize", positionMenu);
-    window.addEventListener("scroll", positionMenu, true);
-    return () => {
-      document.removeEventListener("mousedown", closeOnOutsidePress);
-      document.removeEventListener("keydown", closeOnEscape);
-      window.removeEventListener("resize", positionMenu);
-      window.removeEventListener("scroll", positionMenu, true);
-    };
-  }, [open, positionMenu]);
-
-  const chooseLanguage = (language: SupportedLanguage) => {
-    onChange(language);
-    setOpen(false);
-    triggerRef.current?.focus();
-  };
-
-  const menu = open && typeof document !== "undefined" && (
-    <div
-      ref={menuRef}
-      id={menuId}
-      role="listbox"
-      aria-label={label}
-      className="fixed z-[80] max-h-72 overflow-auto rounded-lg border border-border bg-surface-1 py-1 shadow-xl shadow-black/40 animate-fade-in"
-      style={{
-        ...menuPosition,
-        width: `min(${COLLAPSED_LANGUAGE_MENU_WIDTH}px, calc(100vw - ${VIEWPORT_GUTTER * 2}px))`,
-      }}
-    >
-      {options.map((option) => {
-        const selected = option.value === value;
-        return (
-          <button
-            key={option.value}
-            type="button"
-            role="option"
-            aria-selected={selected}
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={() => chooseLanguage(option.value)}
-            className={`w-full px-3 py-2 text-left transition-colors hover:bg-surface-3 ${
-              selected ? "bg-accent/10" : ""
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <span
-                className={`min-w-0 flex-1 truncate text-xs ${
-                  selected ? "font-medium text-accent" : "text-gray-200"
-                }`}
-              >
-                {option.label}
-              </span>
-              {selected && <Check className="h-3.5 w-3.5 flex-shrink-0 text-accent" aria-hidden />}
-            </span>
-            <div className="mt-0.5 truncate text-[10px] text-gray-500">{option.hint}</div>
-          </button>
-        );
-      })}
-    </div>
-  );
-
-  return (
-    <>
-      <button
-        ref={triggerRef}
-        type="button"
-        aria-label={label}
-        title={label}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={menuId}
-        onClick={() => setOpen((wasOpen) => !wasOpen)}
-        className="flex h-10 w-full items-center justify-center rounded-lg border border-border bg-surface-2 text-gray-400 transition-colors hover:bg-surface-3 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent/30"
-      >
-        <Globe className="h-4 w-4" aria-hidden />
-      </button>
-      {menu && createPortal(menu, document.body)}
-    </>
-  );
-}
-
 export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const websiteLabel = "buluma.github.io";
   // Track whether nav items are clipped by overflow so we can render
   // chevron affordances pointing toward the hidden items. Recomputed on
@@ -526,18 +363,6 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
         : updateStatus
           ? t("nav:upToDate")
           : t("nav:checkForUpdates");
-  const currentLanguage = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
-  const languageOptions = SUPPORTED_LANGUAGES.map((language) => ({
-    value: language,
-    label: t(`nav:languageNames.${language}`),
-    hint: t(`nav:languageShort.${language}`),
-  }));
-
-  const changeLanguage = (language: SupportedLanguage) => {
-    if (language !== currentLanguage) {
-      i18n.changeLanguage(language);
-    }
-  };
 
   return (
     <aside
@@ -611,31 +436,6 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
           >
             <ChevronDown className="w-3.5 h-3.5" aria-hidden />
           </button>
-        )}
-      </div>
-
-      {/* Language controls */}
-      <div className="px-2 pb-2 flex-shrink-0">
-        {collapsed ? (
-          <CollapsedLanguagePicker
-            value={currentLanguage}
-            options={languageOptions}
-            label={t("nav:language")}
-            onChange={changeLanguage}
-          />
-        ) : (
-          <div className="rounded-lg border border-border bg-surface-2 p-2">
-            <p className="px-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
-              {t("nav:language")}
-            </p>
-            <div className="mt-2">
-              <Select<SupportedLanguage>
-                value={currentLanguage}
-                onChange={changeLanguage}
-                options={languageOptions}
-              />
-            </div>
-          </div>
         )}
       </div>
 

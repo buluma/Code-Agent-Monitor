@@ -5,8 +5,7 @@
  */
 
 import { beforeEach, describe, it, expect } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { Sidebar } from "../Sidebar";
 import i18n from "../../i18n";
@@ -68,63 +67,5 @@ describe("Sidebar", () => {
     expect(hrefs).toContain("/kanban");
     expect(hrefs).toContain("/sessions");
     expect(hrefs).toContain("/activity");
-  });
-
-  it("should expose all five languages through the custom dropdown", async () => {
-    const user = userEvent.setup();
-    renderSidebar(true);
-
-    expect(screen.getByRole("button", { name: "English" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "English" }));
-
-    expect(screen.getByRole("option", { name: "Chinese 中文" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Vietnamese VI" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Korean 한국어" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Spanish ES" })).toBeInTheDocument();
-  });
-
-  it("should switch to Vietnamese when Vietnamese option is clicked", async () => {
-    const user = userEvent.setup();
-    renderSidebar(true);
-
-    await user.click(screen.getByRole("button", { name: "English" }));
-    await user.click(screen.getByRole("option", { name: "Vietnamese VI" }));
-
-    await waitFor(() => {
-      expect(screen.getByText("Tổng quan")).toBeInTheDocument();
-      expect(screen.getByText("Bảng Kanban")).toBeInTheDocument();
-    });
-  });
-
-  it("should switch to Korean when Korean option is clicked", async () => {
-    const user = userEvent.setup();
-    renderSidebar(true);
-
-    await user.click(screen.getByRole("button", { name: "English" }));
-    await user.click(screen.getByRole("option", { name: "Korean 한국어" }));
-
-    await waitFor(() => {
-      expect(screen.getByText("대시보드")).toBeInTheDocument();
-      expect(screen.getByText("칸반 보드")).toBeInTheDocument();
-    });
-  });
-
-  it("should use an icon-only trigger and an unconstrained floating menu when collapsed", async () => {
-    const user = userEvent.setup();
-    renderSidebar(true, true);
-
-    const trigger = screen.getByRole("button", { name: "Language" });
-    expect(trigger).toHaveAttribute("aria-expanded", "false");
-
-    await user.click(trigger);
-    const menu = screen.getByRole("listbox", { name: "Language" });
-    expect(trigger).toHaveAttribute("aria-expanded", "true");
-    expect(menu).toHaveClass("fixed");
-    await user.click(screen.getByRole("option", { name: "Spanish ES" }));
-
-    await waitFor(() => {
-      expect(screen.getByTitle("Panel")).toBeInTheDocument();
-      expect(screen.getByTitle("Tablero Kanban")).toBeInTheDocument();
-    });
   });
 });

@@ -52,20 +52,5 @@
   "checkingForUpdates": "Checking for updates...",
   "updateAvailable": "Update available",
   "upToDate": "Up to date",
-  "checkFailed": "Update check failed",
-  "switchLanguage": "Switch to {{language}}",
-  "languageNames": {
-    "en": "English",
-    "zh": "Chinese",
-    "vi": "Vietnamese",
-    "ko": "Korean",
-    "es": "Spanish"
-  },
-  "languageShort": {
-    "en": "EN",
-    "zh": "中文",
-    "vi": "VI",
-    "ko": "한국어",
-    "es": "ES"
-  }
+  "checkFailed": "Update check failed"
 }

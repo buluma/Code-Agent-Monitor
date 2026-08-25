@@ -1,6 +1,7 @@
 # Client Application
 
-Enterprise-grade React + TypeScript dashboard for real-time Claude Code agent monitoring.
+Enterprise-grade React + TypeScript dashboard for real-time Claude Code agent
+monitoring.
 
 ![Claude Code](https://img.shields.io/badge/Claude_Code-orange?style=flat-square&logo=claude&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22.22-339933?style=flat-square&logo=node.js&logoColor=white)
@@ -51,11 +52,15 @@ Enterprise-grade React + TypeScript dashboard for real-time Claude Code agent mo
 
 ## Overview
 
-The client is a single-page application (SPA) built with modern web technologies:
+The client is a single-page application (SPA) built with modern web
+technologies:
 
-- **React 19.2** - Component-based UI with hooks and the current supported client runtime
-- **TypeScript 5.7** - Full type safety across components, utilities, and API contracts
-- **Vite 7.3** - Lightning-fast HMR during development, optimized production builds
+- **React 19.2** - Component-based UI with hooks and the current supported
+  client runtime
+- **TypeScript 5.7** - Full type safety across components, utilities, and API
+  contracts
+- **Vite 7.3** - Lightning-fast HMR during development, optimized production
+  builds
 - **Tailwind CSS 3.4** - Utility-first CSS framework for rapid UI development
 - **React Router 8.3** - Declarative client-side routing with nested layouts
 - **WebSocket** - Real-time event streaming from server
@@ -63,15 +68,55 @@ The client is a single-page application (SPA) built with modern web technologies
 
 ### First-run hook setup
 
-`SplashScreen.tsx` asks which provider data to display (Claude Code, Codex, or both) before dashboard routes render. Continuing checks the current hook state against that exact scope: Claude-only needs Claude hooks, Codex-only needs Codex hooks, and Both needs both. A ready selection enters the dashboard immediately. A partial or missing setup opens the live-monitoring gate with only the missing selected providers, then calls `POST /api/settings/install-hooks` for that subset and shows command output in place. A status-check failure remains fail-soft by opening manual setup for the full selected scope. API paths are deliberately excluded, so Swagger, ReDoc, and the raw OpenAPI document remain unobstructed and retain the dashboard favicon.
+`SplashScreen.tsx` asks which provider data to display (Claude Code, Codex, or
+both) before dashboard routes render. Continuing checks the current hook state
+against that exact scope: Claude-only needs Claude hooks, Codex-only needs Codex
+hooks, and Both needs both. A ready selection enters the dashboard immediately.
+A partial or missing setup opens the live-monitoring gate with only the missing
+selected providers, then calls `POST /api/settings/install-hooks` for that
+subset and shows command output in place. A status-check failure remains
+fail-soft by opening manual setup for the full selected scope. API paths are
+deliberately excluded, so Swagger, ReDoc, and the raw OpenAPI document remain
+unobstructed and retain the dashboard favicon.
 
-Chart legends use the shared `PaginatedLegend.tsx` component. Lists at or below the configured page size render exactly as before with no controls. Longer Analytics donut legends and data-driven Workflows legends render one bounded page at a time with localized Previous / Next buttons and an accessible visible-range announcement, so labels stay reachable without expanding the chart card indefinitely.
+Chart legends use the shared `PaginatedLegend.tsx` component. Lists at or below
+the configured page size render exactly as before with no controls. Longer
+Analytics donut legends and data-driven Workflows legends render one bounded
+page at a time with localized Previous / Next buttons and an accessible
+visible-range announcement, so labels stay reachable without expanding the chart
+card indefinitely.
 
 ### Run Agent and Agent Config
 
-`/run` deliberately opens on a provider choice, then keeps an accessible Claude Code / Codex toggle beside the live-status chip. Claude preserves the established headless and stream-json conversation experience. Codex uses the native local `codex app-server` protocol for a real interactive thread: it supports a model selected from the signed-in live catalog, its own approval policy and sandbox selection, stop, resume, follow-ups, and re-attach. WebSocket `run_stream` frames are normalized in `Run.tsx`, so both providers render messages, reasoning, command/tool activity, file changes, and status changes in the same resilient live view.
+`/run` deliberately opens on a provider choice, then keeps an accessible Claude
+Code / Codex toggle beside the live-status chip. Claude preserves the
+established headless and stream-json conversation experience. Codex uses the
+native local `codex app-server` protocol for a real interactive thread: it
+supports a model selected from the signed-in live catalog, its own approval
+policy and sandbox selection, stop, resume, follow-ups, and re-attach. WebSocket
+`run_stream` frames are normalized in `Run.tsx`, so both providers render
+messages, reasoning, command/tool activity, file changes, and status changes in
+the same resilient live view.
 
-`/cc-config` is presented as **Agent Config**. Its Claude Code switch keeps the existing editable, backup-first explorer. Its Codex switch renders `CodexConfigExplorer.tsx`, with a matching overview, stats, scrolling tab rail, redacted previews, real installed-plugin cards, and a full local account-model catalog that is not truncated by generic file-preview limits. Profiles are created as Codex-native `<name>.config.toml` overlays, opened immediately in the guarded editor, and expose a one-click copy action for their exact `codex --profile <name>` launch command. The explicit editor reads unredacted text only for its server allowlist, including `config.toml`, profiles, `hooks.json`, user rules, `SKILL.md` files, and Codex/project instructions, so redaction can never destroy real secret values on save. The server canonicalizes preview paths, rejects symlink escapes, and refuses payloads containing `[redacted]`. User-maintained profiles, hooks, rules, skills, and instruction files use Claude-parity View source / Copy path / Edit / Delete controls: deletion needs confirmation and makes a timestamped backup (a skill's complete directory is preserved). `config.toml` stays edit-only. The editor warns that syntax is not validated; saves are atomic and receive a timestamped backup. It subscribes to `codex_config_changed`, so a local CLI, filesystem, or dashboard edit refreshes visible configuration without a page reload.
+`/cc-config` is presented as **Agent Config**. Its Claude Code switch keeps the
+existing editable, backup-first explorer. Its Codex switch renders
+`CodexConfigExplorer.tsx`, with a matching overview, stats, scrolling tab rail,
+redacted previews, real installed-plugin cards, and a full local account-model
+catalog that is not truncated by generic file-preview limits. Profiles are
+created as Codex-native `<name>.config.toml` overlays, opened immediately in the
+guarded editor, and expose a one-click copy action for their exact
+`codex --profile <name>` launch command. The explicit editor reads unredacted
+text only for its server allowlist, including `config.toml`, profiles,
+`hooks.json`, user rules, `SKILL.md` files, and Codex/project instructions, so
+redaction can never destroy real secret values on save. The server canonicalizes
+preview paths, rejects symlink escapes, and refuses payloads containing
+`[redacted]`. User-maintained profiles, hooks, rules, skills, and instruction
+files use Claude-parity View source / Copy path / Edit / Delete controls:
+deletion needs confirmation and makes a timestamped backup (a skill's complete
+directory is preserved). `config.toml` stays edit-only. The editor warns that
+syntax is not validated; saves are atomic and receive a timestamped backup. It
+subscribes to `codex_config_changed`, so a local CLI, filesystem, or dashboard
+edit refreshes visible configuration without a page reload.
 
 ```mermaid
 graph TB
@@ -226,7 +271,7 @@ client/
 │   │   ├── useNotifications.ts  # Browser push notification triggers
 │   │   └── useSoundCues.ts      # Event-bus → synthesized audio cues
 │   │
-│   ├── i18n/               # Internationalization (en / zh / vi / ko / es)
+│   ├── i18n/               # Internationalization (en)
 │   ├── App.tsx             # Root component + router setup
 │   ├── main.tsx            # Entry point
 │   └── index.css           # Tailwind + custom utilities
@@ -301,17 +346,62 @@ sequenceDiagram
 
 ## State Management
 
-The client uses **local component state** and **React hooks** for state management. No global state library (Redux, Zustand) is used to keep the architecture simple. The one small exception is the **data-scope store** (`lib/dataScope.ts`): a lightweight app-wide store holding the current source set (`local` plus any configured [Remote Data Sources](../server/README.md#remote-data-sources)) and provider set (`claude`, `codex`, or both). Pages append the resulting `?sources=` and `?providers=` parameters to their API requests, so the Settings selector immediately narrows the whole app to the chosen machines and/or agents. Remote sources are managed from the Settings page via the `RemoteSources` component (`components/RemoteSources.tsx`), which configures independent `~/.claude` and `~/.codex` homes, renders provider-specific connection/sync results, drives the `/api/remote-sources` CRUD/test/sync endpoints, and reflects live `remote_source.status` WebSocket updates. A source can be Claude-only, Codex-only, or both; a healthy provider's data keeps refreshing even if its sibling provider is unavailable. When a sync finishes, stats pages refetch via `lib/remoteDataEvents.ts` (`remote_data.updated`, `remote_source.status` with `ok`, or remote `import.progress` complete).
+The client uses **local component state** and **React hooks** for state
+management. No global state library (Redux, Zustand) is used to keep the
+architecture simple. The one small exception is the **data-scope store**
+(`lib/dataScope.ts`): a lightweight app-wide store holding the current source
+set (`local` plus any configured
+[Remote Data Sources](../server/README.md#remote-data-sources)) and provider set
+(`claude`, `codex`, or both). Pages append the resulting `?sources=` and
+`?providers=` parameters to their API requests, so the Settings selector
+immediately narrows the whole app to the chosen machines and/or agents. Remote
+sources are managed from the Settings page via the `RemoteSources` component
+(`components/RemoteSources.tsx`), which configures independent `~/.claude` and
+`~/.codex` homes, renders provider-specific connection/sync results, drives the
+`/api/remote-sources` CRUD/test/sync endpoints, and reflects live
+`remote_source.status` WebSocket updates. A source can be Claude-only,
+Codex-only, or both; a healthy provider's data keeps refreshing even if its
+sibling provider is unavailable. When a sync finishes, stats pages refetch via
+`lib/remoteDataEvents.ts` (`remote_data.updated`, `remote_source.status` with
+`ok`, or remote `import.progress` complete).
 
-The Remote Data Sources form names its independent optional overrides **Remote Claude home** and **Remote Codex home**, with `~/.claude` / `~/.codex` defaults and `wsl:~/.claude` / `wsl:~/.codex` placeholders for CLI installs inside WSL.
+The Remote Data Sources form names its independent optional overrides **Remote
+Claude home** and **Remote Codex home**, with `~/.claude` / `~/.codex` defaults
+and `wsl:~/.claude` / `wsl:~/.codex` placeholders for CLI installs inside WSL.
 
-**Cursor sessions (informational):** Settings surfaces a subtle note on the Claude Code home, Import History, and Remote Data Sources panels — **Cursor** agent sessions count too because Cursor stores transcripts under the same `~/.claude` paths as Claude Code locally (and on synced remotes).
+**Cursor sessions (informational):** Settings surfaces a subtle note on the
+Claude Code home, Import History, and Remote Data Sources panels — **Cursor**
+agent sessions count too because Cursor stores transcripts under the same
+`~/.claude` paths as Claude Code locally (and on synced remotes).
 
-**Settings data and homes:** the **Dashboard Data** cards select Claude Code, Codex, or both through the same global `dataScope` store used by Remote Data Sources. Every scoped sessions, agents, events, workflow, analytics, token, and cost request re-fetches as soon as the selection changes. The Session Data Locations section independently saves the Claude Code root and the dashboard-specific Codex root; saving the latter asks the server to re-arm its live rollout watcher and scan the new `sessions/` tree immediately. **Import History** uses matching Claude Code / Codex tabs: switching tabs reloads source-specific instructions and paths, then sends the selected provider with rescan, folder, and upload actions while provider-tagged WebSocket progress keeps concurrent work isolated.
+**Settings data and homes:** the **Dashboard Data** cards select Claude Code,
+Codex, or both through the same global `dataScope` store used by Remote Data
+Sources. Every scoped sessions, agents, events, workflow, analytics, token, and
+cost request re-fetches as soon as the selection changes. The Session Data
+Locations section independently saves the Claude Code root and the
+dashboard-specific Codex root; saving the latter asks the server to re-arm its
+live rollout watcher and scan the new `sessions/` tree immediately. **Import
+History** uses matching Claude Code / Codex tabs: switching tabs reloads
+source-specific instructions and paths, then sends the selected provider with
+rescan, folder, and upload actions while provider-tagged WebSocket progress
+keeps concurrent work isolated.
 
-**Pricing controls:** the Claude and OpenAI GPT pricing sections use the same title, info-tooltip, **Reset Defaults**, and **Add Model** layout. Each Settings reset button resets only its own provider, while the GPT tooltip holds the USD-per-million-token units, 272K Short/Long threshold, Fast-mode behavior, pattern matching, manual-update guidance, and unpublished-rate handling that would otherwise crowd the table.
+**Pricing controls:** the Claude and OpenAI GPT pricing sections use the same
+title, info-tooltip, **Reset Defaults**, and **Add Model** layout. Each Settings
+reset button resets only its own provider, while the GPT tooltip holds the
+USD-per-million-token units, 272K Short/Long threshold, Fast-mode behavior,
+pattern matching, manual-update guidance, and unpublished-rate handling that
+would otherwise crowd the table.
 
-**Provider-aware card context:** Dashboard agent cards and Kanban session cards show compact task context beneath a meaningful provider-native title. Claude Code and Codex both expose up to two recent distinct human prompts as a bounded two-row history: Claude refreshes its small persisted summary from the shared local JSONL cache during live hooks, imports, and watchdog sweeps; Codex refreshes from rollout records, with `codex_user_message` events covering older imports. Every real-time `session_updated` refresh flows through the ordinary scoped data path. Conversation rows render safe persisted raster attachments and quietly hide missing/expired files.
+**Provider-aware card context:** Dashboard agent cards and Kanban session cards
+show compact task context beneath a meaningful provider-native title. Claude
+Code and Codex both expose up to two recent distinct human prompts as a bounded
+two-row history: Claude refreshes its small persisted summary from the shared
+local JSONL cache during live hooks, imports, and watchdog sweeps; Codex
+refreshes from rollout records, with `codex_user_message` events covering older
+imports. Every real-time `session_updated` refresh flows through the ordinary
+scoped data path. Conversation rows render safe persisted raster attachments and
+quietly hide missing/expired files.
 
 ### State Strategy
 
@@ -343,7 +433,8 @@ graph TB
 
 ### State Update Pattern
 
-1. **Initial Load**: Page component fetches data via API client on mount (`useEffect`)
+1. **Initial Load**: Page component fetches data via API client on mount
+   (`useEffect`)
 2. **URL Changes**: React Router triggers re-render, page refetches data
 3. **Real-time Updates**: WebSocket events trigger state updates via `EventBus`
 4. **User Actions**: Click handlers call API, optimistically update local state
@@ -355,18 +446,18 @@ function SessionDetailPage() {
   const { sessionId } = useParams();
   const [session, setSession] = useState(null);
   const [agents, setAgents] = useState([]);
-  
+
   // Initial load
   useEffect(() => {
     fetchSession(sessionId).then(setSession);
     fetchAgents(sessionId).then(setAgents);
   }, [sessionId]);
-  
+
   // Real-time updates
   useEffect(() => {
-    const unsubscribe = eventBus.on('agent.created', (agent) => {
+    const unsubscribe = eventBus.on("agent.created", (agent) => {
       if (agent.session_id === sessionId) {
-        setAgents(prev => [...prev, agent]);
+        setAgents((prev) => [...prev, agent]);
       }
     });
     return unsubscribe;
@@ -383,13 +474,16 @@ function SessionDetailPage() {
 Implemented in [`src/pages/Dashboard.tsx`](src/pages/Dashboard.tsx) and
 [`src/pages/Sessions.tsx`](src/pages/Sessions.tsx).
 
-`session_updated` fires on essentially every hook event of every active session, and the list requests it
-triggers are expensive server-side (`include_task_progress` re-parses live transcripts). Both pages therefore
-collapse WebSocket-driven reloads through a **2 s trailing throttle** rather than reloading per frame —
-Sessions previously reloaded un-debounced and Dashboard on a 300 ms debounce, which together produced a
-continuous parse storm with a few chatty sessions and one open tab. The trailing call keeps the list current,
-the existing periodic polls remain the backstop, and effect cleanup clears any pending reload so a stale
-closure cannot overwrite newer state after a filter change or unmount.
+`session_updated` fires on essentially every hook event of every active session,
+and the list requests it triggers are expensive server-side
+(`include_task_progress` re-parses live transcripts). Both pages therefore
+collapse WebSocket-driven reloads through a **2 s trailing throttle** rather
+than reloading per frame — Sessions previously reloaded un-debounced and
+Dashboard on a 300 ms debounce, which together produced a continuous parse storm
+with a few chatty sessions and one open tab. The trailing call keeps the list
+current, the existing periodic polls remain the backstop, and effect cleanup
+clears any pending reload so a stale closure cannot overwrite newer state after
+a filter change or unmount.
 
 Validate with:
 
@@ -437,16 +531,16 @@ sequenceDiagram
 
 Server broadcasts these event types over WebSocket:
 
-| Event Type | Payload | Triggered By |
-|------------|---------|--------------|
-| `session.created` | Session object | SessionStart hook |
-| `session.updated` | Session object | Any hook touching session |
-| `agent.created` | Agent object | PreToolUse hook |
-| `agent.updated` | Agent object | PostToolUse/Stop hooks |
-| `tool.executed` | Tool execution record | PostToolUse hook |
-| `notification.received` | Notification object | Notification hook |
-| `remote_source.status` | `{ id, status, error?, providers?, last_sync_at? }` (`status`: `idle`/`syncing`/`ok`/`error`/`deleted`; each provider can also be `unavailable`) | Remote Data Source sync poller + `/api/remote-sources` routes |
-| `remote_data.updated` | `{ sourceId, source, label?, counters?, providers?, last_sync_at? }` | Emitted once per successful remote sync; provider-aware counters trigger stats/cost/session refetches. The server also broadcasts `session_created` / `session_updated` (and main-agent frames) for each mirrored session so Kanban/Sessions update immediately |
+| Event Type              | Payload                                                                                                                                          | Triggered By                                                                                                                                                                                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `session.created`       | Session object                                                                                                                                   | SessionStart hook                                                                                                                                                                                                                                               |
+| `session.updated`       | Session object                                                                                                                                   | Any hook touching session                                                                                                                                                                                                                                       |
+| `agent.created`         | Agent object                                                                                                                                     | PreToolUse hook                                                                                                                                                                                                                                                 |
+| `agent.updated`         | Agent object                                                                                                                                     | PostToolUse/Stop hooks                                                                                                                                                                                                                                          |
+| `tool.executed`         | Tool execution record                                                                                                                            | PostToolUse hook                                                                                                                                                                                                                                                |
+| `notification.received` | Notification object                                                                                                                              | Notification hook                                                                                                                                                                                                                                               |
+| `remote_source.status`  | `{ id, status, error?, providers?, last_sync_at? }` (`status`: `idle`/`syncing`/`ok`/`error`/`deleted`; each provider can also be `unavailable`) | Remote Data Source sync poller + `/api/remote-sources` routes                                                                                                                                                                                                   |
+| `remote_data.updated`   | `{ sourceId, source, label?, counters?, providers?, last_sync_at? }`                                                                             | Emitted once per successful remote sync; provider-aware counters trigger stats/cost/session refetches. The server also broadcasts `session_created` / `session_updated` (and main-agent frames) for each mirrored session so Kanban/Sessions update immediately |
 
 ### EventBus Pattern
 
@@ -456,19 +550,19 @@ The `eventBus` is a simple pub/sub system:
 // lib/eventBus.ts
 class EventBus {
   private listeners = new Map<string, Set<Function>>();
-  
+
   on(event: string, callback: Function): () => void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
     this.listeners.get(event)!.add(callback);
-    
+
     // Return unsubscribe function
     return () => this.listeners.get(event)?.delete(callback);
   }
-  
+
   emit(event: string, data: any): void {
-    this.listeners.get(event)?.forEach(cb => cb(data));
+    this.listeners.get(event)?.forEach((cb) => cb(data));
   }
 }
 
@@ -479,7 +573,7 @@ Usage in components:
 
 ```typescript
 useEffect(() => {
-  const unsubscribe = eventBus.on('session.created', handleNewSession);
+  const unsubscribe = eventBus.on("session.created", handleNewSession);
   return unsubscribe; // Cleanup on unmount
 }, []);
 ```
@@ -516,7 +610,7 @@ graph TB
 
 ```tsx
 // App.tsx
-import { BrowserRouter, Routes, Route } from 'react-router';
+import { BrowserRouter, Route, Routes } from "react-router";
 
 function App() {
   return (
@@ -583,7 +677,7 @@ graph LR
 
 ```typescript
 // lib/api.ts
-const BASE_URL = 'http://localhost:4820';
+const BASE_URL = "http://localhost:4820";
 
 class APIClient {
   private async request(path: string, options?: RequestInit) {
@@ -591,34 +685,42 @@ class APIClient {
     if (!response.ok) throw new Error(`API error: ${response.statusText}`);
     return response.json();
   }
-  
+
   // Sessions
-  getSessions() { return this.request('/api/sessions'); }
-  getSession(id: string) { return this.request(`/api/sessions/${id}`); }
-  
+  getSessions() {
+    return this.request("/api/sessions");
+  }
+  getSession(id: string) {
+    return this.request(`/api/sessions/${id}`);
+  }
+
   // Agents
   getAgents(sessionId: string) {
     return this.request(`/api/sessions/${sessionId}/agents`);
   }
-  getAgent(id: string) { return this.request(`/api/agents/${id}`); }
-  
+  getAgent(id: string) {
+    return this.request(`/api/agents/${id}`);
+  }
+
   // Tools
   getTools(agentId: string) {
     return this.request(`/api/agents/${agentId}/tools`);
   }
-  
+
   // Pricing
-  getPricingRules() { return this.request('/api/pricing'); }
+  getPricingRules() {
+    return this.request("/api/pricing");
+  }
   createPricingRule(rule: PricingRule) {
-    return this.request('/api/pricing', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(rule)
+    return this.request("/api/pricing", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rule),
     });
   }
   deletePricingRule(pattern: string) {
     return this.request(`/api/pricing/${encodeURIComponent(pattern)}`, {
-      method: 'DELETE'
+      method: "DELETE",
     });
   }
 }
@@ -626,7 +728,11 @@ class APIClient {
 export const api = new APIClient();
 ```
 
-> **API reference:** the endpoints this client calls are fully documented by the server's OpenAPI 3.0.3 spec. With the dashboard running (default port `4820`), explore them at `/api/docs` (interactive Swagger UI), `/api/redoc` (read-optimized ReDoc reference), or `/api/openapi.json` (raw spec). A committed `openapi.yaml` at the repo root mirrors the live spec.
+> **API reference:** the endpoints this client calls are fully documented by the
+> server's OpenAPI 3.0.3 spec. With the dashboard running (default port `4820`),
+> explore them at `/api/docs` (interactive Swagger UI), `/api/redoc`
+> (read-optimized ReDoc reference), or `/api/openapi.json` (raw spec). A
+> committed `openapi.yaml` at the repo root mirrors the live spec.
 
 ### Error Handling
 
@@ -661,6 +767,7 @@ graph TB
 Displays session summary with status, model, cost, and agent count.
 
 **Props:**
+
 ```typescript
 interface SessionCardProps {
   session: Session;
@@ -668,6 +775,7 @@ interface SessionCardProps {
 ```
 
 **Visual Structure:**
+
 ```
 ┌────────────────────────────────────────┐
 │ 🟢 Session Title         $0.45         │
@@ -695,6 +803,7 @@ Dashboard and Kanban. That row remains non-navigable until the durable session
 ID replaces it; durable totals and later pages stay unchanged.
 
 **Props:**
+
 ```typescript
 interface AgentCardProps {
   agent: Agent;
@@ -703,16 +812,17 @@ interface AgentCardProps {
 
 #### StatusBadge
 
-Colored status pills for agents (`AgentStatusBadge`) and sessions (`SessionStatusBadge`). When a row is in the yellow **Waiting** overlay (`awaiting_input_since` set), an optional `reason` prop explains WHY: a hover tooltip carries the full explanation, and — unless `compact` is set — a small nested chip (icon + short label) renders inline. Card layouts (Kanban / Dashboard trees) pass `compact` so the chip never squeezes the card title; the Sessions table and session-detail header show the full chip:
+Colored status pills for agents (`AgentStatusBadge`) and sessions (`SessionStatusBadge`). When a row is in the yellow **Waiting** overlay (`awaiting_input_since` set), an optional `reason` prop explains WHY: a hover tooltip carries the full explanation, and — unless `compact` is set — a small nested chip (icon + short label) renders inline. Card layouts (Kanban / Dashboard trees) pass `compact` so the chip never squeezes the card title; the Sessions table and session-detail header show the full chip: 
 
-| `awaiting_reason` | Label | Meaning |
-| ----------------- | ----- | ------- |
-| `notification` | Needs input | Blocked on a permission prompt / input request (urgent — amber) |
-| `stop` | Turn done | Claude finished its reply; idle until the next prompt |
-| `session_start` | At prompt | Fresh/resumed CLI sitting at an empty prompt |
-| `interrupted` | Interrupted | Turn cut short — Esc or a recovered hook (urgent — amber) |
+| `awaiting_reason` | Label       | Meaning                                                         |
+| ----------------- | ----------- | --------------------------------------------------------------- |
+| `notification`    | Needs input | Blocked on a permission prompt / input request (urgent — amber) |
+| `stop`            | Turn done   | Claude finished its reply; idle until the next prompt           |
+| `session_start`   | At prompt   | Fresh/resumed CLI sitting at an empty prompt                    |
+| `interrupted`     | Interrupted | Turn cut short — Esc or a recovered hook (urgent — amber)       |
 
 **Props:**
+
 ```typescript
 interface AgentStatusBadgeProps {
   status: EffectiveAgentStatus;
@@ -722,13 +832,17 @@ interface AgentStatusBadgeProps {
 }
 ```
 
-Unknown/future server reasons degrade to a plain Waiting badge (`normalizeAwaitingReason` filters them to null). SessionDetail additionally renders a waiting-for-input banner (same reason + relative time) under the header via the shared `REASON_ICONS` map.
+Unknown/future server reasons degrade to a plain Waiting badge
+(`normalizeAwaitingReason` filters them to null). SessionDetail additionally
+renders a waiting-for-input banner (same reason + relative time) under the
+header via the shared `REASON_ICONS` map.
 
 #### ToolCard
 
 Displays tool execution details with timing and token usage.
 
 **Props:**
+
 ```typescript
 interface ToolCardProps {
   tool: ToolExecution;
@@ -762,7 +876,8 @@ graph TB
 
 #### ActivityFeed (`pages/ActivityFeed.tsx`)
 
-Real-time streaming event log with pause/resume, pagination, and inline payload expansion.
+Real-time streaming event log with pause/resume, pagination, and inline payload
+expansion.
 
 **UX interaction model:**
 
@@ -779,14 +894,19 @@ flowchart LR
     style NAV fill:#8B5CF6,stroke:#A78BFA,color:#fff
 ```
 
-- The entire row is clickable (keyboard accessible via `Enter`/`Space`) and toggles the `EventDetail` dropdown.
-- The chevron icon rotates 90° when a row is expanded — it is a visual indicator only, not a separate button.
-- The **Session →** button uses `e.stopPropagation()` so navigating to session details never collapses an open payload panel.
+- The entire row is clickable (keyboard accessible via `Enter`/`Space`) and
+  toggles the `EventDetail` dropdown.
+- The chevron icon rotates 90° when a row is expanded — it is a visual indicator
+  only, not a separate button.
+- The **Session →** button uses `e.stopPropagation()` so navigating to session
+  details never collapses an open payload panel.
 - Multiple rows can be expanded simultaneously (state stored in `Set<number>`).
 
 #### EventDetail (`components/EventDetail.tsx`)
 
-Renders the hook payload for a single event inline below its row. Scalars appear as `key: value` pairs; objects and arrays render in a terminal-styled code block with a copy button.
+Renders the hook payload for a single event inline below its row. Scalars appear
+as `key: value` pairs; objects and arrays render in a terminal-styled code block
+with a copy button.
 
 ---
 
@@ -840,18 +960,18 @@ The client keeps every user preference in the browser rather than the database,
 so preferences stay per-machine and no settings round-trip is needed. There is
 no central store — each feature owns its own key — so this is the inventory:
 
-| Key | Storage | Owner | Holds |
-| --- | --- | --- | --- |
-| `agent-monitor-sound` | local | `lib/sound.ts` | Audio-cue preferences: master switch, volume, per-cue flags. Defaults to enabled |
-| `agent-monitor-notifications` | local | `hooks/useNotifications.ts` | Browser-notification preferences. Defaults to disabled (opt-in, needs permission) |
-| `agent-monitor-update-dismissed-sha` | local | `components/UpdateNotifier.tsx` | Upstream SHA the user dismissed, so a new commit re-surfaces the notice |
-| `agent-dashboard-tabby-enabled` | local | `components/Tabby/prefs.ts` | Whether the Tabby companion is shown |
-| `agent-dashboard-tabby-muted` | local | `components/Tabby/prefs.ts` | Whether Tabby's speech bubbles are muted |
-| `agent-dashboard-tabby-pos` | local | `components/Tabby/prefs.ts` | Tabby's docked edge and vertical offset, as a viewport fraction |
-| `ccam-data-scope` | local | `lib/dataScope.ts` | App-wide data scope — selected remote sources and providers |
-| `sidebar-collapsed` | local | `components/Sidebar.tsx` | Sidebar collapsed state |
-| `sidebar-connection-stats` | local | `components/Sidebar.tsx` | Cumulative WebSocket stats for the connection modal |
-| `provider-onboarding-shown-v1` | **session** | `components/SplashScreen.tsx` | Splash shown once per browser session, not once ever |
+| Key                                  | Storage     | Owner                           | Holds                                                                             |
+| ------------------------------------ | ----------- | ------------------------------- | --------------------------------------------------------------------------------- |
+| `agent-monitor-sound`                | local       | `lib/sound.ts`                  | Audio-cue preferences: master switch, volume, per-cue flags. Defaults to enabled  |
+| `agent-monitor-notifications`        | local       | `hooks/useNotifications.ts`     | Browser-notification preferences. Defaults to disabled (opt-in, needs permission) |
+| `agent-monitor-update-dismissed-sha` | local       | `components/UpdateNotifier.tsx` | Upstream SHA the user dismissed, so a new commit re-surfaces the notice           |
+| `agent-dashboard-tabby-enabled`      | local       | `components/Tabby/prefs.ts`     | Whether the Tabby companion is shown                                              |
+| `agent-dashboard-tabby-muted`        | local       | `components/Tabby/prefs.ts`     | Whether Tabby's speech bubbles are muted                                          |
+| `agent-dashboard-tabby-pos`          | local       | `components/Tabby/prefs.ts`     | Tabby's docked edge and vertical offset, as a viewport fraction                   |
+| `ccam-data-scope`                    | local       | `lib/dataScope.ts`              | App-wide data scope — selected remote sources and providers                       |
+| `sidebar-collapsed`                  | local       | `components/Sidebar.tsx`        | Sidebar collapsed state                                                           |
+| `sidebar-connection-stats`           | local       | `components/Sidebar.tsx`        | Cumulative WebSocket stats for the connection modal                               |
+| `provider-onboarding-shown-v1`       | **session** | `components/SplashScreen.tsx`   | Splash shown once per browser session, not once ever                              |
 
 Conventions worth keeping:
 
@@ -866,21 +986,30 @@ Conventions worth keeping:
 
 ### Audio cues (lib/sound.ts + hooks/useSoundCues.ts)
 
-`lib/sound.ts` is a self-contained audio-cue engine. It ships **no audio files and no third-party dependency** — every cue is synthesized at play time with the Web Audio API from a declarative list of partials (frequency, offset, duration, peak gain, oscillator type), routed through a master gain node and a low-pass filter.
+`lib/sound.ts` is a self-contained audio-cue engine. It ships **no audio files
+and no third-party dependency** — every cue is synthesized at play time with the Web Audio API from a declarative list of partials (frequency, offset, duration, peak gain, oscillator type), routed through a master gain node and a low-pass filter. 
 
-| Export | Purpose |
-| --- | --- |
-| `playCue(cue, { force })` | Plays one of `sessionStart`, `sessionComplete`, `sessionError`, `subagentSpawn`, `notification`, `connected`, `disconnected`, `click`. Returns whether audio was actually scheduled. `force` bypasses the per-cue flag and the rate limiter (used by the Settings previews). |
-| `getSoundPrefs()` / `setSoundPrefs(patch)` | Read / merge-write the `SoundPrefs` object persisted to `localStorage` under `agent-monitor-sound`. Defaults have `enabled: true`. |
-| `subscribeToSoundPrefs(handler)` | Subscribe to preference changes within the tab; returns an unsubscribe function. |
-| `installSoundUnlock()` / `unlockSound()` | Satisfy browser autoplay policy — cues stay silent until the first pointer / key / touch gesture. |
-| `DEFAULT_SOUND_PREFS` | The shipped defaults, also used as the merge base for partial saved objects. |
+| Export                                     | Purpose                                                                                                                                                                                                                                                                      | | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | | `playCue(cue, { force })`                  | Plays one of `sessionStart`, `sessionComplete`, `sessionError`, `subagentSpawn`, `notification`, `connected`, `disconnected`, `click`. Returns whether audio was actually scheduled. `force` bypasses the per-cue flag and the rate limiter (used by the Settings previews). | | `getSoundPrefs()` / `setSoundPrefs(patch)` | Read / merge-write the `SoundPrefs` object persisted to `localStorage` under `agent-monitor-sound`. Defaults have `enabled: true`.                                                                                                                                           | | `subscribeToSoundPrefs(handler)`           | Subscribe to preference changes within the tab; returns an unsubscribe function.                                                                                                                                                                                             | 
+| `installSoundUnlock()` / `unlockSound()`   | Satisfy browser autoplay policy — cues stay silent until the first pointer / key / touch gesture.                                                                                                                                                                            |
+| `DEFAULT_SOUND_PREFS`                      | The shipped defaults, also used as the merge base for partial saved objects.                                                                                                                                                                                                 |
 
-`hooks/useSoundCues.ts` is the automatic, event-driven consumer of the engine (the Settings page is the other caller, driving `playCue(..., { force: true })` for its previews). Mounted once in `App.tsx`, it subscribes to `eventBus` (mapping `session_created`, `session_updated` with `status: "error"`, `agent_created` for subagents, and `new_event` for `Stop` / `SessionEnd` / `Notification`), to `eventBus.onConnection`, and installs a single delegated `pointerdown` listener for the interaction tick. It adds **no new WebSocket message types** and no server-side code.
+`hooks/useSoundCues.ts` is the automatic, event-driven consumer of the engine
+(the Settings page is the other caller, driving `playCue(..., { force: true })`
+for its previews). Mounted once in `App.tsx`, it subscribes to `eventBus`
+(mapping `session_created`, `session_updated` with `status: "error"`,
+`agent_created` for subagents, and `new_event` for `Stop` / `SessionEnd` /
+`Notification`), to `eventBus.onConnection`, and installs a single delegated
+`pointerdown` listener for the interaction tick. It adds **no new WebSocket
+message types** and no server-side code.
 
-Playback is throttled by a per-cue cooldown (~350 ms; 45 ms for `click`) plus a global budget of 4 cues per 1.2 s, so a burst of WebSocket traffic never becomes a burst of sound. Every call degrades to a silent no-op when sound is disabled, the volume is zero, the cue's own toggle is off, no gesture has happened yet, or Web Audio is unavailable.
+Playback is throttled by a per-cue cooldown (~350 ms; 45 ms for `click`) plus a
+global budget of 4 cues per 1.2 s, so a burst of WebSocket traffic never becomes
+a burst of sound. Every call degrades to a silent no-op when sound is disabled,
+the volume is zero, the cue's own toggle is off, no gesture has happened yet, or
+Web Audio is unavailable.
 
-Users control all of this from **Settings → Sound** (master toggle, volume slider, per-cue switches, preview button).
+Users control all of this from **Settings → Sound** (master toggle, volume
+slider, per-cue switches, preview button).
 
 ### Type Definitions (lib/types.ts)
 
@@ -891,7 +1020,7 @@ interface Session {
   id: string;
   session_id: string;
   model: string;
-  status: 'active' | 'completed' | 'error' | 'abandoned';
+  status: "active" | "completed" | "error" | "abandoned";
   total_cost: number;
   created_at: string;
   updated_at: string;
@@ -902,7 +1031,7 @@ interface Agent {
   agent_id: string;
   session_id: string;
   agent_type: string;
-  status: 'working' | 'waiting' | 'completed' | 'error';
+  status: "working" | "waiting" | "completed" | "error";
   input_tokens: number;
   output_tokens: number;
   cost: number;
@@ -965,23 +1094,23 @@ npm run test:coverage
 
 ```tsx
 // components/__tests__/SessionCard.test.tsx
-import { render, screen } from '@testing-library/react';
-import { SessionCard } from '../SessionCard';
+import { render, screen } from "@testing-library/react";
+import { SessionCard } from "../SessionCard";
 
-test('renders session title and cost', () => {
+test("renders session title and cost", () => {
   const session = {
-    id: '1',
-    session_id: 'sess_123',
-    model: 'claude-sonnet-4',
+    id: "1",
+    session_id: "sess_123",
+    model: "claude-sonnet-4",
     total_cost: 1.23,
-    status: 'active',
-    created_at: '2024-03-18T12:00:00Z'
+    status: "active",
+    created_at: "2024-03-18T12:00:00Z",
   };
-  
+
   render(<SessionCard session={session} />);
-  
-  expect(screen.getByText('sess_123')).toBeInTheDocument();
-  expect(screen.getByText('$1.23')).toBeInTheDocument();
+
+  expect(screen.getByText("sess_123")).toBeInTheDocument();
+  expect(screen.getByText("$1.23")).toBeInTheDocument();
 });
 ```
 
@@ -997,10 +1126,10 @@ localized copy.
 To keep snapshots **deterministic** across machines and CI, the suite:
 
 - mocks the API layer (`vi.mock("../../lib/api", …)`) to a loaded-empty state
-  (empty collections + zeroed scalars), so no live data or noisy chart DOM
-  leaks in — `importOriginal` keeps non-`api` exports real;
-- stubs `eventBus`, push notifications, and the jsdom-missing
-  `ResizeObserver` / `IntersectionObserver` / `matchMedia` / `scroll*` APIs;
+  (empty collections + zeroed scalars), so no live data or noisy chart DOM leaks
+  in — `importOriginal` keeps non-`api` exports real;
+- stubs `eventBus`, push notifications, and the jsdom-missing `ResizeObserver` /
+  `IntersectionObserver` / `matchMedia` / `scroll*` APIs;
 - pins the clock (`vi.useFakeTimers`) and timezone (`TZ=UTC`) so any rendered
   timestamps are stable.
 
@@ -1089,10 +1218,11 @@ npm run dev
 
 ### Environment Variables
 
-The client uses hardcoded API URL (`http://localhost:4820`). For custom configuration, update `lib/api.ts`:
+The client uses hardcoded API URL (`http://localhost:4820`). For custom
+configuration, update `lib/api.ts`:
 
 ```typescript
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4820';
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4820";
 ```
 
 Then create `.env`:
@@ -1172,7 +1302,7 @@ graph TB
 For large lists (100+ sessions), implement virtual scrolling:
 
 ```tsx
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 function SessionList({ sessions }) {
   const parentRef = useRef(null);
@@ -1181,11 +1311,11 @@ function SessionList({ sessions }) {
     getScrollElement: () => parentRef.current,
     estimateSize: () => 100, // estimated row height
   });
-  
+
   return (
-    <div ref={parentRef} style={{ height: '600px', overflow: 'auto' }}>
+    <div ref={parentRef} style={{ height: "600px", overflow: "auto" }}>
       <div style={{ height: `${virtualizer.getTotalSize()}px` }}>
-        {virtualizer.getVirtualItems().map(virtualRow => (
+        {virtualizer.getVirtualItems().map((virtualRow) => (
           <SessionCard
             key={sessions[virtualRow.index].id}
             session={sessions[virtualRow.index]}
@@ -1243,7 +1373,7 @@ graph TB
   className="focus:outline-blue-500"
 >
   <Trash2 aria-hidden="true" />
-</button>
+</button>;
 ```
 
 ---

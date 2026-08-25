@@ -105,30 +105,18 @@ describe("timeAgo", () => {
 });
 
 describe("locale-aware date formatting", () => {
-  it("should map selected language to the expected locale", async () => {
-    await i18n.changeLanguage("zh");
-    expect(getCurrentLocale()).toBe("zh-CN");
-
-    await i18n.changeLanguage("vi");
-    expect(getCurrentLocale()).toBe("vi-VN");
-
-    await i18n.changeLanguage("ko");
-    expect(getCurrentLocale()).toBe("ko-KR");
-
-    await i18n.changeLanguage("es");
-    expect(getCurrentLocale()).toBe("es-ES");
-
+  it("should map selected language to en-US locale", async () => {
     await i18n.changeLanguage("en");
     expect(getCurrentLocale()).toBe("en-US");
   });
 
-  it("should format date-time using the active locale", async () => {
+  it("should format date-time using en-US locale", async () => {
     const spy = vi.spyOn(Date.prototype, "toLocaleString").mockReturnValue("formatted-datetime");
-    await i18n.changeLanguage("vi");
+    await i18n.changeLanguage("en");
 
     expect(formatDateTime("2026-03-05T10:00:00.000Z")).toBe("formatted-datetime");
     expect(spy).toHaveBeenCalledWith(
-      "vi-VN",
+      "en-US",
       expect.objectContaining({
         month: "short",
         day: "numeric",
@@ -138,13 +126,13 @@ describe("locale-aware date formatting", () => {
     );
   });
 
-  it("should format time using the active locale", async () => {
+  it("should format time using en-US locale", async () => {
     const spy = vi.spyOn(Date.prototype, "toLocaleTimeString").mockReturnValue("formatted-time");
-    await i18n.changeLanguage("zh");
+    await i18n.changeLanguage("en");
 
     expect(formatTime("2026-03-05T10:00:00.000Z")).toBe("formatted-time");
     expect(spy).toHaveBeenCalledWith(
-      "zh-CN",
+      "en-US",
       expect.objectContaining({
         hour: "2-digit",
         minute: "2-digit",
