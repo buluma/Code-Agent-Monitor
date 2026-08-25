@@ -1,12 +1,12 @@
 /**
  * @file tool-context.ts
  * @description Defines the ToolContext interface, which encapsulates the necessary context for tool handlers in the MCP application. This context includes references to the MCP server instance, application configuration, dashboard API client, and logger. The ToolContext is passed to tool registration functions to provide them with access to these resources when defining and implementing tools. This design promotes modularity and separation of concerns by centralizing shared dependencies in a single context object.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/types/tool-context.ts`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/types/tool-context.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints

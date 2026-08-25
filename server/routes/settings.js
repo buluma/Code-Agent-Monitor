@@ -2,7 +2,7 @@
  * @file Express router for dashboard settings: system information, pricing and
  * hook operations, data maintenance, and live-safe Claude Code/Codex session
  * home configuration for the frontend Settings experience.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { Router } = require("express");

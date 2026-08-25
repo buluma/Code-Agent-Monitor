@@ -6,7 +6,7 @@
 # This image is ONLY used by Dev Containers / Codespaces. Host-based development
 # (npm run dev / npm start) is unaffected.
 #
-# Author: Son Nguyen <hoangson091104@gmail.com>
+# Author: Michael Buluma <1452922+buluma@users.noreply.github.com>
 FROM mcr.microsoft.com/devcontainers/javascript-node:24
 
 # node-gyp needs python3 + a C/C++ toolchain to compile better-sqlite3.

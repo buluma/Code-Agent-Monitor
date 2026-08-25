@@ -30,7 +30,7 @@
  *   - GET   /api/agents/{id}                     (getAgent)
  *   - PATCH /api/agents/{id}                     (updateAgent)
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const tags = [];

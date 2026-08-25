@@ -2,7 +2,7 @@
  * @file webhook-tools.ts
  * @description MCP tools for provider discovery, redacted webhook target
  * management, test delivery, and delivery-log inspection.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { z } from "zod";

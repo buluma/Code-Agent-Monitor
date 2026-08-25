@@ -3,7 +3,7 @@
  * tightly scoped text-file editing/deletion with timestamped backups, and
  * explicit creation of Codex profile overlays. Only configuration surfaces
  * users commonly maintain are mutable; the base config remains edit-only.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { Router } = require("express");

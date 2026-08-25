@@ -2,7 +2,7 @@
  * @file settings-tools.ts
  * @description MCP tools for dashboard update status, hook installation, and
  * live-safe Claude Code/Codex home-directory configuration.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { z } from "zod";

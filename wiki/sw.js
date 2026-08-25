@@ -1,15 +1,15 @@
 /**
  * Service Worker for Wiki PWA - Caches static assets and serves them when offline.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
-const CACHE_NAME = "wiki-v105";
+const CACHE_NAME = "wiki-v106";
 const PRECACHE = [
   "./",
   "./index.html",
   "./style.css",
-  "./script.js?v=57",
-  "./i18n-content.js?v=86",
+  "./script.js?v=58",
+  "./i18n-content.js?v=87",
   "./manifest.json",
   "../favicon.svg",
 ];

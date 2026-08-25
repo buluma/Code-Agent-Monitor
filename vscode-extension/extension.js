@@ -4,7 +4,7 @@
  * Implements a dynamic dashboard view that checks for active servers on ports 5173 and 4820.
  * Provides real-time status updates in the sidebar and status bar with background polling.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const vscode = require("vscode");
@@ -317,7 +317,7 @@ npm run setup</div>
                     Retry Connection
                 </button>
                 
-                <a href="https://hoangsonww.github.io/Claude-Code-Agent-Monitor/" class="btn btn-secondary">
+                <a href="https://buluma.github.io/Code-Agent-Monitor/" class="btn btn-secondary">
                     View Documentation
                 </a>
             </div>
@@ -325,7 +325,7 @@ npm run setup</div>
 
         <div class="footer">
             <a href="https://github.com/buluma/Code-Agent-Monitor">GitHub</a>
-            <a href="https://hoangsonww.github.io/Claude-Code-Agent-Monitor/">Wiki</a>
+            <a href="https://buluma.github.io/Code-Agent-Monitor/">Wiki</a>
             <a href="https://github.com/buluma/Code-Agent-Monitor/issues">Support</a>
         </div>
     </div>

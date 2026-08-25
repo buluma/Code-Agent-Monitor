@@ -5,7 +5,7 @@
  * `/api/openapi.json` and this committed YAML mirror are therefore always in
  * sync: run `npm run openapi:yaml` after any spec change. Never hand-edit
  * `openapi.yaml`.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("fs");

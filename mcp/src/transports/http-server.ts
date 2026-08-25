@@ -1,12 +1,12 @@
 /**
  * @file http-server.ts
  * @description Implements the HTTP server transport for the MCP server, supporting both the newer Streamable HTTP protocol and the legacy SSE-based protocol. The server handles incoming requests, manages active sessions, and routes messages to the appropriate transport handlers. It also includes a health check endpoint and integrates with the MCP server instance to facilitate communication with connected clients. The module provides a shutdown function to gracefully close all active transports and the HTTP server itself.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/transports/http-server.ts`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/transports/http-server.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints

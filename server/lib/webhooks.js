@@ -10,7 +10,7 @@
  *
  * Delivery is detached and fully fail-safe: it never throws into, slows, or
  * blocks the alert path or hook ingestion.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const crypto = require("crypto");

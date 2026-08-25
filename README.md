@@ -83,7 +83,7 @@ Codex via their native hook systems for seamless session tracking and analytics.
 > [GitHub Wiki](https://github.com/buluma/Code-Agent-Monitor/wiki) is the
 > practical handbook for everyday use, team operations, troubleshooting, CLI/MCP
 > automation, and deployment recipes. The
-> [localized static Wiki](https://hoangsonww.github.io/Claude-Code-Agent-Monitor/wiki/)
+> [localized static Wiki](https://buluma.github.io/Code-Agent-Monitor/wiki/)
 > remains the English, Vietnamese, Chinese, Korean, and Spanish product and
 > architecture tour; exact technical contracts stay in
 > [`docs/`](./docs/README.md).
@@ -2098,7 +2098,7 @@ For detailed developer configuration, see the [.vscode](./.vscode) and
 
 > [!TIP]
 > Extension on VS Code Marketplace:
-> [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=hoangsonw.claude-code-agent-monitor)
+> [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=buluma.claude-code-agent-monitor)
 
 ---
 
@@ -2485,13 +2485,13 @@ user, working directory, git branch, context window usage bar, per-direction
 token counts, and session cost -- all color-coded with ANSI escape sequences.
 
 ```
-nguyens6@host ~/agent-dashboard/client | Sonnet 4.6 | main | ████████░░ 79% | 3↑ 2↓ 156586c | $0.4231
+buluma@host ~/agent-dashboard/client | Sonnet 4.6 | main | ████████░░ 79% | 3↑ 2↓ 156586c | $0.4231
 ```
 
 | Segment     | Color                | Example                                                         |
 | ----------- | -------------------- | --------------------------------------------------------------- |
 | Model       | Cyan                 | `Sonnet 4.6`                                                    |
-| User        | Green                | `nguyens6`                                                      |
+| User        | Green                | `buluma`                                                      |
 | CWD         | Yellow               | `~/agent-dashboard`                                             |
 | Git branch  | Magenta              | `main`                                                          |
 | Context bar | Green / Yellow / Red | `████████░░ 79%`                                                |

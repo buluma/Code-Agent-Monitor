@@ -1,6 +1,6 @@
 /**
  * @file Periodic git upstream check and WebSocket broadcast when update availability changes.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { getUpdatesStatus } = require("./lib/update-check");

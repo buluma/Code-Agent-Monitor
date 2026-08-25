@@ -3,7 +3,7 @@
  * transcripts plus persisted task and session lifecycle events. Top-level
  * work boundaries expire older tracker state, turn-end markers discard
  * unfinished state, and bounded stat-based caching keeps session APIs safe.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("fs");

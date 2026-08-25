@@ -1,7 +1,7 @@
 {
   "name": "claude-code-agent-monitor-plugins",
   "description": "Official Claude Code plugin marketplace for CCAM with 14 plugins, 66 skills, 18 agents, 34 commands, and comprehensive local dashboard operations.",
-  "owner": { "name": "hoangsonww", "url": "https://github.com/hoangsonww" },
+  "owner": { "name": "buluma", "url": "https://github.com/buluma" },
   "plugins": [
     {
       "name": "ccam-analytics",

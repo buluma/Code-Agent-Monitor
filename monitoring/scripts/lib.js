@@ -1,6 +1,6 @@
 /**
  * @file Shared helpers for starting and stopping the npm-managed monitoring stack.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 const fs = require("node:fs");
 const path = require("node:path");

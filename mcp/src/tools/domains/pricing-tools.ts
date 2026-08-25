@@ -1,12 +1,12 @@
 /**
  * @file pricing-tools.ts
  * @description Tool registration for pricing-related functionalities in the dashboard. This includes tools for retrieving pricing rules and calculating total costs based on usage. The tools interact with the backend API to fetch the necessary data and perform calculations as needed. The file also includes input validation using Zod schemas to ensure that the tool arguments are correctly formatted before processing. These tools are essential for providing users with insights into their costs and helping them manage their usage effectively.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/tools/domains/pricing-tools.ts`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/tools/domains/pricing-tools.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints

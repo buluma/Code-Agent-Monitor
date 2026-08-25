@@ -2,7 +2,7 @@
  * @file Full owner-aware task-progress panel for Session Detail, combining a
  * segmented donut, completion bar, owner breakdown, and task rows paginated
  * ten at a time.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { Check, Circle, Info, LoaderCircle, X } from "lucide-react";

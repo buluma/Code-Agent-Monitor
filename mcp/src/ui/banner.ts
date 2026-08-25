@@ -4,12 +4,12 @@
  * the ASCII-art wordmark, a boxed server-info panel (version, transport, dashboard URL, port,
  * tool count, mutation/destructive policy state), a "ready" line, and a shutdown message. The
  * stdio transport never calls any of these, since stdout there is the MCP JSON-RPC channel.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/ui/banner.ts`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/ui/banner.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints

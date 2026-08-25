@@ -35,7 +35,7 @@
  * (ack, cleanup, pricing set, import) and the one destructive command —
  * `clear-data` — additionally requires the --yes flag before it will run.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const path = require("node:path");

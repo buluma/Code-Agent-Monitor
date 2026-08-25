@@ -4,7 +4,7 @@
  * direct clone) after a non-destructive fetch. Branch- and fork-aware:
  * picks the right remote, recognises feature-branch checkouts, and shapes
  * manual_command so it actually closes the gap for the user's situation.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("fs");

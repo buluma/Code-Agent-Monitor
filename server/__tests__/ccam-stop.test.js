@@ -7,7 +7,7 @@
  * the kill target — matching the real dashboard lifecycle where cmdStop()
  * health-checks the same process it later signals.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, beforeEach, afterEach } = require("node:test");

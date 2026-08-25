@@ -2,7 +2,7 @@
  * @file PaginatedLegend.tsx
  * @description Reusable chart legend container that keeps short legends
  * unchanged and pages longer label sets into a bounded, accessible control.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { useEffect, useMemo, useState, type Key, type ReactNode } from "react";

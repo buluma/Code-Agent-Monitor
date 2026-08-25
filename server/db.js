@@ -2,7 +2,7 @@
  * @file Database setup and access layer using SQLite for sessions, agents,
  * events, token usage, and model pricing. Handles schema/migrations and
  * exposes prepared statements, including card-ready task/prompt previews.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 let Database;

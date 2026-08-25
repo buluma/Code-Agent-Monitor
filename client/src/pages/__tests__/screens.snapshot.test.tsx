@@ -6,7 +6,7 @@
  * real structure / layout / i18n without noisy chart DOM or live data. The
  * system clock and timezone are pinned so any relative/absolute timestamps are
  * stable across machines and CI.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 // Pin timezone before anything reads it, so date formatting is machine-stable

@@ -2,7 +2,7 @@
  * @file provider-filter.js
  * @description Shared SQL filters for the dashboard-wide Claude/Codex provider
  * scope. Provider scope composes with machine source scope; neither replaces it.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const VALID_PROVIDERS = new Set(["claude", "codex"]);

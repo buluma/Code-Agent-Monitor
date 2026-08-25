@@ -9,7 +9,7 @@
  * reconciliation. `subtractBucket` in particular must be an EXACT inverse of
  * `accumulateBucket`: reconciliation retracts a message's earlier contribution
  * with it, so any asymmetry would leak tokens into or out of a bucket.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it } = require("node:test");

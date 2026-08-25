@@ -1,7 +1,7 @@
 /**
  * @file Verifies that dashboard-owned settings persist to DASHBOARD_ENV_PATH,
  * which lets non-root container deployments use a dedicated writable volume.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { after, describe, it } = require("node:test");

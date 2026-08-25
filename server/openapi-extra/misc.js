@@ -23,7 +23,7 @@
  * run-detail agents and events arrays reference the base `Agent` /
  * `DashboardEvent` schemas. The `SessionsFacetsResponse` schema additionally
  * exposes a `sources` array (the distinct `sessions.source` values).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const tags = [];

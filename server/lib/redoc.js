@@ -6,7 +6,7 @@
  * dependency and is served straight from `node_modules` rather than a CDN, so
  * the docs render fully offline / air-gapped, consistent with the project's
  * no-external-assets policy.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 /**

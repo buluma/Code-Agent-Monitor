@@ -4,7 +4,7 @@
  * search, date range) plus pagination. Also exposes a `/facets` endpoint that
  * returns the distinct event_type and tool_name values currently in the DB,
  * so the UI can populate filter dropdowns without hardcoding them.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { Router } = require("express");

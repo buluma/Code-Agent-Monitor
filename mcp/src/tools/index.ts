@@ -1,12 +1,12 @@
 /**
  * @file index.ts
  * @description Main entry point for registering all tools in the MCP application. This module imports and registers tools from various domains, including observability, session management, agent management, event handling, pricing, and maintenance. The registerAllTools function takes a ToolContext as an argument and calls the respective registration functions for each domain to ensure that all tools are properly set up and available for use within the application.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/tools/index.ts`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/tools/index.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints

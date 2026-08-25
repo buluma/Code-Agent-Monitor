@@ -2,7 +2,7 @@
  * @file push-tools.ts
  * @description MCP tools for the browser push-notification API, including
  * VAPID discovery, subscription management, and test notification delivery.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { z } from "zod";

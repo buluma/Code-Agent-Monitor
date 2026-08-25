@@ -3,12 +3,12 @@
  * @description Reusable, syntax-highlighted code block with a chrome bar (language pill,
  * optional filename, copy-to-clipboard, line count) and optional gutter line numbers.
  * Used by MarkdownContent for fenced code blocks and by ToolCallBlock for tool I/O.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/conversation/CodeBlock.tsx`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/conversation/CodeBlock.tsx`
  * **Purpose:** Renders Claude transcript rows (user, assistant, tool calls) inside Session Detail with markdown, syntax highlighting, and TUI-style segments.
  *
  * ## Design constraints

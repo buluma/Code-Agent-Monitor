@@ -3,9 +3,9 @@
   "version": "2.0.13",
   "description": "AI-powered insights for Claude Code — pattern detection, anomaly alerting, optimization recommendations, and session comparison using Agent Monitor analytics.",
   "author": {
-    "name": "Son Nguyen",
-    "email": "hoangson091104@gmail.com",
-    "url": "https://github.com/hoangsonww"
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
   },
   "homepage": "https://github.com/buluma/Code-Agent-Monitor",
   "repository": "https://github.com/buluma/Code-Agent-Monitor",
@@ -23,7 +23,7 @@
     "displayName": "CCAM Insights",
     "shortDescription": "AI-powered insights for Claude Code — pattern detection, anomaly alerting, optimization...",
     "longDescription": "AI-powered insights for Claude Code — pattern detection, anomaly alerting, optimization recommendations, and session comparison using Agent Monitor analytics.",
-    "developerName": "Son Nguyen",
+    "developerName": "Michael Buluma",
     "category": "Productivity",
     "capabilities": ["Read"],
     "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",

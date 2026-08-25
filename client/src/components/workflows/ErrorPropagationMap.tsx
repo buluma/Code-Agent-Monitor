@@ -1,12 +1,12 @@
 /**
  * @file ErrorPropagationMap.tsx
  * @description A React component that visualizes error propagation across agent hierarchies in a workflow system. It displays the distribution of errors by hierarchy depth, identifies error-prone agent types, and highlights API and session errors. The component uses horizontal bars to represent error counts at different depths and types, providing an intuitive overview of where errors are occurring within the agent structure.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/workflows/ErrorPropagationMap.tsx`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/workflows/ErrorPropagationMap.tsx`
  * **Purpose:** Workflow analytics visualization built on D3; consumes aggregated session/run metrics from the workflows API.
  *
  * ## Design constraints

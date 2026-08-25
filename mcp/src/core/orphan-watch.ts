@@ -1,7 +1,7 @@
 /**
  * @file orphan-watch.ts
  * @description Orphan detection for the MCP stdio transport. The SDK's StdioServerTransport only listens for stdin "data"/"error" events, so a stdio-mode server never notices when its host process (Claude Code, an IDE, Codex) dies without sending SIGTERM/SIGINT first — stdin closes silently and the child lingers forever with nothing left to talk to. This module watches two independent signals, stdin reaching end/close and the process being re-parented away from the parent it was launched under, and runs the caller's shutdown function the moment either fires. Re-parenting is detected by comparing against the ppid captured at startup rather than testing for ppid 1, so servers that are legitimately launched with init as their parent (containers running tini as PID 1, exec-style launchers) are not mistaken for orphans, and Linux hosts that reparent to a systemd user instance or another subreaper instead of PID 1 are still caught. A hard exit deadline guarantees termination even when the shutdown path itself hangs, which is the failure mode that leaves orphans spinning at high CPU.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import type { EventEmitter } from "node:events";

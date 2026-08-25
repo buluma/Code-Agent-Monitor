@@ -2,7 +2,7 @@
 # validate-deployment.sh — static release gate for CCAM container and cloud
 # deployment assets. It enforces the single-writer SQLite topology and validates
 # Docker, Compose, Nginx, Helm, Kustomize, dependency, and header contracts.
-# @author Son Nguyen <hoangson091104@gmail.com>
+# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
 
 set -euo pipefail
 

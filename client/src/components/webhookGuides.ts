@@ -4,12 +4,12 @@
  * step-by-step setup guide in the webhook form. The steps themselves are
  * localized in the i18n `settings` namespace (`webhookGuides.<type>.steps`);
  * URLs aren't translated so they live here.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/webhookGuides.ts`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/webhookGuides.ts`
  * **Purpose:** React hook: isolates side effects and subscription wiring so presentational components stay declarative.
  *
  * ## Design constraints

@@ -1,12 +1,12 @@
 /**
  * @file repl.ts
  * @description Implements a REPL (Read-Eval-Print Loop) transport for the MCP server, allowing users to interact with the dashboard API and invoke registered tools directly from the command line. The REPL provides an interactive prompt with command history and tab completion for tool names and commands. It supports built-in commands for listing tools, showing configuration, and performing health checks, as well as invoking any registered tool with JSON or key=value arguments. The REPL is designed for ease of use and quick experimentation during development or debugging sessions.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/transports/repl.ts`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/transports/repl.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints

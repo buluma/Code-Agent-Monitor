@@ -3,9 +3,9 @@
   "version": "2.0.13",
   "description": "Analyze multi-agent orchestration and Workflow-tool fleet runs — DAGs, delegation, concurrency, error propagation, and effectiveness — via the Agent Monitor workflow intelligence API at http://localhost:4820. Maps parent→child subagent edges, scores model delegation and subagent success, surfaces concurrency lanes and serialization bottlenecks, and traces error cascades by agent depth.",
   "author": {
-    "name": "Son Nguyen",
-    "email": "hoangson091104@gmail.com",
-    "url": "https://github.com/hoangsonww"
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
   },
   "homepage": "https://github.com/buluma/Code-Agent-Monitor",
   "repository": "https://github.com/buluma/Code-Agent-Monitor",
@@ -25,7 +25,7 @@
     "displayName": "CCAM Workflows",
     "shortDescription": "Analyze multi-agent orchestration and Workflow-tool fleet runs — DAGs, delegation,...",
     "longDescription": "Analyze multi-agent orchestration and Workflow-tool fleet runs — DAGs, delegation, concurrency, error propagation, and effectiveness — via the Agent Monitor workflow intelligence API at http://localhost:4820. Maps parent→child subagent edges, scores model delegation and subagent success, surfaces concurrency lanes and serialization bottlenecks, and traces error cascades by agent depth.",
-    "developerName": "Son Nguyen",
+    "developerName": "Michael Buluma",
     "category": "Productivity",
     "capabilities": ["Read"],
     "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",

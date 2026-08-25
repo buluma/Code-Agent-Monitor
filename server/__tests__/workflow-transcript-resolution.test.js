@@ -5,7 +5,7 @@
  * GET /:id/transcript?run_id= route that surfaces a workflow inner agent's full
  * (un-truncated) prompt/result text in the Workflows UI. Uses Node's built-in
  * test runner with temp CLAUDE_HOME / DASHBOARD_DATA_DIR roots.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

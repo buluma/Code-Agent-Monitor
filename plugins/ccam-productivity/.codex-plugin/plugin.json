@@ -3,9 +3,9 @@
   "version": "2.0.13",
   "description": "Productivity workflows for Claude Code — daily standups, weekly reports, sprint summaries, and intelligent workflow optimization powered by Agent Monitor session data.",
   "author": {
-    "name": "Son Nguyen",
-    "email": "hoangson091104@gmail.com",
-    "url": "https://github.com/hoangsonww"
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
   },
   "homepage": "https://github.com/buluma/Code-Agent-Monitor",
   "repository": "https://github.com/buluma/Code-Agent-Monitor",
@@ -16,7 +16,7 @@
     "displayName": "CCAM Productivity",
     "shortDescription": "Productivity workflows for Claude Code — daily standups, weekly reports, sprint summaries,...",
     "longDescription": "Productivity workflows for Claude Code — daily standups, weekly reports, sprint summaries, and intelligent workflow optimization powered by Agent Monitor session data.",
-    "developerName": "Son Nguyen",
+    "developerName": "Michael Buluma",
     "category": "Productivity",
     "capabilities": ["Read"],
     "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",

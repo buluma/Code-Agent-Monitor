@@ -5,7 +5,7 @@
 #                    good first issue, help wanted, question) to every new
 #                    issue AND pull request.
 #   2. Assignees   — a new PR is assigned to its author; a new issue is assigned
-#                    to the repo owner (hoangsonww) AND its author.
+#                    to the repo owner (buluma) AND its author.
 #   3. Project     — adds every new issue / PR to the repo's linked GitHub
 #                    Project board (#44, "Claude Code AI Agents Monitor Project Board").
 #
@@ -23,7 +23,7 @@
 #   - Assigning the author is best-effort: GitHub silently ignores assignees who
 #     lack repo access (common for first-time external contributors).
 #
-# Author: Son Nguyen <hoangson091104@gmail.com>
+# Author: Michael Buluma <1452922+buluma@users.noreply.github.com>
 name: 🏷️ Auto-Triage Issues & PRs
 
 on:
@@ -77,10 +77,10 @@ jobs:
               core.warning(`Failed to add labels: ${err.message}`);
             }
 
-            // 2. Assignees — PR: author; issue: owner (hoangsonww) + author.
+            // 2. Assignees — PR: author; issue: owner (buluma) + author.
             const assignees = isPR
               ? [creator]
-              : [...new Set(["hoangsonww", creator])];
+              : [...new Set(["buluma", creator])];
             try {
               await github.rest.issues.addAssignees({
                 owner,
@@ -101,5 +101,5 @@ jobs:
         if: ${{ env.PROJECT_TOKEN != '' }}
         uses: actions/add-to-project@v1.0.2
         with:
-          project-url: https://github.com/users/hoangsonww/projects/44
+          project-url: https://github.com/users/buluma/projects/44
           github-token: ${{ secrets.TRIAGE_PROJECT_TOKEN }}

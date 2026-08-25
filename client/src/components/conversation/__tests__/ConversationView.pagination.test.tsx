@@ -1,7 +1,7 @@
 /**
  * @file Verifies ConversationView requests the preceding transcript page when
  * the scroll container reaches its top boundary.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";

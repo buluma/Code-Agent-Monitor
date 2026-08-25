@@ -1,12 +1,12 @@
 /**
  * @file ModelDelegationFlow.tsx
  * @description Defines the ModelDelegationFlow React component that visualizes the relationships between main models and subagent models in a flow diagram using D3.js. The component takes model delegation data as input and renders an SVG diagram that shows how different models are connected based on their usage in agents and sessions. It categorizes models into families (opus, sonnet, haiku, other) for color-coding and provides a clear visual representation of model delegation patterns.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/workflows/ModelDelegationFlow.tsx`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/workflows/ModelDelegationFlow.tsx`
  * **Purpose:** Workflow analytics visualization built on D3; consumes aggregated session/run metrics from the workflows API.
  *
  * ## Design constraints

@@ -1,6 +1,6 @@
 /**
  * @file Handles web push notifications using the `web-push` library, including generating/loading VAPID keys, sending notifications to all subscribed clients, and cleaning up invalid subscriptions. It provides a function to retrieve the public VAPID key for client registration and a function to broadcast notifications to all subscribers stored in the database.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const webpush = require("web-push");

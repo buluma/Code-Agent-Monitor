@@ -10,7 +10,7 @@
  *   - hook reactivation after a (hypothetical) false completion.
  * The probe is stubbed by swapping `liveness.probeLiveCwds` on the shared
  * module object — routes/hooks.js looks the function up at call time.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after, beforeEach } = require("node:test");

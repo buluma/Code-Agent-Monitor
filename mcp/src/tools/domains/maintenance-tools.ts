@@ -1,12 +1,12 @@
 /**
  * @file maintenance-tools.ts
  * @description Defines a set of maintenance tools for the MCP dashboard, including functions to clean up stale sessions, re-import legacy data, reinstall hooks, and clear all data. These tools are registered with the MCP server and include appropriate guards to ensure that mutating and destructive actions are only performed when explicitly allowed in the configuration. The tools interact with the MCP server's API to perform the necessary maintenance tasks, providing a way for administrators to manage the dashboard's data and settings effectively.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/tools/domains/maintenance-tools.ts`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/tools/domains/maintenance-tools.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints

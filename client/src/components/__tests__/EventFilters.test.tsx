@@ -4,7 +4,7 @@
  * toolbar renders its inputs, emits debounced text search changes, toggles
  * selected chips, fires the clear-all handler, and fetches facet options on
  * mount via the events API (mocked).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";

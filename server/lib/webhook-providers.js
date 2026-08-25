@@ -8,7 +8,7 @@
  * for the redacted provider metadata exposed to the UI.
  *
  * Adding a provider = one entry here (+ a formatter). No delivery/route changes.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 // ── Shared helpers ──────────────────────────────────────────────────────────

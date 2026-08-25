@@ -72,7 +72,7 @@ Bảng điều khiển chuyên nghiệp để theo dõi và trực quan hóa cá
 Tài liệu đã bản địa hóa: [`README.md`](./README.md) · [`README-CN.md`](./README-CN.md) · [`README-VN.md`](./README-VN.md) · [`README-KO.md`](./README-KO.md) · [`README-ES.md`](./README-ES.md)
 
 > [!NOTE]
-> Bạn cần hướng dẫn theo tác vụ? [GitHub Wiki](https://github.com/buluma/Code-Agent-Monitor/wiki) là sổ tay thực hành về sử dụng hằng ngày, vận hành theo nhóm, khắc phục sự cố, tự động hóa CLI/MCP và các quy trình triển khai. [Wiki tĩnh đã bản địa hóa](https://hoangsonww.github.io/Claude-Code-Agent-Monitor/wiki/) vẫn là phần giới thiệu sản phẩm và kiến trúc bằng tiếng Anh, Việt, Trung, Hàn và Tây Ban Nha; các hợp đồng kỹ thuật chính xác vẫn nằm trong [`docs/`](./docs/README.md).
+> Bạn cần hướng dẫn theo tác vụ? [GitHub Wiki](https://github.com/buluma/Code-Agent-Monitor/wiki) là sổ tay thực hành về sử dụng hằng ngày, vận hành theo nhóm, khắc phục sự cố, tự động hóa CLI/MCP và các quy trình triển khai. [Wiki tĩnh đã bản địa hóa](https://buluma.github.io/Code-Agent-Monitor/wiki/) vẫn là phần giới thiệu sản phẩm và kiến trúc bằng tiếng Anh, Việt, Trung, Hàn và Tây Ban Nha; các hợp đồng kỹ thuật chính xác vẫn nằm trong [`docs/`](./docs/README.md).
 
 ---
 
@@ -1685,7 +1685,7 @@ Thay đổi duy nhất ngoài workspace `desktop/` là một **tái cấu trúc 
 Để biết cấu hình chi tiết cho nhà phát triển, hãy xem các thư mục [.vscode](./.vscode) và [vscode-extension](./vscode-extension).
 
 > [!TIP]
-> Extension on VS Code Marketplace: [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=hoangsonw.claude-code-agent-monitor)
+> Extension on VS Code Marketplace: [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=buluma.claude-code-agent-monitor)
 
 ---
 
@@ -1848,13 +1848,13 @@ Bản cài theo dự án sử dụng `.agents/skills/` cùng các liên kết d�
 Tiện ích dòng trạng thái CLI độc lập dành cho Claude Code hiển thị tên mô hình, người dùng, thư mục làm việc, nhánh git, thanh sử dụng cửa sổ ngữ cảnh và số lượng mã thông báo -- tất cả đều được mã hóa màu bằng các chuỗi thoát ANSI.
 
 ```
-Sonnet 4.6 | nguyens6 | ~/agent-dashboard/client | main | ████████░░ 79% | 3↑ 2↓ 156586c
+Sonnet 4.6 | buluma | ~/agent-dashboard/client | main | ████████░░ 79% | 3↑ 2↓ 156586c
 ```
 
 | Phân đoạn     | Màu sắc                | Ví dụ             |
 | ----------- | -------------------- | ------------------- |
 | Người mẫu       | lục lam                 | `Sonnet 4.6`        |
-| người dùng        | Màu xanh lá                | `nguyens6`          |
+| người dùng        | Màu xanh lá                | `buluma`          |
 | CWD         | Màu vàng               | `~/agent-dashboard` |
 | Nhánh Git  | Màu đỏ tươi              | `main`              |
 | Thanh ngữ cảnh | Xanh / Vàng / Đỏ | `████████░░ 79%`    |

@@ -13,9 +13,9 @@
 #
 # No code changes are required to enable notarization later.
 
-appId: com.hoangsonww.ccam.desktop
+appId: com.buluma.ccam.desktop
 productName: Claude Code Monitor
-copyright: Copyright (c) 2026 Son Nguyen. MIT License.
+copyright: Copyright (c) 2026 Michael Buluma. MIT License.
 
 directories:
   output: release

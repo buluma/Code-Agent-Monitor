@@ -5,7 +5,7 @@
  * every marketplace entry resolves to a real plugin dir with a valid
  * plugin.json, that names line up, and that every agent / skill / command
  * file carries the frontmatter Claude Code requires. Pure file reads.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it } = require("node:test");

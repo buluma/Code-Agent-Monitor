@@ -13,7 +13,7 @@
  * and the live settings.json files stay read-only because they are written
  * concurrently by the running Claude Code CLI.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { Router } = require("express");

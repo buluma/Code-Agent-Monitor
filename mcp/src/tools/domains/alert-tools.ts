@@ -2,7 +2,7 @@
  * @file alert-tools.ts
  * @description MCP tools for fired-alert inspection, acknowledgment, and
  * alert-rule lifecycle management through the dashboard alerting API.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { z } from "zod";

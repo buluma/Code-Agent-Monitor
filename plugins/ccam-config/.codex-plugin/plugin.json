@@ -3,9 +3,9 @@
   "version": "2.0.13",
   "description": "Audit and govern your Claude Code configuration and file-based memory via the Agent Monitor Config Explorer API — skills, subagents, commands, MCP servers, hooks, settings, and the per-project memory store. Surfaces sprawl, duplication, risky hooks, and stale facts, all read through the dashboard at http://localhost:4820.",
   "author": {
-    "name": "Son Nguyen",
-    "email": "hoangson091104@gmail.com",
-    "url": "https://github.com/hoangsonww"
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
   },
   "homepage": "https://github.com/buluma/Code-Agent-Monitor",
   "repository": "https://github.com/buluma/Code-Agent-Monitor",
@@ -16,7 +16,7 @@
     "displayName": "CCAM Config",
     "shortDescription": "Audit and govern your Claude Code configuration and file-based memory via the Agent Monitor...",
     "longDescription": "Audit and govern your Claude Code configuration and file-based memory via the Agent Monitor Config Explorer API — skills, subagents, commands, MCP servers, hooks, settings, and the per-project memory store. Surfaces sprawl, duplication, risky hooks, and stale facts, all read through the dashboard at http://localhost:4820.",
-    "developerName": "Son Nguyen",
+    "developerName": "Michael Buluma",
     "category": "Developer Tools",
     "capabilities": ["Read", "Write"],
     "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",

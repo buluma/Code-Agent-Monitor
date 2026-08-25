@@ -207,7 +207,7 @@ To install or develop the extension:
 3. For developer details, see [vscode-extension/README.md](./vscode-extension/README.md).
 
 > [!TIP]
-> Extension on VS Code Marketplace: [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=hoangsonw.claude-code-agent-monitor)
+> Extension on VS Code Marketplace: [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=buluma.claude-code-agent-monitor)
 
 ### PWA configuration (optional)
 

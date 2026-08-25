@@ -3,7 +3,7 @@
  * Proves immediate startup visibility, strict command filtering, zero SQLite
  * persistence, resume-picker handoff before the first message, same-cwd
  * concurrency, durable-session takeover, and exit cleanup.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after, beforeEach } = require("node:test");

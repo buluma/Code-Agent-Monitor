@@ -2,7 +2,7 @@
  * @file config-tools.ts
  * @description MCP tools for comprehensive Claude Code and Codex configuration
  * discovery plus the same backup-backed, allowlisted edits exposed by the app.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { z } from "zod";

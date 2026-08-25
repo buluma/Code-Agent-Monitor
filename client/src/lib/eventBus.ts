@@ -25,12 +25,12 @@
  * cheap and defensive. There is also no buffering: a message published while nobody is
  * subscribed is simply dropped.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/lib/eventBus.ts`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/lib/eventBus.ts`
  * **Purpose:** In-memory pub/sub bus bridging `useWebSocket` to any page without prop drilling.
  *
  * ## Design constraints

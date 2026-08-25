@@ -4,7 +4,7 @@
  * (possibly bind-mounted) host ~/.claude/settings.json. Container detection is
  * driven deterministically via CCAM_FORCE_CONTAINER / CCAM_FORCE_HOST so these
  * tests pass whether or not the CI runner itself is containerized.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, beforeEach, after } = require("node:test");

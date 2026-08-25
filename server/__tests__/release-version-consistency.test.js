@@ -2,7 +2,7 @@
  * @file Guards release metadata that must carry the root package version.
  * The checks make version bumps fail fast when packaged artifacts or published
  * API specifications, or deployment configurations drift.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it } = require("node:test");

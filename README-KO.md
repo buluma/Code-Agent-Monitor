@@ -71,7 +71,7 @@ Claude Code & Codex 에이전트 세션, 도구 사용, 서브에이전트 오�
 > 참고: 영어 원문은 [README.md](./README.md), 중국어 버전은 [README-CN.md](./README-CN.md) (中文版本), 베트남어 버전은 [README-VN.md](./README-VN.md) (Phiên bản tiếng Việt), 스페인어 버전은 [README-ES.md](./README-ES.md) (Español)를 확인하세요. 이 문서는 한국어 버전입니다.
 
 > [!NOTE]
-> 작업 중심의 도움이 필요하신가요? [GitHub Wiki](https://github.com/buluma/Code-Agent-Monitor/wiki)는 일상적인 사용, 팀 운영, 문제 해결, CLI/MCP 자동화 및 배포 절차를 위한 실용 핸드북입니다. [현지화된 정적 Wiki](https://hoangsonww.github.io/Claude-Code-Agent-Monitor/wiki/)는 영어, 베트남어, 중국어, 한국어 및 스페인어 제품·아키텍처 둘러보기를 계속 제공하며, 정확한 기술 계약은 [`docs/`](./docs/README.md)에 유지됩니다.
+> 작업 중심의 도움이 필요하신가요? [GitHub Wiki](https://github.com/buluma/Code-Agent-Monitor/wiki)는 일상적인 사용, 팀 운영, 문제 해결, CLI/MCP 자동화 및 배포 절차를 위한 실용 핸드북입니다. [현지화된 정적 Wiki](https://buluma.github.io/Code-Agent-Monitor/wiki/)는 영어, 베트남어, 중국어, 한국어 및 스페인어 제품·아키텍처 둘러보기를 계속 제공하며, 정확한 기술 계약은 [`docs/`](./docs/README.md)에 유지됩니다.
 
 ---
 
@@ -1619,7 +1619,7 @@ Tabby는 키보드로 조작할 수 있고, 말풍선에 `aria-live`를 사용�
 자세한 개발자 구성은 [.vscode](./.vscode) 및 [vscode-extension](./vscode-extension) 디렉터리를 참조하십시오.
 
 > [!TIP]
-> VS Code Marketplace의 확장: [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=hoangsonw.claude-code-agent-monitor)
+> VS Code Marketplace의 확장: [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=buluma.claude-code-agent-monitor)
 
 ---
 
@@ -1915,13 +1915,13 @@ npx skills remove --global mcp-server --yes
 모델 이름, 사용자, 작업 디렉터리, git 브랜치, 컨텍스트 윈도우 사용량 바, 방향별 토큰 수, 세션 비용을 표시하는 Claude Code용 독립 실행형 CLI statusline 유틸리티입니다 -- 모두 ANSI 이스케이프 시퀀스로 색상이 지정됩니다.
 
 ```
-nguyens6@host ~/agent-dashboard/client | Sonnet 4.6 | main | ████████░░ 79% | 3↑ 2↓ 156586c | $0.4231
+buluma@host ~/agent-dashboard/client | Sonnet 4.6 | main | ████████░░ 79% | 3↑ 2↓ 156586c | $0.4231
 ```
 
 | 세그먼트    | 색상                 | 예시                                                            |
 | ----------- | -------------------- | -------------------------------------------------------------- |
 | 모델        | 시안                 | `Sonnet 4.6`                                                   |
-| 사용자      | 초록                 | `nguyens6`                                                     |
+| 사용자      | 초록                 | `buluma`                                                     |
 | CWD         | 노랑                 | `~/agent-dashboard`                                            |
 | Git 브랜치  | 마젠타               | `main`                                                         |
 | 컨텍스트 바 | 초록 / 노랑 / 빨강   | `████████░░ 79%`                                               |

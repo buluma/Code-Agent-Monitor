@@ -2,7 +2,7 @@
   "name": "ccam-integrations",
   "description": "Manage CCAM alert rules, universal webhook providers, browser push notifications, and SSH Remote Data Sources with explicit mutation and external-send confirmation.",
   "version": "2.0.13",
-  "author": { "name": "Son Nguyen", "url": "https://github.com/hoangsonww" },
+  "author": { "name": "Michael Buluma", "url": "https://github.com/buluma" },
   "homepage": "https://github.com/buluma/Code-Agent-Monitor",
   "repository": "https://github.com/buluma/Code-Agent-Monitor",
   "license": "MIT",

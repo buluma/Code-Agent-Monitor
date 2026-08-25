@@ -3,9 +3,9 @@
   "version": "2.0.13",
   "description": "Deep analytics and monitoring for Claude Code sessions — cost tracking, token usage breakdowns, usage trends, and productivity scoring powered by Agent Monitor.",
   "author": {
-    "name": "Son Nguyen",
-    "email": "hoangson091104@gmail.com",
-    "url": "https://github.com/hoangsonww"
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
   },
   "homepage": "https://github.com/buluma/Code-Agent-Monitor",
   "repository": "https://github.com/buluma/Code-Agent-Monitor",
@@ -23,7 +23,7 @@
     "displayName": "CCAM Analytics",
     "shortDescription": "Deep analytics and monitoring for Claude Code sessions — cost tracking, token usage...",
     "longDescription": "Deep analytics and monitoring for Claude Code sessions — cost tracking, token usage breakdowns, usage trends, and productivity scoring powered by Agent Monitor.",
-    "developerName": "Son Nguyen",
+    "developerName": "Michael Buluma",
     "category": "Productivity",
     "capabilities": ["Read"],
     "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",

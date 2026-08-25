@@ -3,7 +3,7 @@
  * @description End-to-end MCP stdio smoke test. It connects a real MCP client
  * to the built CCAM server, verifies the complete tool catalog, and calls the
  * dashboard health tool through an optionally authenticated local API.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import assert from "node:assert/strict";
