@@ -36,7 +36,14 @@ class Database {
   }
 
   prepare(sql) {
-    return this._db.prepare(sql);
+    const stmt = this._db.prepare(sql);
+    const origRun = stmt.run.bind(stmt);
+    stmt.run = function (...args) {
+      // better-sqlite3 accepts an array of params; node:sqlite expects spread args
+      if (args.length === 1 && Array.isArray(args[0])) return origRun(...args[0]);
+      return origRun(...args);
+    };
+    return stmt;
   }
 
   transaction(fn) {
