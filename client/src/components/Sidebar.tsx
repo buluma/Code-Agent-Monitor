@@ -335,7 +335,7 @@ function CollapsedLanguagePicker({
 
 export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
   const { t, i18n } = useTranslation();
-  const websiteLabel = "sonnguyenhoang.com";
+  const websiteLabel = "buluma.github.io";
   // Track whether nav items are clipped by overflow so we can render
   // chevron affordances pointing toward the hidden items. Recomputed on
   // scroll, resize, and any structural change (e.g. collapse toggle).
@@ -764,7 +764,7 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
               <span className="font-medium">{t("nav:github")}</span>
             </a>
             <a
-              href="https://sonnguyenhoang.com"
+              href="https://buluma.github.io"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center gap-2.5 rounded-lg border border-transparent px-2.5 py-2 text-xs text-gray-300 hover:text-gray-200 hover:bg-surface-3 hover:border-border transition-colors"
@@ -790,7 +790,7 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
               <Github className="w-3.5 h-3.5" />
             </a>
             <a
-              href="https://sonnguyenhoang.com"
+              href="https://buluma.github.io"
               target="_blank"
               rel="noopener noreferrer"
               className="w-8 h-8 rounded-md border border-transparent flex items-center justify-center text-gray-400 hover:text-gray-300 hover:bg-surface-3 hover:border-border transition-colors"
