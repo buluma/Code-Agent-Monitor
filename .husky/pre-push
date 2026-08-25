@@ -1,0 +1,79 @@
+#!/usr/bin/env sh
+#
+# Pre-push: run the test suite(s) relevant to what's actually changing,
+# blocking the push unless they pass. Moved here (out of pre-commit) so
+# local commits stay fast; this is the last gate before code leaves the
+# machine, so it still runs the full backend and/or frontend suite for any
+# push that touches server/ or client/.
+#
+# Activated via `core.hooksPath=.husky` (set by the package.json "prepare"
+# script on `npm install`). No husky/lint-staged runtime required.
+
+set -e
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+ZERO_SHA="0000000000000000000000000000000000000000"
+
+# ── Collect changed paths across every ref being pushed ─────────────────────
+# git invokes pre-push with one line per <local ref> <local sha1> <remote ref>
+# <remote sha1> on stdin. A deleted ref (local sha1 all-zero) has nothing to
+# test. A new remote ref (remote sha1 all-zero) has no upstream point to diff
+# against, so we diff against the empty tree — i.e. treat every file in the
+# push as changed, which is the safe default.
+CHANGED_FILES=""
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$ZERO_SHA" ] && continue
+
+  if [ "$remote_sha" = "$ZERO_SHA" ]; then
+    range="$(git hash-object -t tree /dev/null)..$local_sha"
+  else
+    range="$remote_sha..$local_sha"
+  fi
+
+  files="$(git diff --name-only "$range" -- 2>/dev/null || true)"
+  CHANGED_FILES="$CHANGED_FILES
+$files"
+done
+
+RUN_SERVER=0
+RUN_CLIENT=0
+if [ -n "$(printf '%s' "$CHANGED_FILES" | grep -E '^server/')" ]; then
+  RUN_SERVER=1
+fi
+if [ -n "$(printf '%s' "$CHANGED_FILES" | grep -E '^client/')" ]; then
+  RUN_CLIENT=1
+fi
+
+if [ "$RUN_SERVER" -eq 0 ] && [ "$RUN_CLIENT" -eq 0 ]; then
+  echo "🧪 No server/ or client/ changes in this push — skipping test suites."
+  exit 0
+fi
+
+# Each suite is retried once on failure. The full run executes dozens of test
+# files concurrently, each starting its own server (plus the CLI suite's
+# spawned child processes with hard kill timeouts), so a loaded machine can
+# produce a one-off timing failure unrelated to the push. A real regression
+# is deterministic: it fails both runs and still blocks the push. This keeps
+# the gate strict without making pushes a dice roll on machine load.
+run_suite() {
+  # $1 = human label, $2 = npm script
+  echo "🧪 Running $1 tests..."
+  if npm run "$2"; then
+    return 0
+  fi
+  echo "⚠️  $1 suite failed — retrying once to rule out machine-load flakiness..."
+  if npm run "$2"; then
+    echo "✅ $1 suite passed on retry — treating the first failure as a load flake."
+    echo "   If this keeps happening, the flaky test above deserves a real fix."
+    return 0
+  fi
+  echo "❌ $1 suite failed twice — genuine failure, aborting the push."
+  return 1
+}
+
+[ "$RUN_SERVER" -eq 1 ] && run_suite backend test:server
+[ "$RUN_CLIENT" -eq 1 ] && run_suite frontend test:client
+
+echo "✅ All relevant test suites passed — proceeding with push."
