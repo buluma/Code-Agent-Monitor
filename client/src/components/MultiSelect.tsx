@@ -4,7 +4,7 @@
  * options without relying on browser-native multi-select controls. It keeps
  * long labels readable through truncation plus full-value tooltips and uses
  * the dashboard's themed checkbox primitive for consistent interaction.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";

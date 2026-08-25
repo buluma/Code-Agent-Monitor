@@ -5,12 +5,12 @@
  * compactions, duration), top-tool usage bars, subagent-type breakdown, and a token
  * flow strip. Live-refreshes on `new_event` (debounced) so counters track the running
  * session without spamming the backend.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/SessionOverview.tsx`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/SessionOverview.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints

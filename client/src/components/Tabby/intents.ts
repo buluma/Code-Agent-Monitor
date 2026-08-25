@@ -4,12 +4,12 @@
  *   small set of intents answerable from cached dashboard status. Anything it
  *   can't answer becomes a handoff to the Run page (spawn a real `claude`).
  *   Pure function - no network, no DOM - so it's fully unit-testable.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/Tabby/intents.ts`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/Tabby/intents.ts`
  * **Purpose:** Tabby is the optional on-screen cat assistant — quips, intents, and lightweight event reactions layered above the dashboard chrome.
  *
  * ## Design constraints

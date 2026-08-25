@@ -1,7 +1,7 @@
 /**
  * @file tool-guards.test.ts
  * @description Unit tests for the tool guard functions, which are responsible for enforcing configuration policies related to mutating and destructive tools. The tests cover scenarios where mutations and destructive actions are enabled or disabled in the configuration, as well as validating the confirmation token for destructive actions. The tests use Node's built-in test runner and assert module for assertions.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it } from "node:test";

@@ -23,7 +23,7 @@
 #    icons, commit details, and links to artifacts if applicable.
 # Any failure in the stages will cause the pipeline to fail, ensuring that only well-formatted, tested, and built code is merged and deployed.
 #
-# Author: Son Nguyen <hoangson091104@gmail.com>
+# Author: Michael Buluma <1452922+buluma@users.noreply.github.com>
 name: 🚀 CI / CD Pipeline for Claude Code Agent Monitor
 
 on:

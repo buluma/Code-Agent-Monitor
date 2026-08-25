@@ -13,7 +13,7 @@ Example statusline with all segments visible in a git repo and 24% context windo
 | Segment     | Color                | Example                                            |
 | ----------- | -------------------- | -------------------------------------------------- |
 | Model       | Cyan                 | `Sonnet 4.6`                                       |
-| User        | Green                | `nguyens6`                                         |
+| User        | Green                | `buluma`                                         |
 | CWD         | Yellow               | `~/agent-dashboard/client`                         |
 | Git branch  | Magenta              | `main` (hidden outside git repos)                  |
 | Context bar | Green → Yellow → Red | `████████░░ 79%`                                   |

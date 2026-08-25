@@ -1,7 +1,7 @@
 /**
  * @file Verifies Codex rollout transcript parsing for human turns, persisted
  * images, custom exec tool calls, paired outputs, and backward pagination.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { after, describe, it } = require("node:test");

@@ -2,7 +2,7 @@
  * @file Tests the deployment validator's production dependency audit gate.
  * It verifies transient registry failures retry, vulnerability reports fail
  * closed without retry, and successful audit reports pass deterministically.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it } = require("node:test");

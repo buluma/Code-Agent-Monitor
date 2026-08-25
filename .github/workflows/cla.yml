@@ -28,7 +28,7 @@
 # Token: uses the built-in GITHUB_TOKEN (no extra secret needed) because the
 # signature file is stored inside this repository.
 #
-# Author: Son Nguyen <hoangson091104@gmail.com>
+# Author: Michael Buluma <1452922+buluma@users.noreply.github.com>
 name: 🖋️ CLA Assistant
 
 on:

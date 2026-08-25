@@ -72,7 +72,7 @@
 切换文档：[`README.md`](./README.md) · [`README-CN.md`](./README-CN.md) · [`README-VN.md`](./README-VN.md) · [`README-KO.md`](./README-KO.md) · [`README-ES.md`](./README-ES.md)
 
 > [!NOTE]
-> 需要按任务查阅的帮助？[GitHub Wiki](https://github.com/buluma/Code-Agent-Monitor/wiki) 是面向日常使用、团队运维、故障排查、CLI/MCP 自动化和部署操作的实用手册。[本地化静态 Wiki](https://hoangsonww.github.io/Claude-Code-Agent-Monitor/wiki/) 继续提供英语、越南语、中文、韩语和西班牙语的产品与架构导览；精确的技术契约仍以 [`docs/`](./docs/README.md) 为准。
+> 需要按任务查阅的帮助？[GitHub Wiki](https://github.com/buluma/Code-Agent-Monitor/wiki) 是面向日常使用、团队运维、故障排查、CLI/MCP 自动化和部署操作的实用手册。[本地化静态 Wiki](https://buluma.github.io/Code-Agent-Monitor/wiki/) 继续提供英语、越南语、中文、韩语和西班牙语的产品与架构导览；精确的技术契约仍以 [`docs/`](./docs/README.md) 为准。
 
 ---
 
@@ -1486,7 +1486,7 @@ flowchart LR
 有关详细的开发人员配置，请参阅 [.vscode](./.vscode) 和 [vscode-extension](./vscode-extension) 目录。
 
 > [!TIP]
-> Extension on VS Code Marketplace: [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=hoangsonw.claude-code-agent-monitor)
+> Extension on VS Code Marketplace: [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=buluma.claude-code-agent-monitor)
 
 ---
 
@@ -1862,13 +1862,13 @@ npx skills remove --global mcp-server --yes
 Claude Code 的独立 CLI 状态栏工具，显示模型名称、用户、工作目录、Git 分支、上下文窗口使用率条和 Token 计数 — 全部使用 ANSI 转义序列彩色编码。
 
 ```
-Sonnet 4.6 | nguyens6 | ~/agent-dashboard/client | main | ████████░░ 79% | 3↑ 2↓ 156586c
+Sonnet 4.6 | buluma | ~/agent-dashboard/client | main | ████████░░ 79% | 3↑ 2↓ 156586c
 ```
 
 | 段 | 颜色 | 示例 |
 | ----------- | -------------------- | ------------------- |
 | 模型 | 青色 | `Sonnet 4.6` |
-| 用户 | 绿色 | `nguyens6` |
+| 用户 | 绿色 | `buluma` |
 | 工作目录 | 黄色 | `~/agent-dashboard` |
 | Git 分支 | 品红色 | `main` |
 | 上下文条 | 绿色 / 黄色 / 红色 | `████████░░ 79%` |

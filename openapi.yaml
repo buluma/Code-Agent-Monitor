@@ -4,8 +4,8 @@ info:
   version: 2.0.13
   description: HTTP API for real-time Claude Code session monitoring, agent lifecycle tracking, analytics, pricing, hooks ingestion, and workflow intelligence.
   contact:
-    name: Son Nguyen
-    email: hoangson091104@gmail.com
+    name: Michael Buluma
+    email: 1452922+buluma@users.noreply.github.com
     url: https://github.com/buluma/Code-Agent-Monitor
   license:
     name: MIT

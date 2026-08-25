@@ -1,7 +1,7 @@
 /**
  * @file orphan-watch.test.ts
  * @description Unit tests for the stdio orphan watcher. Covers the re-parenting predicate (including the regression where a server legitimately launched under an init-like parent, e.g. tini as PID 1 in a container, must not be mistaken for an orphan), the stdin end/close detection paths, single-fire semantics, the hard exit deadline that fires when shutdown hangs, and the stop() escape hatch used by the signal handlers.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import assert from "node:assert/strict";

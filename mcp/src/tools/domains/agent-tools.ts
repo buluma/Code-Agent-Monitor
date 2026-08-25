@@ -1,12 +1,12 @@
 /**
  * @file agent-tools.ts
  * @description Defines and registers tools for managing agents in the dashboard, including listing agents with filters, retrieving agent details, creating new agents, and updating existing agents. Each tool includes input validation using Zod schemas and interacts with the dashboard API to perform the necessary operations. The tools also check for mutation permissions before allowing changes to agent data, ensuring that the application configuration is respected.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/tools/domains/agent-tools.ts`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/tools/domains/agent-tools.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints

@@ -3,7 +3,7 @@
  * the exposition format (HELP/TYPE headers, content-type, no NaN samples), that
  * the enumerated status gauges are always present (so a series never drops out
  * at zero), and that the numbers track real data seeded through the hook API.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

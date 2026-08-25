@@ -2,7 +2,7 @@
  * @file Integration tests for the Sessions API's repeatable `cwd` query filter.
  * Verifies that selecting multiple project directories is an OR filter while
  * preserving the existing single-directory behavior and result pagination.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { after, before, describe, it } = require("node:test");

@@ -1,7 +1,7 @@
 /**
  * @file format.test.ts
  * @description Unit tests for the format utility functions to ensure correct formatting of durations, time ago, truncation, and locale-aware date/time in the agent dashboard application.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect, vi, afterEach } from "vitest";

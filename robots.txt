@@ -1,5 +1,5 @@
-# https://hoangsonww.github.io/Claude-Code-Agent-Monitor/
+# https://buluma.github.io/Code-Agent-Monitor/
 User-agent: *
 Allow: /
 
-Sitemap: https://hoangsonww.github.io/Claude-Code-Agent-Monitor/sitemap.xml
+Sitemap: https://buluma.github.io/Code-Agent-Monitor/sitemap.xml

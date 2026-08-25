@@ -6,7 +6,7 @@
  * fork CI without secrets) the hook is a no-op. That keeps the default
  * `npm run dmg` working for contributors without an Apple Developer
  * account while letting the project maintainer flip a switch later.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 exports.default = async function notarizeIfConfigured(context) {

@@ -2,38 +2,38 @@
 # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
 # Default owner for everything in the repo
-*                       @hoangsonww
+*                       @buluma
 
 # Backend — API, hooks, SQLite, WebSocket
-/server/                @hoangsonww
+/server/                @buluma
 
 # Frontend — React + Vite UI
-/client/                @hoangsonww
+/client/                @buluma
 
 # MCP server integration
-/mcp/                   @hoangsonww
+/mcp/                   @buluma
 
 # Hook installer, import, seed, cleanup utilities
-/scripts/               @hoangsonww
+/scripts/               @buluma
 
 # VS Code extension
-/vscode-extension/      @hoangsonww
+/vscode-extension/      @buluma
 
 # Statusline plugin
-/statusline/            @hoangsonww
+/statusline/            @buluma
 
 # Claude Code plugins
-/plugins/               @hoangsonww
+/plugins/               @buluma
 
 # Deployment configs (Docker, k8s, etc.)
-/deployments/           @hoangsonww
-/Dockerfile             @hoangsonww
-/docker-compose.yml     @hoangsonww
+/deployments/           @buluma
+/Dockerfile             @buluma
+/docker-compose.yml     @buluma
 
 # CI/CD workflows and GitHub config
-/.github/               @hoangsonww
+/.github/               @buluma
 
 # Documentation
-/docs/                  @hoangsonww
-/wiki/                  @hoangsonww
-*.md                    @hoangsonww
+/docs/                  @buluma
+/wiki/                  @buluma
+*.md                    @buluma

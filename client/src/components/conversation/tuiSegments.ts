@@ -5,12 +5,12 @@
  * into a flat segment list the renderer can lay out inline. Also strips bare
  * ANSI/SGR escape sequences (e.g. "[1m...[22m") that survive the JSONL pipe
  * so messages render as plain text instead of leaking codes.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/conversation/tuiSegments.ts`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/conversation/tuiSegments.ts`
  * **Purpose:** Renders Claude transcript rows (user, assistant, tool calls) inside Session Detail with markdown, syntax highlighting, and TUI-style segments.
  *
  * ## Design constraints

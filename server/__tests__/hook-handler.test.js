@@ -6,7 +6,7 @@
  * lock in that non-blocking contract so a future refactor can't reintroduce the
  * "stuck running hooks" stall (handler waiting up to the per-request timeout for
  * a slow/busy/wedged dashboard to reply).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it } = require("node:test");

@@ -31,7 +31,7 @@
  *
  * All functions are fail-safe: a malformed/partial journal throws only locally
  * and is skipped; ingestion never blocks or breaks hook handling.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("fs");

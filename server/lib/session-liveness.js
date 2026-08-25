@@ -10,7 +10,7 @@
  * are invisible, so an empty process list would be a lie), missing `ps` /
  * `lsof` binaries, and the DASHBOARD_LIVENESS_PROBE=0 escape hatch for
  * setups where hooks arrive from another machine.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { execFileSync } = require("node:child_process");

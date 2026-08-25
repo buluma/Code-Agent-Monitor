@@ -10,7 +10,7 @@
  *
  * Regression guard for the runaway that inflated one 26-day session's baseline
  * to ~11× its real usage (dashboard total $22.5k vs true ~$15.2k).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

@@ -1,12 +1,12 @@
 /**
  * @file logger.ts
  * @description Logger class for the MCP application, responsible for logging messages in JSON format to stderr with different log levels (debug, info, warn, error). The logger respects a minimum log level configuration and includes timestamps in ISO format. Each log entry is a single line of JSON containing the timestamp, log level, message, and optional metadata. This structured logging approach allows for easy parsing and analysis of logs. The Logger class provides methods for each log level and a private method to handle the actual writing of log entries to stderr.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/core/logger.ts`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/core/logger.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints

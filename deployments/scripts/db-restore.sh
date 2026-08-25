@@ -6,7 +6,7 @@
 #   ./db-restore.sh --env production --input ./backups/agent-monitor_production_20240101_120000.db
 #   ./db-restore.sh --help
 # ─────────────────────────────────────────────────────────────────────────────
-# @author Son Nguyen <hoangson091104@gmail.com>
+# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
 set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

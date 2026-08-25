@@ -1,7 +1,7 @@
 /**
  * @file Verifies the shared hook transport's cloud boundary: local HTTP stays
  * supported, remote destinations require HTTPS, and token files are trimmed.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { afterEach, describe, it } = require("node:test");

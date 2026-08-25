@@ -2,7 +2,7 @@
  * @file run-tools.ts
  * @description MCP tools for inspecting and controlling dashboard-launched
  * Claude Code and Codex processes, including model and file discovery.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { z } from "zod";

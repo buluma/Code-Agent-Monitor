@@ -3,8 +3,8 @@ message: "If you use this software, please cite it using the metadata from this 
 title: "Agent Dashboard for Claude Code"
 type: software
 authors:
-  - family-names: "Nguyen"
-    given-names: "Son"
+  - family-names: "Buluma"
+    given-names: "Michael"
 abstract: "Real-time dashboard for tracking Claude Code agent activity."
 repository-code: "https://github.com/buluma/Code-Agent-Monitor"
 url: "https://github.com/buluma/Code-Agent-Monitor"

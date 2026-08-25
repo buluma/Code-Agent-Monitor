@@ -1,6 +1,6 @@
 /**
  * @file Express router for managing agents, providing endpoints to list, retrieve, create, and update agents. It interacts with the database using prepared statements and broadcasts changes to connected WebSocket clients for real-time updates.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { Router } = require("express");

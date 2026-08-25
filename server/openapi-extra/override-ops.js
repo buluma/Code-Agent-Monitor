@@ -44,7 +44,7 @@
  * message } }) where the base had it (and keep the base's content-less 4xx
  * descriptions where it had none); Workflows use the SHORT `MessageErrorResponse`
  * ({ error: { message } }).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const tags = [];

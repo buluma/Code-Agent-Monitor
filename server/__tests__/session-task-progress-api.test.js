@@ -1,7 +1,7 @@
 /**
  * @file Integration tests for task-progress summaries on the Sessions list
  * and full owner-attributed snapshots on Session Detail.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { after, before, describe, it } = require("node:test");

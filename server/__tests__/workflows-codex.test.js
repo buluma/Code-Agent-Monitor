@@ -1,7 +1,7 @@
 /**
  * @file Proves that the Workflows API exposes only truthful Codex-derived
  * session, tool, token, compaction, and drill-in data under a Codex scope.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { after, before, describe, it } = require("node:test");

@@ -3,7 +3,7 @@
  * rollout hook endpoint. It updates sessions and agents, extracts usage and
  * compact human-turn card context, and broadcasts real-time changes without
  * blocking either CLI.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { Router } = require("express");

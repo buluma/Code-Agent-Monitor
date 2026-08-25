@@ -1,6 +1,6 @@
 /**
  * @file Unit tests for the TranscriptCache class, which extracts token usage from Claude transcript JSONL files and caches results for performance. Tests cover cache hits/misses, compaction detection, multiple models, and edge cases like malformed files and eviction behavior.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, beforeEach, afterEach } = require("node:test");

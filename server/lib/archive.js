@@ -9,7 +9,7 @@
  * All functions are async and never throw on unknown formats — they return
  * `{ extracted: number, skipped: number }` so routes can surface counts.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("fs");

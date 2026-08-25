@@ -2,7 +2,7 @@
  * @file useDocumentTitle.ts
  * @description Sets `document.title` for the current route/page and restores the
  * previous title on unmount so browser tabs stay distinguishable.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { useEffect } from "react";

@@ -2,7 +2,7 @@
 # Renders the Nginx configuration with the current OCI runtime's DNS resolver.
 # Docker and Podman use different embedded DNS addresses, so reading
 # /etc/resolv.conf keeps the same edge image portable across both engines.
-# @author Son Nguyen <hoangson091104@gmail.com>
+# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
 
 set -eu
 

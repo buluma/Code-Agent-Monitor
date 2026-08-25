@@ -17,7 +17,7 @@
  *     any failure path.
  *   - Names are validated against a strict allowlist regex; resolved paths
  *     are double-checked to live under the expected root before any I/O.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("node:fs");

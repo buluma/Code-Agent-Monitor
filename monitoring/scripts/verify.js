@@ -2,7 +2,7 @@
 /**
  * @file Verifies the CCAM dashboard and optional Prometheus/Grafana stack are up.
  * Used after `monitoring:up` or `monitoring:docker:up` to confirm scrape health.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 const { GRAFANA_ADMIN_USER, GRAFANA_ADMIN_PASSWORD } = require("./paths");
 

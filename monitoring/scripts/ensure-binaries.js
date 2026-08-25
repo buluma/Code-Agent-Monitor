@@ -3,7 +3,7 @@
  * @file Downloads official Prometheus + Grafana OSS binaries into monitoring/.bin/.
  * Supports macOS (arm64/Intel), Linux (arm64/amd64), and Windows (x64).
  * Run via `npm run monitoring:setup` — no Homebrew, apt, or global install needed.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 const fs = require("node:fs");
 const path = require("node:path");

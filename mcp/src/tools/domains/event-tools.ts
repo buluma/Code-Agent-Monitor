@@ -1,12 +1,12 @@
 /**
  * @file event-tools.ts
  * @description Defines tools related to event management in the dashboard, including listing events with optional filters and ingesting hook events from Claude Code. The tools are registered with the tool registry and include input validation using Zod schemas. The event listing tool supports pagination and session filtering, while the hook event ingestion tool allows for adding new events into the dashboard pipeline, with a guard to ensure that mutations are enabled in the configuration.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/tools/domains/event-tools.ts`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/tools/domains/event-tools.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints

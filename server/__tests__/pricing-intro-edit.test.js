@@ -18,7 +18,7 @@
  * must be a non-negative finite number, else the PUT is rejected with 400 and
  * nothing is written (NaN/negative rates would corrupt all cost math).
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

@@ -3,7 +3,7 @@
  * @description Tests the network-exposure hardening (GHSA-gr74-4xfh-6jw9):
  * loopback-by-default bind, Host-header allowlist (anti DNS-rebinding),
  * loopback-only CORS, and the optional bearer-token gate on /api/* + WebSocket.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 const { describe, it, afterEach } = require("node:test");
 const assert = require("node:assert/strict");

@@ -8,7 +8,7 @@
 #   ./health-check.sh --url http://host:port --json
 #   ./health-check.sh --help
 # ─────────────────────────────────────────────────────────────────────────────
-# @author Son Nguyen <hoangson091104@gmail.com>
+# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
 set -euo pipefail
 
 # ── Colors & logging ───────────────────────────────────────────────────────

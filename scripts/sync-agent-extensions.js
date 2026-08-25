@@ -3,7 +3,7 @@
  * Claude plugin source of truth. It adds missing canonical skill names,
  * generates OpenAI skill UI metadata and Codex plugin manifests, and rebuilds
  * the Claude and Codex marketplace catalogs deterministically.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";
@@ -18,9 +18,9 @@ const CODEX_MARKETPLACE = path.join(ROOT, ".agents", "plugins", "marketplace.jso
 const REPOSITORY = "https://github.com/buluma/Code-Agent-Monitor";
 const PLUGIN_VERSION = readJson(path.join(ROOT, "package.json")).version;
 const AUTHOR = {
-  name: "Son Nguyen",
-  email: "hoangson091104@gmail.com",
-  url: "https://github.com/hoangsonww",
+  name: "Michael Buluma",
+  email: "1452922+buluma@users.noreply.github.com",
+  url: "https://github.com/buluma",
 };
 
 const CATEGORY_BY_PLUGIN = {

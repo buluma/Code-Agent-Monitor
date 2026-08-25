@@ -362,7 +362,7 @@ The **Claude Code Agent Monitor** is also available as a dedicated VS Code exten
 For advanced configuration, refer to the [.vscode](./.vscode) and [vscode-extension](./vscode-extension) directories.
 
 > [!TIP]
-> Extension on VS Code Marketplace: [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=hoangsonw.claude-code-agent-monitor)
+> Extension on VS Code Marketplace: [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=buluma.claude-code-agent-monitor)
 
 ---
 

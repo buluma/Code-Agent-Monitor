@@ -1,7 +1,7 @@
 /**
  * @file formatter.test.ts
  * @description Unit tests for the formatter module, which provides functions to format various UI components such as boxes, dividers, tables, badges, tool results, key-value pairs, section headers, and progress bars. The tests cover rendering of these components with different inputs and verify that the output contains the expected text and formatting. The tests use Node's built-in test runner and assert module for assertions.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it } from "node:test";

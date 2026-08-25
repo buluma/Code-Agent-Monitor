@@ -12,7 +12,7 @@
  *      ordering N rollouts newest-first cost O(N log N) stat syscalls rather
  *      than N (measured 25.5k syscalls per sweep on a 4k-file corpus).
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

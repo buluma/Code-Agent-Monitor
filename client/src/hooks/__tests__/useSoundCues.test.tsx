@@ -5,7 +5,7 @@
  * delegated interaction tick (including its disabled-control guard), and that
  * unmounting tears every subscription down. The `lib/sound` module is mocked so
  * the assertions are about routing, not synthesis.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";

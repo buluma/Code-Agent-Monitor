@@ -1,7 +1,7 @@
 /**
  * @file Shared visual metadata and formatting helpers for compact and detailed
  * session task-progress surfaces.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import type { SessionTodoSnapshot, SessionTodoStatus, SessionTodoSummary } from "../lib/types";

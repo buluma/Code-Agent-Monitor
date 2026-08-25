@@ -1,12 +1,12 @@
 /**
  * @file OrchestrationDAG.tsx
  * @description Defines the OrchestrationDAG React component that visualizes orchestration data as a directed acyclic graph (DAG) using D3.js. The component takes in orchestration data, processes it to build a graph structure with nodes and edges, and renders it as an SVG. It includes interactive features such as tooltips on hover and click handlers for nodes. The graph is styled with gradients and colors to differentiate between different types of nodes and outcomes, providing a clear visual representation of the orchestration process.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/workflows/OrchestrationDAG.tsx`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/workflows/OrchestrationDAG.tsx`
  * **Purpose:** Workflow analytics visualization built on D3; consumes aggregated session/run metrics from the workflows API.
  *
  * ## Design constraints

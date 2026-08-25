@@ -9,7 +9,7 @@ Every applicable source file in this repository starts with a header comment
 containing a **file overview** and the **exact author line**:
 
 ```
-@author Son Nguyen <hoangson091104@gmail.com>
+@author Michael Buluma <1452922+buluma@users.noreply.github.com>
 ```
 
 The name and email must be exactly as above — no variations, no substitutions,
@@ -35,7 +35,7 @@ that is missing the header, add it as part of the same change.
 /**
  * @file One-to-few-sentence overview of what this file does and why it
  * exists. Mention the key contracts or invariants the file owns.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 ```
 
@@ -47,7 +47,7 @@ under `client/src/`:
  * @file ComponentName.tsx
  * @description What the component/module renders or provides and how it fits
  * into the app.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 ```
 
@@ -57,7 +57,7 @@ under `client/src/`:
 /**
  * @file file.css
  * @description What these styles cover.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 ```
 
@@ -67,7 +67,7 @@ just make sure the `@author` line is in the block):
 ```bash
 #!/usr/bin/env bash
 # script-name.sh — what the script does, one to few lines.
-# @author Son Nguyen <hoangson091104@gmail.com>
+# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
 ```
 
 **Python** (inside the module docstring):
@@ -76,7 +76,7 @@ just make sure the `@author` line is in the block):
 """
 module.py — what the module does.
 
-@author Son Nguyen <hoangson091104@gmail.com>
+@author Michael Buluma <1452922+buluma@users.noreply.github.com>
 """
 ```
 
@@ -87,7 +87,7 @@ module.py — what the module does.
 2. **Touched file missing header → add it.** If you edit a file that lacks the
    header, add one in the same commit. Write a real overview — describe what
    the file actually does; never a placeholder like "TODO" or "utility file".
-3. **Exact author line.** `@author Son Nguyen <hoangson091104@gmail.com>` —
+3. **Exact author line.** `@author Michael Buluma <1452922+buluma@users.noreply.github.com>` —
    byte-exact, in every file type (shell and Python use it inside `#` / docstring
    comments).
 4. **Don't churn existing headers.** If a file already has a compliant header,

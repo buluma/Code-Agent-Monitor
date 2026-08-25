@@ -4,7 +4,7 @@
  * redacted previews, and backup-backed edit/delete actions for Codex's
  * user-maintained profiles, hooks, rules, skills, and instruction files. The
  * base config stays explicitly edit-only.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";

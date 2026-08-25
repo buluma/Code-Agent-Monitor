@@ -7,12 +7,12 @@
  * stays caught up even when events miss frames or the user is mid-text-only
  * turn. A top sentinel and scroll fallback
  * make older pages load reliably for both Claude and Codex transcripts.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/conversation/ConversationView.tsx`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/conversation/ConversationView.tsx`
  * **Purpose:** Renders provider transcript rows (user, assistant, tool calls) inside Session Detail with markdown, syntax highlighting, and TUI-style segments.
  *
  * ## Design constraints

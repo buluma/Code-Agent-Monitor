@@ -2,7 +2,7 @@
  * @file Branch- and fork-aware tests for getUpdatesStatus(). Each scenario
  * builds throw-away git repos in a tmp dir and asserts the payload shape is
  * accurate to the user's situation. skipFetch:true keeps these tests offline.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

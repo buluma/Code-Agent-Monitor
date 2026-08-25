@@ -24,7 +24,7 @@
  * Every function here is best-effort and never throws: discovery must never
  * block server startup, and the hook handler must never fail because of it.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("fs");

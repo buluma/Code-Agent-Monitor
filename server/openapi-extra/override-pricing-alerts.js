@@ -12,7 +12,7 @@
  * Shape: `{ tags: [], schemas: {}, paths: { ... } }`. The `tags` and `schemas`
  * collections are intentionally empty; everything here is a path-level override.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 // ---------------------------------------------------------------------------

@@ -3,7 +3,7 @@
  * extension ecosystem without mutating files. It checks marketplace bijection,
  * dual manifests, skill metadata, plugin components, MCP launch wiring, and
  * generated catalog drift.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

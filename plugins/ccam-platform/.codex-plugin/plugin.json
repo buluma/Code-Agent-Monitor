@@ -3,9 +3,9 @@
   "version": "2.0.13",
   "description": "Administer CCAM's Claude Code and Codex configuration explorers, provider-aware history import, backup restore, hook installation, home directories, updates, and MCP server.",
   "author": {
-    "name": "Son Nguyen",
-    "email": "hoangson091104@gmail.com",
-    "url": "https://github.com/hoangsonww"
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
   },
   "homepage": "https://github.com/buluma/Code-Agent-Monitor",
   "repository": "https://github.com/buluma/Code-Agent-Monitor",
@@ -17,7 +17,7 @@
     "displayName": "CCAM Platform",
     "shortDescription": "Administer CCAM's Claude Code and Codex configuration explorers, provider-aware history...",
     "longDescription": "Administer CCAM's Claude Code and Codex configuration explorers, provider-aware history import, backup restore, hook installation, home directories, updates, and MCP server.",
-    "developerName": "Son Nguyen",
+    "developerName": "Michael Buluma",
     "category": "Developer Tools",
     "capabilities": ["Read", "Write"],
     "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",

@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-28
 **Status:** Approved (design) — pending spec review before planning
-**Owner:** Son Nguyen (David)
+**Owner:** Michael Buluma
 **Topic:** A cute-but-functional cat companion that lives in the dashboard's bottom corner, reacts to live session events, and expands into a panel for status, quick actions, and asking questions.
 
 ---

@@ -1,7 +1,7 @@
 # Contributor License Agreement (CLA)
 
 **Project:** Claude Code Agent Monitor
-**Maintainer / "Project Owner":** Son Nguyen ([@hoangsonww](https://github.com/hoangsonww))
+**Maintainer / "Project Owner":** Michael Buluma ([@buluma](https://github.com/buluma))
 
 Thank you for your interest in contributing to Claude Code Agent Monitor (the
 "Project"). This Contributor License Agreement ("Agreement") documents the rights

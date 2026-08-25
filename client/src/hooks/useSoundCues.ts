@@ -8,7 +8,7 @@
  * listener at the root instead of an `onClick` in every component. Mount once
  * at the app root; all gating, throttling, and preference reads live in
  * `lib/sound`, so toggling a Settings switch takes effect immediately.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { useEffect } from "react";

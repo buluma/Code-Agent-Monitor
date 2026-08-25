@@ -4,7 +4,7 @@
  * filtering. It computes costs, derives optional owner-aware task progress,
  * adds card-ready prompt context, safely exposes transcript images, and
  * broadcasts live changes.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { Router } = require("express");

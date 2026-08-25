@@ -1,6 +1,6 @@
 /**
  * @file Central OpenAPI 3.0 specification for the dashboard HTTP API.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const pkg = require("../package.json");
@@ -52,8 +52,8 @@ function createOpenApiSpec() {
       description:
         "HTTP API for real-time Claude Code session monitoring, agent lifecycle tracking, analytics, pricing, hooks ingestion, and workflow intelligence.",
       contact: {
-        name: "Son Nguyen",
-        email: "hoangson091104@gmail.com",
+        name: "Michael Buluma",
+        email: "1452922+buluma@users.noreply.github.com",
         ...(repositoryUrl ? { url: repositoryUrl } : {}),
       },
       license: {

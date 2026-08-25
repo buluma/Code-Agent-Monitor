@@ -1,12 +1,12 @@
 /**
  * @file ConcurrencyTimeline.tsx
  * @description Defines the ConcurrencyTimeline component that visualizes concurrency data for agent sessions using horizontal bars. Each lane represents an agent type (main or subagent) with the bar width proportional to the number of sessions and timing indicated as a percentage of the session duration. The component handles empty states gracefully and assigns distinct colors to different agent types for clarity.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/workflows/ConcurrencyTimeline.tsx`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/workflows/ConcurrencyTimeline.tsx`
  * **Purpose:** Workflow analytics visualization built on D3; consumes aggregated session/run metrics from the workflows API.
  *
  * ## Design constraints

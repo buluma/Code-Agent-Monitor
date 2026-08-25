@@ -2,7 +2,7 @@
  * @file http-auth.test.ts
  * @description Verifies MCP HTTP transport bearer-token matching without
  * starting a network listener.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it } from "node:test";

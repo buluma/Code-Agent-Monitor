@@ -3,7 +3,7 @@
   "version": "2.0.13",
   "private": true,
   "description": "Native macOS desktop shell for Claude Code Agent Monitor.",
-  "author": "Son Nguyen <hoangson091104@gmail.com>",
+  "author": "Michael Buluma <1452922+buluma@users.noreply.github.com>",
   "license": "MIT",
   "homepage": "https://github.com/buluma/Code-Agent-Monitor",
   "repository": {

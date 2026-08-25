@@ -2,7 +2,7 @@
  * @file import-tools.ts
  * @description MCP tools for provider-aware history discovery/import and
  * idempotent restoration of a dashboard export from a local JSON file.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { z } from "zod";

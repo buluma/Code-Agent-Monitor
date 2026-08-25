@@ -1,7 +1,7 @@
 /**
  * @file Sets up the Express server, API routes, WebSocket, production client,
  * and non-blocking Claude/Codex transcript synchronizers and maintenance jobs.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 if (!process.env.NODE_ENV) process.env.NODE_ENV = "production";

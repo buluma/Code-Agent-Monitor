@@ -1,12 +1,12 @@
 /**
  * @file SessionComplexityScatter.tsx
  * @description A React component that renders a scatter plot visualization of session complexity using D3.js. Each session is represented as a bubble, where the x-axis represents the session duration, the y-axis represents the number of agents involved, and the size of the bubble corresponds to the total tokens used. The color of each bubble indicates the session status (e.g., completed, active, error, abandoned). The component also includes tooltips for detailed information on hover and a legend for status colors. It is designed to be responsive and provides an empty state when no data is available.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/workflows/SessionComplexityScatter.tsx`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/workflows/SessionComplexityScatter.tsx`
  * **Purpose:** Workflow analytics visualization built on D3; consumes aggregated session/run metrics from the workflows API.
  *
  * ## Design constraints

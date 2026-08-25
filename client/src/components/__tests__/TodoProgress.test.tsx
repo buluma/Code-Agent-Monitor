@@ -1,7 +1,7 @@
 /**
  * @file Component tests for compact and detailed task-progress surfaces,
  * including accessible tooltip triggers and subagent ownership rendering.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { fireEvent, render, screen } from "@testing-library/react";

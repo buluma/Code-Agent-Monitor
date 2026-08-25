@@ -8,12 +8,12 @@
  *   sparkly eyes, pink ear-insides + cheek blush, classic tabby forehead
  *   stripes, a fluffy tail, little paws peeking at the bottom, and a compact
  *   hover greeting that CSS can animate without changing the avatar layout.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/Tabby/CatAvatar.tsx`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/Tabby/CatAvatar.tsx`
  * **Purpose:** Tabby is the optional on-screen cat assistant — quips, intents, and lightweight event reactions layered above the dashboard chrome.
  *
  * ## Design constraints

@@ -3,7 +3,7 @@
  * event-driven evaluation on hook ingest (pattern match, count-in-window
  * threshold, token threshold), cooldown dedup, the time-based sweep
  * (inactivity, stuck-agent status duration), and acknowledge endpoints.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

@@ -13,7 +13,7 @@
  *   2. The backfill is metadata-only: it does not create/alter token_usage rows.
  *   3. It is self-limiting — a second run stamps nothing new.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

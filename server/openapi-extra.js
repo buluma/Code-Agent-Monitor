@@ -6,7 +6,7 @@
  * and schemas OVERRIDE base entries with the same key, so a comprehensive
  * entry here can supersede a terser one in the base literal; tags are appended
  * only when their `name` is not already present.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 // New endpoint groups (previously-undocumented gaps in the base spec).

@@ -8,12 +8,12 @@
  * whether it needs a URL and which credential fields to render, so adding a
  * provider server-side surfaces here with no UI change. Secrets are never
  * returned by the API - URLs are masked and re-entered to change.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/WebhookSettings.tsx`
+ * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/WebhookSettings.tsx`
  * **Purpose:** React hook: isolates side effects and subscription wiring so presentational components stay declarative.
  *
  * ## Design constraints

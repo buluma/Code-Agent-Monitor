@@ -8,7 +8,7 @@
  * record is authoritative). Covers full reads, evolving usage, incremental
  * reads whose boundary splits a message's records, and id-less records
  * (still counted).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

@@ -71,7 +71,7 @@ Un panel profesional para rastrear y visualizar sus sesiones de agente Claude Co
 > Consulta también [README.md](./README.md) (English), [README-CN.md](./README-CN.md) (中文), [README-VN.md](./README-VN.md) (Tiếng Việt) y [README-KO.md](./README-KO.md) (한국어). Este es el README en español.
 
 > [!NOTE]
-> ¿Necesitas ayuda orientada a tareas? La [Wiki de GitHub](https://github.com/buluma/Code-Agent-Monitor/wiki) es el manual práctico para el uso diario, las operaciones de equipo, la solución de problemas, la automatización con CLI/MCP y las recetas de despliegue. La [Wiki estática localizada](https://hoangsonww.github.io/Claude-Code-Agent-Monitor/wiki/) sigue siendo el recorrido del producto y la arquitectura en inglés, vietnamita, chino, coreano y español; los contratos técnicos exactos permanecen en [`docs/`](./docs/README.md).
+> ¿Necesitas ayuda orientada a tareas? La [Wiki de GitHub](https://github.com/buluma/Code-Agent-Monitor/wiki) es el manual práctico para el uso diario, las operaciones de equipo, la solución de problemas, la automatización con CLI/MCP y las recetas de despliegue. La [Wiki estática localizada](https://buluma.github.io/Code-Agent-Monitor/wiki/) sigue siendo el recorrido del producto y la arquitectura en inglés, vietnamita, chino, coreano y español; los contratos técnicos exactos permanecen en [`docs/`](./docs/README.md).
 
 ---
 
@@ -1628,7 +1628,7 @@ El **Monitor de Agentes del Código Claude** está disponible como una extensió
 Para la configuración detallada del desarrollador, consulte los directorios [.vscode](./.vscode) y [vscode-extension](./vscode-extension).
 
 > [¡CONSEJO!]
-> Extensión en el mercado de VS Code: [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=hoangsonw.claude-code-agent-monitor)
+> Extensión en el mercado de VS Code: [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=buluma.claude-code-agent-monitor)
 
 ---
 
@@ -1924,13 +1924,13 @@ Las instalaciones de proyecto usan `.agents/skills/` y enlaces específicos de c
 Una utilidad independiente de línea de estado CLI para Claude Code que muestra el nombre del modelo, el usuario, el directorio de trabajo, la rama de git, la barra de uso de la ventana de contexto, el número de tokens por dirección y el costo de la sesión, todo ello codificado por colores con secuencias de escape ANSI.
 
 ```
-nguyens6@host ~/agent-dashboard/client | Sonnet 4.6 | main | ████████░░ 79% | 3↑ 2↓ 156586c | $0.4231
+buluma@host ~/agent-dashboard/client | Sonnet 4.6 | main | ████████░░ 79% | 3↑ 2↓ 156586c | $0.4231
 ```
 
 | Segmento | Color                | Ejemplo                                                        |
 | ----------- | -------------------- | -------------------------------------------------------------- |
 | Modelo | Cian                 | `Soneto 4.6`                                                   |
-| Usuario | Verde                | `nguyens6`                                                     |
+| Usuario | Verde                | `buluma`                                                     |
 | CWD         | Amarillo               | `~/agent-dashboard`                                            |
 | Rama de Git | Magenta | `main`                                                         |
 | Barra de contexto | Verde / Amarillo / Rojo | `████████░░ 79%`                                               |
