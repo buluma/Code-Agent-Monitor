@@ -401,10 +401,14 @@ jobs:
   #   On a successful push to the default branch, publish a Release #
   #   for the current package.json version (tagged vX.Y.Z, matching #
   #   the existing v1.0.0 / v1.1.0 convention) and attach the macOS  #
-  #   DMG built by the desktop job. The release is created only when #
-  #   no release exists for that version yet — so bumping `version`  #
-  #   in package.json is what cuts a new release, and re-running     #
-  #   master with an unchanged version is a safe no-op.              #
+  #   DMG built by the desktop job. Bumping `version` in package.json #
+  #   is what cuts a new release, and re-running master with an      #
+  #   unchanged version and complete assets is a safe no-op — but if #
+  #   a release already exists with fewer than 2 DMG assets (e.g. it #
+  #   was created by hand, outside this job, before CI ran), the job #
+  #   attaches the missing DMG(s) to that same release instead of    #
+  #   skipping, so a partially-published release self-heals on the   #
+  #   next push rather than staying empty forever.                   #
   # ────────────────────────────────────────────────────────────────
   release:
     name: "🚢 Publish Release"
@@ -435,27 +439,44 @@ jobs:
           echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Resolved release tag: v${VERSION}"
 
-      - name: Check whether the release already exists
+      - name: Check whether the release already exists and has its DMGs
         id: check
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if gh release view "${{ steps.ver.outputs.tag }}" >/dev/null 2>&1; then
+          TAG="${{ steps.ver.outputs.tag }}"
+          if gh release view "${TAG}" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "Release ${{ steps.ver.outputs.tag }} already exists — nothing to publish."
+            # A release can exist with no (or partial) assets if it was ever
+            # created outside this job — e.g. a manual `gh release create`
+            # run ahead of CI. That used to wedge asset publishing forever,
+            # since this job only ran the `create` path and skipped whenever
+            # a release already existed, regardless of what it contained. So
+            # check content, not just existence: `needs_dmg=true` unless both
+            # per-arch DMGs are already attached, and the step below re-runs
+            # (via `gh release upload`, not `create`) until they are.
+            ASSET_COUNT="$(gh release view "${TAG}" --json assets -q '[.assets[].name | select(endswith(".dmg"))] | length')"
+            if [ "${ASSET_COUNT}" -ge 2 ]; then
+              echo "needs_dmg=false" >> "$GITHUB_OUTPUT"
+              echo "Release ${TAG} already exists with ${ASSET_COUNT} DMG asset(s) — nothing to publish."
+            else
+              echo "needs_dmg=true" >> "$GITHUB_OUTPUT"
+              echo "Release ${TAG} exists but has only ${ASSET_COUNT} DMG asset(s) — attaching the missing DMG(s)."
+            fi
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "Release ${{ steps.ver.outputs.tag }} does not exist — it will be published."
+            echo "needs_dmg=true" >> "$GITHUB_OUTPUT"
+            echo "Release ${TAG} does not exist — it will be published."
           fi
 
       - name: Download macOS DMG artifact
-        if: steps.check.outputs.exists == 'false'
+        if: steps.check.outputs.needs_dmg == 'true'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: ClaudeCodeMonitor-dmg
           path: dmg
 
-      - name: Publish release
+      - name: Create release
         if: steps.check.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -470,6 +491,17 @@ jobs:
             --latest \
             dmg/*.dmg
           echo "Published ${TAG} → ${{ github.server_url }}/${{ github.repository }}/releases/tag/${TAG}"
+
+      - name: Attach missing DMGs to existing release
+        if: steps.check.outputs.exists == 'true' && steps.check.outputs.needs_dmg == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.ver.outputs.tag }}"
+          echo "Attaching missing DMGs to existing release ${TAG}:"
+          ls -la dmg
+          gh release upload "${TAG}" dmg/*.dmg --clobber
+          echo "Updated ${TAG} → ${{ github.server_url }}/${{ github.repository }}/releases/tag/${TAG}"
 
   # ────────────────────────────────────────────────────────────────
   #  🎉 Pipeline Summary                                            #
