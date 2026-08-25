@@ -55,10 +55,6 @@ npm run desktop:test     # smoke test (spawn Electron + probe /api/health)
 npm run desktop:dmg          # both per-arch DMGs (arm64 + x64) — correct for release, SLOWER
 npm run desktop:dmg:arm64    # Apple Silicon only — fast, for your own machine
 npm run desktop:dmg:x64      # Intel only — fast
-
-# Build a Windows .exe (run on Windows x64):
-npm run desktop:win          # NSIS installer → release/ClaudeCodeMonitor-Setup-<ver>-x64.exe
-npm run desktop:win:portable # no-install portable → release/ClaudeCodeMonitor-<ver>-x64-portable.exe
 ```
 
 > ⚠️ `desktop:dmg` is slower because it builds the app **twice** — once per
@@ -66,18 +62,12 @@ npm run desktop:win:portable # no-install portable → release/ClaudeCodeMonitor
 > merge them into a universal binary. For running on your own Mac, use the
 > arch-specific command. See [Build performance](#build-performance--read-this).
 
-> 🪟 **Windows builds run on Windows** (DMGs build on macOS). `desktop:win`
-> produces an **unsigned** installer — fine to run; SmartScreen may show a
-> "More info → Run anyway" prompt on first launch. The icon (`assets/icon.ico`)
-> is generated from `assets/icon.png` by `npm run build:win-icon`
-> (PowerShell + .NET, no extra tooling). `better-sqlite3` is fetched as a
-> prebuilt Electron binary by `npm run desktop:install`, so no Visual Studio
-> C++ toolchain is required for the common case. If that fetch/rebuild *does*
-> fail (no C++ toolchain, or a Node version with no prebuilt binary),
-> `npm run desktop:install` — and any `desktop:*` build, gated by `prebuild.js` —
-> prints the exact per-OS prerequisite (Windows: Visual Studio Build Tools with
-> the "Desktop development with C++" workload; macOS: `xcode-select --install`;
-> Linux: build-essential + python3) plus a no-toolchain alternative, then exits
+> 🍎 `better-sqlite3` is fetched as a prebuilt Electron binary by
+> `npm run desktop:install`, so no Xcode Command Line Tools are required for
+> the common case. If that fetch/rebuild *does* fail (no C++ toolchain, or a
+> Node version with no prebuilt binary), `npm run desktop:install` — and any
+> `desktop:*` build, gated by `prebuild.js` — prints the exact prerequisite
+> (`xcode-select --install`) plus a no-toolchain alternative, then exits
 > non-zero rather than crashing at runtime:
 >
 > ```bash
@@ -319,10 +309,9 @@ flowchart TD
   `npm install`. On failure — or if the native binary is missing afterward — it
   prints actionable help (`scripts/preflight.js`'s `printNativeDepHelp()`) and
   exits non-zero, never leaving a half-set-up `node_modules`. The help lists the
-  per-OS C++ prerequisite (Windows: Visual Studio Build Tools with the "Desktop
-  development with C++" workload; macOS: `xcode-select --install`; Linux:
-  build-essential + python3), notes that a Node LTS (20/22) ships prebuilt
-  binaries (avoiding the compile), and gives a no-toolchain alternative:
+  macOS C++ prerequisite (`xcode-select --install`), notes that a Node LTS
+  (20/22) ships prebuilt binaries (avoiding the compile), and gives a
+  no-toolchain alternative:
 
   ```bash
   cd desktop
@@ -412,21 +401,18 @@ flowchart TD
   `nodeIntegration: false`, an empty preload, and `webSecurity: true`. Geometry
   is persisted to `window-state.json` under `app.getPath('userData')`. External
   links open in the system browser, never inside Electron. Its `icon` is set to
-  the colored app logo via `appIconPath()` (`icon.ico` on Windows, `icon.png`
-  elsewhere — the same logo as the macOS Dock, rendered from `assets/icon.svg`),
-  resolving dev vs packaged asset paths, so an unpackaged `desktop:dev` run shows
-  the real logo in the title bar / taskbar instead of the generic Electron icon.
-  macOS ignores `BrowserWindow#icon` (the dev Dock icon is set separately in
-  `main.ts`; packaged apps get theirs from the bundle `.icns`/`.exe`).
+  the colored app logo via `appIconPath()` (`icon.png`, the same logo as the
+  macOS Dock, rendered from `assets/icon.svg`), resolving dev vs packaged asset
+  paths, so an unpackaged `desktop:dev` run shows the real logo in the title
+  bar instead of the generic Electron icon. macOS ignores `BrowserWindow#icon`
+  (the dev Dock icon is set separately in `main.ts`; the packaged app gets its
+  icon from the bundle `.icns`).
 - **Application menu** — standard menu (`About`, `Open at Login`, `File`,
-  `Edit`, `View`, `Window`, `Help`). `⌘R` / `Ctrl+R` is owned by `View ▸ reload`.
-  The `File ▸ Open Dashboard` item (`⌘1`) is gated behind `isMac`: macOS keeps a
-  global menu bar after the window hides so it can reopen it, but on
-  Windows/Linux the menu is attached to the window and a menu accelerator can't
-  fire while it's hidden — reopening there is the tray's *Open Dashboard*, and
-  `focusOrCreateWindow` calls `show()` unconditionally so it reliably raises a
-  backgrounded/minimized window (a bare `focus()` on Windows often only flashes
-  the taskbar button).
+  `Edit`, `View`, `Window`, `Help`). `⌘R` is owned by `View ▸ reload`. The
+  `File ▸ Open Dashboard` item (`⌘1`) reopens the window from its hidden/tray
+  state — macOS keeps a global menu bar after the window hides, so the
+  accelerator still fires. `focusOrCreateWindow` calls `show()` unconditionally
+  so it reliably raises a backgrounded/minimized window.
 
 ---
 
@@ -568,10 +554,7 @@ and fails with *"entry file out/main.js does not exist"*).
 | `npm run desktop:dmg:arm64` | `npm run dmg:arm64` | **macOS:** Apple-Silicon-only DMG. **Fast.** |
 | `npm run desktop:dmg:x64` | `npm run dmg:x64` | **macOS:** Intel-only DMG. **Fast.** |
 | `npm run desktop:dmg:universal` | `npm run dmg:universal` | **macOS:** one merged universal DMG (arm64 + x86_64 via `@electron/universal`). Optional — not what the release ships. **Slowest.** |
-| `npm run desktop:win` | `npm run win` | **Windows:** NSIS installer `.exe` (x64). |
-| `npm run desktop:win:portable` | `npm run win:portable` | **Windows:** no-install portable `.exe` (x64). |
 | — | `npm run build:icons` | **macOS:** regenerate `icon.icns` + tray PNGs from the SVGs. |
-| — | `npm run build:win-icon` | **Windows:** regenerate `icon.ico` from `icon.png` (PowerShell + .NET). |
 | — | `npm run clean` | Remove `out/` and `release/`. |
 
 > **After `npm run clean`** you must `npm run build` again before packaging —

@@ -41,10 +41,8 @@ Bảng điều khiển chuyên nghiệp để theo dõi và trực quan hóa cá
 ![Electron](https://img.shields.io/badge/Electron-35-47848F?style=flat-square&logo=electron&logoColor=white)
 ![electron-builder](https://img.shields.io/badge/electron--builder-25.1-2c2e3b?style=flat-square&logo=electron&logoColor=white)
 ![macOS](https://img.shields.io/badge/macOS-Desktop_App-000000?style=flat-square&logo=apple&logoColor=white)
-![Windows](https://img.shields.io/badge/Windows-Desktop_App-0078D6?style=flat-square&logo=windows&logoColor=white)
 ![SMAppService](https://img.shields.io/badge/SMAppService-Login_Items-000000?style=flat-square&logo=apple&logoColor=white)
 ![macOS DMG](https://img.shields.io/badge/macOS_DMG-arm64_%2B_x64-7c3aed?style=flat-square&logo=apple&logoColor=white)
-![NSIS Installer](https://img.shields.io/badge/Windows-NSIS_%2B_Portable-1f6feb?style=flat-square&logo=windows&logoColor=white)
 ![Vitest](https://img.shields.io/badge/Vitest-1.0-646CFF?style=flat-square&logo=vitest&logoColor=white)
 ![React Testing Library](https://img.shields.io/badge/React_Testing_Library-13.0-FF5733?style=flat-square&logo=testinglibrary&logoColor=white)
 ![ESLint](https://img.shields.io/badge/ESLint-8.44-4B32C3?style=flat-square&logo=eslint&logoColor=white)
@@ -97,7 +95,7 @@ Tài liệu đã bản địa hóa: [`README.md`](./README.md) · [`README-CN.md
 - [Thông báo trình duyệt](#thông-báo-trình-duyệt)
 - [Thông báo cập nhật](#thông-báo-cập-nhật)
 - [Hộp thoại trạng thái kết nối](#hộp-thoại-trạng-thái-kết-nối)
-- [Ứng dụng máy tính để bàn (macOS & Windows)](#ứng-dụng-máy-tính-để-bàn-macos--windows)
+- [Ứng dụng máy tính để bàn (macOS)](#ứng-dụng-máy-tính-để-bàn-macos)
 - [Tiện ích mở rộng VS Code](#tiện-ích-mở-rộng-vs-code)
 - [Lưu trữ dữ liệu](#lưu-trữ-dữ-liệu)
 - [Dòng trạng thái](#dòng-trạng-thái)
@@ -343,7 +341,7 @@ Bảng điều khiển cung cấp một bộ tính năng toàn diện để giá
 | **Ứng dụng web tiến bộ (PWA)**    | Ba PWA độc lập — dashboard, trang chủ và wiki — mỗi cái có Web App Manifest và Service Worker riêng. Cài đặt bất kỳ cái nào lên màn hình chính / dock để trải nghiệm standalone không thanh trình duyệt. SW của dashboard phục vụ các bundle có hash của Vite tại `/assets/*` theo kiểu cache-first (URL bất biến theo mỗi build, nên cache hit luôn đúng) và xử lý mọi thứ khác (điều hướng, chính SW, `manifest.json`, icon, root `/`) theo kiểu network-first có cache dự phòng. Kết hợp với các header `Cache-Control` rõ ràng trên Express static middleware sản phẩm (`/assets/*` dùng `immutable, max-age=31536000`; `index.html`, `sw.js`, `manifest.json` dùng `no-cache, must-revalidate`), một bản build mới luôn thay thế bundle trong trình duyệt mà không cần hard refresh; listener `controllerchange` trong `client/src/main.tsx` sẽ tự reload đúng một lần khi SW mới tiếp quản trang đang được điều khiển (lần cài đặt đầu tiên thì không reload). Pipeline thông báo đẩy VAPID được giữ nguyên. SW trang chủ và wiki precache shell tương ứng và lazy-cache hình ảnh khi truy cập lần đầu, cho phép truy cập offline sau một lần tải. Tất cả manifest dùng icon SVG (`favicon.svg`) với `sizes="any"`, kèm meta tag `apple-mobile-web-app-capable` + `apple-touch-icon` cho chế độ standalone trên iOS |
 | **Tài nguyên tự lưu trữ (không CDN)** | Toàn bộ font và script được phục vụ cục bộ — không có một request CDN bên thứ ba nào. Ứng dụng React đóng gói Inter + JetBrains Mono qua `@fontsource` (chỉ subset latin; WOFF2 gắn hash nội dung được Vite phát ra vào `dist/assets/` lúc build). Trang chủ và wiki nạp một bảng `@font-face` tự lưu trữ `fonts/fonts.css` (wiki dùng `../fonts/`). Mermaid của wiki được vendor cục bộ (`wiki/mermaid.min.js`, bản minified thật của `mermaid@10.9.6`) thay cho jsDelivr; trang lỗi của VS Code extension bỏ Google Fonts, lùi về font hệ thống. Loại bỏ mọi lệnh gọi tới `fonts.googleapis.com` / `gstatic` / CDN, nên dashboard và tài liệu render hoàn toàn offline và không rò rỉ gì cho bên thứ ba |
 | **Màn hình splash thương hiệu** | Màn hình splash thương hiệu hiển thị một lần mỗi phiên trình duyệt khi tải ứng dụng — lời chào theo thời điểm trong ngày (Chào buổi sáng / chiều / tối), một dòng tiêu đề đậm cùng hai dòng phụ đã bản địa hóa, và một biểu tượng thương hiệu dạng đồ thị nút có hoạt ảnh trên nền tối (radial glow, chòm sao, hạt nhiễu). Đục hoàn toàn ngay từ khung hình đầu (không lóe nội dung ứng dụng phía sau), giữ ~2.5 giây rồi mờ dần, bấm để bỏ qua, tôn trọng `prefers-reduced-motion`, bản địa hóa en/zh/vi/ko/es |
-| **Ứng dụng máy tính để bàn (macOS & Windows)** | Ứng dụng máy tính để bàn gốc tùy chọn xây bằng Electron 35, nằm trong workspace `desktop/` cùng với `client/`, `server/`, `mcp/` và `vscode-extension/`. Phát hành dưới dạng `.app` macOS (`.dmg`) **và** `.exe` Windows (trình cài NSIS + bản portable không cần cài). Nó **nhúng máy chủ Express hiện có ngay trong tiến trình** (`require()` trực tiếp `server/index.js` — không có tiến trình con, không có IPC) và hiển thị ứng dụng React đã build trong một `BrowserWindow`. Bổ sung thanh tiêu đề gốc, biểu tượng tray ở menu-bar / khu vực thông báo mà nhấp một lần sẽ hiện **ảnh chụp trạng thái trực tiếp** (phiên, agent, sự kiện hôm nay) lấy từ SQLite tại thời điểm nhấp, trình đơn ứng dụng gốc, tự khởi động lúc đăng nhập (macOS Login Items qua `SMAppService`; Windows theo từng người dùng qua `HKCU\…\Run`), hộp thoại xác nhận **⌘Q / Ctrl+Q** (nhấn lần hai để bỏ qua), đóng cửa sổ thì ẩn đi nhưng máy chủ vẫn chạy, khóa một-phiên-bản, cùng các lệnh tray "Open in Browser", "Restart Server" và "Show Logs". Ưu tiên cổng 4820 (lùi về 4821–4829 rồi cổng cao ngẫu nhiên), tiếp quản một máy chủ khỏe mạnh sẵn có trên 4820 thay vì bind trùng, và **cùng tồn tại với dashboard web**. Thông báo bắn ra dưới dạng toast gốc của hệ điều hành (Web Push không hoạt động ổn định bên trong Electron). Lần khởi động đầu tiên với máy chủ do ứng dụng sở hữu sẽ tự cài hook Claude Code và chạy các dịch vụ nền, nên người dùng chỉ-cài-đặt cũng có sự kiện chảy về mà không cần thiết lập thủ công. Xem [`DESKTOP.md`](./DESKTOP.md) và [`desktop/README.md`](./desktop/README.md) |
+| **Ứng dụng máy tính để bàn (macOS)** | Ứng dụng máy tính để bàn gốc tùy chọn xây bằng Electron 35, nằm trong workspace `desktop/` cùng với `client/`, `server/`, `mcp/` và `vscode-extension/`. Phát hành dưới dạng `.app` macOS (`.dmg`). Nó **nhúng máy chủ Express hiện có ngay trong tiến trình** (`require()` trực tiếp `server/index.js` — không có tiến trình con, không có IPC) và hiển thị ứng dụng React đã build trong một `BrowserWindow`. Bổ sung thanh tiêu đề gốc, biểu tượng tray ở menu-bar mà nhấp một lần sẽ hiện **ảnh chụp trạng thái trực tiếp** (phiên, agent, sự kiện hôm nay) lấy từ SQLite tại thời điểm nhấp, trình đơn ứng dụng gốc, tự khởi động lúc đăng nhập (macOS Login Items qua `SMAppService`), hộp thoại xác nhận **⌘Q** (nhấn lần hai để bỏ qua), đóng cửa sổ thì ẩn đi nhưng máy chủ vẫn chạy, khóa một-phiên-bản, cùng các lệnh tray "Open in Browser", "Restart Server" và "Show Logs". Ưu tiên cổng 4820 (lùi về 4821–4829 rồi cổng cao ngẫu nhiên), tiếp quản một máy chủ khỏe mạnh sẵn có trên 4820 thay vì bind trùng, và **cùng tồn tại với dashboard web** — `npm run dev` và ứng dụng máy tính để bàn có thể chạy song song, hook fan-out tới cả hai. Thông báo bắn ra dưới dạng toast gốc của hệ điều hành (Web Push không hoạt động ổn định bên trong Electron). Lần khởi động đầu tiên với máy chủ do ứng dụng sở hữu sẽ tự cài hook Claude Code và chạy các dịch vụ nền, nên người dùng chỉ-cài-đặt cũng có sự kiện chảy về mà không cần thiết lập thủ công. Xem [`DESKTOP.md`](./DESKTOP.md) và [`desktop/README.md`](./desktop/README.md) |
 
 > **Phạm vi nhà cung cấp và vị trí dữ liệu:** Cài đặt giữ lựa chọn Claude Code / Codex / Cả hai nhất quán trên toàn ứng dụng và cho phép đổi từng thư mục dữ liệu phiên mà không cần khởi động lại dashboard.
 >
@@ -456,25 +454,22 @@ Các cổng host mặc định chỉ bind loopback: dashboard `4820`, MCP `8819`
 > [!IMPORTANT]
 > Cài hooks trên host. Với remote hook, đặt `CCAM_DASHBOARD_URL=https://...` và `CCAM_HOOK_TOKEN`; URL không phải loopback bắt buộc HTTPS. Xem [DEPLOYMENT.md](DEPLOYMENT.md).
 
-### Thay thế: Ứng dụng máy tính để bàn (macOS & Windows)
+### Thay thế: Ứng dụng máy tính để bàn (macOS)
 
-Nếu bạn không muốn giữ một cửa sổ terminal mở, hãy cài đặt **ứng dụng máy tính để bàn gốc** tùy chọn. Nó nhúng máy chủ ngay trong tiến trình, thêm biểu tượng tray ở menu-bar / khu vực thông báo và hỗ trợ tự khởi động lúc đăng nhập (macOS Login Items / Windows startup).
+Nếu bạn không muốn giữ một cửa sổ terminal mở, hãy cài đặt **ứng dụng máy tính để bàn gốc** tùy chọn. Nó nhúng máy chủ ngay trong tiến trình, thêm biểu tượng tray ở menu-bar và hỗ trợ tự khởi động lúc đăng nhập (macOS Login Items).
 
 Cách nhanh nhất là **tải trình cài dựng sẵn** từ [bản GitHub Release mới nhất](https://github.com/hoangsonww/Claude-Code-Agent-Monitor/releases/latest) (CI tự động phát hành một `vX.Y.Z` mỗi khi `package.json` được nâng phiên bản trên `master`):
 
 - **macOS** — tải `ClaudeCodeMonitor-<version>-arm64.dmg` (Apple Silicon) hoặc `-x64.dmg` (Intel) rồi kéo **Claude Code Monitor.app** vào `/Applications`.
-- **Windows** — tải `ClaudeCodeMonitor-Setup-<version>-x64.exe` (trình cài) hoặc `ClaudeCodeMonitor-<version>-x64-portable.exe` (không cần cài) rồi chạy.
 
 Hoặc nếu bạn muốn tự dựng:
 
 ```bash
 npm run desktop:install        # cài Electron + electron-builder vào desktop/ (tiền kiểm phụ thuộc gốc; in hướng dẫn thiết lập khi thất bại)
 npm run desktop:dmg:arm64      # macOS: DMG một-kiến-trúc nhanh (Apple Silicon)
-npm run desktop:win            # Windows: trình cài NSIS .exe (chạy trên Windows)
 ```
 
-> [!LƯU Ý]
-> DMG dựng trên macOS, còn `.exe` Windows dựng trên Windows — electron-builder đóng gói theo hệ điều hành chủ. Toàn bộ chi tiết, ngữ nghĩa vòng đời, các bước cài đặt và hook ký/công chứng nằm trong mục [Ứng dụng máy tính để bàn (macOS & Windows)](#ứng-dụng-máy-tính-để-bàn-macos--windows) và [`DESKTOP.md`](./DESKTOP.md).
+Toàn bộ chi tiết về ứng dụng máy tính để bàn — tải về, cài đặt, tính năng tray/menu, lệnh dựng và ký mã — nằm trong mục [Ứng dụng máy tính để bàn (macOS)](#ứng-dụng-máy-tính-để-bàn-macos) bên dưới. Xem thêm [`DESKTOP.md`](./DESKTOP.md) (hướng dẫn người dùng) và [`desktop/README.md`](./desktop/README.md) (kiến trúc).
 
 ---
 
@@ -744,8 +739,6 @@ Các lệnh dựa trên API cần server đang chạy — khi chưa chạy, **c�
 | `npm run desktop:dmg:arm64` | **macOS:** Tạo DMG chỉ cho Apple Silicon. **Nhanh.** |
 | `npm run desktop:dmg:x64`   | **macOS:** Tạo DMG chỉ cho Intel. **Nhanh.** |
 | `npm run desktop:dmg:universal` | **macOS:** Tạo **một** DMG universal hợp nhất (arm64 + x86_64 trong một tệp) — tùy chọn, **chậm nhất**, không phải thứ bản phát hành đi kèm. |
-| `npm run desktop:win`   | **Windows:** Tạo trình cài **NSIS** `.exe` (x64) — chạy trên Windows |
-| `npm run desktop:win:portable` | **Windows:** Tạo bản **portable** (không cần cài) `.exe` (x64) — chạy trên Windows |
 | `npm run monitoring:install` | Chạy `npm install` trong `monitoring/` — tải Prometheus + Grafana qua `postinstall` |
 | `npm run monitoring:setup` | Alias của `monitoring:install` |
 | `npm run monitoring:up` | Khởi động Prometheus (:9090) + Grafana (:3000) nền (không cần Docker) |
@@ -1455,26 +1448,20 @@ Bấm vào nhãn **Live** / **Disconnected** ở chân thanh bên để mở m�
 
 ---
 
-## Ứng dụng máy tính để bàn (macOS & Windows)
+## Ứng dụng máy tính để bàn (macOS)
 
-Bảng điều khiển đi kèm một **ứng dụng máy tính để bàn gốc** tùy chọn mà bạn cài đặt một lần rồi quên đi — một `.app` macOS (phân phối dưới dạng `.dmg`) và một `.exe` Windows (một trình cài NSIS cùng một bản portable không cần cài). Mọi thứ bạn thấy trong trình duyệt tại `localhost:4820` đều nằm bên trong cửa sổ này, cộng thêm vòng đời gốc của hệ điều hành: biểu tượng tray, trình đơn ứng dụng, tích hợp tự khởi động và một nút thoát duy nhất dọn dẹp máy chủ gọn gàng.
+Bảng điều khiển đi kèm một **ứng dụng máy tính để bàn gốc** tùy chọn mà bạn cài đặt một lần rồi quên đi — một `.app` macOS phân phối dưới dạng `.dmg`. Mọi thứ bạn thấy trong trình duyệt tại `localhost:4820` đều nằm bên trong cửa sổ này, cộng thêm vòng đời gốc của hệ điều hành: biểu tượng tray, trình đơn ứng dụng, tích hợp tự khởi động và một nút thoát duy nhất dọn dẹp máy chủ gọn gàng.
 
 <p align="center">
   <img src="images/macos.png" alt="Claude Code Monitor chạy như một ứng dụng máy tính để bàn gốc" width="100%">
   <br>
-  <em>🍎🪟 <strong>Ứng dụng máy tính để bàn</strong> — vỏ gốc với biểu tượng tray ở menu-bar / khu vực thông báo, Open-at-Login và khoá single-instance. Cùng một bảng điều khiển, chạy trong một cửa sổ hệ điều hành thật (hình minh họa là macOS).</em>
-</p>
-
-<p align="center">
-  <img src="images/windows_app.png" alt="Claude Code Monitor chạy như một ứng dụng máy tính để bàn gốc trên Windows, hiển thị Activity Feed với thanh trình đơn cửa sổ Windows và bảng Tabby" width="100%">
-  <br>
-  <em>🪟 Cùng một bảng điều khiển dưới dạng ứng dụng Windows gốc — biểu tượng tray ở khu vực thông báo, trình đơn cửa sổ gốc và Open-at-Login.</em>
+  <em>🍎 <strong>Ứng dụng máy tính để bàn</strong> — vỏ gốc với biểu tượng tray ở menu-bar, Open-at-Login và khoá single-instance. Cùng một bảng điều khiển, chạy trong một cửa sổ macOS thật.</em>
 </p>
 
 Workspace `desktop/` là **một workspace ngang hàng** với `client/`, `server/`, `mcp/` và `vscode-extension/` — được xây dựng bằng **Electron 35**. Nó **nhúng máy chủ Express ngay trong tiến trình** (`require()` trực tiếp `server/index.js` — không có tiến trình con, không có IPC) và hiển thị ứng dụng React đã build trong một `BrowserWindow`.
 
 > [!LƯU Ý]
-> **Trạng thái:** v1, hỗ trợ macOS và Windows. Bản dựng Linux và trình tự cập nhật (auto-updater) nằm ngoài phạm vi của phiên bản này và được theo dõi như các việc tiếp nối.
+> **Trạng thái:** v1, chỉ hỗ trợ macOS. Bản dựng Linux và trình tự cập nhật (auto-updater) nằm ngoài phạm vi của phiên bản này và được theo dõi như các việc tiếp nối.
 
 ### Vị trí của ứng dụng máy tính để bàn trong kho mã
 
@@ -1486,7 +1473,7 @@ flowchart TD
         scripts["scripts/<br/>hook installer/handler, import, seed"]
         mcp["mcp/<br/>local MCP server"]
         vscode["vscode-extension/"]
-        desktop["desktop/<br/>Electron shell (macOS .app / Windows .exe)"]
+        desktop["desktop/<br/>Electron shell (macOS .app)"]
     end
 
     desktop -- "require() in-process" --> server
@@ -1506,8 +1493,8 @@ PWA giúp cài đặt bảng điều khiển trong các trình duyệt nền Chr
 |---|---|---|
 | Cài vào dock / Applications | ✅ | ✅ |
 | Quản lý máy chủ Express | ❌ — người dùng phải `npm start` riêng | ✅ — nhúng trong tiến trình |
-| Tự khởi động lúc đăng nhập | ❌ | ✅ qua macOS Login Items / Windows startup |
-| Biểu tượng tray (menu-bar / khu vực thông báo) cho trạng thái luôn-bật | ❌ | ✅ |
+| Tự khởi động lúc đăng nhập | ❌ | ✅ qua macOS Login Items |
+| Biểu tượng tray (menu-bar) cho trạng thái luôn-bật | ❌ | ✅ |
 | Trình đơn ứng dụng gốc (phím tắt ⌘, v.v.) | ❌ | ✅ |
 | Sống sót sau khi khởi động lại trình duyệt | ⚠️ tùy trình duyệt | ✅ |
 
@@ -1521,33 +1508,12 @@ Tải từ [**Releases → latest**](https://github.com/hoangsonww/Claude-Code-A
 | --- | --- | --- |
 | macOS (Apple Silicon) | `ClaudeCodeMonitor-<ver>-arm64.dmg` | kéo vào `/Applications` |
 | macOS (Intel) | `ClaudeCodeMonitor-<ver>-x64.dmg` | kéo vào `/Applications` |
-| Windows (trình cài) | `ClaudeCodeMonitor-Setup-<ver>-x64.exe` | cài theo từng người dùng, không cần quyền admin |
-| Windows (portable) | `ClaudeCodeMonitor-<ver>-x64-portable.exe` | chạy mà không cần cài |
 
-Nếu cần **bản build theo từng commit**, dùng artifact CI (cần đăng nhập, lưu giữ 14 ngày): `ClaudeCodeMonitor-dmg` từ job `🍎 macOS Desktop (DMG)` và `ClaudeCodeMonitor-win` từ job `🪟 Windows Desktop (EXE)`.
+Nếu cần **bản build theo từng commit**, dùng artifact CI (cần đăng nhập, lưu giữ 14 ngày): `ClaudeCodeMonitor-dmg` từ job `🍎 macOS Desktop (DMG)`.
 
 Cài đặt:
 
-- **macOS** — mở (mount) tệp `.dmg`, rồi kéo `Claude Code Monitor.app` vào thư mục `Applications`. macOS có thể hiện cảnh báo Gatekeeper trong lần chạy đầu tiên — xem mục [Gatekeeper / SmartScreen](#gatekeeper--smartscreen-lần-chạy-đầu-tiên) bên dưới.
-- **Windows** — chạy `ClaudeCodeMonitor-Setup-<ver>-x64.exe`. Nó cài **theo từng người dùng** vào `%LOCALAPPDATA%\Programs\Claude Code Monitor` (không cần nâng quyền admin) và cho bạn chọn thư mục cài; hoặc chạy `*-portable.exe` để khởi động mà không cần cài. Windows **SmartScreen** có thể hiện cảnh báo trong lần chạy đầu tiên — xem bên dưới.
-
-<p align="center">
-  <img src="images/setup_win_wizard.png" alt="Trình cài NSIS bước 1 — Choose Installation Options, chọn cài theo từng người dùng (Only for me) hay cho mọi người dùng" width="100%">
-  <br>
-  <em>Trình cài Windows · Bước 1 — <strong>Chọn tùy chọn cài đặt</strong> (theo từng người dùng "Only for me" so với mọi người dùng).</em>
-</p>
-
-<p align="center">
-  <img src="images/setup_win_wizard2.png" alt="Trình cài NSIS bước 2 — Choose Install Location, với thư mục đích %LOCALAPPDATA%\Programs theo từng người dùng" width="100%">
-  <br>
-  <em>Trình cài Windows · Bước 2 — <strong>Chọn vị trí cài đặt</strong> (mặc định về <code>%LOCALAPPDATA%\Programs</code> theo từng người dùng).</em>
-</p>
-
-<p align="center">
-  <img src="images/setup_win_wizard3.png" alt="Trình cài NSIS bước 3 — Completing Setup, với tùy chọn hoàn tất và chạy ứng dụng" width="100%">
-  <br>
-  <em>Trình cài Windows · Bước 3 — <strong>Hoàn tất</strong> (Finish rồi khởi chạy ứng dụng).</em>
-</p>
+- **macOS** — mở (mount) tệp `.dmg`, rồi kéo `Claude Code Monitor.app` vào thư mục `Applications`. macOS có thể hiện cảnh báo Gatekeeper trong lần chạy đầu tiên — xem mục [Gatekeeper](#gatekeeper-lần-chạy-đầu-tiên) bên dưới.
 
 **Cách B — xây dựng cục bộ:**
 
@@ -1557,11 +1523,10 @@ npm run setup                # cài phụ thuộc root + client + vscode-extensi
 npm run build                # build ứng dụng React
 npm run desktop:install      # cài Electron + electron-builder vào desktop/ (tiền kiểm phụ thuộc gốc; in hướng dẫn thiết lập khi thất bại)
 npm run desktop:dmg:arm64    # macOS: tạo desktop/release/ClaudeCodeMonitor-<ver>-arm64.dmg (nhanh)
-npm run desktop:win          # Windows: tạo trình cài NSIS .exe (chạy trên Windows)
 ```
 
 > [!QUAN TRỌNG]
-> **DMG dựng trên macOS, `.exe` Windows dựng trên Windows** — electron-builder đóng gói theo hệ điều hành chủ. Bản dựng `npm run desktop:dmg` của macOS **cố tình chậm** (đóng gói hai lần — mỗi kiến trúc một lần — rồi xuất ra **cả hai** DMG theo kiến trúc `ClaudeCodeMonitor-<ver>-arm64.dmg` và `ClaudeCodeMonitor-<ver>-x64.dmg`, không có bước hợp nhất); khi xây dựng cho **chính máy Mac của bạn**, hãy dùng `npm run desktop:dmg:arm64` (Apple Silicon) hoặc `npm run desktop:dmg:x64` (Intel) — chỉ một kiến trúc, hoàn tất trong khoảng một phút. Trên Windows, `npm run desktop:install` tải `better-sqlite3` dưới dạng nhị phân Electron dựng sẵn, nên trường hợp thông thường không cần bộ công cụ Visual Studio C++. Nếu việc dựng có thất bại (không có nhị phân dựng sẵn, hoặc thiếu bộ công cụ C++), `desktop:install` in ra đúng cách khắc phục theo từng hệ điều hành cùng một phương án không cần bộ công cụ rồi báo lỗi rõ ràng thay vì để lại bản cài hỏng. CI đã dựng sẵn cả DMG macOS lẫn `.exe` Windows và tải lên dưới dạng artifact `ClaudeCodeMonitor-dmg` / `ClaudeCodeMonitor-win`, nên bạn hiếm khi cần tự dựng. DMG macOS khoảng ~80 MB (~250 MB khi giải nén trên đĩa) và trình cài Windows tương đương.
+> electron-builder đóng gói theo hệ điều hành chủ, nên DMG phải được dựng trên macOS. Bản dựng `npm run desktop:dmg` **cố tình chậm** (đóng gói hai lần — mỗi kiến trúc một lần — rồi xuất ra **cả hai** DMG theo kiến trúc `ClaudeCodeMonitor-<ver>-arm64.dmg` và `ClaudeCodeMonitor-<ver>-x64.dmg`, không có bước hợp nhất); khi xây dựng cho **chính máy Mac của bạn**, hãy dùng `npm run desktop:dmg:arm64` (Apple Silicon) hoặc `npm run desktop:dmg:x64` (Intel) — chỉ một kiến trúc, hoàn tất trong khoảng một phút. Nếu việc dựng có thất bại (không có nhị phân `better-sqlite3` dựng sẵn, hoặc thiếu bộ công cụ C++), `desktop:install` in ra đúng cách khắc phục cùng một phương án không cần bộ công cụ rồi báo lỗi rõ ràng thay vì để lại bản cài hỏng. DMG macOS khoảng ~80 MB (~250 MB khi giải nén trên đĩa).
 
 ### Điều gì xảy ra khi bạn khởi chạy ứng dụng
 
@@ -1589,30 +1554,28 @@ flowchart TD
 2. Nếu đã có thứ gì đó trả lời `/api/health` trên cổng 4820 (ví dụ bạn đã chạy `npm start` trong terminal), ứng dụng sẽ **tiếp quản máy chủ đó** và bỏ qua việc khởi động máy chủ thứ hai — không bind trùng, không tranh chấp SQLite.
 3. Ngược lại, nó `require()` trực tiếp `server/index.js` trong cùng tiến trình — cùng runtime Node với tiến trình chính.
 4. Lần khởi động đầu tiên với máy chủ **do ứng dụng sở hữu**, nó tự cài hook Claude Code (`installHooks()`) và chạy các dịch vụ nền qua `startBackgroundServices()` (bộ lập lịch cập nhật, `cc-watcher`, đối soát các phiên mồ côi). Việc này được bảo vệ bằng cờ để một lần *Restart Server* không đăng ký trùng các dịch vụ nền.
-   - **(macOS)** ứng dụng còn khôi phục `PATH` của login-shell để tính năng "Run Claude" tìm và khởi chạy được `claude` CLI — một ứng dụng khởi chạy từ Finder/Dock vốn chỉ thừa hưởng `PATH` tối thiểu của launchd, sẽ bỏ sót các CLI trong `~/.local/bin`, `/opt/homebrew/bin`, thư mục của trình quản lý phiên bản, v.v. (Trên Windows tiến trình đã thừa hưởng `PATH` của người dùng.)
-5. Cửa sổ bảng điều khiển mở ra — trừ khi ứng dụng được khởi chạy lúc đăng nhập (trên macOS qua Login Items; trên Windows qua mục `HKCU\…\Run` có gắn thẻ), khi đó nó ở chế độ chỉ-tray.
+   - Ứng dụng còn khôi phục `PATH` của login-shell để tính năng "Run Claude" tìm và khởi chạy được `claude` CLI — một ứng dụng khởi chạy từ Finder/Dock vốn chỉ thừa hưởng `PATH` tối thiểu của launchd, sẽ bỏ sót các CLI trong `~/.local/bin`, `/opt/homebrew/bin`, thư mục của trình quản lý phiên bản, v.v.
+5. Cửa sổ bảng điều khiển mở ra — trừ khi ứng dụng được khởi chạy lúc đăng nhập qua Login Items, khi đó nó ở chế độ chỉ-tray.
 
 ### Biểu tượng tray, trình đơn và tự khởi động
 
-- **Biểu tượng tray** — bề mặt trạng thái luôn-bật (menu-bar trên macOS / khu vực thông báo trên Windows). Trình đơn ngữ cảnh gồm: *Open Dashboard, Open in Browser, Restart Server, Show Logs, Open at Login (chuyển đổi), Quit*. Trình đơn được dựng lại mỗi lần mở nên nhãn cổng và ô đánh dấu *Open at Login* luôn cập nhật. macOS dùng glyph template được tô màu; Windows dùng `icon.ico` màu (một template đen sẽ biến mất trên thanh tác vụ tối). (Mục **File ▸ Open Dashboard** (`⌘1`) trong **trình đơn ứng dụng** gốc **chỉ có trên macOS**: macOS vẫn giữ thanh menu toàn cục sau khi cửa sổ ẩn đi nên mục đó có thể mở lại cửa sổ — còn trên Windows/Linux trình đơn gắn liền với cửa sổ và phím tắt menu không thể kích hoạt khi cửa sổ đang ẩn, nên hãy mở lại từ *Open Dashboard* của tray, vốn luôn **đưa cửa sổ lên trước** một cách đáng tin cậy kể cả khi cửa sổ đã thu nhỏ hay bị các cửa sổ khác che khuất.)
-- **Biểu tượng cửa sổ và thanh tác vụ** — `BrowserWindow` được gắn với logo ứng dụng màu (`icon.ico` trên Windows, `icon.png` ở nơi khác), nên thanh tiêu đề / thanh tác vụ hiển thị đúng biểu tượng Claude Code Monitor — kể cả khi chạy `npm run desktop:dev` chưa đóng gói cũng không còn hiện biểu tượng Electron chung chung nữa.
+- **Biểu tượng tray** — bề mặt trạng thái luôn-bật trên menu-bar macOS. Trình đơn ngữ cảnh gồm: *Open Dashboard, Open in Browser, Restart Server, Show Logs, Open at Login (chuyển đổi), Quit*. Trình đơn được dựng lại mỗi lần mở nên nhãn cổng và ô đánh dấu *Open at Login* luôn cập nhật. Dùng glyph template được tô màu tự động sáng/tối theo menu bar. Mục **File ▸ Open Dashboard** (`⌘1`) trong **trình đơn ứng dụng** gốc reliably đưa cửa sổ lên trước ngay cả khi đã thu nhỏ hay bị các cửa sổ khác che khuất.
+- **Biểu tượng cửa sổ** — `BrowserWindow` được gắn với logo ứng dụng màu (`icon.png`), nên thanh tiêu đề hiển thị đúng biểu tượng Claude Code Monitor — kể cả khi chạy `npm run desktop:dev` chưa đóng gói cũng không còn hiện biểu tượng Electron chung chung nữa.
 - **Đóng cửa sổ thì ẩn đi** — máy chủ vẫn chạy, biểu tượng tray vẫn còn. Nhấp tray để đưa cửa sổ trở lại.
-- **Thoát (⌘Q / Ctrl+Q, hoặc tray → Quit)** — tắt máy chủ nhúng một cách gọn gàng, đóng SQLite sạch sẽ (checkpoint WAL) rồi thoát.
-- **Khóa một-phiên-bản** — khởi chạy lần hai chỉ đưa cửa sổ hiện có lên trước, không có máy chủ thứ hai, không xung đột cổng. (Áp dụng trên mọi nền tảng.)
-- **Tự khởi động lúc đăng nhập** — bật/tắt *Open at Login* trong trình đơn tray. Trên macOS nó đăng ký qua API `SMAppService`, nên mục này xuất hiện trong **System Settings → General → Login Items**; trên Windows nó ghi một mục `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` theo từng người dùng, thấy được trong **Task Manager → Startup**. Khi ứng dụng được khởi chạy lúc đăng nhập, nó bắt đầu ở chế độ **chỉ-tray** — không có cửa sổ nhảy ra trước mặt.
-- **Nhật ký** nằm tại `~/Library/Logs/Claude Code Monitor/desktop.log` (macOS) hoặc `%APPDATA%\Claude Code Monitor\logs\desktop.log` (Windows) (dùng *Show Logs* trong trình đơn để mở).
-- **Dữ liệu của bạn** (cơ sở dữ liệu SQLite và khóa VAPID) nằm trong thư mục dữ liệu ứng dụng theo từng người dùng, **bên ngoài** gói ứng dụng / thư mục cài — `~/Library/Application Support/Claude Code Monitor/data/` trên macOS, `%APPDATA%\Claude Code Monitor\data\` trên Windows — nên dữ liệu **sống sót qua các lần cài lại và cập nhật ứng dụng**. Một gói đã đóng gói là chỉ-đọc, nên ghi cơ sở dữ liệu bên trong sẽ phá vỡ History Import và việc lưu sự kiện; lưu trong thư mục dữ liệu ứng dụng khắc phục điều này và nghĩa là lịch sử đã nhập của bạn không bị ảnh hưởng khi thay thế hoặc nâng cấp ứng dụng. (Trình gỡ cài NSIS của Windows mặc định giữ lại dữ liệu này.)
-- **CLI `claude`** — trên macOS, ứng dụng khôi phục `PATH` của login-shell lúc khởi động, nên tính năng "Run Claude" hoạt động dù một ứng dụng macOS khởi chạy từ Finder/Dock vốn chỉ thừa hưởng `PATH` tối thiểu của launchd. (Trên Windows, `PATH` người dùng được thừa hưởng đã bao gồm nó.)
+- **Thoát (⌘Q, hoặc tray → Quit)** — tắt máy chủ nhúng một cách gọn gàng, đóng SQLite sạch sẽ (checkpoint WAL) rồi thoát.
+- **Khóa một-phiên-bản** — khởi chạy lần hai chỉ đưa cửa sổ hiện có lên trước, không có máy chủ thứ hai, không xung đột cổng.
+- **Tự khởi động lúc đăng nhập** — bật/tắt *Open at Login* trong trình đơn tray. Đăng ký qua API `SMAppService`, nên mục này xuất hiện trong **System Settings → General → Login Items**. Khi ứng dụng được khởi chạy lúc đăng nhập, nó bắt đầu ở chế độ **chỉ-tray** — không có cửa sổ nhảy ra trước mặt.
+- **Nhật ký** nằm tại `~/Library/Logs/Claude Code Monitor/desktop.log` (dùng *Show Logs* trong trình đơn để mở).
+- **Dữ liệu của bạn** (cơ sở dữ liệu SQLite và khóa VAPID) nằm trong thư mục dữ liệu ứng dụng theo từng người dùng, **bên ngoài** gói ứng dụng — `~/Library/Application Support/Claude Code Monitor/data/` — nên dữ liệu **sống sót qua các lần cài lại và cập nhật ứng dụng**. Một gói đã đóng gói là chỉ-đọc, nên ghi cơ sở dữ liệu bên trong sẽ phá vỡ History Import và việc lưu sự kiện; lưu trong thư mục dữ liệu ứng dụng khắc phục điều này và nghĩa là lịch sử đã nhập của bạn không bị ảnh hưởng khi thay thế hoặc nâng cấp ứng dụng.
+- **CLI `claude`** — ứng dụng khôi phục `PATH` của login-shell lúc khởi động, nên tính năng "Run Claude" hoạt động dù một ứng dụng macOS khởi chạy từ Finder/Dock vốn chỉ thừa hưởng `PATH` tối thiểu của launchd.
 
 ### Module gốc `better-sqlite3`
 
 `better-sqlite3` là module **gốc** duy nhất trong cây phụ thuộc, và một module gốc phải được biên dịch theo đúng ABI Node mà nó chạy trên đó. Workspace `desktop/` đi kèm một bản sao `better-sqlite3` cục bộ được dựng lại cho ABI của Electron (qua `electron-builder install-app-deps` trong `postinstall`), không động đến bản cài ở thư mục gốc dùng cho `npm run test:server`. Nếu việc dựng lại thất bại, máy chủ vẫn quay về dùng `node:sqlite` tích hợp sẵn nên ứng dụng vẫn khởi động được.
 
-**Tiền kiểm (preflight) phụ thuộc gốc.** `npm run desktop:install` chạy `scripts/install.js`, kiểm tra trước nhị phân gốc `better-sqlite3` cho ABI của Electron. Trên Windows trường hợp thông thường tải về nhị phân Electron **dựng sẵn**, nên không cần bộ công cụ Visual Studio C++. Nếu việc dựng thất bại (không có nhị phân dựng sẵn, hoặc thiếu bộ công cụ C++), nó **báo lỗi rõ ràng và thoát với mã khác 0** thay vì để lại một bản cài hỏng, đồng thời in ra phần khắc phục cụ thể theo từng hệ điều hành:
+**Tiền kiểm (preflight) phụ thuộc gốc.** `npm run desktop:install` chạy `scripts/install.js`, kiểm tra trước nhị phân gốc `better-sqlite3` cho ABI của Electron. Nếu việc dựng thất bại (không có nhị phân dựng sẵn, hoặc thiếu bộ công cụ C++), nó **báo lỗi rõ ràng và thoát với mã khác 0** thay vì để lại một bản cài hỏng, đồng thời in ra phần khắc phục cụ thể:
 
-- **Windows** — cài "Visual Studio Build Tools" kèm workload "Desktop development with C++".
 - **macOS** — `xcode-select --install`.
-- **Linux** — cài `build-essential` + `python3`.
 - Hoặc dùng một Node LTS (20 hoặc 22) vốn đi kèm nhị phân dựng sẵn để bỏ qua hẳn bước biên dịch.
 
 Hoặc, **không cần bộ công cụ C++ nào**, lấy thẳng nhị phân dựng sẵn của Electron:
@@ -1643,8 +1606,6 @@ Tất cả lệnh chạy được từ **thư mục gốc kho mã**. Mọi lện
 | `npm run desktop:dmg:arm64` | **macOS:** DMG chỉ cho Apple Silicon. **Nhanh (~1 phút).** |
 | `npm run desktop:dmg:x64` | **macOS:** DMG chỉ cho Intel. **Nhanh (~1 phút).** |
 | `npm run desktop:dmg:universal` | **macOS:** **một** DMG universal hợp nhất (arm64 + x86_64 trong một tệp) — tùy chọn, **chậm nhất**, không phải thứ bản phát hành đi kèm. |
-| `npm run desktop:win` | **Windows:** trình cài NSIS `.exe` (x64). |
-| `npm run desktop:win:portable` | **Windows:** bản portable không cần cài `.exe` (x64). |
 
 ### Hiệu năng xây dựng — hãy đọc mục này
 
@@ -1676,9 +1637,8 @@ DMG macOS được **ký ad-hoc theo mặc định** (`CSC_IDENTITY_AUTO_DISCOVE
 
 - **Ký Developer ID thực sự** được kích hoạt khi cung cấp `CSC_LINK` (tệp `.p12` mã hóa base64) và `CSC_KEY_PASSWORD`.
 - **Công chứng (notarization)** là tùy chọn bật thêm: nó chạy khi cả `APPLE_ID`, `APPLE_TEAM_ID` và `APPLE_APP_SPECIFIC_PASSWORD` đều được đặt; ngược lại nó là no-op.
-- Bản dựng **Windows** **không ký theo mặc định** (SmartScreen có thể hỏi trong lần chạy đầu — *More info → Run anyway*); **ký Authenticode** chỉ kích hoạt khi cung cấp chứng chỉ tường minh qua `CSC_LINK` + `CSC_KEY_PASSWORD`.
 
-#### Gatekeeper / SmartScreen (lần chạy đầu tiên)
+#### Gatekeeper (lần chạy đầu tiên)
 
 **macOS** — một DMG ký ad-hoc sẽ kích hoạt cảnh báo Gatekeeper trong lần mở đầu tiên (*"Apple could not verify…"*). Cách giải quyết một dòng:
 
@@ -1688,11 +1648,9 @@ xattr -cr "/Applications/Claude Code Monitor.app"
 
 Hoặc mở  → *System Settings → Privacy & Security*, cuộn tới ứng dụng bị chặn và nhấp *Open Anyway*.
 
-**Windows** — trình cài không ký theo mặc định, nên **SmartScreen** có thể hiện *"Windows protected your PC"* trong lần chạy đầu tiên — nhấp **More info → Run anyway**.
-
 ### Tích hợp liên tục (CI)
 
-`.github/workflows/ci.yml` có hai job desktop được **lọc theo đường dẫn** (một job `changes` dùng `dorny/paths-filter` phát hiện thay đổi trong `desktop/**`; các job này cũng chạy trên mọi `push`, hoặc khi PR gắn nhãn `desktop`): job `🍎 macOS Desktop (DMG)` chạy trên `macos-latest` dựng cả hai DMG theo kiến trúc rồi tải lên dưới dạng artifact `ClaudeCodeMonitor-dmg` (hai DMG một-kiến-trúc); job `🪟 Windows Desktop (EXE)` chạy trên `windows-latest` dựng rồi tải lên dưới dạng artifact `ClaudeCodeMonitor-win` (trình cài NSIS + bản portable). Khi đẩy bản nâng phiên bản lên `master`, job `release` đính kèm **cả** DMG macOS lẫn `.exe` Windows vào bản GitHub Release `vX.Y.Z` đã phát hành. Biểu tượng Windows (`desktop/assets/icon.ico`) được commit vào kho mã (tạo lại từ `icon.png` bằng `npm run build:win-icon`, dùng PowerShell + .NET, không cần công cụ phụ).
+`.github/workflows/ci.yml` có một job desktop được **lọc theo đường dẫn** (một job `changes` dùng `dorny/paths-filter` phát hiện thay đổi trong `desktop/**`; job này cũng chạy trên mọi `push`, hoặc khi PR gắn nhãn `desktop`): job `🍎 macOS Desktop (DMG)` chạy trên `macos-latest` dựng cả hai DMG theo kiến trúc rồi tải lên dưới dạng artifact `ClaudeCodeMonitor-dmg` (hai DMG một-kiến-trúc). Khi đẩy bản nâng phiên bản lên `master`, job `release` đính kèm các DMG macOS vào bản GitHub Release `vX.Y.Z` đã phát hành.
 
 ### Thay đổi duy nhất ngoài `desktop/`
 
@@ -2014,15 +1972,15 @@ graph LR
     style P_DIST fill:#646CFF,stroke:#818cf8,color:#fff
 ```
 
-Ngoài hai chế độ trên, ứng dụng máy tính để bàn (macOS & Windows) cung cấp một cách chạy thứ ba — máy chủ Express được nhúng ngay trong tiến trình chính Electron, không cần terminal:
+Ngoài hai chế độ trên, ứng dụng máy tính để bàn (macOS) cung cấp một cách chạy thứ ba — máy chủ Express được nhúng ngay trong tiến trình chính Electron, không cần terminal:
 
 ```mermaid
 flowchart LR
-    subgraph desktopmode["Desktop App (macOS & Windows) — 1 process (Electron Main)"]
+    subgraph desktopmode["Desktop App (macOS) — 1 process (Electron Main)"]
         MAIN["Electron Main<br/>Node 22 / Electron 35"]
         EMB["server/index.js<br/>embedded via require()"]
         WIN["BrowserWindow<br/>React dashboard"]
-        TRAY["tray icon<br/>menu bar / notification area"]
+        TRAY["tray icon<br/>menu bar"]
         MAIN --> EMB
         MAIN --> TRAY
         EMB -->|"http + ws on 127.0.0.1:port"| WIN
@@ -2251,9 +2209,8 @@ agent-dashboard/
 | Dữ liệu cũ sau khi khởi động lại          | Cơ sở dữ liệu vẫn tồn tại trong suốt quá trình khởi động lại. Chạy `npm run seed` để có dữ liệu demo mới hoặc xóa `data/dashboard.db` để đặt lại                                            |
 | Công cụ MCP không kết nối được         | Xác nhận API bảng điều khiển đã hoạt động trên `MCP_DASHBOARD_BASE_URL` và xây dựng lại/khởi động MCP (`npm run mcp:build`, `npm run mcp:start`)                                         |
 | Lần chạy đầu macOS hiện "Apple could not verify…" | DMG được ký ad-hoc theo mặc định. Chạy `xattr -cr "/Applications/Claude Code Monitor.app"`, hoặc nhấp *Open Anyway* trong *System Settings → Privacy & Security* |
-| Lần chạy đầu Windows hiện "Windows protected your PC" (SmartScreen) | Trình cài không ký theo mặc định. Nhấp **More info → Run anyway** để khởi chạy |
-| "Run Claude" báo `claude` không có trong PATH | (macOS) Một ứng dụng macOS khởi chạy từ Finder/Dock chỉ thừa hưởng `PATH` tối thiểu của launchd. Lỗi này đã được sửa — ứng dụng khôi phục `PATH` của login-shell lúc khởi động. Nếu vẫn còn, hãy chắc chắn `claude` là một tệp thực thi thật (không phải alias/hàm shell) và nằm trên `PATH` của shell. Trên Windows, `PATH` người dùng được thừa hưởng đã bao gồm nó |
-| Lịch sử đã nhập biến mất sau khi cài lại/cập nhật ứng dụng máy tính để bàn | Các bản dựng cũ lưu cơ sở dữ liệu bên trong gói ứng dụng có thể bị thay thế. Lỗi này đã được sửa — dữ liệu nay nằm tại `~/Library/Application Support/Claude Code Monitor/data/` (macOS) hoặc `%APPDATA%\Claude Code Monitor\data\` (Windows), bên ngoài gói và sống sót qua các lần cài lại. Sau khi nâng cấp từ bản dựng trước khi sửa lỗi, hãy chạy lại **Import History → Rescan** một lần |
+| "Run Claude" báo `claude` không có trong PATH | Một ứng dụng macOS khởi chạy từ Finder/Dock chỉ thừa hưởng `PATH` tối thiểu của launchd. Lỗi này đã được sửa — ứng dụng khôi phục `PATH` của login-shell lúc khởi động. Nếu vẫn còn, hãy chắc chắn `claude` là một tệp thực thi thật (không phải alias/hàm shell) và nằm trên `PATH` của shell |
+| Lịch sử đã nhập biến mất sau khi cài lại/cập nhật ứng dụng máy tính để bàn | Các bản dựng cũ lưu cơ sở dữ liệu bên trong gói ứng dụng có thể bị thay thế. Lỗi này đã được sửa — dữ liệu nay nằm tại `~/Library/Application Support/Claude Code Monitor/data/`, bên ngoài gói và sống sót qua các lần cài lại. Sau khi nâng cấp từ bản dựng trước khi sửa lỗi, hãy chạy lại **Import History → Rescan** một lần |
 
 ---
 

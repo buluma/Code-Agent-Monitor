@@ -59,7 +59,7 @@
 
 import { BrowserWindow, Notification, app, dialog, shell } from "electron";
 
-import { APP_ID, APP_NAME } from "./constants";
+import { APP_NAME } from "./constants";
 import { isOpenAtLogin, launchedAtLogin, toggleOpenAtLogin } from "./login-item";
 import { log } from "./logger";
 import { focusOrCreateWindow, installApplicationMenu } from "./menu";
@@ -362,11 +362,6 @@ function wireLifecycle(): void {
 }
 
 app.setName(APP_NAME);
-// Windows: associate this process with the installed app's AppUserModelID so
-// `new Notification()` toasts (e.g. "Server restarted") render under the app's
-// name/icon and taskbar windows group correctly. Must be set before any window
-// or notification is created. No-op on macOS/Linux.
-if (process.platform === "win32") app.setAppUserModelId(APP_ID);
 wireLifecycle();
 app
   .whenReady()

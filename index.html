@@ -2382,7 +2382,7 @@
               <span class="marquee-item"><span class="dot amber"></span>OpenAPI 3.0</span>
               <span class="marquee-item"><span class="dot amber"></span>ReDoc API reference</span>
               <span class="marquee-item"><span class="dot pink"></span>Mermaid diagrams</span>
-              <span class="marquee-item"><span class="dot violet"></span>macOS &amp; Windows desktop app</span>
+              <span class="marquee-item"><span class="dot violet"></span>macOS desktop app</span>
               <span class="marquee-item"><span class="dot emerald"></span>Native OS toasts</span>
               <span class="marquee-item"><span class="dot rose"></span>Hooks fan-out</span>
               <span class="marquee-item"><span class="dot cyan"></span>Tray live snapshot</span>
@@ -2409,7 +2409,7 @@
               <span class="marquee-item"><span class="dot amber"></span>OpenAPI 3.0</span>
               <span class="marquee-item"><span class="dot amber"></span>ReDoc API reference</span>
               <span class="marquee-item"><span class="dot pink"></span>Mermaid diagrams</span>
-              <span class="marquee-item"><span class="dot violet"></span>macOS &amp; Windows desktop app</span>
+              <span class="marquee-item"><span class="dot violet"></span>macOS desktop app</span>
               <span class="marquee-item"><span class="dot emerald"></span>Native OS toasts</span>
               <span class="marquee-item"><span class="dot rose"></span>Hooks fan-out</span>
               <span class="marquee-item"><span class="dot cyan"></span>Tray live snapshot</span>
@@ -2849,10 +2849,10 @@
             </p>
           </div>
           <div class="feature-card">
-            <div class="feature-icon violet">🍎🪟</div>
+            <div class="feature-icon violet">🍎</div>
             <h3>Native desktop app</h3>
             <p>
-              Use the full dashboard as a macOS <code>.app</code> or Windows <code>.exe</code>,
+              Use the full dashboard as a macOS <code>.app</code>,
               with the Express server embedded in-process.
             </p>
           </div>
@@ -3251,13 +3251,13 @@
               </div>
             </div>
           </div>
-          <div class="showcase-card" data-cat="system" data-title="Desktop App (macOS &amp; Windows)">
+          <div class="showcase-card" data-cat="system" data-title="Desktop App (macOS)">
             <div class="showcase-img">
-              <img src="images/macos.png" alt="Claude Code Monitor running as a native desktop app on macOS and Windows" loading="lazy" />
+              <img src="images/macos.png" alt="Claude Code Monitor running as a native desktop app on macOS" loading="lazy" />
               <span class="showcase-expand-icon">⤢</span>
               <div class="showcase-overlay">
-                <h4>Desktop App (macOS &amp; Windows)</h4>
-                <p>The full dashboard, natively on macOS and Windows. Real window, embedded server, real-time intact — plus a menu-bar / notification-area (tray) icon for quick access.</p>
+                <h4>Desktop App (macOS)</h4>
+                <p>The full dashboard, natively on macOS. Real window, embedded server, real-time intact — plus a menu-bar (tray) icon for quick access.</p>
               </div>
             </div>
           </div>
@@ -3618,15 +3618,15 @@
           </div>
         </div>
 
-        <!-- ─── DESKTOP APP (macOS & Windows) ──────────────── -->
+        <!-- ─── DESKTOP APP (macOS) ──────────────── -->
         <div class="reveal install-group">
-          <div class="section-eyebrow">Desktop app (macOS &amp; Windows)</div>
+          <div class="section-eyebrow">Desktop app (macOS)</div>
           <h3 class="install-subtitle">Install it once, forget the terminal.</h3>
           <p class="section-lead">
             Prefer not to keep a terminal open? The dashboard also ships as a native desktop app -
-            a macOS <code>.app</code> and a Windows <code>.exe</code> - an Electron 35 shell that
+            a macOS <code>.app</code> shipped as a <code>.dmg</code> - an Electron 35 shell that
             embeds the same Express server in-process and renders the built React client in a
-            native window. Same dashboard, native OS lifecycle (macOS &amp; Windows) on top.
+            native window. Same dashboard, native macOS lifecycle on top.
           </p>
         </div>
         <div class="how-grid reveal-stagger">
@@ -3634,23 +3634,20 @@
             <div class="how-step-num">01</div>
             <h4>Native, tray-first</h4>
             <p>
-              A menu-bar / notification-area (tray) icon with a single-click dropdown showing a
+              A menu-bar (tray) icon with a single-click dropdown showing a
               <strong>live status snapshot</strong> (sessions, agents, events today), a native
               application menu, single-instance lock, and
-              window-close-hides-but-server-keeps-running. ⌘Q / Ctrl+Q opens a confirmation dialog
-              (press it again to skip it). macOS shows a tinted template glyph in the menu bar;
-              Windows uses a colored icon in the notification area.
+              window-close-hides-but-server-keeps-running. ⌘Q opens a confirmation dialog
+              (press it again to skip it). macOS shows a tinted template glyph in the menu bar.
             </p>
           </div>
           <div class="how-step">
             <div class="how-step-num">02</div>
             <h4>Auto-start at login</h4>
             <p>
-              Toggle <em>Open at Login</em> from the tray menu. On macOS it registers through the
+              Toggle <em>Open at Login</em> from the tray menu. It registers through the
               native <code>SMAppService</code> API (visible under <em>System Settings &rarr; General
-              &rarr; Login Items</em>); on Windows it writes a per-user
-              <code>HKCU\…\Run</code> entry (visible under <em>Task Manager &rarr; Startup</em>) - so
-              the dashboard is always running when you sit down.
+              &rarr; Login Items</em>) - so the dashboard is always running when you sit down.
             </p>
           </div>
           <div class="how-step">
@@ -3682,10 +3679,9 @@
           <div class="section-eyebrow">Install steps</div>
           <h3 class="install-subtitle">From download to running in under a minute.</h3>
           <p class="section-lead">
-            The builds are unsigned / ad-hoc signed by default, so the first launch trips one OS
-            warning - macOS Gatekeeper (<em>"Apple could not verify…"</em>) or Windows SmartScreen
-            (<em>"Windows protected your PC"</em>). Clear it once and everything after that is
-            normal native OS lifecycle.
+            The build is ad-hoc signed by default, so the first launch trips one macOS
+            warning - Gatekeeper's <em>"Apple could not verify…"</em>. Clear it once and everything
+            after that is normal native OS lifecycle.
           </p>
         </div>
         <div class="how-grid reveal-stagger">
@@ -3694,37 +3690,29 @@
             <h4>Download the right asset</h4>
             <p>
               Open the <a href="https://github.com/hoangsonww/Claude-Code-Agent-Monitor/releases/latest">latest
-              release</a>. <strong>macOS:</strong> grab
+              release</a>. Grab
               <code>ClaudeCodeMonitor-&lt;version&gt;-arm64.dmg</code> for Apple Silicon (M1 / M2 /
               M3 / M4) or <code>-x64.dmg</code> for Intel Macs (<em>Apple menu &rarr; About This
               Mac</em> - anything labelled "Apple" silicon is <code>arm64</code>).
-              <strong>Windows:</strong> grab
-              <code>ClaudeCodeMonitor-Setup-&lt;version&gt;-x64.exe</code> (NSIS installer) or
-              <code>ClaudeCodeMonitor-&lt;version&gt;-x64-portable.exe</code> (no-install portable).
             </p>
           </div>
           <div class="how-step">
             <div class="how-step-num">02</div>
             <h4>Install or run it</h4>
             <p>
-              <strong>macOS:</strong> double-click the DMG to mount it, then drag
+              Double-click the DMG to mount it, then drag
               <strong>Claude Code Monitor.app</strong> onto the <code>Applications</code> shortcut
-              beside it and eject the DMG once the copy is done. <strong>Windows:</strong> run the
-              <code>*-Setup-*.exe</code> - it installs <strong>per-user</strong> (no administrator
-              elevation) and adds Start-menu / desktop shortcuts - or just run the
-              <code>*-portable.exe</code> to launch without installing.
+              beside it and eject the DMG once the copy is done.
             </p>
           </div>
           <div class="how-step">
             <div class="how-step-num">03</div>
             <h4>Clear the first-launch warning</h4>
             <p>
-              <strong>macOS:</strong> the build is ad-hoc signed (not notarized), so Gatekeeper
+              The build is ad-hoc signed (not notarized), so Gatekeeper
               shows <em>"Apple could not verify…"</em> - clear the quarantine once in Terminal with
               <code>xattr -cr "/Applications/Claude Code Monitor.app"</code> (or
               <em>System Settings &rarr; Privacy &amp; Security &rarr; Open Anyway</em>).
-              <strong>Windows:</strong> the build is unsigned, so SmartScreen may show
-              <em>"Windows protected your PC"</em> - click <strong>More info &rarr; Run anyway</strong>.
               One-time step per install.
             </p>
           </div>
@@ -3732,12 +3720,10 @@
             <div class="how-step-num">04</div>
             <h4>Launch &amp; toggle auto-start</h4>
             <p>
-              Open <strong>Claude Code Monitor</strong> (Applications / Spotlight on macOS, the
-              Start menu / desktop shortcut on Windows). The tray icon appears within a second;
-              click it &rarr; <em>Open at Login</em> and the app will start at every login from now
-              on - managed through <em>System Settings &rarr; General &rarr; Login Items</em> on
-              macOS, or a per-user <code>HKCU\…\Run</code> entry (<em>Task Manager &rarr;
-              Startup</em>) on Windows.
+              Open <strong>Claude Code Monitor</strong> (Applications / Spotlight). The tray icon
+              appears within a second; click it &rarr; <em>Open at Login</em> and the app will
+              start at every login from now on - managed through <em>System Settings &rarr;
+              General &rarr; Login Items</em>.
             </p>
           </div>
         </div>
@@ -3746,31 +3732,23 @@
             <h3>Get it in two ways.</h3>
             <p>
               <strong>Download a pre-built installer - no build required.</strong> Hit the
-              button below to land on the <strong>latest GitHub Release</strong>. <strong>macOS:</strong>
-              grab the matching arch DMG -
+              button below to land on the <strong>latest GitHub Release</strong>. Grab the
+              matching arch DMG -
               <code>ClaudeCodeMonitor-&lt;version&gt;-arm64.dmg</code> for Apple Silicon
               or <code>-x64.dmg</code> for Intel - and drag the app into
-              <code>/Applications</code>. <strong>Windows:</strong> grab
-              <code>ClaudeCodeMonitor-Setup-&lt;version&gt;-x64.exe</code> (NSIS installer) or
-              <code>ClaudeCodeMonitor-&lt;version&gt;-x64-portable.exe</code> (no-install) and run
-              it. The link always redirects to the current release because CI publishes a new
-              <code>vX.Y.Z</code> automatically every time the version in
-              <code>package.json</code> is bumped on <code>master</code>, attaching <strong>both</strong>
-              the macOS DMGs and the Windows <code>.exe</code>s. Releases are public - no GitHub
-              sign-in required.
+              <code>/Applications</code>. The link always redirects to the current release
+              because CI publishes a new <code>vX.Y.Z</code> automatically every time the version
+              in <code>package.json</code> is bumped on <code>master</code>, attaching the
+              macOS DMGs. Releases are public - no GitHub sign-in required.
             </p>
             <p>
               Want a <strong>per-commit build from CI</strong> instead of waiting for a
               release? The <strong>🍎 macOS Desktop (DMG)</strong> job uploads a
-              <code>ClaudeCodeMonitor-dmg</code> artifact and the <strong>🪟 Windows Desktop
-              (EXE)</strong> job uploads a <code>ClaudeCodeMonitor-win</code> artifact on every
-              green run - useful for testing master before it's tagged. Or
-              <strong>build it yourself</strong> on the host OS: a single-arch macOS build
-              (<code>desktop:dmg:arm64</code> or <code>desktop:dmg:x64</code>) finishes
-              in about a minute, while <code>desktop:dmg</code> produces both DMGs in
-              one go; on Windows, <code>desktop:win</code> builds the installer and
-              <code>desktop:win:portable</code> the portable <code>.exe</code>. Each macOS DMG is
-              roughly 125&nbsp;MB, about 250&nbsp;MB installed.
+              <code>ClaudeCodeMonitor-dmg</code> artifact on every green run - useful for
+              testing master before it's tagged. Or <strong>build it yourself</strong>: a
+              single-arch build (<code>desktop:dmg:arm64</code> or <code>desktop:dmg:x64</code>)
+              finishes in about a minute, while <code>desktop:dmg</code> produces both per-arch
+              DMGs in one go. Each DMG is roughly 125&nbsp;MB, about 250&nbsp;MB installed.
             </p>
             <a
               href="https://github.com/hoangsonww/Claude-Code-Agent-Monitor/releases/latest"
@@ -3850,9 +3828,8 @@
 <span class="comment"># macOS - both arches, two separate DMGs (what the release ships)</span>
 <span class="prompt">$</span>npm run desktop:dmg
 
-<span class="comment"># Windows - run these on Windows</span>
-<span class="prompt">$</span>npm run desktop:win            <span class="comment"># NSIS installer .exe</span>
-<span class="prompt">$</span>npm run desktop:win:portable   <span class="comment"># no-install portable .exe</span>
+<span class="comment"># macOS - one merged universal DMG (arm64 + x86_64), optional</span>
+<span class="prompt">$</span>npm run desktop:dmg:universal
 
 <span class="comment"># macOS: open the DMG, drag the app to Applications, then</span>
 <span class="comment"># clear the Gatekeeper quarantine on first launch:</span>
@@ -4011,13 +3988,11 @@
           <div class="stack-item"><div class="stack-item-icon">🌍</div><div class="stack-item-name">cors</div><div class="stack-item-desc">Express CORS</div></div>
           <div class="stack-item"><div class="stack-item-icon">🧵</div><div class="stack-item-name">ws</div><div class="stack-item-desc">WebSocket server</div></div>
           <div class="stack-item"><div class="stack-item-icon">🔑</div><div class="stack-item-name">SMAppService</div><div class="stack-item-desc">macOS Login Items</div></div>
-          <div class="stack-item"><div class="stack-item-icon">🔑</div><div class="stack-item-name">HKCU Run key</div><div class="stack-item-desc">Windows startup</div></div>
           <div class="stack-item"><div class="stack-item-icon">🚦</div><div class="stack-item-name">concurrently</div><div class="stack-item-desc">dev process orchestrator</div></div>
           <div class="stack-item"><div class="stack-item-icon">⚙️</div><div class="stack-item-name">@types/node</div><div class="stack-item-desc">strict TS in desktop/</div></div>
           <div class="stack-item"><div class="stack-item-icon">🆔</div><div class="stack-item-name">uuid</div><div class="stack-item-desc">v4 ids</div></div>
           <div class="stack-item"><div class="stack-item-icon">🪟</div><div class="stack-item-name">Chromium</div><div class="stack-item-desc">embedded BrowserWindow</div></div>
           <div class="stack-item"><div class="stack-item-icon">🖥️</div><div class="stack-item-name">native OS APIs</div><div class="stack-item-desc">tray, dock, dialog</div></div>
-          <div class="stack-item"><div class="stack-item-icon">📦</div><div class="stack-item-name">NSIS</div><div class="stack-item-desc">Windows installer .exe</div></div>
         </div>
       </section>
 
@@ -4116,26 +4091,23 @@
             <summary>Is there a desktop app, and how is it different from running the server?</summary>
             <div class="faq-answer"><div class="faq-answer-inner">
               <p>
-                Yes - a native desktop app built with Electron 35, on both macOS (a <code>.app</code>
-                shipped as a <code>.dmg</code>) and Windows (an NSIS installer <code>.exe</code> plus a
-                no-install portable <code>.exe</code>). It embeds the same
+                Yes - a native macOS desktop app built with Electron 35 (a <code>.app</code>
+                shipped as a <code>.dmg</code>). It embeds the same
                 Express server in-process and renders the built React client in a native window,
-                so it is the same dashboard with native OS lifecycle (macOS &amp; Windows) on top: a
-                menu-bar / notification-area (tray) icon, a native app menu, auto-start at login, a
+                so it is the same dashboard with native macOS lifecycle on top: a
+                menu-bar (tray) icon, a native app menu, auto-start at login, a
                 single-instance lock, and
                 window-close-hides-but-server-keeps-running. It also installs Claude Code hooks
                 and starts background services on first boot, so you get monitoring with
                 essentially zero manual setup. Get it from the
                 <a href="https://github.com/hoangsonww/Claude-Code-Agent-Monitor/releases/latest" target="_blank" rel="noopener noreferrer" style="color: var(--accent);">latest release</a>,
-                from the <code>ClaudeCodeMonitor-dmg</code> / <code>ClaudeCodeMonitor-win</code> CI
-                artifacts, or by building locally with
-                <code>npm run desktop:dmg:arm64</code> / <code>:x64</code> on macOS or
-                <code>npm run desktop:win</code> / <code>desktop:win:portable</code> on Windows. The
-                builds are unsigned / ad-hoc signed by default, so clear the first-launch warning -
-                Gatekeeper on macOS (<code>xattr -cr "/Applications/Claude Code Monitor.app"</code>) or
-                SmartScreen on Windows (<em>More info &rarr; Run anyway</em>). Your SQLite
-                database lives in a per-user data dir (<code>~/Library/Application Support/Claude Code Monitor/data/</code>
-                on macOS, <code>%APPDATA%\Claude Code Monitor\data\</code> on Windows) outside the
+                from the <code>ClaudeCodeMonitor-dmg</code> CI
+                artifact, or by building locally with
+                <code>npm run desktop:dmg:arm64</code> / <code>:x64</code>. The
+                build is ad-hoc signed by default, so clear the first-launch warning -
+                Gatekeeper (<code>xattr -cr "/Applications/Claude Code Monitor.app"</code>). Your SQLite
+                database lives in a per-user data dir
+                (<code>~/Library/Application Support/Claude Code Monitor/data/</code>) outside the
                 app bundle, so it survives reinstalls and updates, and the
                 app recovers your shell <code>PATH</code> at startup so <em>Run Claude</em> can
                 launch the <code>claude</code> CLI. See the

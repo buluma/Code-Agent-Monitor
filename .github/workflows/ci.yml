@@ -6,18 +6,17 @@
 # 3. Build: Builds the client application and uploads the artifact.
 # 4. Detect Changed Paths: A `dorny/paths-filter` job that flags `desktop/**` (or workflow) changes so the desktop job below stays
 #    path-filtered without hard-coding a branch name.
-# 5. Desktop Apps (DMG + EXE): Builds the Electron desktop app for macOS on `macos-latest` (uploads two
-#    `ClaudeCodeMonitor-*.dmg` artifacts, arm64 + x64) and for Windows on `windows-latest` (uploads `ClaudeCodeMonitor-win`:
-#    an NSIS installer + a no-install portable `.exe`). Universal macOS builds were dropped because @electron/universal's
+# 5. Desktop App (DMG): Builds the Electron desktop app for macOS on `macos-latest` (uploads two
+#    `ClaudeCodeMonitor-*.dmg` artifacts, arm64 + x64). Universal macOS builds were dropped because @electron/universal's
 #    merge step hangs/errors on this repo's extraResources layout (parent-path sources); two single-arch DMGs ship the same
-#    payload without the merge step. Both jobs run on any push, when the changes job flagged `desktop/**`, or when a PR
-#    carries the `desktop` label. The macOS build is resilient to flaky `hdiutil detach` (retries up to 3 times,
+#    payload without the merge step. Runs on any push, when the changes job flagged `desktop/**`, or when a PR
+#    carries the `desktop` label. The build is resilient to flaky `hdiutil detach` (retries up to 3 times,
 #    force-detaching stale volumes between attempts).
 # 6. Deployment and OCI supply chain: validates Docker/Compose/Nginx/Helm/Kustomize/Terraform,
 #    scans app + MCP images, publishes multi-architecture images with SBOM and provenance,
 #    and keyless-signs pushed digests on the default branch.
 # 7. Release: On a successful push to the default branch, publishes a GitHub Release tagged vX.Y.Z (matching the existing v1.0.0 /
-#    v1.1.0 convention, drawn from the root package.json `version`) with the macOS DMGs and Windows EXEs attached — but only if no
+#    v1.1.0 convention, drawn from the root package.json `version`) with the macOS DMGs attached — but only if no
 #    release exists for that version yet, so bumping the version is what cuts a new release and re-running master with an unchanged
 #    version is a no-op.
 # 8. Pipeline Summary: Compiles results from all stages and posts a summary to the GitHub Actions step summary, including status
@@ -250,123 +249,6 @@ jobs:
           path: desktop/release/*.dmg
           retention-days: 14
 
-  # ────────────────────────────────────────────────────────────────
-  #  🪟 Windows Desktop App (Electron NSIS / portable .exe)        #
-  #   Mirrors the macOS desktop job on windows-latest. Runs on any  #
-  #   push, when the changes job flagged desktop/**, or when a PR    #
-  #   carries the 'desktop' label. Produces an NSIS installer and a  #
-  #   no-install portable .exe, uploaded as ClaudeCodeMonitor-win.   #
-  # ────────────────────────────────────────────────────────────────
-  desktop-win:
-    name: "🪟 Windows Desktop (EXE)"
-    runs-on: windows-latest
-    needs: [build, changes]
-    if: |
-      github.event_name == 'push' ||
-      needs.changes.outputs.desktop == 'true' ||
-      contains(toJSON(github.event.pull_request.labels.*.name), 'desktop')
-    defaults:
-      run:
-        # Git Bash ships on windows-latest; using it lets the `cd a && b` steps
-        # mirror the macOS desktop job verbatim (the indirect-expansion unset
-        # trick below is bash-only).
-        shell: bash
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-
-      - name: Install root dependencies
-        run: npm ci
-
-      - name: Install client dependencies & build client
-        run: |
-          cd client && npm ci
-          cd .. && npm run build
-
-      - name: Install desktop dependencies
-        # postinstall runs `electron-builder install-app-deps`, fetching the
-        # prebuilt better-sqlite3 binary for Electron's ABI on win32-x64 (no
-        # Visual Studio C++ toolchain needed in the common case).
-        run: cd desktop && npm ci
-
-      - name: Ensure Electron binary
-        # Electron 43 downloads electron.exe lazily on first require. Resolve
-        # it before the smoke test. Retry the primary release endpoint, then
-        # Electron's documented npm mirror; master at 1d5c645 failed on a
-        # transient GitHub fetch, and one later runner saw a sustained 503.
-        run: |
-          cd desktop
-          for source in primary mirror; do
-            for attempt in 1 2 3; do
-              if [ "$source" = mirror ]; then
-                ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ \
-                  node node_modules/electron/install.js && exit 0
-              elif node node_modules/electron/install.js; then
-                exit 0
-              fi
-              echo "Electron $source download failed (attempt $attempt/3)" >&2
-              sleep $((attempt * 5))
-            done
-          done
-          echo "Electron binary download failed from primary and mirror" >&2
-          exit 1
-
-      - name: Build desktop (tsc)
-        run: cd desktop && npm run build
-
-      - name: Smoke test
-        run: cd desktop && npm test
-
-      - name: Build Windows installer + portable
-        # electron-builder packages for the host OS and embeds the committed
-        # desktop/assets/icon.ico. Windows builds stay unsigned unless an
-        # explicit cert is provided; GitHub resolves a missing secret to "",
-        # which electron-builder would treat as a bogus cert path — so strip
-        # empty sign vars before invoking it. Packaging downloads auxiliary
-        # tools such as NSIS lazily, so retry each target on transient CDN
-        # failures without rerunning the whole job.
-        run: |
-          cd desktop
-          for v in CSC_LINK CSC_KEY_PASSWORD; do
-            if [ -z "${!v:-}" ]; then unset "$v"; fi
-          done
-          for target in win win:portable; do
-            packaged=false
-            for source in primary mirror; do
-              for attempt in 1 2 3; do
-                if [ "$source" = mirror ]; then
-                  if ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/ \
-                    npm run "$target"; then
-                    packaged=true
-                    break 2
-                  fi
-                elif npm run "$target"; then
-                  packaged=true
-                  break 2
-                fi
-                echo "Windows $target $source packaging failed (attempt $attempt/3)" >&2
-                sleep $((attempt * 10))
-              done
-            done
-            if [ "$packaged" != true ]; then
-              echo "Windows $target packaging failed with primary and mirror downloads" >&2
-              exit 1
-            fi
-          done
-        env:
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-
-      - name: Upload Windows artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: ClaudeCodeMonitor-win
-          path: desktop/release/*.exe
-          retention-days: 14
-
   deployment:
     name: "☁️ Validate Deployment Stack"
     runs-on: ubuntu-latest
@@ -527,7 +409,7 @@ jobs:
   release:
     name: "🚢 Publish Release"
     runs-on: ubuntu-latest
-    needs: [desktop, desktop-win, docker]
+    needs: [desktop, docker]
     if: |
       github.event_name == 'push' &&
       (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
@@ -573,13 +455,6 @@ jobs:
           name: ClaudeCodeMonitor-dmg
           path: dmg
 
-      - name: Download Windows EXE artifact
-        if: steps.check.outputs.exists == 'false'
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: ClaudeCodeMonitor-win
-          path: win
-
       - name: Publish release
         if: steps.check.outputs.exists == 'false'
         env:
@@ -587,13 +462,13 @@ jobs:
         run: |
           TAG="${{ steps.ver.outputs.tag }}"
           echo "Publishing ${TAG} with assets:"
-          ls -la dmg win
+          ls -la dmg
           gh release create "${TAG}" \
             --target "${{ github.sha }}" \
             --title "${TAG}" \
             --generate-notes \
             --latest \
-            dmg/*.dmg win/*.exe
+            dmg/*.dmg
           echo "Published ${TAG} → ${{ github.server_url }}/${{ github.repository }}/releases/tag/${TAG}"
 
   # ────────────────────────────────────────────────────────────────
@@ -604,7 +479,7 @@ jobs:
     name: "🎉 Pipeline Status"
     if: always()
     runs-on: ubuntu-latest
-    needs: [format, test, build, deployment, desktop, desktop-win, docker, release]
+    needs: [format, test, build, deployment, desktop, docker, release]
     steps:
       - name: Determine overall result
         id: result
@@ -615,7 +490,6 @@ jobs:
           BUILD="${{ needs.build.result }}"
           DEPLOYMENT="${{ needs.deployment.result }}"
           DESKTOP="${{ needs.desktop.result }}"
-          DESKTOP_WIN="${{ needs['desktop-win'].result }}"
           DOCKER="${{ needs.docker.result }}"
           RELEASE="${{ needs.release.result }}"
 
@@ -625,7 +499,6 @@ jobs:
             echo "build=$BUILD"
             echo "deployment=$DEPLOYMENT"
             echo "desktop=$DESKTOP"
-            echo "desktop_win=$DESKTOP_WIN"
             echo "docker=$DOCKER"
             echo "release=$RELEASE"
           } >> "$GITHUB_OUTPUT"
@@ -634,9 +507,9 @@ jobs:
           # are treated as non-blocking when skipped (the desktop jobs are
           # path-filtered out for non-desktop PRs; release runs only on the
           # default branch).
-          if [[ "$FORMAT" == "failure" || "$TEST" == "failure" || "$BUILD" == "failure" || "$DEPLOYMENT" == "failure" || "$DESKTOP" == "failure" || "$DESKTOP_WIN" == "failure" || "$DOCKER" == "failure" || "$RELEASE" == "failure" ]]; then
+          if [[ "$FORMAT" == "failure" || "$TEST" == "failure" || "$BUILD" == "failure" || "$DEPLOYMENT" == "failure" || "$DESKTOP" == "failure" || "$DOCKER" == "failure" || "$RELEASE" == "failure" ]]; then
             echo "overall=failure" >> "$GITHUB_OUTPUT"
-          elif [[ "$FORMAT" == "cancelled" || "$TEST" == "cancelled" || "$BUILD" == "cancelled" || "$DEPLOYMENT" == "cancelled" || "$DESKTOP" == "cancelled" || "$DESKTOP_WIN" == "cancelled" || "$DOCKER" == "cancelled" || "$RELEASE" == "cancelled" ]]; then
+          elif [[ "$FORMAT" == "cancelled" || "$TEST" == "cancelled" || "$BUILD" == "cancelled" || "$DEPLOYMENT" == "cancelled" || "$DESKTOP" == "cancelled" || "$DOCKER" == "cancelled" || "$RELEASE" == "cancelled" ]]; then
             echo "overall=cancelled" >> "$GITHUB_OUTPUT"
           else
             echo "overall=success" >> "$GITHUB_OUTPUT"
@@ -660,7 +533,6 @@ jobs:
             echo "build=$(icon ${{ steps.result.outputs.build }})"
             echo "deployment=$(icon ${{ steps.result.outputs.deployment }})"
             echo "desktop=$(icon ${{ steps.result.outputs.desktop }})"
-            echo "desktop_win=$(icon ${{ steps.result.outputs.desktop_win }})"
             echo "docker=$(icon ${{ steps.result.outputs.docker }})"
             echo "release=$(icon ${{ steps.result.outputs.release }})"
             echo "overall=$(icon ${{ steps.result.outputs.overall }})"
@@ -683,7 +555,6 @@ jobs:
           | Client Build | ${{ steps.icons.outputs.build }} \`${{ steps.result.outputs.build }}\` | \`build\` |
           | Deployment Stack | ${{ steps.icons.outputs.deployment }} \`${{ steps.result.outputs.deployment }}\` | \`deployment\` |
           | macOS Desktop | ${{ steps.icons.outputs.desktop }} \`${{ steps.result.outputs.desktop }}\` | \`desktop\` |
-          | Windows Desktop | ${{ steps.icons.outputs.desktop_win }} \`${{ steps.result.outputs.desktop_win }}\` | \`desktop-win\` |
           | Docker | ${{ steps.icons.outputs.docker }} \`${{ steps.result.outputs.docker }}\` | \`docker\` |
           | Release | ${{ steps.icons.outputs.release }} \`${{ steps.result.outputs.release }}\` | \`release\` |
 

@@ -41,10 +41,8 @@
 ![Electron](https://img.shields.io/badge/Electron-35-47848F?style=flat-square&logo=electron&logoColor=white)
 ![electron-builder](https://img.shields.io/badge/electron--builder-25.1-2c2e3b?style=flat-square&logo=electron&logoColor=white)
 ![macOS](https://img.shields.io/badge/macOS-Desktop_App-000000?style=flat-square&logo=apple&logoColor=white)
-![Windows](https://img.shields.io/badge/Windows-Desktop_App-0078D6?style=flat-square&logo=windows&logoColor=white)
 ![SMAppService](https://img.shields.io/badge/SMAppService-Login_Items-000000?style=flat-square&logo=apple&logoColor=white)
 ![macOS DMG](https://img.shields.io/badge/macOS_DMG-arm64_%2B_x64-7c3aed?style=flat-square&logo=apple&logoColor=white)
-![NSIS Installer](https://img.shields.io/badge/Windows-NSIS_%2B_Portable-1f6feb?style=flat-square&logo=windows&logoColor=white)
 ![Vitest](https://img.shields.io/badge/Vitest-1.0-646CFF?style=flat-square&logo=vitest&logoColor=white)
 ![React Testing Library](https://img.shields.io/badge/React_Testing_Library-13.0-FF5733?style=flat-square&logo=testinglibrary&logoColor=white)
 ![ESLint](https://img.shields.io/badge/ESLint-8.44-4B32C3?style=flat-square&logo=eslint&logoColor=white)
@@ -98,7 +96,7 @@
 - [更新提醒](#更新提醒)
 - [连接状态弹窗](#连接状态弹窗)
 - [VS Code 扩展](#vs-code-扩展)
-- [桌面应用（macOS 与 Windows）](#桌面应用macos-与-windows)
+- [桌面应用（macOS）](#桌面应用macos)
 - [数据存储](#数据存储)
 - [状态栏](#状态栏)
 - [服务端架构](#服务端架构)
@@ -345,7 +343,7 @@ Dashboard 提供全面的功能来监控和分析你的 Claude Code 会话和 Ag
 | **启动画面** | 应用加载时每个浏览器会话显示一次的品牌开场画面:根据时间的问候语（早上好 / 下午好 / 晚上好 / 夜深了）、一句醒目的本地化标语与两行副文案,以及深色背景（径向光晕、星座连线、颗粒质感）上带动画的节点图品牌标记。从首帧起即**不透明**（应用内容不会闪现）,停留约 2.5 秒后淡出,点击任意处可跳过,尊重 `prefers-reduced-motion`,已本地化 en/zh/vi/ko/es |
 | **渐进式 Web 应用 (PWA)**          | 三个独立的 PWA — 仪表盘、着陆页和维基 — 每个都有自己的 Web App Manifest 和 Service Worker。将任意一个安装到主屏幕/Dock,获得无浏览器边框的独立应用体验。仪表盘 SW 对 Vite 哈希化的 `/assets/*` 资源采用 cache-first(URL 每次构建都不可变,缓存命中始终正确),其他所有内容(导航、SW 自身、`manifest.json`、图标、根 `/`)采用 network-first 并以缓存兜底。配合生产环境 Express 静态中间件上的显式 `Cache-Control` 头(`/assets/*` 用 `immutable, max-age=31536000`,`index.html`、`sw.js`、`manifest.json` 用 `no-cache, must-revalidate`),重新构建后浏览器中的代码始终自动刷新,无需硬刷新;`client/src/main.tsx` 中的 `controllerchange` 监听器会在新 SW 接管已被控制的页面时恰好重新加载一次(首次安装不会)。VAPID 推送通知管道完全保留。着陆页和维基 SW 预缓存各自的 shell 并在首次访问时延迟缓存图片,单次加载后即可离线访问。所有 manifest 使用 SVG 图标(`favicon.svg`,`sizes="any"`),包含 `apple-mobile-web-app-capable` + `apple-touch-icon` meta 标签以支持 iOS 独立模式 |
 | **自托管资源（无 CDN）**           | 所有字体与脚本均**本地托管,零第三方 CDN 请求**。React 应用通过 `@fontsource` 打包 Inter + JetBrains Mono(latin 子集;由 Vite 输出为带内容哈希的 WOFF2 至 `dist/assets/`)。着陆页与维基加载本地的 `fonts/fonts.css` `@font-face` 样式表(维基用 `../fonts/`)。维基的 Mermaid 改为本地内置(`wiki/mermaid.min.js`,`mermaid@10.9.6`)而非 jsDelivr。VS Code 扩展的错误页改用系统字体栈。移除了所有 `fonts.googleapis.com` / `gstatic` / CDN 调用,因此仪表盘与文档可**完全离线**渲染,不向第三方泄露任何信息 |
-| **桌面应用（macOS 与 Windows）**   | 用 Electron 35 构建的可选原生桌面应用，位于 `desktop/` 工作区，与 `client/`、`server/`、`mcp/`、`vscode-extension/` 平级。以 macOS `.app`（`.dmg`）**以及** Windows `.exe`（NSIS 安装包 + 免安装便携版）形式分发。它将现有的 Express 服务器**以进程内方式嵌入**（直接 `require()` `server/index.js` —— 没有子进程、没有 IPC），并在 `BrowserWindow` 中渲染已构建的 React 客户端。新增了原生标题栏、菜单栏 / 通知区域（托盘）图标（单击其下拉菜单会显示一份在点击时从 SQLite 实时拉取的**状态快照**：会话、Agent、今日事件）、原生应用菜单、开机自启（macOS 通过 `SMAppService` 登录项；Windows 通过按用户的 `HKCU\…\Run`）、一个 **⌘Q / Ctrl+Q 确认对话框**（再按一次即跳过）、关闭窗口只隐藏但服务器继续运行、单实例锁，以及 **在浏览器中打开**、**重启服务器**、**查看日志** 等托盘操作。优先使用端口 4820（回退到 4821–4829，再到随机高位端口），若 4820 上已有健康的 dashboard 在运行则直接采用而不重复绑定，并**与 Web dashboard 共存** —— `npm run dev` 与桌面应用可同时运行，Hook 会同时分发到两者。通知以原生操作系统弹窗（toast）形式触发（Web Push 在 Electron 中无法可靠工作）。首次由应用自有的服务器启动时，它会自动安装 Claude Code Hook 并启动后台服务，因此仅安装应用的用户无需任何手动设置即可让事件流转。详见 [`DESKTOP.md`](./DESKTOP.md) 与 [`desktop/README.md`](./desktop/README.md) |
+| **桌面应用（macOS）**   | 用 Electron 35 构建的可选原生桌面应用，位于 `desktop/` 工作区，与 `client/`、`server/`、`mcp/`、`vscode-extension/` 平级。以 macOS `.app`（`.dmg`）形式分发。它将现有的 Express 服务器**以进程内方式嵌入**（直接 `require()` `server/index.js` —— 没有子进程、没有 IPC），并在 `BrowserWindow` 中渲染已构建的 React 客户端。新增了原生标题栏、菜单栏（托盘）图标（单击其下拉菜单会显示一份在点击时从 SQLite 实时拉取的**状态快照**：会话、Agent、今日事件）、原生应用菜单、开机自启（通过 `SMAppService` 登录项）、一个 **⌘Q 确认对话框**（再按一次即跳过）、关闭窗口只隐藏但服务器继续运行、单实例锁，以及 **在浏览器中打开**、**重启服务器**、**查看日志** 等托盘操作。优先使用端口 4820（回退到 4821–4829，再到随机高位端口），若 4820 上已有健康的 dashboard 在运行则直接采用而不重复绑定，并**与 Web dashboard 共存** —— `npm run dev` 与桌面应用可同时运行，Hook 会同时分发到两者。通知以原生操作系统弹窗（toast）形式触发（Web Push 在 Electron 中无法可靠工作）。首次由应用自有的服务器启动时，它会自动安装 Claude Code Hook 并启动后台服务，因此仅安装应用的用户无需任何手动设置即可让事件流转。详见 [`DESKTOP.md`](./DESKTOP.md) 与 [`desktop/README.md`](./desktop/README.md) |
 
 > **提供方范围与数据位置：** 设置会让 Claude Code / Codex / 两者的选择在整个应用中保持一致，并可在无需重启仪表盘的情况下更改任一会话数据目录。
 >
@@ -437,27 +435,22 @@ npm run seed
 
 创建 8 个示例会话、23 个 Agent 和 106 个事件，让你可以立即浏览 UI。
 
-### 替代方案：桌面应用（macOS 与 Windows）
+### 替代方案：桌面应用（macOS）
 
-如果你不想一直开着终端窗口，可以安装可选的**原生桌面应用**。它将 Express 服务器以进程内方式嵌入运行，提供菜单栏 / 通知区域（托盘）图标，并支持开机自启（macOS 登录项 / Windows 启动项）。
+如果你不想一直开着终端窗口，可以安装可选的**原生桌面应用**。它将 Express 服务器以进程内方式嵌入运行，提供菜单栏（托盘）图标，并支持开机自启（macOS 登录项）。
 
 最快的方式是从 [最新 GitHub Release](https://github.com/hoangsonww/Claude-Code-Agent-Monitor/releases/latest) **下载预构建的安装包**（每当 `master` 上的 `package.json` 版本号被提升时，CI 都会自动发布一个新的 `vX.Y.Z`）：
 
 - **macOS** —— 下载 `ClaudeCodeMonitor-<version>-arm64.dmg`（Apple Silicon）或 `-x64.dmg`（Intel），并将 **Claude Code Monitor.app** 拖入 `/Applications`。
-- **Windows** —— 下载 `ClaudeCodeMonitor-Setup-<version>-x64.exe`（安装版）或 `ClaudeCodeMonitor-<version>-x64-portable.exe`（免安装版），然后运行它。
 
 若希望自行构建：
 
 ```bash
 npm run desktop:install        # 在 desktop/ 中安装 Electron + electron-builder（预检原生依赖；失败时打印安装帮助）
 npm run desktop:dmg:arm64      # macOS：Apple Silicon 专用 DMG（快速）
-npm run desktop:win            # Windows：NSIS 安装包 .exe（在 Windows 上运行）
 ```
 
-> [!TIP]
-> DMG 在 macOS 上构建，Windows `.exe` 在 Windows 上构建 —— electron-builder 针对宿主操作系统打包。为自己的 Mac 构建时，请使用架构专用命令（`desktop:dmg:arm64` 或 `desktop:dmg:x64`），它们速度快得多；`desktop:dmg` 会按架构把应用构建两次，产出两个按架构的 DMG（arm64 + x64，不做任何合并），仅在制作发布产物时才需要。
-
-完整的生命周期语义、托盘/菜单功能、签名与公证钩子详见下文的 [桌面应用（macOS 与 Windows）](#桌面应用macos-与-windows) 章节，以及 [`DESKTOP.md`](./DESKTOP.md)。
+桌面应用的完整说明——下载、安装、托盘/菜单功能、构建命令与签名——见下文的[桌面应用（macOS）](#桌面应用macos)章节。另见 [`DESKTOP.md`](./DESKTOP.md)（用户指南）与 [`desktop/README.md`](./desktop/README.md)（架构说明）。
 
 ### 替代方案：Docker / Podman
 
@@ -746,8 +739,6 @@ ccam version                      # 打印 CLI 版本（也可用 --version / -v
 | `npm run desktop:dmg:arm64` | **macOS：** 构建 Apple Silicon 专用 DMG — **快速** |
 | `npm run desktop:dmg:x64` | **macOS：** 构建 Intel 专用 DMG — **快速** |
 | `npm run desktop:dmg:universal` | **macOS：** 构建**一个**合并的通用（universal）DMG（arm64 + x86_64，单个文件）——可选，**最慢**，不是发布版本附带的内容。 |
-| `npm run desktop:win` | **Windows：** 构建 NSIS **安装包** `.exe`（x64）— 在 Windows 上运行 |
-| `npm run desktop:win:portable` | **Windows：** 构建**免安装便携版** `.exe`（x64）— 在 Windows 上运行 |
 | `npm run monitoring:install` | 在 `monitoring/` 中运行 `npm install` — 通过 `postinstall` 下载 Prometheus + Grafana |
 | `npm run monitoring:setup` | `monitoring:install` 的别名 |
 | `npm run monitoring:up` | 在后台启动 Prometheus（:9090）+ Grafana（:3000）（无需 Docker） |
@@ -1499,23 +1490,17 @@ flowchart LR
 
 ---
 
-## 桌面应用（macOS 与 Windows）
+## 桌面应用（macOS）
 
-Dashboard 现在还提供一个可选的**原生桌面应用**，将现有的服务端 + 客户端打包进单个应用，安装一次即可长期使用：macOS 版为一个 `.app`（以 `.dmg` 分发），Windows 版为一个 `.exe`（一个 NSIS 安装包，外加一个免安装的便携版）。你在浏览器 `localhost:4820` 看到的全部内容都运行在这个窗口里，并在其上叠加了原生操作系统的生命周期能力：托盘图标、应用菜单、开机自启集成，以及一个能干净关闭服务器的「退出」按钮。
+Dashboard 现在还提供一个可选的**原生桌面应用**，将现有的服务端 + 客户端打包进单个应用，安装一次即可长期使用：一个 macOS `.app`，以 `.dmg` 分发。你在浏览器 `localhost:4820` 看到的全部内容都运行在这个窗口里，并在其上叠加了原生操作系统的生命周期能力：托盘图标、应用菜单、开机自启集成，以及一个能干净关闭服务器的「退出」按钮。
 
 <p align="center">
   <img src="images/macos.png" alt="以原生桌面应用运行的 Claude Code Monitor" width="100%">
   <br>
-  <em>🍎🪟 <strong>桌面应用</strong> —— 原生外壳:菜单栏 / 通知区域(托盘)图标、登录项自启动、单实例锁。同一套 Dashboard,运行在真正的操作系统窗口里(图为 macOS)。</em>
+  <em>🍎 <strong>桌面应用</strong> —— 原生外壳：菜单栏（托盘）图标、登录项自启动、单实例锁。同一套 Dashboard，运行在真正的 macOS 窗口里。</em>
 </p>
 
-<p align="center">
-  <img src="images/windows_app.png" alt="以原生 Windows 桌面应用运行的 Claude Code Monitor，显示活动信息流、Windows 原生窗口菜单栏与 Tabby 面板" width="100%">
-  <br>
-  <em>🪟 同一套 Dashboard 作为原生 Windows 应用运行 —— 通知区域(托盘)图标、原生窗口菜单与登录项自启动。</em>
-</p>
-
-> **状态：** v1，支持 macOS 与 Windows。Linux 构建作为后续工作跟踪 —— Electron 让它实现起来并不难，但每个平台都需要各自的 QA。自动更新（auto-updater）同样不在 v1 范围内，当前的更新方式是重新下载最新的安装包。
+> **状态：** v1，仅支持 macOS。Linux 构建作为后续工作跟踪 —— Electron 让它实现起来并不难，但每个平台都需要各自的 QA。自动更新（auto-updater）同样不在 v1 范围内，当前的更新方式是重新下载最新的安装包。
 
 `desktop/` 是与 `client/`、`server/`、`mcp/`、`vscode-extension/` 平级的同级工作区，使用 **Electron 35** 构建。它**以进程内方式嵌入现有的 Express 服务器**——直接 `require()` `server/index.js`，运行在与 Electron 主进程相同的 Node 运行时中，**没有子进程、没有 IPC**——并在 `BrowserWindow` 中渲染已构建好的 React 客户端。
 
@@ -1527,8 +1512,8 @@ Dashboard 现在还提供一个可选的**原生桌面应用**，将现有的服
 | ------------------------------- | --------------------------- | ------------------------ |
 | 安装到 Dock / 应用程序文件夹 | ✅ | ✅ |
 | 管理 Express 服务器 | ❌ —— 需用户单独 `npm start` | ✅ —— 进程内嵌入 |
-| 开机自启 | ❌ | ✅ —— macOS 登录项 / Windows 启动项 |
-| 菜单栏 / 通知区域（托盘）图标常驻状态 | ❌ | ✅ |
+| 开机自启 | ❌ | ✅ —— macOS 登录项 |
+| 菜单栏（托盘）图标常驻状态 | ❌ | ✅ |
 | 原生应用菜单（⌘ 快捷键等） | ❌ | ✅ |
 | 浏览器重启后仍存活 | ⚠️ 取决于浏览器 | ✅ |
 
@@ -1568,10 +1553,8 @@ flowchart TD
 | --- | --- | --- |
 | macOS（Apple Silicon） | `ClaudeCodeMonitor-<ver>-arm64.dmg` | 拖入 `/Applications` |
 | macOS（Intel） | `ClaudeCodeMonitor-<ver>-x64.dmg` | 拖入 `/Applications` |
-| Windows（安装版） | `ClaudeCodeMonitor-Setup-<ver>-x64.exe` | 按用户安装，无需管理员权限 |
-| Windows（便携版） | `ClaudeCodeMonitor-<ver>-x64-portable.exe` | 无需安装即可运行 |
 
-若需要 **每次提交的最新构建**，可改用 CI 产物（需登录，保留 14 天）：来自 `🍎 macOS Desktop (DMG)` 作业的 `ClaudeCodeMonitor-dmg`，以及来自 `🪟 Windows Desktop (EXE)` 作业的 `ClaudeCodeMonitor-win`。
+若需要 **每次提交的最新构建**，可改用 CI 产物（需登录，保留 14 天）：来自 `🍎 macOS Desktop (DMG)` 作业的 `ClaudeCodeMonitor-dmg`。
 
 安装：
 
@@ -1589,30 +1572,6 @@ flowchart TD
 
 4. 启动应用。托盘图标出现，Dashboard 窗口打开。
 
-**Windows：**
-
-1. 运行 `ClaudeCodeMonitor-Setup-<ver>-x64.exe`。它会**按用户**安装到 `%LOCALAPPDATA%\Programs\Claude Code Monitor`（无需管理员提权）并允许你选择安装目录；或运行 `*-portable.exe` 无需安装即可启动。
-2. 安装包**默认未签名**，因此首次启动时 Windows **SmartScreen** 可能弹出「**Windows 已保护你的电脑**」（*"Windows protected your PC"*）—— 点击**更多信息（More info）→ 仍要运行（Run anyway）**。
-3. 从开始菜单 / 桌面快捷方式启动。通知区域（托盘）图标出现，Dashboard 窗口打开。
-
-<p align="center">
-  <img src="images/setup_win_wizard.png" alt="NSIS 安装包第 1 步 —— 选择安装选项，可选择按用户（仅为我）或全部用户" width="100%">
-  <br>
-  <em>Windows 安装包 · 第 1 步 —— <strong>选择安装选项</strong>（按用户「仅为我」对比全部用户）。</em>
-</p>
-
-<p align="center">
-  <img src="images/setup_win_wizard2.png" alt="NSIS 安装包第 2 步 —— 选择安装位置，默认指向按用户的 %LOCALAPPDATA%\Programs 目标文件夹" width="100%">
-  <br>
-  <em>Windows 安装包 · 第 2 步 —— <strong>选择安装位置</strong>（默认指向按用户的 <code>%LOCALAPPDATA%\Programs</code>）。</em>
-</p>
-
-<p align="center">
-  <img src="images/setup_win_wizard3.png" alt="NSIS 安装包第 3 步 —— 完成安装，可选择结束并运行应用" width="100%">
-  <br>
-  <em>Windows 安装包 · 第 3 步 —— <strong>完成安装</strong>（结束并启动应用）。</em>
-</p>
-
 **方式 B —— 本地构建：**
 
 ```bash
@@ -1620,21 +1579,18 @@ flowchart TD
 npm run setup                # 安装根目录 + 客户端依赖、构建客户端、安装 Hook
 npm run build                # 构建 React 客户端（client/dist）
 npm run desktop:install      # 在 desktop/ 中安装 Electron + electron-builder（预检原生依赖；失败时打印安装帮助）
-npm run desktop:dmg:arm64    # macOS：  快速的单架构 DMG → desktop/release/ClaudeCodeMonitor-<ver>-arm64.dmg
-npm run desktop:win          # Windows：NSIS 安装包 → desktop/release/ClaudeCodeMonitor-Setup-<ver>-x64.exe
+npm run desktop:dmg:arm64    # macOS：快速的单架构 DMG → desktop/release/ClaudeCodeMonitor-<ver>-arm64.dmg
 ```
 
 > [!NOTE]
-> **DMG 在 macOS 上构建，Windows `.exe` 在 Windows 上构建** —— electron-builder 针对宿主操作系统打包。macOS 的 `npm run desktop:dmg` 构建**有意设计得很慢**（它会按架构把应用构建两次，产出两个按架构的 DMG——`ClaudeCodeMonitor-<ver>-arm64.dmg` 与 `ClaudeCodeMonitor-<ver>-x64.dmg`，并不做任何合并——发布时即随附这两个按架构的 DMG）；为自己的 Mac 构建时请使用单架构的 `desktop:dmg:arm64` / `desktop:dmg:x64`。在 Windows 上，`npm run desktop:install` 会把 `better-sqlite3` 作为 Electron 预编译二进制拉取，因此常见情况下无需 Visual Studio C++ 工具链。若构建确实失败（没有预编译二进制，或缺少 C++ 工具链），`desktop:install` 会打印准确的分平台修复步骤外加一个无工具链的替代方案，并**显式失败（fail loudly）**，而非留下一个损坏的安装。
+> electron-builder 针对宿主操作系统打包，因此 DMG 必须在 macOS 上构建。`npm run desktop:dmg` 构建**有意设计得很慢**（它会按架构把应用构建两次，产出两个按架构的 DMG——`ClaudeCodeMonitor-<ver>-arm64.dmg` 与 `ClaudeCodeMonitor-<ver>-x64.dmg`，并不做任何合并——发布时即随附这两个按架构的 DMG）；为自己的 Mac 构建时请使用单架构的 `desktop:dmg:arm64` / `desktop:dmg:x64`。若构建确实失败（没有预编译的 `better-sqlite3` 二进制，或缺少 C++ 工具链），`desktop:install` 会打印准确的修复步骤外加一个无工具链的替代方案，并**显式失败（fail loudly）**，而非留下一个损坏的安装。
 
 #### 原生依赖预检（preflight）
 
-`npm run desktop:install` 会运行 `scripts/install.js`，它在重新编译 `better-sqlite3`（依赖树中唯一的原生模块）之前先做一次预检。若该原生构建失败，它会打印分平台的工具链前置条件，并**以非零状态退出**（绝不让你误以为安装成功）；桌面构建的 `prebuild.js` 也会以同样的方式提前失败（fail fast）。打印出的指引包含两类常见原因与一个无工具链的替代方案：
+`npm run desktop:install` 会运行 `scripts/install.js`，它在重新编译 `better-sqlite3`（依赖树中唯一的原生模块）之前先做一次预检。若该原生构建失败，它会打印工具链前置条件，并**以非零状态退出**（绝不让你误以为安装成功）；桌面构建的 `prebuild.js` 也会以同样的方式提前失败（fail fast）。打印出的指引包含常见原因与一个无工具链的替代方案：
 
 - **缺少 C++ 构建工具链**，模块无法从源码编译：
-  - **Windows：** 安装带 **「Desktop development with C++」** 工作负载的 **Visual Studio Build Tools**。
   - **macOS：** `xcode-select --install`
-  - **Linux：** 安装 `build-essential` + `python3`。
 - **你的 Node.js 比任何已发布的 `better-sqlite3` 预编译二进制都新** —— 改用 Node LTS（20 或 22），它们自带预编译二进制，可完全避免编译。
 
 或者，跳过源码编译、直接拉取 Electron 的预编译二进制（**无需 C++ 工具链**）：
@@ -1646,11 +1602,9 @@ node node_modules/electron/install.js
 npx electron-builder install-app-deps
 ```
 
-#### 首次启动：Gatekeeper / SmartScreen
+#### 首次启动：Gatekeeper
 
-安装包**默认未签名 / 临时签名**，因此首次启动时操作系统可能会发出警告。
-
-**macOS** —— DMG 默认采用**临时签名（ad-hoc signing）**，在没有付费 Apple Developer ID 的情况下这是项目能提供的最高级别。macOS 首次打开时会警告「Apple 无法验证…」。两种绕过方式：
+DMG 默认采用**临时签名（ad-hoc signing）**，在没有付费 Apple Developer ID 的情况下这是项目能提供的最高级别。macOS 首次打开时会警告「Apple 无法验证…」。两种绕过方式：
 
 ```bash
 # 最简单：在打开前去掉隔离属性。
@@ -1662,17 +1616,15 @@ xattr -cr "/Applications/Claude Code Monitor.app"
 
 也可以打开  → *系统设置 → 隐私与安全性*，滚动到被拦截的项目，点击*仍要打开*。
 
-**Windows** —— 安装包**默认未签名**，因此首次启动时 **SmartScreen** 可能弹出「**Windows 已保护你的电脑**」（*"Windows protected your PC"*）—— 点击**更多信息（More info）→ 仍要运行（Run anyway）**。
-
 ### 启动后会发生什么
 
 1. Electron 主进程挑选一个空闲端口 —— 优先 **4820**，其次回退到 4821–4829，若都被占用则使用一个随机的高位端口。
 2. 如果端口 4820 上已有进程响应 `/api/health`（例如你已在终端运行 `npm start`），桌面应用会**直接采用（adopt）那个服务器**，不再启动第二个，避免重复绑定端口与 SQLite 争用。被采用的服务器不归应用所有 —— 退出应用时它仍会继续运行。
 3. 否则，应用直接 `require()` `server/index.js` 在进程内启动 —— 与主进程同一个 Node 运行时、同一块内存，启动通常在两秒以内。
 4. 在**首次由应用自有（owned）的服务器启动**时，应用会自动安装 Claude Code Hook（写入 `~/.claude/settings.json`），并启动后台服务（更新调度器、`cc-watcher` 配置监视器、孤儿运行对账）—— 这样**仅安装应用的用户无需从代码检出运行 `npm run install-hooks` 即可让事件流转**。
-   - **（macOS）** 应用还会恢复你登录 Shell 的 `PATH`，使「运行 Claude」（Run Claude）功能能够找到并启动 `claude` CLI —— 从 Finder/Dock 启动的应用否则只会继承 launchd 提供的极简 `PATH`，会漏掉 `~/.local/bin`、`/opt/homebrew/bin`、版本管理器目录等位置的 CLI。（在 Windows 上，进程已继承用户 `PATH`。）
-5. Dashboard 窗口打开 —— 除非应用是在登录时被启动的（macOS 通过登录项；Windows 通过带标记的 `HKCU\…\Run` 项），此时它会保持仅托盘模式。
-6. 托盘（macOS 菜单栏 / Windows 通知区域）出现一个图标，菜单包含：*打开 Dashboard、在浏览器中打开、重启服务器、查看日志、开机自启（开关）、退出*。
+   - 应用还会恢复你登录 Shell 的 `PATH`，使「运行 Claude」（Run Claude）功能能够找到并启动 `claude` CLI —— 从 Finder/Dock 启动的应用否则只会继承 launchd 提供的极简 `PATH`，会漏掉 `~/.local/bin`、`/opt/homebrew/bin`、版本管理器目录等位置的 CLI。
+5. Dashboard 窗口打开 —— 除非应用是在登录时通过登录项被启动的，此时它会保持仅托盘模式。
+6. 托盘（macOS 菜单栏）出现一个图标，菜单包含：*打开 Dashboard、在浏览器中打开、重启服务器、查看日志、开机自启（开关）、退出*。
 
 ```mermaid
 flowchart TD
@@ -1695,16 +1647,15 @@ flowchart TD
 
 ### 生命周期语义
 
-- **托盘图标** —— 常驻状态面板（macOS 菜单栏 / Windows 通知区域）。左键单击切换 Dashboard 窗口的显示/隐藏；右键单击打开上下文菜单，包含**打开 Dashboard**、**在浏览器中打开**、**重启服务器**、**查看日志**、**开机自启**（开关）与**退出**。macOS 使用着色的模板图标；Windows 使用彩色的 `icon.ico`（纯黑模板图标在深色任务栏上会看不见）。
-- **窗口与任务栏图标** —— `BrowserWindow` 已绑定彩色的应用 Logo（Windows 上为 `icon.ico`，其他平台为 `icon.png`），因此标题栏 / 任务栏显示的是真正的 Claude Code Monitor 图标 —— 即便是未打包的 `npm run desktop:dev` 运行，也不再显示通用的 Electron 图标。
-- **原生应用菜单** —— 标准的 `About` / `File` / `Edit` / `View` / `Window` / `Help` 菜单，带 `⌘` / `Ctrl` 快捷键。其中 **File → Open Dashboard**（`⌘1`）项**仅在 macOS 上可用**：macOS 在窗口隐藏后仍保留全局菜单栏，因此该项能重新打开窗口 —— 而在 Windows/Linux 上，菜单是依附于窗口的，窗口隐藏时菜单快捷键无法触发，所以请改从托盘的 **Open Dashboard** 重新打开（即便窗口已最小化或被其他窗口遮挡，它也能可靠地将窗口**调到前台**）。
+- **托盘图标** —— macOS 菜单栏上的常驻状态面板。左键单击切换 Dashboard 窗口的显示/隐藏；右键单击打开上下文菜单，包含**打开 Dashboard**、**在浏览器中打开**、**重启服务器**、**查看日志**、**开机自启**（开关）与**退出**。使用着色的模板图标，随菜单栏明暗自动着色。**File → Open Dashboard**（`⌘1`）项在**原生应用菜单**中可靠地把窗口调到前台，即便窗口已最小化或被其他窗口遮挡。
+- **窗口图标** —— `BrowserWindow` 已绑定彩色的应用 Logo（`icon.png`），因此标题栏显示的是真正的 Claude Code Monitor 图标 —— 即便是未打包的 `npm run desktop:dev` 运行，也不再显示通用的 Electron 图标。
 - **关闭窗口只是隐藏它。** 服务器继续运行，托盘图标保留。点击托盘即可重新调出窗口。
-- **退出（⌘Q / Ctrl+Q，或托盘 → 退出）** 会优雅关闭嵌入式服务器、干净关闭 SQLite（完成 WAL checkpoint），然后退出。
-- **开机自启开关：** 在托盘菜单（或应用菜单）中切换*开机自启*。在 macOS 上，它通过 `SMAppService` / `ServiceManagement` 框架注册 —— 你会在  → *系统设置 → 通用 → 登录项* 中看到该条目；在 Windows 上，它写入一个按用户的 `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` 项，可在**任务管理器 → 启动**中看到。当应用在登录时被启动时，它以**仅托盘模式**启动，不会有窗口突然弹到用户面前。
-- **单实例锁：** 重复启动只会聚焦已有窗口，不会产生第二个服务器，也不会发生端口冲突。（适用于所有平台。）
-- **「在浏览器中打开」「重启服务器」「查看日志」** 均可从托盘菜单直接触发。日志位于 `~/Library/Logs/Claude Code Monitor/desktop.log`（macOS）或 `%APPDATA%\Claude Code Monitor\logs\desktop.log`（Windows）（菜单中的*查看日志*会打开该位置）。
-- **你的数据**（SQLite 数据库与 VAPID 密钥）保存在按用户的应用数据目录中，位于应用包 / 安装目录**之外** —— macOS 为 `~/Library/Application Support/Claude Code Monitor/data/`，Windows 为 `%APPDATA%\Claude Code Monitor\data\`，因此能够**在应用重装与更新后继续保留**。已打包的应用包是只读的，把数据库写在其中会导致「历史导入」（History Import）与事件持久化失败；保存在应用数据目录修复了这一点，并意味着你导入的历史在替换或升级应用时不会受影响。（Windows 的 NSIS 卸载程序默认会保留这些数据。）
-- **`claude` CLI**：在 macOS 上，应用在启动时会恢复你登录 Shell 的 `PATH` —— 因此即便从 Finder/Dock 启动的 macOS 应用通常只会继承 launchd 提供的极简 `PATH`，「运行 Claude」（Run Claude）功能依然能找到并启动 `claude` CLI。（在 Windows 上，所继承的用户 `PATH` 已包含它。）
+- **退出（⌘Q，或托盘 → 退出）** 会优雅关闭嵌入式服务器、干净关闭 SQLite（完成 WAL checkpoint），然后退出。
+- **开机自启开关：** 在托盘菜单（或应用菜单）中切换*开机自启*。它通过 `SMAppService` API 注册 —— 你会在  → *系统设置 → 通用 → 登录项* 中看到该条目。当应用在登录时被启动时，它以**仅托盘模式**启动，不会有窗口突然弹到用户面前。
+- **单实例锁：** 重复启动只会聚焦已有窗口，不会产生第二个服务器，也不会发生端口冲突。
+- **「在浏览器中打开」「重启服务器」「查看日志」** 均可从托盘菜单直接触发。日志位于 `~/Library/Logs/Claude Code Monitor/desktop.log`（菜单中的*查看日志*会打开该位置）。
+- **你的数据**（SQLite 数据库与 VAPID 密钥）保存在按用户的应用数据目录中，位于应用包**之外** —— `~/Library/Application Support/Claude Code Monitor/data/`，因此能够**在应用重装与更新后继续保留**。已打包的应用包是只读的，把数据库写在其中会导致「历史导入」（History Import）与事件持久化失败；保存在应用数据目录修复了这一点，并意味着你导入的历史在替换或升级应用时不会受影响。
+- **`claude` CLI**：应用在启动时会恢复你登录 Shell 的 `PATH` —— 因此即便从 Finder/Dock 启动的 macOS 应用通常只会继承 launchd 提供的极简 `PATH`，「运行 Claude」（Run Claude）功能依然能找到并启动 `claude` CLI。
 
 ### 构建命令
 
@@ -1720,35 +1671,32 @@ flowchart TD
 | `npm run desktop:dmg:arm64` | **macOS：** 构建 Apple Silicon 专用 DMG。**快速。** |
 | `npm run desktop:dmg:x64` | **macOS：** 构建 Intel 专用 DMG。**快速。** |
 | `npm run desktop:dmg:universal` | **macOS：** 构建**一个**合并的通用（universal）DMG（arm64 + x86_64，单个文件）——可选，**最慢**，不是发布版本附带的内容。 |
-| `npm run desktop:win` | **Windows：** 构建 NSIS 安装包 `.exe`（x64）。 |
-| `npm run desktop:win:portable` | **Windows：** 构建免安装的便携版 `.exe`（x64）。 |
 
 > [!NOTE]
-> **DMG 在 macOS 上构建，Windows `.exe` 在 Windows 上构建** —— electron-builder 针对宿主操作系统打包。macOS 的 `npm run desktop:dmg` 构建**有意设计得很慢**（它会按架构把应用构建两次，产出两个按架构的 DMG——`ClaudeCodeMonitor-<ver>-arm64.dmg` 与 `ClaudeCodeMonitor-<ver>-x64.dmg`，并不做任何合并——发布时即随附这两个按架构的 DMG）；为自己的 Mac 构建时请使用单架构的 `desktop:dmg:arm64` / `desktop:dmg:x64`。在 Windows 上，`npm run desktop:install` 会把 `better-sqlite3` 作为 Electron 预编译二进制拉取，因此常见情况下无需 Visual Studio C++ 工具链。
+> electron-builder 针对宿主操作系统打包，因此 DMG 必须在 macOS 上构建。macOS 的 `npm run desktop:dmg` 构建**有意设计得很慢**（它会按架构把应用构建两次，产出两个按架构的 DMG——`ClaudeCodeMonitor-<ver>-arm64.dmg` 与 `ClaudeCodeMonitor-<ver>-x64.dmg`，并不做任何合并——发布时即随附这两个按架构的 DMG）；为自己的 Mac 构建时请使用单架构的 `desktop:dmg:arm64` / `desktop:dmg:x64`。
 >
 > - 为**自己的 Mac** 构建 → 使用 `desktop:dmg:arm64`（Apple Silicon）或 `desktop:dmg:x64`（Intel）。单架构、无合并，大约 1 分钟即可完成。
-> - 为**所有人构建发布产物** → 使用 `desktop:dmg`（产出两个按架构的 DMG：arm64 + x64），并预期它会耗时较久。CI 已经会构建 macOS DMG 与 Windows `.exe` 并分别上传为 `ClaudeCodeMonitor-dmg` 与 `ClaudeCodeMonitor-win` 产物，因此你很少需要在本地构建它们。
-> - 无论哪种方式，macOS DMG 体积约为 **80 MB / 安装后约 250 MB**，Windows 安装包体积相当 —— 这是标准的 Electron 体积成本。
+> - 为**所有人构建发布产物** → 使用 `desktop:dmg`（产出两个按架构的 DMG：arm64 + x64），并预期它会耗时较久。CI 已经会构建 macOS DMG 并上传为 `ClaudeCodeMonitor-dmg` 产物，因此你很少需要在本地构建它们。
+> - 无论哪种方式，macOS DMG 体积约为 **80 MB / 安装后约 250 MB** —— 这是标准的 Electron 体积成本。
 
 ### 原生模块与签名
 
 - **`better-sqlite3`**：依赖树中唯一的原生模块。桌面工作区在 `postinstall` 中通过 `electron-builder install-app-deps` 为 Electron 的 ABI 重新编译一份桌面专用的 `better-sqlite3`，因此不会干扰仓库根目录为系统 Node 构建的那一份（`npm run test:server` 仍可用）。若重新编译失败，服务器会回退到 Node 内置的 `node:sqlite`，应用依然能启动。
 - **贡献者注意**：构建 DMG 会针对目标架构重新编译 `better-sqlite3`，可能让其不再匹配本机 CPU 架构。桌面应用的预构建（prebuild）步骤会自动为本机修复（auto-heal）这一情况，因此后续的 `desktop:dev` / `desktop:test` 无需手动处理。
-- **代码签名**：macOS DMG 默认**临时签名**（`package` 脚本设置 `CSC_IDENTITY_AUTO_DISCOVERY=false`，确保不会误用钥匙串里已有的证书）。提供 `CSC_LINK`（base64 编码的 `.p12`）与 `CSC_KEY_PASSWORD` 时启用真正的 **Developer ID 签名**。**Windows** 构建默认**未签名**（首次启动时 SmartScreen 可能弹出 —— *更多信息 → 仍要运行*）；仅当通过 `CSC_LINK` + `CSC_KEY_PASSWORD` 显式提供证书时才启用 **Authenticode 签名**。
+- **代码签名**：macOS DMG 默认**临时签名**（`package` 脚本设置 `CSC_IDENTITY_AUTO_DISCOVERY=false`，确保不会误用钥匙串里已有的证书）。提供 `CSC_LINK`（base64 编码的 `.p12`）与 `CSC_KEY_PASSWORD` 时启用真正的 **Developer ID 签名**。
 - **公证（notarization）**：可选启用。当 `APPLE_ID`、`APPLE_TEAM_ID`、`APPLE_APP_SPECIFIC_PASSWORD` 三者都设置时，`desktop/scripts/notarize.js`（`electron-builder` 的 `afterSign` 钩子）会执行公证；否则它什么也不做。
 
 ### 持续集成
 
-`.github/workflows/ci.yml` 中有两个经过**路径过滤**的桌面作业（一个 `changes` 作业用 `dorny/paths-filter` 检测 `desktop/**` 的改动；这些作业也会在任何 `push` 时、或 PR 带有 `desktop` 标签时运行）：运行在 `macos-latest` 上的 `🍎 macOS Desktop (DMG)` 作业会构建**两个按架构的 DMG**（arm64 + x64；对偶发的 `hdiutil detach` 失败会重试）并上传为 `ClaudeCodeMonitor-dmg` 产物（两个单架构 DMG）；运行在 `windows-latest` 上的 `🪟 Windows Desktop (EXE)` 作业会构建并上传为 `ClaudeCodeMonitor-win` 产物（NSIS 安装包 + 便携版）。在向 `master` 推送版本号提升时，`release` 作业会把 macOS DMG 与 Windows `.exe` **都**附加到所发布的 `vX.Y.Z` GitHub Release。Windows 图标（`desktop/assets/icon.ico`）已提交到仓库中（可用 `npm run build:win-icon` 从 `icon.png` 重新生成，基于 PowerShell + .NET，无需额外工具）。
+`.github/workflows/ci.yml` 中有一个经过**路径过滤**的桌面作业（一个 `changes` 作业用 `dorny/paths-filter` 检测 `desktop/**` 的改动；该作业也会在任何 `push` 时、或 PR 带有 `desktop` 标签时运行）：运行在 `macos-latest` 上的 `🍎 macOS Desktop (DMG)` 作业会构建**两个按架构的 DMG**（arm64 + x64；对偶发的 `hdiutil detach` 失败会重试）并上传为 `ClaudeCodeMonitor-dmg` 产物（两个单架构 DMG）。在向 `master` 推送版本号提升时，`release` 作业会把 macOS DMG 附加到所发布的 `vX.Y.Z` GitHub Release。
 
 ### 桌面应用故障排查
 
 | 现象 | 原因 / 解决方法 |
 | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | 首次启动时 macOS 提示「Apple 无法验证…」 | DMG 默认临时签名。运行 `xattr -cr ~/Downloads/ClaudeCodeMonitor-*.dmg`（或对已安装的 `.app` 执行），或在*系统设置 → 隐私与安全性*中点击*仍要打开* |
-| 首次启动时 Windows SmartScreen 提示「Windows 已保护你的电脑」 | 安装包默认未签名。点击**更多信息 → 仍要运行**即可启动 |
-| 「运行 Claude」提示 `claude` 不在 PATH 上 | （macOS）从 Finder/Dock 启动的应用只会继承 launchd 的极简 `PATH`，而非你的 Shell `PATH`。已修复 —— 应用在启动时会恢复登录 Shell 的 `PATH`。若问题仍存在，请确认 `claude` 是真正的可执行文件（而非 Shell 别名或函数），并位于你的 Shell `PATH` 上。在 Windows 上，所继承的用户 `PATH` 已包含它 |
-| 更新应用后导入的历史 / 会话消失 | 早期构建把数据库存放在（可被替换的）应用包内部。已修复 —— 数据现保存在 `~/Library/Application Support/Claude Code Monitor/data/`（macOS）或 `%APPDATA%\Claude Code Monitor\data\`（Windows），可在重装与更新后保留。从修复前的旧版本升级后，请再执行一次 **Import History → Rescan** |
+| 「运行 Claude」提示 `claude` 不在 PATH 上 | 从 Finder/Dock 启动的应用只会继承 launchd 的极简 `PATH`，而非你的 Shell `PATH`。已修复 —— 应用在启动时会恢复登录 Shell 的 `PATH`。若问题仍存在，请确认 `claude` 是真正的可执行文件（而非 Shell 别名或函数），并位于你的 Shell `PATH` 上 |
+| 更新应用后导入的历史 / 会话消失 | 早期构建把数据库存放在（可被替换的）应用包内部。已修复 —— 数据现保存在 `~/Library/Application Support/Claude Code Monitor/data/`，可在重装与更新后保留。从修复前的旧版本升级后，请再执行一次 **Import History → Rescan** |
 | `desktop:dev` / `desktop:test` 报 `ERR_DLOPEN_FAILED` | 之前的 DMG 构建留下了为另一 CPU 架构编译的 `better-sqlite3`。预构建步骤会在下次构建时自动修复；如有需要可运行 `npm run desktop:install` |
 
 更多细节请参阅面向用户的 [`DESKTOP.md`](./DESKTOP.md)，以及面向贡献者 / 架构的 [`desktop/README.md`](./desktop/README.md)。
