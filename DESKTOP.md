@@ -135,6 +135,12 @@ xattr -cr ~/Downloads/ClaudeCodeMonitor-*.dmg
 
 Or open  → *System Settings → Privacy & Security*, scroll to the blocked DMG, click *Open Anyway*.
 
+If the quarantine flag survives the drag into `Applications` (or you cleared it on the DMG *after* copying the app out), macOS shows a different, scarier dialog on the installed `.app` itself: *"Claude Code Monitor.app" is damaged and can't be opened. You should move it to the Bin.* This is still Gatekeeper, not corruption — strip the flag from the installed app instead of the DMG:
+
+```bash
+xattr -cr "/Applications/Claude Code Monitor.app"
+```
+
 ### Notarization (for the maintainer)
 
 When you're ready to make this go away for everyone, add these three repository secrets:
@@ -209,6 +215,7 @@ The smoke test does not exercise the BrowserWindow (no display on headless CI). 
 | Symptom | Cause | Fix |
 |---|---|---|
 | "Apple could not verify…" on first launch | Unnotarized DMG | `xattr -cr ~/Downloads/ClaudeCodeMonitor-*.dmg` |
+| "…is damaged and can't be opened. You should move it to the Bin." | Quarantine flag survived onto the installed `.app` (not actual corruption) | `xattr -cr "/Applications/Claude Code Monitor.app"`, then reopen |
 | macOS prompts to install Rosetta when opening the app | You installed the **x64** build on an Apple Silicon Mac | Check your arch with `uname -m` (`arm64` → Apple Silicon, build with `desktop:dmg:arm64`). The arch-specific `desktop:dmg:arm64` / `desktop:dmg:x64` builds each wipe `release/` and emit a single DMG whose mounted-volume title states the architecture — e.g. *Claude Code Monitor (Apple Silicon)* — so there is no ambiguous window to drag from. (`desktop:dmg` emits both per-arch DMGs at once, for release.) If stale DMGs from an older build linger, clear them with `rm -rf desktop/release` and rebuild |
 | Window shows but content is blank | Server didn't boot — check `~/Library/Logs/Claude Code Monitor/desktop.log` | Restart from tray → *Restart Server* |
 | Tray icon missing | The OS hides tray icons when the menu bar is full | Move other menu-bar items aside, or look in the overflow chevron |
