@@ -288,7 +288,7 @@ function getErrorHtml() {
                 <div class="timeline">
                     <div class="t-step">
                         <div class="t-label">Initialize Repository</div>
-                        <div class="t-code">git clone https://github.com/hoangsonww/Claude-Code-Agent-Monitor.git
+                        <div class="t-code">git clone https://github.com/buluma/Code-Agent-Monitor.git
 cd Claude-Code-Agent-Monitor
 npm run setup</div>
                     </div>
@@ -324,9 +324,9 @@ npm run setup</div>
         </div>
 
         <div class="footer">
-            <a href="https://github.com/hoangsonww/Claude-Code-Agent-Monitor">GitHub</a>
+            <a href="https://github.com/buluma/Code-Agent-Monitor">GitHub</a>
             <a href="https://hoangsonww.github.io/Claude-Code-Agent-Monitor/">Wiki</a>
-            <a href="https://github.com/hoangsonww/Claude-Code-Agent-Monitor/issues">Support</a>
+            <a href="https://github.com/buluma/Code-Agent-Monitor/issues">Support</a>
         </div>
     </div>
 </body>

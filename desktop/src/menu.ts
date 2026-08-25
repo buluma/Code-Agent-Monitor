@@ -208,14 +208,13 @@ export function installApplicationMenu(actions: MenuActions): Menu {
       submenu: [
         {
           label: "Project on GitHub",
-          click: () =>
-            void shell.openExternal("https://github.com/hoangsonww/Claude-Code-Agent-Monitor"),
+          click: () => void shell.openExternal("https://github.com/buluma/Code-Agent-Monitor"),
         },
         {
           label: "Report an Issue",
           click: () =>
             void shell.openExternal(
-              "https://github.com/hoangsonww/Claude-Code-Agent-Monitor/issues/new/choose"
+              "https://github.com/buluma/Code-Agent-Monitor/issues/new/choose"
             ),
         },
         {

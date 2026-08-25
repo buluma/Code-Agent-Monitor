@@ -15,7 +15,7 @@ const ROOT = path.resolve(__dirname, "..");
 const PLUGINS_DIR = path.join(ROOT, "plugins");
 const CLAUDE_MARKETPLACE = path.join(ROOT, ".claude-plugin", "marketplace.json");
 const CODEX_MARKETPLACE = path.join(ROOT, ".agents", "plugins", "marketplace.json");
-const REPOSITORY = "https://github.com/hoangsonww/Claude-Code-Agent-Monitor";
+const REPOSITORY = "https://github.com/buluma/Code-Agent-Monitor";
 const PLUGIN_VERSION = readJson(path.join(ROOT, "package.json")).version;
 const AUTHOR = {
   name: "Son Nguyen",

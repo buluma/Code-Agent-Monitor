@@ -51,7 +51,7 @@ You sign **once** — the signature covers all of your current and future contri
 ### Setup
 
 ```bash
-git clone https://github.com/hoangsonww/Claude-Code-Agent-Monitor.git
+git clone https://github.com/buluma/Code-Agent-Monitor.git
 cd Claude-Code-Agent-Monitor
 npm run setup
 npm run dev

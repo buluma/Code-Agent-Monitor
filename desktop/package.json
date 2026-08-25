@@ -5,10 +5,10 @@
   "description": "Native macOS desktop shell for Claude Code Agent Monitor.",
   "author": "Son Nguyen <hoangson091104@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
+  "homepage": "https://github.com/buluma/Code-Agent-Monitor",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor.git"
+    "url": "https://github.com/buluma/Code-Agent-Monitor.git"
   },
   "main": "out/main.js",
   "scripts": {

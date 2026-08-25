@@ -63,7 +63,7 @@ jobs:
           # Where signatures are recorded (default branch of this repo).
           path-to-signatures: "signatures/version1/cla.json"
           # Public URL of the CLA contributors must agree to.
-          path-to-document: "https://github.com/hoangsonww/Claude-Code-Agent-Monitor/blob/master/CLA.md"
+          path-to-document: "https://github.com/buluma/Code-Agent-Monitor/blob/master/CLA.md"
           # Store signatures on a DEDICATED, UNPROTECTED branch. The default
           # branch (master) is governed by the `master-protect` ruleset, which
           # blocks direct pushes — including the bot's signature commits — so

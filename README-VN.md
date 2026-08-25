@@ -72,7 +72,7 @@ Bảng điều khiển chuyên nghiệp để theo dõi và trực quan hóa cá
 Tài liệu đã bản địa hóa: [`README.md`](./README.md) · [`README-CN.md`](./README-CN.md) · [`README-VN.md`](./README-VN.md) · [`README-KO.md`](./README-KO.md) · [`README-ES.md`](./README-ES.md)
 
 > [!NOTE]
-> Bạn cần hướng dẫn theo tác vụ? [GitHub Wiki](https://github.com/hoangsonww/Claude-Code-Agent-Monitor/wiki) là sổ tay thực hành về sử dụng hằng ngày, vận hành theo nhóm, khắc phục sự cố, tự động hóa CLI/MCP và các quy trình triển khai. [Wiki tĩnh đã bản địa hóa](https://hoangsonww.github.io/Claude-Code-Agent-Monitor/wiki/) vẫn là phần giới thiệu sản phẩm và kiến trúc bằng tiếng Anh, Việt, Trung, Hàn và Tây Ban Nha; các hợp đồng kỹ thuật chính xác vẫn nằm trong [`docs/`](./docs/README.md).
+> Bạn cần hướng dẫn theo tác vụ? [GitHub Wiki](https://github.com/buluma/Code-Agent-Monitor/wiki) là sổ tay thực hành về sử dụng hằng ngày, vận hành theo nhóm, khắc phục sự cố, tự động hóa CLI/MCP và các quy trình triển khai. [Wiki tĩnh đã bản địa hóa](https://hoangsonww.github.io/Claude-Code-Agent-Monitor/wiki/) vẫn là phần giới thiệu sản phẩm và kiến trúc bằng tiếng Anh, Việt, Trung, Hàn và Tây Ban Nha; các hợp đồng kỹ thuật chính xác vẫn nằm trong [`docs/`](./docs/README.md).
 
 ---
 
@@ -332,7 +332,7 @@ Bảng điều khiển cung cấp một bộ tính năng toàn diện để giá
 | **Dữ liệu hạt giống**                      | Tập lệnh hạt giống tích hợp cho các bản demo và phát triển                                                                                                                                                                                                                               |
 | **Dòng trạng thái**                     | Dòng trạng thái CLI được mã hóa màu hiển thị mô hình, cách sử dụng ngữ cảnh, nhánh git, mã thông báo                                                                                                                                                                                                  |
 | **Định dạng tên mô hình**          | Tên mô hình thân thiện trong toàn bộ giao diện: các định danh thô như `claude-opus-4-7-20260101` hoặc `claude-opus-4-7[1m]` hiển thị dạng "Claude Opus 4.7" hoặc "Claude Opus 4.7 (1M)". Hỗ trợ các họ Claude, GPT và Gemini với tự động nối phiên bản bằng dấu chấm, loại bỏ hậu tố ngày/latest, xóa tiền tố nhà cung cấp và định dạng thẻ cửa sổ ngữ cảnh. Trang Cài đặt giữ nguyên tên thô để cấu hình quy tắc giá |
-| **Thị trường plugin Claude + Codex** | Một cây nguồn gồm 14 plugin cung cấp manifest cho Claude Code và Codex, hai catalog marketplace, 66 skill đóng gói, 18 subagent Claude, 34 lệnh Claude và metadata OpenAI. CLI skills.sh phát hiện tổng cộng 76 skill trong repo qua `npx skills add hoangsonww/Claude-Code-Agent-Monitor --list`. Có thể cài bằng `claude plugin marketplace add`, `codex plugin marketplace add` hoặc `npx skills add` |
+| **Thị trường plugin Claude + Codex** | Một cây nguồn gồm 14 plugin cung cấp manifest cho Claude Code và Codex, hai catalog marketplace, 66 skill đóng gói, 18 subagent Claude, 34 lệnh Claude và metadata OpenAI. CLI skills.sh phát hiện tổng cộng 76 skill trong repo qua `npx skills add buluma/Code-Agent-Monitor --list`. Có thể cài bằng `claude plugin marketplace add`, `codex plugin marketplace add` hoặc `npx skills add` |
 | **Chạy Claude**                    | Khởi chạy tiến trình con `claude` ngay trong dashboard với UI streaming kiểu chat. Hai chế độ: **Hội thoại** (đa lượt — stdin mở liên tục, các lượt tiếp theo được đẩy qua stdin dạng stream-json) và **Một lần** (headless, một prompt → một phản hồi). Chế độ hội thoại còn hỗ trợ **tiếp tục bất kỳ phiên nào đã có** qua `claude --resume <id>` — chọn từ toàn bộ lịch sử phiên với picker tìm kiếm. Bộ chuyển đổi run đang chạy ở header cho phép bạn để run chạy nền, khởi động run mới và gắn lại sau. Việc gắn lại là bền vững: client đối chiếu envelope log trong bộ nhớ của spawner (`?envelopes=1`) với file JSONL transcript trên đĩa của session và ưu tiên bên có nhiều thông điệp user/assistant hơn, nên rời một run đã resume rồi quay lại vẫn thấy nguyên vẹn lịch sử trước đó (spawner chỉ thấy các lượt sau khi spawn; file transcript có cả lịch sử trước + hiện tại). Dropdown model (Opus 4.7 / 1M / Sonnet 4.6 / Haiku 4.5 / tuỳ chỉnh), picker permission-mode với cảnh báo `bypassPermissions` rõ ràng, trường **mức độ suy nghĩ** (low / medium / high — ánh xạ tới `--effort`), autocomplete cwd điền sẵn **thư mục home** của người dùng — vị trí spawn trung lập, không kế thừa ngữ cảnh dự án `.claude` của chính repo dashboard (agents, skills, rules, `CLAUDE.md`, `.mcp.json`); lùi về cwd của dashboard nếu không có gợi ý home, và nhóm home đứng đầu danh sách gợi ý (home → dashboard → gần đây). Render từng ký tự thực sự nhờ `--include-partial-messages`, cộng với **lớp làm mượt kiểu máy chữ** ở client dùng `requestAnimationFrame` để nhỏ giọt từng `text_delta` / `thinking_delta` — kể cả các phản hồi ngắn (claude gom toàn bộ vào 1-2 chunk) cũng hiện ra như đang gõ. Code merge giữ nguyên cờ `_streaming` và mảng `content` tích luỹ từ delta khi envelope `assistant` canonical đến giữa stream, nên thinking block không bị mất khi hoàn tất. Mỗi envelope WebSocket được dispatch qua `flushSync` để batching tự động của React không gộp nhiều deltas thành một render. **Tương thích TUI (Tier 1)**: **banner giới hạn** thu gọn thành pill (không bao giờ biến mất) giải thích những gì stream-json làm được và không làm được; **trình soạn prompt với autocomplete lệnh slash** dùng chấm điểm theo bậc (tên chính xác → bắt đầu bằng → ranh giới từ → chứa → subsequence → mô tả chứa) liệt kê lệnh user / project / plugin (mở rộng theo template ở client trước khi gửi) và hiển thị các lệnh CLI built-in như `/clear`, `/model`, `/config` kèm nhãn "chỉ CLI — không chạy ở đây"; **tham chiếu file `@`** với fuzzy-search có debounce trên cwd của run (bỏ qua `node_modules`, `.git`, `dist`, `build`, …); **đồng hồ context window / token** trực tiếp hiển thị token input + output + cache-read và chi phí — khi streaming live tính từ `stream_event` / `result.usage`, khi nạp từ transcript trên resume / view / gắn-lại cũng đọc từ block `usage` của assistant đã hoàn tất (input / output / cache-read / cache-creation), nên không bị kẹt ở 0/200k; **header trạng thái** hiển thị model, effort, permission mode, cwd, session ID, số envelope và thời gian chạy. Dropdown autocomplete mở lên trên, không đè picker cwd phía dưới. Chip Live / Offline cạnh tiêu đề. Same-origin guard trên route ngăn chặn drive-by spawn từ trình duyệt. Concurrency thực tế không giới hạn (mức trần mặc định 10000, ngang với terminal TUI — chỉ để chặn fork-bomb từ client lỗi; đặt `RUN_MAX_CONCURRENT` nếu muốn giới hạn thật). Modal hợp nhất runs đang chạy / lịch sử cung cấp hai nút nhảy nhanh: **Resume** trên dòng hội thoại cũ lập tức spawn `claude --resume <id>` và nạp sẵn transcript vào chat view (không cần gõ lại prompt — tiến trình idle trên stdin cho đến khi bạn gửi follow-up); **View** trên dòng one-shot cũ nạp transcript đã ghi vào ngay run viewer ở chế độ chỉ-đọc (không spawn — cùng panel, không có Stop / ô gửi). Phiên được spawn kích hoạt cùng các hook như mọi tiến trình `claude`, nên tự động xuất hiện trong Sessions / Analytics / Kanban / Workflows — và Sessions / SessionDetail hiển thị huy hiệu / banner xanh **▶ Run** liên kết về trang Run cho mọi phiên đang được điều khiển từ đó |
 | **Tabby** | Chú mèo SVG dễ thương được ghim ở góc dưới bên phải trên mọi trang, lắng nghe luồng phiên WebSocket thời gian thực và phản ứng theo đó. **Linh vật biết phản ứng**: 8 tâm trạng dựa trên luồng phiên thời gian thực — idle, watching, happy, worried, stuck, thinking, sleeping và disconnected; mắt mèo dõi theo con trỏ, mỗi tâm trạng có hoạt ảnh riêng. **Lời thoại bong bóng** bật lên khi có sự kiện đáng chú ý (phiên bắt đầu/kết thúc, có lỗi, lần chạy hoàn tất), được throttle và có thể tắt tiếng. Nhấp vào chú mèo hoặc nhấn **⌘B / Ctrl+B** để mở **bảng điều khiển** (Esc để đóng): dòng trạng thái thời gian thực (N đang chạy · M bị lỗi · trạng thái kết nối), các hành động nhanh (nhảy tới Run Claude / Activity / Sessions / các phiên bị lỗi, tắt tiếng, xóa cảnh báo) và một ô **Ask**. Ô Ask trả lời cục bộ các câu hỏi trạng thái đơn giản; những câu hỏi khác được chuyển sang trang **Run Claude** sẵn có (`/run?prompt=...`) để khởi chạy một phiên Claude Code thật sự — **không cần backend mới, không cần API key**. Được xây dựng hoàn toàn trên luồng WebSocket sẵn có, thân thiện với trợ năng (bàn phím, `aria-live`, tôn trọng `prefers-reduced-motion`), bật/tắt trong Settings. Mã nguồn tại `client/src/components/Tabby/` |
 | **Tín hiệu âm thanh** | Phản hồi âm thanh tinh tế cho hoạt động trực tiếp, **bật sẵn theo mặc định** và có thể tắt hoàn toàn. Mọi tín hiệu đều được **tổng hợp ngay trong trình duyệt bằng Web Audio API** — bộ dao động cộng với envelope gain, nên **không có tệp âm thanh nào phải tải về và không thêm phụ thuộc mới**. Bảy tín hiệu bao trùm vòng đời phiên: quãng năm đi lên khi một phiên bắt đầu, hợp âm trưởng giải quyết khi một phiên phản hồi xong, quãng ba thứ đi xuống nhẹ nhàng khi có lỗi, một tiếng gảy ngắn khi subagent được tạo, tiếng chuông lệch tần cho thông báo của Claude Code, hai nốt lên/xuống khi kết nối trực tiếp trở lại hoặc mất, và một tiếng tích gần như không nghe thấy khi nhấn nút và liên kết. Tín hiệu được **giới hạn tần suất** (thời gian chờ cho từng tín hiệu cộng với ngân sách bùng nổ toàn cục), đi qua bộ lọc thông thấp để nằm phía sau công việc của bạn, và giữ im lặng cho đến lần tương tác đầu tiên của bạn với trang (chính sách autoplay của trình duyệt). **Settings → Sound** cung cấp công tắc tổng, thanh trượt âm lượng và công tắc riêng cho từng tín hiệu kèm nghe thử tức thì; tùy chọn được lưu trong `localStorage` dưới khóa `agent-monitor-sound` (bản địa hóa en/zh/vi/ko/es). Mã nguồn tại `client/src/lib/sound.ts` và `client/src/hooks/useSoundCues.ts` |
@@ -359,7 +359,7 @@ Bảng điều khiển cung cấp một bộ tính năng toàn diện để giá
 ### 1. Cài đặt
 
 ```bash
-git clone https://github.com/hoangsonww/Claude-Code-Agent-Monitor.git
+git clone https://github.com/buluma/Code-Agent-Monitor.git
 cd Claude-Code-Agent-Monitor
 npm run setup
 ```
@@ -458,7 +458,7 @@ Các cổng host mặc định chỉ bind loopback: dashboard `4820`, MCP `8819`
 
 Nếu bạn không muốn giữ một cửa sổ terminal mở, hãy cài đặt **ứng dụng máy tính để bàn gốc** tùy chọn. Nó nhúng máy chủ ngay trong tiến trình, thêm biểu tượng tray ở menu-bar và hỗ trợ tự khởi động lúc đăng nhập (macOS Login Items).
 
-Cách nhanh nhất là **tải trình cài dựng sẵn** từ [bản GitHub Release mới nhất](https://github.com/hoangsonww/Claude-Code-Agent-Monitor/releases/latest) (CI tự động phát hành một `vX.Y.Z` mỗi khi `package.json` được nâng phiên bản trên `master`):
+Cách nhanh nhất là **tải trình cài dựng sẵn** từ [bản GitHub Release mới nhất](https://github.com/buluma/Code-Agent-Monitor/releases/latest) (CI tự động phát hành một `vX.Y.Z` mỗi khi `package.json` được nâng phiên bản trên `master`):
 
 - **macOS** — tải `ClaudeCodeMonitor-<version>-arm64.dmg` (Apple Silicon) hoặc `-x64.dmg` (Intel) rồi kéo **Claude Code Monitor.app** vào `/Applications`.
 
@@ -1502,7 +1502,7 @@ PWA giúp cài đặt bảng điều khiển trong các trình duyệt nền Chr
 
 **Cách A — tải trình cài dựng sẵn (khuyến nghị):**
 
-Tải từ [**Releases → latest**](https://github.com/hoangsonww/Claude-Code-Agent-Monitor/releases/latest) (công khai, không cần đăng nhập GitHub). Mỗi khi bản cập nhật `version` trong `package.json` được đẩy lên `master`, CI tự động phát hành một `vX.Y.Z` mới, nên liên kết này luôn trỏ đến bản build hiện tại:
+Tải từ [**Releases → latest**](https://github.com/buluma/Code-Agent-Monitor/releases/latest) (công khai, không cần đăng nhập GitHub). Mỗi khi bản cập nhật `version` trong `package.json` được đẩy lên `master`, CI tự động phát hành một `vX.Y.Z` mới, nên liên kết này luôn trỏ đến bản build hiện tại:
 
 | Nền tảng | Tệp asset | Ghi chú |
 | --- | --- | --- |
@@ -1767,18 +1767,18 @@ CCAM cung cấp 14 plugin dùng chung cho Claude Code và Codex, với 66 skill 
 ### Thêm thị trường
 
 ```bash
-claude plugin marketplace add hoangsonww/Claude-Code-Agent-Monitor
-codex plugin marketplace add hoangsonww/Claude-Code-Agent-Monitor
+claude plugin marketplace add buluma/Code-Agent-Monitor
+codex plugin marketplace add buluma/Code-Agent-Monitor
 ```
 
 ### Cài đặt skill bằng skills.sh
 
 ```bash
 # Liệt kê toàn bộ 76 skill mà không cài đặt
-npx skills add hoangsonww/Claude-Code-Agent-Monitor --list
+npx skills add buluma/Code-Agent-Monitor --list
 
 # Cài một skill cho Claude Code và Codex trong dự án hiện tại
-npx skills add hoangsonww/Claude-Code-Agent-Monitor \
+npx skills add buluma/Code-Agent-Monitor \
   --skill mcp-server \
   --agent claude-code \
   --agent codex \
@@ -1790,7 +1790,7 @@ npx skills update --project --yes
 npx skills remove mcp-server --yes
 
 # Thêm --global để cài ở phạm vi người dùng, rồi quản lý phạm vi đó
-npx skills add hoangsonww/Claude-Code-Agent-Monitor \
+npx skills add buluma/Code-Agent-Monitor \
   --skill mcp-server \
   --agent claude-code \
   --agent codex \

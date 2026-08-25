@@ -7,8 +7,8 @@
     "email": "hoangson091104@gmail.com",
     "url": "https://github.com/hoangsonww"
   },
-  "homepage": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
-  "repository": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
+  "homepage": "https://github.com/buluma/Code-Agent-Monitor",
+  "repository": "https://github.com/buluma/Code-Agent-Monitor",
   "license": "MIT",
   "keywords": ["budget", "cost", "forecast", "alerts", "spend", "pricing", "claude-code"],
   "skills": "./skills/",
@@ -19,7 +19,7 @@
     "developerName": "Son Nguyen",
     "category": "Productivity",
     "capabilities": ["Read", "Write"],
-    "websiteURL": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
+    "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",
     "defaultPrompt": [
       "Use CCAM Cost Guard to inspect the local CCAM dashboard.",
       "Use CCAM Cost Guard to analyze recent agent activity."

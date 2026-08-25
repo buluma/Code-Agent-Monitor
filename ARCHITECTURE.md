@@ -1673,7 +1673,7 @@ graph TD
     S --> SKILLS
 ```
 
-The verified distribution contains **14 plugins, 66 bundled plugin skills, 18 Claude subagents, 34 Claude commands, 3 CLI helpers, 3 hook configurations, and 2 MCP-enabled plugins**. `npx skills add hoangsonww/Claude-Code-Agent-Monitor --list` discovers **76 total repository skills** because repository-maintenance skills are included alongside plugin skills.
+The verified distribution contains **14 plugins, 66 bundled plugin skills, 18 Claude subagents, 34 Claude commands, 3 CLI helpers, 3 hook configurations, and 2 MCP-enabled plugins**. `npx skills add buluma/Code-Agent-Monitor --list` discovers **76 total repository skills** because repository-maintenance skills are included alongside plugin skills.
 
 Three focused packs extend the original analytics and governance catalog:
 
@@ -1687,8 +1687,8 @@ Three focused packs extend the original analytics and governance catalog:
 Claude Code and Codex install from the same Git repository:
 
 ```bash
-claude plugin marketplace add hoangsonww/Claude-Code-Agent-Monitor
-codex plugin marketplace add hoangsonww/Claude-Code-Agent-Monitor
+claude plugin marketplace add buluma/Code-Agent-Monitor
+codex plugin marketplace add buluma/Code-Agent-Monitor
 ```
 
 Skills install directly from the public repository. No upstream skills.sh PR is required. Public OpenAI universal-directory inclusion remains a separate reviewed submission and is not performed by repository code.

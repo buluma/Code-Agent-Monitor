@@ -21,13 +21,13 @@
   "funding": "https://github.com/sponsors/hoangsonww",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hoangsonww/Claude-Code-Agent-Monitor.git"
+    "url": "git+https://github.com/buluma/Code-Agent-Monitor.git"
   },
   "bugs": {
-    "url": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor/issues"
+    "url": "https://github.com/buluma/Code-Agent-Monitor/issues"
   },
   "license": "MIT",
-  "homepage": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor#readme",
+  "homepage": "https://github.com/buluma/Code-Agent-Monitor#readme",
   "keywords": [
     "claude",
     "claude-code",

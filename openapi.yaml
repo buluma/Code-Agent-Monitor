@@ -8,13 +8,13 @@ info:
   contact:
     name: Son Nguyen
     email: hoangson091104@gmail.com
-    url: https://github.com/hoangsonww/Claude-Code-Agent-Monitor
+    url: https://github.com/buluma/Code-Agent-Monitor
   license:
     name: MIT
-    url: https://github.com/hoangsonww/Claude-Code-Agent-Monitor/blob/main/LICENSE
+    url: https://github.com/buluma/Code-Agent-Monitor/blob/main/LICENSE
 externalDocs:
   description: Project documentation
-  url: https://github.com/hoangsonww/Claude-Code-Agent-Monitor#readme
+  url: https://github.com/buluma/Code-Agent-Monitor#readme
 servers:
   - url: http://localhost:4820
     description: Local dashboard server (default)
@@ -10763,4 +10763,4 @@ paths:
           description: Missing file, invalid JSON, or unrecognized export format
         '413':
           description: The export bundle exceeds the 25 MiB restore limit
-x-issues-url: https://github.com/hoangsonww/Claude-Code-Agent-Monitor/issues
+x-issues-url: https://github.com/buluma/Code-Agent-Monitor/issues

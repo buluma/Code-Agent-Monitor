@@ -21,7 +21,7 @@ The two coexist — install whichever fits your workflow.
 
 **Option A — download a pre-built installer** (recommended):
 
-1. Open [**Releases → latest**](https://github.com/hoangsonww/Claude-Code-Agent-Monitor/releases/latest) and grab the DMG for your Mac. Every `master` commit that bumps the version in `package.json` cuts a new `vX.Y.Z` release automatically (CI publishes it), so this link always lands on the current build — no GitHub sign-in required.
+1. Open [**Releases → latest**](https://github.com/buluma/Code-Agent-Monitor/releases/latest) and grab the DMG for your Mac. Every `master` commit that bumps the version in `package.json` cuts a new `vX.Y.Z` release automatically (CI publishes it), so this link always lands on the current build — no GitHub sign-in required.
 
    | Platform | Asset | Notes |
    |---|---|---|
@@ -30,7 +30,7 @@ The two coexist — install whichever fits your workflow.
 
 2. Want a **per-commit build** instead of waiting for a release? Every green CI run uploads a workflow artifact (sign-in required, 14-day retention) — `ClaudeCodeMonitor-dmg` from the `🍎 macOS Desktop (DMG)` job:
    ```bash
-   gh run download <run-id> -R hoangsonww/Claude-Code-Agent-Monitor -n ClaudeCodeMonitor-dmg
+   gh run download <run-id> -R buluma/Code-Agent-Monitor -n ClaudeCodeMonitor-dmg
    ```
 3. Double-click the DMG → drag `Claude Code Monitor.app` into your `Applications` folder. Open it; macOS may show a Gatekeeper warning the first time — see [Gatekeeper](#gatekeeper-first-launch) below.
 

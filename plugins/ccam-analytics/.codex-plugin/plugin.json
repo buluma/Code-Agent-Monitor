@@ -7,8 +7,8 @@
     "email": "hoangson091104@gmail.com",
     "url": "https://github.com/hoangsonww"
   },
-  "homepage": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
-  "repository": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
+  "homepage": "https://github.com/buluma/Code-Agent-Monitor",
+  "repository": "https://github.com/buluma/Code-Agent-Monitor",
   "license": "MIT",
   "keywords": [
     "analytics",
@@ -26,7 +26,7 @@
     "developerName": "Son Nguyen",
     "category": "Productivity",
     "capabilities": ["Read"],
-    "websiteURL": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
+    "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",
     "defaultPrompt": [
       "Use CCAM Analytics to inspect the local CCAM dashboard.",
       "Use CCAM Analytics to analyze recent agent activity."

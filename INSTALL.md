@@ -17,7 +17,7 @@ A step-by-step guide to get the Claude Code Agent Monitor up and running on your
 ## Step 1 — Clone the repository
 
 ```bash
-git clone https://github.com/hoangsonww/Claude-Code-Agent-Monitor.git
+git clone https://github.com/buluma/Code-Agent-Monitor.git
 cd Claude-Code-Agent-Monitor
 ```
 
@@ -190,7 +190,7 @@ The fastest path. There are two flavours:
 
 **1a. From the latest GitHub Release** *(recommended — public, no sign-in)*
 
-Open [**Releases → latest**](https://github.com/hoangsonww/Claude-Code-Agent-Monitor/releases/latest) and download the asset for your platform. CI publishes a new `vX.Y.Z` release automatically every time the version in `package.json` is bumped on `master`, so this link always points at the current shipping build.
+Open [**Releases → latest**](https://github.com/buluma/Code-Agent-Monitor/releases/latest) and download the asset for your platform. CI publishes a new `vX.Y.Z` release automatically every time the version in `package.json` is bumped on `master`, so this link always points at the current shipping build.
 
 | Platform | Asset | Notes |
 |---|---|---|
@@ -201,11 +201,11 @@ Open [**Releases → latest**](https://github.com/hoangsonww/Claude-Code-Agent-M
 
 Every green run of the desktop CI job uploads a packaged artifact — `ClaudeCodeMonitor-dmg` from the `🍎 macOS Desktop (DMG)` job:
 
-- **Via the GitHub UI:** open the latest passing run under [Actions](https://github.com/hoangsonww/Claude-Code-Agent-Monitor/actions/workflows/ci.yml?query=branch%3Amaster+is%3Asuccess), scroll to **Artifacts**, and download `ClaudeCodeMonitor-dmg`.
+- **Via the GitHub UI:** open the latest passing run under [Actions](https://github.com/buluma/Code-Agent-Monitor/actions/workflows/ci.yml?query=branch%3Amaster+is%3Asuccess), scroll to **Artifacts**, and download `ClaudeCodeMonitor-dmg`.
 - **Via the `gh` CLI:**
 
   ```bash
-  gh run download <run-id> -R hoangsonww/Claude-Code-Agent-Monitor -n ClaudeCodeMonitor-dmg   # macOS
+  gh run download <run-id> -R buluma/Code-Agent-Monitor -n ClaudeCodeMonitor-dmg   # macOS
   ```
 
   Unzip the artifact to get the `.dmg`s.
