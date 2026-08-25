@@ -86,7 +86,6 @@ const DELIM = "__CCAM_SHELL_PATH__";
  * on any failure (timeout, missing shell, unparseable output).
  */
 function loginShellPath(): string | null {
-  if (process.platform === "win32") return null;
   const shell = process.env.SHELL || "/bin/zsh";
   try {
     // -i interactive (sources .zshrc/.bashrc), -l login (sources .zprofile),
@@ -110,11 +109,9 @@ function loginShellPath(): string | null {
 /**
  * Merge the login-shell `PATH` — plus the common directories CLIs install
  * into — onto `process.env.PATH`. Idempotent: deduplicates entries, so it is
- * safe even if called more than once. No-op on Windows.
+ * safe even if called more than once.
  */
 export function ensureUserPath(): void {
-  if (process.platform === "win32") return;
-
   const ordered: string[] = [];
   const seen = new Set<string>();
   const add = (value?: string | null): void => {

@@ -41,10 +41,8 @@ Claude Code & Codex 에이전트 세션, 도구 사용, 서브에이전트 오�
 ![Electron](https://img.shields.io/badge/Electron-35-47848F?style=flat-square&logo=electron&logoColor=white)
 ![electron-builder](https://img.shields.io/badge/electron--builder-25.1-2c2e3b?style=flat-square&logo=electron&logoColor=white)
 ![macOS](https://img.shields.io/badge/macOS-Desktop_App-000000?style=flat-square&logo=apple&logoColor=white)
-![Windows](https://img.shields.io/badge/Windows-Desktop_App-0078D6?style=flat-square&logo=windows&logoColor=white)
 ![SMAppService](https://img.shields.io/badge/SMAppService-Login_Items-000000?style=flat-square&logo=apple&logoColor=white)
 ![macOS DMG](https://img.shields.io/badge/macOS_DMG-arm64_%2B_x64-7c3aed?style=flat-square&logo=apple&logoColor=white)
-![NSIS Installer](https://img.shields.io/badge/Windows-NSIS_%2B_Portable-1f6feb?style=flat-square&logo=windows&logoColor=white)
 ![Vitest](https://img.shields.io/badge/Vitest-1.0-646CFF?style=flat-square&logo=vitest&logoColor=white)
 ![React Testing Library](https://img.shields.io/badge/React_Testing_Library-13.0-FF5733?style=flat-square&logo=testinglibrary&logoColor=white)
 ![ESLint](https://img.shields.io/badge/ESLint-8.44-4B32C3?style=flat-square&logo=eslint&logoColor=white)
@@ -97,7 +95,7 @@ Claude Code & Codex 에이전트 세션, 도구 사용, 서브에이전트 오�
 - [사운드 큐](#사운드-큐)
 - [연결 상태 모달](#연결-상태-모달)
 - [VS Code 확장](#vs-code-확장)
-- [데스크톱 앱 (macOS & Windows)](#데스크톱-앱-macos--windows)
+- [데스크톱 앱 (macOS)](#데스크톱-앱-macos)
 - [데이터 저장소](#데이터-저장소)
 - [Statusline](#statusline)
 - [서버 아키텍처](#서버-아키텍처)
@@ -341,7 +339,7 @@ flowchart LR
 | **Tabby**                         | 모든 페이지의 오른쪽 아래 모서리에 고정된 떠다니는 고양이 친구. 기존 WebSocket `eventBus` 위에 전적으로 구축 — **새 백엔드 없음, API 키 없음, 새 의존성 없음**. 커서를 추적하는 눈과 라이브 세션 스트림에서 도출되는 **8가지 기분**(`idle`, `watching`, `happy`, `worried`, `stuck`, `thinking`, `sleeping`, `disconnected`)을 가진 반응형 SVG 마스코트로, 각 기분마다 고유한 애니메이션(꼬리 흔들기, 귀 쫑긋, 고개 까딱, 떨림, 반짝임, zzz, 경고 "!")이 있습니다. **자동 표시 말풍선**은 주목할 만한 이벤트(세션 시작/종료, 오류, 실행 완료)에 대해 짧고, 스로틀되고, 합쳐진 한마디를 게시하며 음소거할 수 있습니다. 고양이를 클릭하거나 **⌘B / Ctrl+B**를 누르면(Esc로 닫기) 라이브 상태 줄(`N live · M errored · 연결 상태`), 빠른 작업(Run Claude / 활동 / 세션 / 오류 세션으로 이동, 말풍선 음소거, 알림 지우기), **Ask** 상자가 있는 **패널**이 열립니다: 간단한 상태 질문("what's running", "any errors", "status")은 캐시된 데이터에서 로컬로 답변되고, 그 외의 질문은 **Run Claude** 페이지로 넘겨(`/run?prompt=…`로 딥링크) 실제 Claude Code 세션을 생성합니다. 접근성을 갖추었고(키보드 조작 가능, `aria-live` 말풍선, `prefers-reduced-motion` 준수), 소켓이 끊기면 차분한 `disconnected` 상태로 안전하게 저하되며, **설정**에서 토글할 수 있습니다(en/zh/vi/ko/es로 현지화). 구현은 `client/src/components/Tabby/`에 있습니다 |
 | **사운드 큐** | 라이브 활동에 대한 은은한 오디오 피드백. **기본으로 켜져 있으며** 완전히 끌 수 있습니다. 모든 큐는 **브라우저에서 Web Audio API로 합성**됩니다 — 오실레이터와 게인 엔벨로프만 사용하므로 **다운로드할 오디오 파일도, 새 의존성도 없습니다**. 일곱 가지 큐가 세션 수명 주기를 다룹니다: 세션이 시작될 때의 상행 완전5도, 응답을 마쳤을 때의 장3화음 해결, 오류 시 부드러운 하행 단3도, 서브에이전트 생성 시 짧은 플럭, Claude Code 알림에 대한 디튠된 종소리, 실시간 연결이 복구되거나 끊길 때의 두 음 상승/하강, 그리고 버튼과 링크를 누를 때 거의 들리지 않는 틱. 큐에는 **속도 제한**(큐별 쿨다운 + 전역 버스트 예산)이 있고, 로우패스 필터를 거쳐 작업 뒤로 물러나며, 페이지와 처음 상호작용하기 전까지는 무음을 유지합니다(브라우저 자동재생 정책). **설정 → 사운드**에서 마스터 토글, 볼륨 슬라이더, 큐별 스위치와 즉시 미리 듣기를 제공하며, 설정은 `localStorage`의 `agent-monitor-sound` 키에 저장됩니다(en/zh/vi/ko/es 현지화). 구현은 `client/src/lib/sound.ts`와 `client/src/hooks/useSoundCues.ts`에 있습니다 |
 | **프로그레시브 웹 앱(PWA)**       | 세 개의 독립적인 PWA — 대시보드, 랜딩 페이지, 위키 — 각각 자체 Web App Manifest와 Service Worker를 갖습니다. 어느 것이든 홈 화면 / 독에 설치하면 크롬 없는 독립 실행형 경험을 얻습니다. 대시보드 SW는 `/assets/` 아래 Vite의 콘텐츠 해시 번들을 캐시 우선으로 제공하고(URL은 빌드마다 불변이므로 캐시 적중은 항상 정확), 그 외 모든 것 — 내비게이션, SW 자체, `manifest.json`, 아이콘, 루트 `/` — 은 캐시 폴백이 있는 네트워크 우선으로 처리합니다. 프로덕션 Express 정적 미들웨어의 명시적 `Cache-Control` 헤더(`/assets/*`는 `immutable`, `index.html`, `sw.js`, `manifest.json`은 `no-cache, must-revalidate`)와 결합하여 재빌드는 하드 새로고침 없이 항상 브라우저 내 번들을 교체합니다; 클라이언트의 `controllerchange` 리스너는 이미 제어 중인 페이지를 새 SW가 인수할 때 정확히 한 번만 다시 로드합니다. VAPID 푸시 알림 파이프라인은 보존됩니다. 랜딩 페이지와 위키 SW는 각자의 셸을 프리캐시하고 첫 방문 시 이미지를 지연 캐시하여, 한 번만 로드하면 오프라인 접근이 가능합니다. 모든 매니페스트는 최신 브라우저를 위해 `sizes="any"`의 SVG 아이콘(`favicon.svg`)을 사용하고, iOS 독립 실행형 모드를 위한 `apple-mobile-web-app-capable` + `apple-touch-icon` 메타 태그를 포함합니다 |
-| **데스크톱 앱(macOS & Windows)**  | `client/`, `server/`, `mcp/`, `vscode-extension/`과 나란히 `desktop/` 워크스페이스에 있는, Electron 35로 빌드된 선택적 네이티브 데스크톱 앱. macOS `.app`(`.dmg`) **및** Windows `.exe`(NSIS 설치 관리자 + 무설치 포터블)로 제공됩니다. 기존 Express 서버를 **인프로세스로** 임베드하고(`server/index.js`를 `require()` — 자식 프로세스 없음, IPC 없음) 빌드된 React 클라이언트를 `BrowserWindow`에 렌더링합니다. 네이티브 타이틀 바, 클릭 시점에 SQLite에서 가져온 **라이브 상태 스냅샷**(세션, 에이전트, 오늘의 이벤트)을 단일 클릭 드롭다운으로 보여주는 메뉴 바 / 알림 영역(트레이) 아이콘, 네이티브 애플리케이션 메뉴, 로그인 시 자동 시작(macOS는 `SMAppService`를 통한 로그인 항목; Windows는 사용자별 `HKCU\…\Run`), **⌘Q / Ctrl+Q 확인 대화 상자**(두 번째 누름은 우회), 창을 닫아도 서버는 계속 실행되는 동작, 단일 인스턴스 잠금, 그리고 **브라우저에서 열기**, **서버 재시작**, **로그 표시** 트레이 작업이 추가됩니다. 포트 4820을 선호하고(4821–4829, 그다음 임의의 높은 포트로 폴백), 4820에서 이미 실행 중인 정상 대시보드가 있으면 이중 바인딩하는 대신 이를 채택하며, **웹 대시보드와 공존합니다** — `npm run dev`와 데스크톱 앱을 함께 실행할 수 있고 Hook이 양쪽 모두로 전파됩니다. 알림은 네이티브 OS 토스트로 발생합니다(Electron 내부에서 Web Push는 안정적으로 작동하지 않음). 처음으로 자체 서버를 부팅할 때 Claude Code Hook을 자동 설치하고 백그라운드 서비스를 시작하므로, 설치만 한 사용자도 수동 설정 없이 이벤트가 흐릅니다. [`DESKTOP.md`](./DESKTOP.md)와 [`desktop/README.md`](./desktop/README.md)를 참조하세요 |
+| **데스크톱 앱(macOS)**  | `client/`, `server/`, `mcp/`, `vscode-extension/`과 나란히 `desktop/` 워크스페이스에 있는, Electron 35로 빌드된 선택적 네이티브 데스크톱 앱. macOS `.app`(`.dmg`)으로 제공됩니다. 기존 Express 서버를 **인프로세스로** 임베드하고(`server/index.js`를 `require()` — 자식 프로세스 없음, IPC 없음) 빌드된 React 클라이언트를 `BrowserWindow`에 렌더링합니다. 네이티브 타이틀 바, 클릭 시점에 SQLite에서 가져온 **라이브 상태 스냅샷**(세션, 에이전트, 오늘의 이벤트)을 단일 클릭 드롭다운으로 보여주는 메뉴 바(트레이) 아이콘, 네이티브 애플리케이션 메뉴, 로그인 시 자동 시작(macOS Login Items, `SMAppService`를 통함), **⌘Q 확인 대화 상자**(두 번째 누름은 우회), 창을 닫아도 서버는 계속 실행되는 동작, 단일 인스턴스 잠금, 그리고 **브라우저에서 열기**, **서버 재시작**, **로그 표시** 트레이 작업이 추가됩니다. 포트 4820을 선호하고(4821–4829, 그다음 임의의 높은 포트로 폴백), 4820에서 이미 실행 중인 정상 대시보드가 있으면 이중 바인딩하는 대신 이를 채택하며, **웹 대시보드와 공존합니다** — `npm run dev`와 데스크톱 앱을 함께 실행할 수 있고 Hook이 양쪽 모두로 전파됩니다. 알림은 네이티브 OS 토스트로 발생합니다(Electron 내부에서 Web Push는 안정적으로 작동하지 않음). 처음으로 자체 서버를 부팅할 때 Claude Code Hook을 자동 설치하고 백그라운드 서비스를 시작하므로, 설치만 한 사용자도 수동 설정 없이 이벤트가 흐릅니다. [`DESKTOP.md`](./DESKTOP.md)와 [`desktop/README.md`](./desktop/README.md)를 참조하세요 |
 | **자체 호스팅 자산(CDN 없음)**    | 모든 폰트와 스크립트가 로컬에서 제공되므로 대시보드와 문서는 **제3자 CDN 요청을 전혀 하지 않습니다** — 완전히 오프라인으로 렌더링되며 외부 호스트에 아무것도 유출하지 않습니다. React 앱은 [`@fontsource`](https://fontsource.org/)를 통해 Inter + JetBrains Mono를 번들합니다(latin 서브셋; Vite가 빌드 시 콘텐츠 해시 WOFF2를 `dist/assets/`에 출력하며 Google Fonts로의 `<link>` 없음). 랜딩 페이지와 위키는 저장소 루트 `fonts/` 디렉터리에서 자체 호스팅 `fonts/fonts.css` `@font-face` 시트를 로드합니다. 위키의 Mermaid는 jsDelivr 대신 `wiki/mermaid.min.js`(정품 축소판 `mermaid@10.9.6`)로 로컬 벤더링되고, VS Code 확장의 오류 페이지는 시스템 폰트 스택으로 폴백합니다. `fonts.googleapis.com`, `fonts.gstatic.com`, `cdn.jsdelivr.net` 호출은 어디에도 남아 있지 않습니다 |
 | **세션 스플래시 화면**            | 앱 로드 시(브라우저 세션당 한 번) 표시되는 짧은 브랜딩 스플래시: **시간 인식 인사말**(Good morning / afternoon / evening / Working late), 굵은 태그라인, 두 개의 부제 텍스트, 어두운 분위기의 배경(방사형 광채 + 떠다니는 별자리 + 그레인) 위의 애니메이션 노드 그래프 브랜드 마크. 완전히 현지화되어 있습니다(en/zh/vi/ko/es). 오버레이는 첫 페인트부터 **불투명**하여 앱이 절대 비쳐 보이지 않으며, 약 2.5초 유지 후 페이드아웃됩니다; 아무 곳이나 클릭하면 건너뛸 수 있고 `prefers-reduced-motion`을 준수합니다. CSS 전용 애니메이션, 추가 의존성 없음 |
 
@@ -432,24 +430,22 @@ npm run seed
 
 8개의 샘플 세션, 23개의 에이전트, 106개의 이벤트를 생성하여 UI를 즉시 탐색할 수 있습니다.
 
-### 대안: 데스크톱 앱 (macOS & Windows)
+### 대안: 데스크톱 앱 (macOS)
 
-터미널을 계속 열어 두고 싶지 않다면 선택적 **네이티브 데스크톱 앱**을 설치하세요. 서버를 인프로세스로 임베드하고, 메뉴 바 / 알림 영역(트레이) 아이콘을 추가하며, 로그인 시 자동 시작(macOS 로그인 항목 / Windows 시작 프로그램)을 지원합니다.
+터미널을 계속 열어 두고 싶지 않다면 선택적 **네이티브 데스크톱 앱**을 설치하세요. 서버를 인프로세스로 임베드하고, 메뉴 바(트레이) 아이콘을 추가하며, 로그인 시 자동 시작(macOS 로그인 항목)을 지원합니다.
 
 가장 빠른 방법은 [최신 GitHub Release](https://github.com/hoangsonww/Claude-Code-Agent-Monitor/releases/latest)에서 **미리 빌드된 설치 파일을 다운로드**하는 것입니다(`master`에서 `package.json` 버전이 올라갈 때마다 CI가 `vX.Y.Z`를 자동 게시합니다):
 
 - **macOS** — `ClaudeCodeMonitor-<version>-arm64.dmg`(Apple Silicon) 또는 `-x64.dmg`(Intel)를 받아 **Claude Code Monitor.app**을 `/Applications`로 드래그하세요.
-- **Windows** — `ClaudeCodeMonitor-Setup-<version>-x64.exe`(설치 관리자) 또는 `ClaudeCodeMonitor-<version>-x64-portable.exe`(무설치)를 받아 실행하세요.
 
 대신 직접 빌드하려면:
 
 ```bash
 npm run desktop:install        # Electron + electron-builder를 desktop/에 설치 (네이티브 의존성 사전 점검; 실패 시 설정 도움말 출력)
 npm run desktop:dmg:arm64      # macOS: 빠른 단일 아키텍처 DMG (Apple Silicon)
-npm run desktop:win            # Windows: NSIS 설치 관리자 .exe (Windows에서 실행)
 ```
 
-데스크톱 앱의 전체 내용 — 다운로드, 설치, 트레이/메뉴 기능, 빌드 명령, 서명 — 은 아래의 [데스크톱 앱 (macOS & Windows)](#데스크톱-앱-macos--windows) 섹션에 있습니다. [`DESKTOP.md`](./DESKTOP.md)(사용자 가이드)와 [`desktop/README.md`](./desktop/README.md)(아키텍처)도 참조하세요.
+데스크톱 앱의 전체 내용 — 다운로드, 설치, 트레이/메뉴 기능, 빌드 명령, 서명 — 은 아래의 [데스크톱 앱 (macOS)](#데스크톱-앱-macos) 섹션에 있습니다. [`DESKTOP.md`](./DESKTOP.md)(사용자 가이드)와 [`desktop/README.md`](./desktop/README.md)(아키텍처)도 참조하세요.
 
 ### 대안: Docker / Podman
 
@@ -757,8 +753,6 @@ API 기반 명령어는 서버가 실행 중이어야 합니다 — 서버가 �
 | `npm run desktop:dmg:arm64` | Apple Silicon 전용 DMG를 빌드합니다 — **빠름**, 본인 Mac에서 사용 시 권장 |
 | `npm run desktop:dmg:x64` | Intel 전용 DMG를 빌드합니다 — **빠름**                           |
 | `npm run desktop:dmg:universal` | **하나의** 병합된 유니버설 DMG(arm64 + x86_64, 단일 파일) 빌드 — 선택 사항, **가장 느림**, 릴리스에 포함되는 것은 아님. |
-| `npm run desktop:win`   | Windows **NSIS 설치 프로그램** `.exe`(x64)를 빌드합니다 — Windows에서 실행 |
-| `npm run desktop:win:portable` | Windows **포터블**(무설치) `.exe`(x64)를 빌드합니다 — Windows에서 실행 |
 | `npm run monitoring:install` | `monitoring/`에서 `npm install` 실행 — `postinstall`로 Prometheus + Grafana 다운로드 |
 | `npm run monitoring:setup` | `monitoring:install` 별칭 |
 | `npm run monitoring:up` | Prometheus(:9090) + Grafana(:3000)를 백그라운드로 시작합니다(Docker 불필요) |
@@ -1629,20 +1623,14 @@ Tabby는 키보드로 조작할 수 있고, 말풍선에 `aria-live`를 사용�
 
 ---
 
-## 데스크톱 앱 (macOS & Windows)
+## 데스크톱 앱 (macOS)
 
-대시보드는 한 번 설치하면 잊어버려도 되는 선택적 **네이티브 데스크톱 애플리케이션**으로도 제공됩니다 — macOS `.app`(`.dmg`로 배포)과 Windows `.exe`(NSIS 설치 프로그램 및 설치가 필요 없는 포터블 빌드)입니다. `client/`, `server/`, `mcp/`, `vscode-extension/`과 나란히 있는 `desktop/` 워크스페이스에 위치하며, **Electron 35**로 빌드됩니다.
+대시보드는 한 번 설치하면 잊어버려도 되는 선택적 **네이티브 데스크톱 애플리케이션**으로도 제공됩니다 — macOS `.app`(`.dmg`로 배포)입니다. `client/`, `server/`, `mcp/`, `vscode-extension/`과 나란히 있는 `desktop/` 워크스페이스에 위치하며, **Electron 35**로 빌드됩니다.
 
 <p align="center">
   <img src="images/macos.png" alt="Claude Code Monitor running as a native desktop app" width="100%">
   <br>
-  <em>🍎🪟 <strong>데스크톱 앱</strong> — 메뉴 바 / 알림 영역(트레이) 아이콘, 로그인 시 열기, 단일 인스턴스 잠금을 갖춘 네이티브 셸입니다. 동일한 대시보드를 실제 OS 창에서 보여줍니다(macOS 화면).</em>
-</p>
-
-<p align="center">
-  <img src="images/windows_app.png" alt="Claude Code Monitor running as a native Windows desktop app, showing the Activity Feed with the Windows window menu bar and Tabby panel" width="100%">
-  <br>
-  <em>🪟 네이티브 Windows 앱으로 실행되는 동일한 대시보드 — 알림 영역(트레이) 아이콘, 네이티브 창 메뉴, 로그인 시 열기.</em>
+  <em>🍎 <strong>데스크톱 앱</strong> — 메뉴 바(트레이) 아이콘, 로그인 시 열기, 단일 인스턴스 잠금을 갖춘 네이티브 셸입니다. 동일한 대시보드를 실제 OS 창에서 보여줍니다.</em>
 </p>
 
 `localhost:4820`에서 브라우저로 보는 모든 것이 이 창 안에 담겨 있으며, 그 위에 네이티브 OS 생명주기가 더해집니다: 트레이 아이콘, 네이티브 애플리케이션 메뉴, 자동 시작 통합, 그리고 서버를 깔끔하게 종료하는 단일 종료 버튼입니다.
@@ -1681,21 +1669,21 @@ flowchart LR
 1. 사용 가능한 포트를 선택합니다 — **4820**을 우선으로 하고, **4821–4829**로 폴백하며, 모두 사용 중이면 임의의 높은 포트를 사용합니다.
 2. 정상 동작 중인 대시보드 서버가 이미 `4820`에서 `/api/health`에 응답하면(예: 터미널에서 `npm start`를 실행한 경우), 이중 바인딩 대신 **해당 서버를 채택합니다** — 포트 충돌도, SQLite 경합도 없습니다. 채택된 서버는 앱을 종료한 후에도 계속 실행됩니다.
 3. 그렇지 않으면 내장 서버를 부팅하고, **최초의 소유 서버 부팅** 시 Claude Code Hook을 자동 설치하고 백그라운드 서비스(업데이트 스케줄러, `cc-watcher`, 고아 실행 조정)를 시작합니다. 따라서 DMG만 사용하는 사용자도 **수동 설정 없이** 이벤트가 흐르기 시작합니다 — 체크아웃도, `npm run install-hooks`도 필요 없습니다.
-4. **(macOS)** **Run Claude** 기능이 `claude` CLI를 찾아 실행할 수 있도록 **로그인 셸 `PATH`**를 복구합니다 — Finder/Dock에서 실행된 앱은 그렇지 않으면 launchd의 최소한의 `PATH`만 상속받아 `~/.local/bin`, `/opt/homebrew/bin`, 버전 관리자 bin 등에 있는 CLI를 찾지 못합니다. (Windows에서는 프로세스가 이미 사용자 `PATH`를 상속받습니다.)
-5. 대시보드 창을 엽니다 — 단, 앱이 로그인 시 실행된 경우(macOS에서는 로그인 항목을 통해, Windows에서는 태그된 `HKCU\…\Run` 항목을 통해)에는 트레이 전용으로 유지됩니다.
+4. **Run Claude** 기능이 `claude` CLI를 찾아 실행할 수 있도록 **로그인 셸 `PATH`**를 복구합니다 — Finder/Dock에서 실행된 앱은 그렇지 않으면 launchd의 최소한의 `PATH`만 상속받아 `~/.local/bin`, `/opt/homebrew/bin`, 버전 관리자 bin 등에 있는 CLI를 찾지 못합니다.
+5. 대시보드 창을 엽니다 — 단, 앱이 로그인 항목을 통해 로그인 시 실행된 경우에는 트레이 전용으로 유지됩니다.
 6. 종료 시 내장 서버를 정상적으로 종료하고 **SQLite를 깔끔하게 닫습니다**(WAL 체크포인트).
 
 ### 기능
 
-- **트레이 아이콘** — 항상 켜져 있는 상태 표시 영역입니다(macOS 메뉴 바 / Windows 알림 영역). 왼쪽 클릭은 대시보드 창을 토글하고, 오른쪽 클릭은 **Open Dashboard**, **Open in Browser**, **Restart Server**, **Show Logs**, **Open at Login**(토글), **Quit**이 있는 컨텍스트 메뉴를 엽니다. macOS는 틴트가 적용된 템플릿 글리프를 사용하고, Windows는 컬러 `icon.ico`를 사용합니다(검은색 템플릿은 어두운 작업 표시줄에서 보이지 않게 됩니다).
-- **창 및 작업 표시줄 아이콘** — `BrowserWindow`가 컬러 앱 로고(Windows에서는 `icon.ico`, 그 외에는 `icon.png`)에 연결되어 있어 제목 표시줄 / 작업 표시줄에 실제 Claude Code Monitor 아이콘이 표시됩니다 — 패키징되지 않은 `npm run desktop:dev` 실행에서도 더 이상 일반 Electron 아이콘이 표시되지 않습니다.
-- **네이티브 애플리케이션 메뉴** — `⌘` / `Ctrl` 단축키가 있는 표준 `About` / `File` / `Edit` / `View` / `Window` / `Help` 메뉴입니다. **File → Open Dashboard** 항목(`⌘1`)은 **macOS 전용**입니다: macOS는 창이 숨겨진 후에도 전역 메뉴 바를 유지하므로 창을 다시 열 수 있습니다 — Windows/Linux에서는 메뉴가 창에 붙어 있어 창이 숨겨진 동안에는 동작할 수 없으므로, 대신 트레이의 **Open Dashboard**로 다시 여십시오(최소화되어 있거나 다른 창 뒤에 있어도 창을 안정적으로 앞으로 가져옵니다).
-- **로그인 시 자동 시작** — 트레이 또는 앱 메뉴에서 **Open at Login**을 토글합니다. macOS에서는 최신 `SMAppService` API를 통해 등록되므로 항목이 **시스템 설정 → 일반 → 로그인 항목**에 나타나고, Windows에서는 사용자별 `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` 항목을 기록하며 **작업 관리자 → 시작 프로그램**에서 확인할 수 있습니다.
+- **트레이 아이콘** — 항상 켜져 있는 macOS 메뉴 바 상태 표시 영역입니다. 왼쪽 클릭은 대시보드 창을 토글하고, 오른쪽 클릭은 **Open Dashboard**, **Open in Browser**, **Restart Server**, **Show Logs**, **Open at Login**(토글), **Quit**이 있는 컨텍스트 메뉴를 엽니다. 틴트가 적용된 템플릿 글리프를 사용해 메뉴 바가 라이트/다크 모드에 맞춰 자동으로 색을 입힙니다.
+- **창 및 Dock 아이콘** — `BrowserWindow`가 앱 로고(`icon.png`)에 연결되어 있어 제목 표시줄에 실제 Claude Code Monitor 아이콘이 표시됩니다 — 패키징되지 않은 `npm run desktop:dev` 실행에서도 더 이상 일반 Electron 아이콘이 표시되지 않습니다.
+- **네이티브 애플리케이션 메뉴** — `⌘` 단축키가 있는 표준 `About` / `File` / `Edit` / `View` / `Window` / `Help` 메뉴입니다. **File → Open Dashboard** 항목(`⌘1`)은 최소화되어 있거나 다른 창 뒤에 있어도 창을 안정적으로 앞으로 가져옵니다.
+- **로그인 시 자동 시작** — 트레이 또는 앱 메뉴에서 **Open at Login**을 토글합니다. 최신 `SMAppService` API를 통해 등록되므로 항목이 **시스템 설정 → 일반 → 로그인 항목**에 나타납니다.
 - **창 닫기는 숨김일 뿐, 서버는 계속 실행됩니다** — 창을 닫으면 숨겨질 뿐이며, 서버와 트레이는 계속 유지됩니다. 트레이를 클릭하면 창이 다시 나타납니다.
-- **단일 인스턴스 잠금** — 앱을 중복 실행하면 기존 창에 포커스만 이동합니다. 두 번째 서버도, 포트 충돌도 없습니다. (모든 플랫폼에 적용됩니다.)
-- **데이터는 재설치와 업데이트에도 유지됩니다** — SQLite 데이터베이스와 VAPID 키는 **앱 번들 / 설치 디렉터리 외부**의 사용자별 앱 데이터 디렉터리에 저장됩니다 — macOS에서는 `~/Library/Application Support/Claude Code Monitor/data/`, Windows에서는 `%APPDATA%\Claude Code Monitor\data\`입니다. 패키징된 번들은 읽기 전용이므로 그 안에 데이터베이스를 기록하면 History Import와 이벤트 영속성이 깨집니다. 앱 데이터에 보관하면 이 문제가 해결되며, 앱을 교체하거나 업그레이드해도 가져온 히스토리가 그대로 유지됩니다. (Windows NSIS 제거 프로그램은 기본적으로 이 데이터를 보존합니다.)
-- **PATH의 `claude` CLI** — macOS에서는 앱이 시작 시 로그인 셸 `PATH`를 복구하므로, Finder/Dock에서 실행된 앱이 원래는 launchd의 최소한의 `PATH`만 상속받더라도 **Run Claude** 기능이 동작합니다. (Windows에서는 상속받은 사용자 `PATH`에 이미 포함되어 있습니다.)
-- **로그** — 메인 프로세스는 `~/Library/Logs/Claude Code Monitor/desktop.log`(macOS) 또는 `%APPDATA%\Claude Code Monitor\logs\desktop.log`(Windows)에 기록합니다. 트레이 메뉴의 **Show Logs**에서 접근할 수 있습니다.
+- **단일 인스턴스 잠금** — 앱을 중복 실행하면 기존 창에 포커스만 이동합니다. 두 번째 서버도, 포트 충돌도 없습니다.
+- **데이터는 재설치와 업데이트에도 유지됩니다** — SQLite 데이터베이스와 VAPID 키는 **앱 번들 외부**의 사용자별 앱 데이터 디렉터리(`~/Library/Application Support/Claude Code Monitor/data/`)에 저장됩니다. 패키징된 번들은 읽기 전용이므로 그 안에 데이터베이스를 기록하면 History Import와 이벤트 영속성이 깨집니다. 앱 데이터에 보관하면 이 문제가 해결되며, 앱을 교체하거나 업그레이드해도 가져온 히스토리가 그대로 유지됩니다.
+- **PATH의 `claude` CLI** — 앱이 시작 시 로그인 셸 `PATH`를 복구하므로, Finder/Dock에서 실행된 앱이 원래는 launchd의 최소한의 `PATH`만 상속받더라도 **Run Claude** 기능이 동작합니다.
+- **로그** — 메인 프로세스는 `~/Library/Logs/Claude Code Monitor/desktop.log`에 기록합니다. 트레이 메뉴의 **Show Logs**에서 접근할 수 있습니다.
 
 ### 받는 방법
 
@@ -1705,10 +1693,8 @@ flowchart LR
 | --- | --- | --- |
 | macOS (Apple Silicon) | `ClaudeCodeMonitor-<ver>-arm64.dmg` | `/Applications`로 드래그 |
 | macOS (Intel) | `ClaudeCodeMonitor-<ver>-x64.dmg` | `/Applications`로 드래그 |
-| Windows (설치 프로그램) | `ClaudeCodeMonitor-Setup-<ver>-x64.exe` | 사용자별 설치, 관리자 권한 불필요 |
-| Windows (포터블) | `ClaudeCodeMonitor-<ver>-x64-portable.exe` | 설치 없이 실행 |
 
-커밋별 최신 빌드도 CI 아티팩트로 제공됩니다(로그인 필요, 14일 보존): `🍎 macOS Desktop (DMG)` 잡의 `ClaudeCodeMonitor-dmg`와 `🪟 Windows Desktop (EXE)` 잡의 `ClaudeCodeMonitor-win`입니다 — 다음 릴리스 태그 전에 `master`를 테스트할 때 유용합니다.
+커밋별 최신 빌드도 CI 아티팩트로 제공됩니다(로그인 필요, 14일 보존): `🍎 macOS Desktop (DMG)` 잡의 `ClaudeCodeMonitor-dmg`입니다 — 다음 릴리스 태그 전에 `master`를 테스트할 때 유용합니다.
 
 **옵션 B — 직접 빌드하기.** 리포지토리 루트에서:
 
@@ -1716,16 +1702,13 @@ flowchart LR
 npm run setup                # 루트 + 클라이언트 의존성 설치, 클라이언트 빌드, Hook 설치
 npm run build                # React 클라이언트 빌드 (client/dist)
 npm run desktop:install      # Electron + electron-builder를 desktop/에 설치 (네이티브 의존성 사전 점검; 실패 시 설정 도움말 출력)
-npm run desktop:dmg:arm64    # macOS:   빠른 단일 아키텍처 DMG → desktop/release/ClaudeCodeMonitor-<ver>-arm64.dmg
-npm run desktop:win          # Windows: NSIS 설치 프로그램 → desktop/release/ClaudeCodeMonitor-Setup-<ver>-x64.exe
+npm run desktop:dmg:arm64    # 빠른 단일 아키텍처 DMG → desktop/release/ClaudeCodeMonitor-<ver>-arm64.dmg
 ```
 
 > [!NOTE]
-> **DMG는 macOS에서, Windows `.exe`는 Windows에서 빌드됩니다** — electron-builder는 호스트 OS용으로 패키징합니다. macOS `npm run desktop:dmg` 빌드는 의도적으로 **느립니다** — 아키텍처마다 한 번씩(arm64와 x64로 각각) 앱을 빌드하고 임시 서명하여 아키텍처별 DMG 두 개(`ClaudeCodeMonitor-<ver>-arm64.dmg`와 `ClaudeCodeMonitor-<ver>-x64.dmg`)를 만들기 때문입니다. 유니버설 바이너리를 만들거나 `@electron/universal`로 병합하지 않으며, 릴리스에는 이 두 아키텍처별 DMG가 함께 제공됩니다. 본인의 Mac에서는 단일 아키텍처 `desktop:dmg:arm64` / `desktop:dmg:x64`를 사용하십시오. Windows에서는 `npm run desktop:install`이 `better-sqlite3`을 사전 빌드된 Electron 바이너리로 가져오므로, 일반적인 경우 Visual Studio C++ 툴체인이 필요 없습니다. 그래도 빌드가 실패하면(사전 빌드 바이너리가 없거나 C++ 툴체인이 없는 경우) `desktop:install`은 OS별 정확한 해결 방법과 툴체인이 필요 없는 대안을 출력하고, 손상된 설치를 남기는 대신 명확하게 실패합니다.
+> electron-builder는 호스트 OS용으로 패키징하므로 DMG는 macOS에서 빌드해야 합니다. `npm run desktop:dmg` 빌드는 아키텍처마다 한 번씩(arm64와 x64로 각각) 앱을 빌드하고 임시 서명하여 아키텍처별 DMG 두 개(`ClaudeCodeMonitor-<ver>-arm64.dmg`와 `ClaudeCodeMonitor-<ver>-x64.dmg`)를 만듭니다 — 릴리스 빌드입니다. 유니버설 바이너리로 병합하지는 않습니다. 본인의 Mac에서는 단일 아키텍처 `desktop:dmg:arm64` / `desktop:dmg:x64`를 사용하십시오. 빌드가 실패하면(사전 빌드된 `better-sqlite3` 바이너리가 없거나 C++ 툴체인이 없는 경우) `desktop:install`은 정확한 해결 방법과 툴체인이 필요 없는 대안을 출력하고, 손상된 설치를 남기는 대신 명확하게 실패합니다.
 
 ### 설치 방법
-
-**macOS:**
 
 1. `.dmg`를 더블클릭하여 마운트합니다.
 2. **Claude Code Monitor.app**을 `/Applications` 폴더로 드래그합니다.
@@ -1739,30 +1722,6 @@ npm run desktop:win          # Windows: NSIS 설치 프로그램 → desktop/rel
 
 4. 앱을 실행합니다. 트레이 아이콘이 나타나고 대시보드 창이 열립니다.
 
-**Windows:**
-
-1. `ClaudeCodeMonitor-Setup-<ver>-x64.exe`를 실행합니다. `%LOCALAPPDATA%\Programs\Claude Code Monitor` 아래에 **사용자별**로 설치되며(관리자 권한 상승 불필요) 설치 디렉터리를 선택할 수 있습니다. 또는 `*-portable.exe`를 실행하면 설치 없이 바로 시작할 수 있습니다.
-2. 설치 프로그램은 기본적으로 **서명되지 않았으므로** Windows **SmartScreen**이 첫 실행 시 *"Windows protected your PC"*를 표시할 수 있습니다 — **추가 정보 → 실행**을 클릭하십시오.
-3. 시작 메뉴 / 바탕화면 바로가기에서 실행합니다. 알림 영역(트레이) 아이콘이 나타나고 대시보드 창이 열립니다.
-
-<p align="center">
-  <img src="images/setup_win_wizard.png" alt="NSIS installer step 1 — Choose Installation Options, with per-user (Only for me) versus all-users selection" width="100%">
-  <br>
-  <em>Windows 설치 프로그램 · 1단계 — <strong>Choose Installation Options</strong>(사용자별 "Only for me" 대 모든 사용자).</em>
-</p>
-
-<p align="center">
-  <img src="images/setup_win_wizard2.png" alt="NSIS installer step 2 — Choose Install Location, with the per-user %LOCALAPPDATA%\Programs destination folder" width="100%">
-  <br>
-  <em>Windows 설치 프로그램 · 2단계 — <strong>Choose Install Location</strong>(기본값은 사용자별 <code>%LOCALAPPDATA%\Programs</code>).</em>
-</p>
-
-<p align="center">
-  <img src="images/setup_win_wizard3.png" alt="NSIS installer step 3 — Completing Setup, with the option to finish and run the app" width="100%">
-  <br>
-  <em>Windows 설치 프로그램 · 3단계 — <strong>Completing Setup</strong>(마침 후 앱 실행).</em>
-</p>
-
 ### 빌드 명령어
 
 모든 명령어는 **리포지토리 루트**에서 실행합니다:
@@ -1773,27 +1732,25 @@ npm run desktop:win          # Windows: NSIS 설치 프로그램 → desktop/rel
 | `npm run desktop:build`     | 데스크톱 TypeScript 소스를 `desktop/out/`으로 컴파일합니다                    |
 | `npm run desktop:dev`       | 로컬 반복 작업을 위해 Electron 앱을 빌드하고 실행합니다                       |
 | `npm run desktop:test`      | 스모크 테스트를 실행합니다(Electron 실행, `/api/health` 확인, 종료)            |
-| `npm run desktop:dmg`       | **macOS:** **아키텍처별 DMG 둘 다**(arm64 + x64)를 빌드합니다 — 릴리스에 적합하지만 아키텍처마다 한 번씩(두 번) 패키징하므로 **느림** |
-| `npm run desktop:dmg:arm64` | **macOS:** Apple Silicon 전용 DMG를 빌드합니다 — **빠름**(~1분), 본인 Mac에 권장 |
-| `npm run desktop:dmg:x64`   | **macOS:** Intel 전용 DMG를 빌드합니다 — **빠름**(~1분)                        |
-| `npm run desktop:dmg:universal` | **macOS:** **하나의** 병합된 유니버설 DMG(arm64 + x86_64, 단일 파일) 빌드 — 선택 사항, **가장 느림**, 릴리스에 포함되는 것은 아님. |
-| `npm run desktop:win`       | **Windows:** NSIS 설치 프로그램 `.exe`를 빌드합니다 (x64)                      |
-| `npm run desktop:win:portable` | **Windows:** 설치가 필요 없는 포터블 `.exe`를 빌드합니다 (x64)              |
+| `npm run desktop:dmg`       | **아키텍처별 DMG 둘 다**(arm64 + x64)를 빌드합니다 — 릴리스에 적합하지만 아키텍처마다 한 번씩(두 번) 패키징하므로 **느림** |
+| `npm run desktop:dmg:arm64` | Apple Silicon 전용 DMG를 빌드합니다 — **빠름**(~1분), 본인 Mac에 권장 |
+| `npm run desktop:dmg:x64`   | Intel 전용 DMG를 빌드합니다 — **빠름**(~1분)                        |
+| `npm run desktop:dmg:universal` | **하나의** 병합된 유니버설 DMG(arm64 + x86_64, 단일 파일) 빌드 — 선택 사항, **가장 느림**, 릴리스에 포함되는 것은 아님. |
 
-결과물인 macOS DMG는 **약 80 MB**(설치 후 디스크에서 약 250 MB)이며 Windows 설치 프로그램도 비슷한 크기입니다 — 표준적인 Electron 번들 오버헤드입니다.
+결과물인 macOS DMG는 **약 80 MB**(설치 후 디스크에서 약 250 MB)입니다 — 표준적인 Electron 번들 오버헤드입니다.
 
 ### 서명 및 공증
 
-macOS DMG는 기본적으로 **ad-hoc 서명**되므로 유료 Apple Developer 계정 없이도 누구나 동작하는 `.app`을 빌드할 수 있습니다 — `package` 스크립트가 `CSC_IDENTITY_AUTO_DISCOVERY=false`를 설정하므로 기여자의 키체인에 이미 있는 코드 서명 인증서가 자동으로 선택되는 일은 없습니다. 실제 **Developer ID 서명**은 `CSC_LINK`(base64로 인코딩된 `.p12`)와 `CSC_KEY_PASSWORD`를 통한 옵트인이며, **Apple 공증**은 `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_SPECIFIC_PASSWORD`를 통한 옵트인입니다. **Windows** 빌드는 기본적으로 **서명되지 않으며**(SmartScreen이 첫 실행 시 안내를 표시할 수 있습니다 — *추가 정보 → 실행*), Authenticode 서명은 `CSC_LINK` + `CSC_KEY_PASSWORD`로 명시적 인증서를 제공한 경우에만 활성화됩니다. 이 값들이 제공되면 CI가 모두 자동으로 인식합니다 — 코드 변경이 필요 없습니다.
+macOS DMG는 기본적으로 **ad-hoc 서명**되므로 유료 Apple Developer 계정 없이도 누구나 동작하는 `.app`을 빌드할 수 있습니다 — `package` 스크립트가 `CSC_IDENTITY_AUTO_DISCOVERY=false`를 설정하므로 기여자의 키체인에 이미 있는 코드 서명 인증서가 자동으로 선택되는 일은 없습니다. 실제 **Developer ID 서명**은 `CSC_LINK`(base64로 인코딩된 `.p12`)와 `CSC_KEY_PASSWORD`를 통한 옵트인이며, **Apple 공증**은 `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_APP_SPECIFIC_PASSWORD`를 통한 옵트인입니다. 이 값들이 제공되면 CI가 모두 자동으로 인식합니다 — 코드 변경이 필요 없습니다.
 
 ### 구현 노트
 
 - **`better-sqlite3`**은 의존성 트리에서 유일한 네이티브 모듈이며, 네이티브 모듈은 실행되는 정확한 Node ABI에 맞춰 컴파일되어야 합니다. `desktop/` 워크스페이스는 Electron의 ABI에 맞게 다시 빌드된 `better-sqlite3`의 **자체 복사본**을 포함하고, 프로세스 로컬 `require` 리디렉션을 사용해 `server/db.js`가 이를 가리키도록 합니다. 리포지토리 루트의 복사본은 시스템 Node용으로 빌드된 상태를 유지합니다(따라서 `npm run test:server`는 계속 동작합니다).
 - **DMG를 빌드하면 대상 아키텍처에 맞게 `better-sqlite3`이 다시 빌드되는데**, 이로 인해 데스크톱 복사본이 다른 CPU 아키텍처용으로 빌드된 채 남아 `npm run desktop:dev` / `npm run desktop:test`가 `ERR_DLOPEN_FAILED`로 깨질 수 있습니다. 이제 데스크톱 `prebuild` 단계가 다음 빌드 시 로컬 머신에 맞게 네이티브 모듈을 **자동 복구**하므로, 특정 아키텍처용 DMG 빌드 후에도 개발 및 스모크 테스트 흐름이 계속 동작합니다. 또한 `prebuild` 단계는 `better-sqlite3` 네이티브 바이너리가 아예 없을 때 **설정 도움말과 함께 빠르게 실패**하여, 런타임 크래시를 복사해 붙여넣을 수 있는 빌드 타임 오류로 바꿉니다.
 - **`desktop/` 외부의 유일한 변경**은 `server/index.js`의 동작 보존 리팩터링입니다: listen 이후의 부트스트랩(업데이트 스케줄러, `cc-watcher`, 고아 실행 조정)을 내보내기된(exported) `startBackgroundServices()`로 추출하여, 내장 서버가 `node server/index.js`가 실행하는 것과 정확히 동일하게 실행되도록 했습니다. 독립 실행형 `node server/index.js` 경로는 기능적으로 변경되지 않았으며, `client/`, `scripts/`, `mcp/`, `vscode-extension/`은 건드리지 않았습니다.
-- 경로 필터링된 두 개의 데스크톱 CI 잡이 앱을 빌드하고, 스모크 테스트하고, 패키징합니다: `macos-latest`의 **`🍎 macOS Desktop (DMG)`**(`ClaudeCodeMonitor-dmg` 아티팩트 업로드 — 단일 아키텍처 DMG 2개)과 `windows-latest`의 **`🪟 Windows Desktop (EXE)`**(`ClaudeCodeMonitor-win` 아티팩트 업로드 — NSIS 설치 프로그램 + 포터블)입니다. `master`로 버전을 올리는 푸시가 있으면 `release` 잡이 macOS DMG와 Windows `.exe` **모두**를 게시된 `vX.Y.Z` GitHub Release에 첨부합니다. Windows 아이콘(`desktop/assets/icon.ico`)은 리포지토리에 커밋되어 있습니다(`npm run build:win-icon`으로 `icon.png`에서 재생성, PowerShell + .NET, 추가 도구 불필요).
+- 경로 필터링된 데스크톱 CI 잡이 앱을 빌드하고, 스모크 테스트하고, 패키징합니다: `macos-latest`의 **`🍎 macOS Desktop (DMG)`**(`ClaudeCodeMonitor-dmg` 아티팩트 업로드 — 단일 아키텍처 DMG 2개)입니다. `master`로 버전을 올리는 푸시가 있으면 `release` 잡이 macOS DMG를 게시된 `vX.Y.Z` GitHub Release에 첨부합니다.
 
-전체 사용자 가이드(다운로드, 설치, Gatekeeper / SmartScreen, 트레이 메뉴, 자동 시작)는 [`DESKTOP.md`](./DESKTOP.md)를, 기여자 / 아키텍처 레퍼런스(프로세스 모델, 부팅 생명주기, 포트 탐색, 빌드 파이프라인 — Mermaid 다이어그램 포함)는 [`desktop/README.md`](./desktop/README.md)를 참조하십시오.
+전체 사용자 가이드(다운로드, 설치, Gatekeeper, 트레이 메뉴, 자동 시작)는 [`DESKTOP.md`](./DESKTOP.md)를, 기여자 / 아키텍처 레퍼런스(프로세스 모델, 부팅 생명주기, 포트 탐색, 빌드 파이프라인 — Mermaid 다이어그램 포함)는 [`desktop/README.md`](./desktop/README.md)를 참조하십시오.
 
 ---
 
@@ -2110,11 +2067,11 @@ graph LR
     style M_REPL fill:#0f766e,stroke:#14b8a6,color:#fff
 ```
 
-선택 사항인 **데스크톱 앱(macOS & Windows)** — Express 서버를 인프로세스로 호스팅하는 단일 Electron 프로세스입니다(터미널 없음, 자식 프로세스 없음):
+선택 사항인 **데스크톱 앱(macOS)** — Express 서버를 인프로세스로 호스팅하는 단일 Electron 프로세스입니다(터미널 없음, 자식 프로세스 없음):
 
 ```mermaid
 flowchart LR
-    subgraph desktop["Desktop App (macOS & Windows) — 1 Electron process"]
+    subgraph desktop["Desktop App (macOS) — 1 Electron process"]
         E_MAIN["Electron Main Process<br/>(Node 22 / Electron 35)"]
         E_HOST["server-host.ts<br/>require() server/index.js"]
         E_SRV["Embedded Express :4820<br/>API · SQLite · WebSocket"]

@@ -79,27 +79,26 @@ interface WindowState {
 }
 
 /** Absolute path to the JSON file geometry is persisted to, under this
- * platform's `userData` directory (e.g. `~/Library/Application Support/…`
- * on macOS, `%APPDATA%` on Windows). */
+ * platform's `userData` directory (`~/Library/Application Support/…` on
+ * macOS). */
 function statePath(): string {
   return path.join(app.getPath("userData"), "window-state.json");
 }
 
 /**
  * Absolute path to the colored application icon used for the window title bar
- * and the Windows taskbar / Linux launcher — the same logo the macOS app shows
- * in its Dock (rendered from `assets/icon.svg`). Without this, an unpackaged
- * `electron out/main.js` run falls back to the generic Electron icon.
+ * — the same logo the macOS app shows in its Dock (rendered from
+ * `assets/icon.svg`). Without this, an unpackaged `electron out/main.js` run
+ * falls back to the generic Electron icon.
  *
- * Windows wants the multi-size `.ico` (crisp at every taskbar scale); other
- * platforms take the `.png`. macOS ignores `BrowserWindow#icon` entirely (its
- * window has no icon and the Dock uses the bundle's `.icns`), so the value is
- * harmless there. Resolves dev (`desktop/assets`) vs packaged
- * (`Resources/assets`, shipped via `extraResources`); returns `undefined` if
- * the file is absent so we cleanly fall back instead of throwing.
+ * macOS ignores `BrowserWindow#icon` entirely (its window has no icon and the
+ * Dock uses the bundle's `.icns`), so the value is harmless there. Resolves
+ * dev (`desktop/assets`) vs packaged (`Resources/assets`, shipped via
+ * `extraResources`); returns `undefined` if the file is absent so we cleanly
+ * fall back instead of throwing.
  */
 export function appIconPath(): string | undefined {
-  const file = process.platform === "win32" ? "icon.ico" : "icon.png";
+  const file = "icon.png";
   const base = app.isPackaged
     ? path.join(process.resourcesPath, "assets")
     : path.join(__dirname, "..", "assets");

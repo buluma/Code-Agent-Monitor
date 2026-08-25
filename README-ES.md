@@ -41,10 +41,8 @@ Un panel profesional para rastrear y visualizar sus sesiones de agente Claude Co
 ![Electron](https://img.shields.io/badge/Electron-35-47848F?style=flat-square&logo=electron&logoColor=white)
 ![electron-builder](https://img.shields.io/badge/electron--builder-25.1-2c2e3b?style=flat-square&logo=electron&logoColor=white)
 ![macOS](https://img.shields.io/badge/macOS-Desktop_App-000000?style=flat-square&logo=apple&logoColor=white)
-![Windows](https://img.shields.io/badge/Windows-Desktop_App-0078D6?style=flat-square&logo=windows&logoColor=white)
 ![SMAppService](https://img.shields.io/badge/SMAppService-Login_Items-000000?style=flat-square&logo=apple&logoColor=white)
 ![macOS DMG](https://img.shields.io/badge/macOS_DMG-arm64_%2B_x64-7c3aed?style=flat-square&logo=apple&logoColor=white)
-![NSIS Installer](https://img.shields.io/badge/Windows-NSIS_%2B_Portable-1f6feb?style=flat-square&logo=windows&logoColor=white)
 ![Vitest](https://img.shields.io/badge/Vitest-1.0-646CFF?style=flat-square&logo=vitest&logoColor=white)
 ![React Testing Library](https://img.shields.io/badge/React_Testing_Library-13.0-FF5733?style=flat-square&logo=testinglibrary&logoColor=white)
 ![ESLint](https://img.shields.io/badge/ESLint-8.44-4B32C3?style=flat-square&logo=eslint&logoColor=white)
@@ -97,7 +95,7 @@ Un panel profesional para rastrear y visualizar sus sesiones de agente Claude Co
 - [Señales de sonido](#señales-de-sonido)
 - [Modal de estado de conexión](#modal-de-estado-de-conexión)
 - [Extensión de VS Code](#extensión-de-vs-code)
-- [Aplicación para escritorio (macOS y Windows)](#aplicación-de-escritorio-macos-y-windows)
+- [Aplicación para escritorio (macOS)](#aplicación-de-escritorio-macos)
 - [Almacenamiento de datos](#almacenamiento-de-datos)
 - [Línea de estado](#línea-de-estado)
 - [Arquitectura del servidor](#arquitectura-del-servidor)
@@ -342,7 +340,7 @@ El panel de control ofrece un conjunto completo de funciones para monitorear y a
 | **Tabby**                          | Un compañero de gato flotante atado en la esquina inferior derecha de cada página. Construido enteramente sobre el existente WebSocket `eventBus` — **sin nuevo backend, sin clave API, sin nuevas dependencias**. Una mascota SVG reactiva con ojos que rastrean el cursor y **ocho estados de ánimo** derivados del flujo de la sesión en vivo (`idle`, `watching`, `happy`, `worried`, `stuck`, `thinking`, `sleeping`, `disconnected`), cada uno con su propia animación (golpe de cola, levantamiento de orejas, movimiento de cabeza, sacudida, brillo, zzz, alerta "!"). **Bolas de diálogo automáticas** publican chistes cortos, moderados y coalescidos sobre eventos notables (sesión iniciada/terminada, errores, ejecución completada) y se pueden silenciar. Haz clic en el gato o presiona **⌘B / Ctrl+B** (Esc cierra) para abrir un **panel** con una línea de estado en vivo (`N en vivo · M con errores · estado de conexión`), acciones rápidas (salta a Ejecutar Claude / Actividad / Sesiones / sesiones con errores, silenciar burbujas, eliminar alertas) y una casilla de **Pregunta**: las preguntas de estado simples ("¿qué está ejecutando?", "algunos errores", "estado") se responden localmente a partir de datos caché, mientras que cualquier otra pregunta se envía a la página de **Ejecutar Claude** (enlaces profundos a `/run?prompt=…`) para iniciar una sesión de Claude Code real. Accesible (operable con teclado, burbujas `aria-live`, respeta `prefers-reduced-motion`), degrada de forma segura a un estado tranquilo de `desconectado` si la conexión está rota, puede activarse o desactivarse en **Configuración** (localizado en en/zh/vi/ko/es). La implementación vive en `client/src/components/Tabby/` |
 | **Señales de sonido**              | Retroalimentación de audio discreta para la actividad en vivo, **activada por defecto** y totalmente desactivable. Cada señal se **sintetiza en el navegador con la Web Audio API** — osciladores más envolventes de ganancia — así que **no hay archivos de audio que descargar ni nuevas dependencias**. Siete señales cubren el ciclo de vida de la sesión: una quinta ascendente cuando una sesión empieza, un arpegio mayor que resuelve cuando termina de responder, una tercera menor descendente suave en los errores, un pulso corto al generarse un subagente, una campana desafinada para las notificaciones de Claude Code, dos notas de subida/bajada cuando la conexión en vivo vuelve o se cae, y un tic apenas audible al pulsar botones y enlaces. Las señales están **limitadas en frecuencia** (enfriamiento por señal más un presupuesto global de ráfaga), pasan por un filtro paso bajo para quedarse detrás de tu trabajo y permanecen en silencio hasta tu primera interacción con la página (política de autoreproducción del navegador). **Configuración → Sonido** ofrece un interruptor maestro, un control de volumen y un interruptor por señal con vistas previas instantáneas; las preferencias se guardan en `localStorage` bajo `agent-monitor-sound` (localizado en en/zh/vi/ko/es). La implementación vive en `client/src/lib/sound.ts` y `client/src/hooks/useSoundCues.ts` |
 | **Aplicación web progresiva (PWA)** | Tres PWAs independientes: panel de control, página de destino y wiki, cada una con su propio manifiesto de aplicación web y trabajador de servicios. Instala cualquiera de ellos en tu pantalla de inicio / dock para una experiencia independiente, sin Chrome. El SW del panel de control sirve los paquetes de contenido hashados de Vite bajo `/assets/` primero en la caché (los URL son inmutables por compilación, por lo que los accesos a la caché siempre son correctos) y trata todo lo demás, como las navegaciones, el SW en sí, `manifest.json`, los iconos, la raíz `/`, como primero en la red con fallback de caché. Combinado con encabezados explícitos de `Cache-Control` en el middleware estático de producción Express (`immutable` para `/assets/*`, `no-cache, must-revalidate` para `index.html`, `sw.js`, `manifest.json`), una reconstrucción siempre reemplaza el paquete en el navegador sin una actualización forzosa; un oyente de `controllerchange` en el cliente se carga exactamente una vez cuando un nuevo SW toma el control de una página ya controlada. El canal de notificaciones push de VAPID se conserva. La página de inicio y los SW wiki precargan sus respectivas cáscaras y imágenes de caché lento en la primera visita, lo que permite el acceso sin conexión después de una sola carga. Todas las manifestaciones utilizan iconos SVG (`favicon.svg`) con `sizes="any"` para navegadores modernos, e incluyen etiquetas meta `apple-mobile-web-app-capable` + `apple-touch-icon` para el modo independiente de iOS |
-| **Aplicación de escritorio (macOS y Windows)** | Aplicación de escritorio nativa opcional construida con Electron 35, que vive en el espacio de trabajo `desktop/` junto con `client/`, `server/`, `mcp/` y `vscode-extension/`. Se envía como un `.app` (`.dmg`) de macOS **y** un `.exe` (instalador NSIS + portátil sin instalación) de Windows. Incorpora el servidor Express existente **en proceso** (`require()`s `server/index.js` - sin proceso hijo, sin IPC) y renderiza el cliente React construido en una `BrowserWindow`. Añade una barra de título nativa, un icono de barra de menú / área de notificaciones ( bandeja ) cuya lista desplegable de un solo clic muestra una **captura de estado en vivo** (sesiones, agentes, eventos de hoy) extraída de SQLite en el momento del clic, un menú de aplicación nativo, inicio automático al iniciar sesión (elementos de inicio de sesión de macOS a través de `SMAppService`; Windows `HKCU\…\Run` por usuario), un **dialog de confirmación ⌘Q / Ctrl+Q** (segundo clic por defecto), cierre de ventana que oculta pero mantiene el servidor en ejecución, bloqueo de una sola instancia y acciones de bandeja para **Abrir en el navegador**, **Reiniciar el servidor** y **Mostrar registros**. Prefiere el puerto 4820 (se vuelve al puerto 4821-4829 y luego a un puerto alto aleatorio), adopta un panel de control saludable que ya está funcionando en 4820 en lugar de doble vinculación, y **coexiste con el panel de control web**: tanto `npm run dev` como la aplicación de escritorio pueden ejecutarse juntas con ganchos que se extienden a ambas. Las notificaciones se envían cuando el sistema operativo nativo tosta (Web Push no funciona de forma fiable dentro de Electron). En el primer arranque del servidor, se instalan automáticamente los ganchos de Claude Code y se inician los servicios de fondo, por lo que un usuario que solo instale recibe eventos sin necesidad de configuración manual. Ver [`DESKTOP.md`](./DESKTOP.md) y [`desktop/README.md`](./desktop/README.md) |
+| **Aplicación de escritorio (macOS)** | Aplicación de escritorio nativa opcional construida con Electron 35, que vive en el espacio de trabajo `desktop/` junto con `client/`, `server/`, `mcp/` y `vscode-extension/`. Se envía como un `.app` (`.dmg`) de macOS. Incorpora el servidor Express existente **en proceso** (`require()`s `server/index.js` - sin proceso hijo, sin IPC) y renderiza el cliente React construido en una `BrowserWindow`. Añade una barra de título nativa, un icono de barra de menú ( bandeja ) cuya lista desplegable de un solo clic muestra una **captura de estado en vivo** (sesiones, agentes, eventos de hoy) extraída de SQLite en el momento del clic, un menú de aplicación nativo, inicio automático al iniciar sesión (elementos de inicio de sesión de macOS a través de `SMAppService`), un **dialog de confirmación ⌘Q** (segundo clic por defecto), cierre de ventana que oculta pero mantiene el servidor en ejecución, bloqueo de una sola instancia y acciones de bandeja para **Abrir en el navegador**, **Reiniciar el servidor** y **Mostrar registros**. Prefiere el puerto 4820 (se vuelve al puerto 4821-4829 y luego a un puerto alto aleatorio), adopta un panel de control saludable que ya está funcionando en 4820 en lugar de doble vinculación, y **coexiste con el panel de control web**: tanto `npm run dev` como la aplicación de escritorio pueden ejecutarse juntas con ganchos que se extienden a ambas. Las notificaciones se envían cuando el sistema operativo nativo tosta (Web Push no funciona de forma fiable dentro de Electron). En el primer arranque del servidor, se instalan automáticamente los ganchos de Claude Code y se inician los servicios de fondo, por lo que un usuario que solo instale recibe eventos sin necesidad de configuración manual. Ver [`DESKTOP.md`](./DESKTOP.md) y [`desktop/README.md`](./desktop/README.md) |
 | **Activos alojados por el propio usuario (sin CDN)** | Cada fuente y script se sirve localmente, por lo que el panel de control y los documentos realizan **cero solicitudes de CDN de terceros**: se renderizan completamente sin conexión y no filtran nada a los hosts externos. La aplicación React empaqueta Inter + JetBrains Mono a través de [`@fontsource`](https://fontsource.org/) (subconjunto latino; Vite emite WOFF2 con contenido hashed en `dist/assets/` en el momento de la compilación, sin `<link>` a Google Fonts). La página de inicio y el wiki cargan una hoja `@font-face` `fonts/fonts.css` alojada por el propio usuario desde el directorio `fonts/` de la raíz del repositorio. La Mermaid del wiki se vende localmente como `wiki/mermaid.min.js` (la auténtica `mermaid@10.9.6` minificada) en lugar de jsDelivr, y la página de error de la extensión de VS Code recurre a una pila de fuentes del sistema. No quedan llamadas a `fonts.googleapis.com`, `fonts.gstatic.com` o `cdn.jsdelivr.net` en ningún lugar |
 | **Pantalla de inicio de sesión** | Un breve mensaje de marca al cargar la aplicación (una vez por sesión de navegador): un **saludo con tiempo** (Buenos días / tarde / noche / Trabajando tarde), un lema llamativo, dos subtítulos y una marca de marca gráfica de nodo animada sobre un fondo atmosférico oscuro (luz radial + constelación flotante + grano). Totalmente localizado (en/zh/vi/ko/es). La superposición es **opaca desde el primer pincelazo**, por lo que la aplicación nunca parpadea, permanece unos 2,5 segundos y luego se desvanece; haga clic en cualquier lugar para saltar y respeta `prefers-reduced-motion`. Animaciones solo CSS, sin dependencias adicionales |
 
@@ -431,24 +429,22 @@ npm run seed
 
 Crea 8 sesiones de muestra, 23 agentes y 106 eventos para que puedas explorar la interfaz de usuario inmediatamente.
 
-### Alternativa: Aplicación para escritorio (macOS y Windows)
+### Alternativa: Aplicación para escritorio (macOS)
 
-Si prefieres no mantener un terminal abierto, instala la aplicación de escritorio **opcional nativa**. Incorpora el servidor en el proceso, agrega un icono de barra de menú / área de notificaciones ( bandeja) y admite el inicio automático al iniciar sesión (elementos de inicio de sesión de macOS / inicio de sesión de Windows).
+Si prefieres no mantener un terminal abierto, instala la aplicación de escritorio **opcional nativa**. Incorpora el servidor en el proceso, agrega un icono de barra de menú ( bandeja) y admite el inicio automático al iniciar sesión (elementos de inicio de sesión de macOS).
 
 El camino más rápido es **descargar un instalador precompilado** desde la [última versión de GitHub](https://github.com/hoangsonww/Claude-Code-Agent-Monitor/releases/latest) (CI publica automáticamente una `vX.Y.Z` cada vez que `package.json` se actualiza en `master`):
 
 - **macOS** — agarra `ClaudeCodeMonitor-<version>-arm64.dmg` (Apple Silicon) o `-x64.dmg` (Intel) y arrastra **Claude Code Monitor.app** a `/Applications`.
-- **Windows** — obtenga `ClaudeCodeMonitor-Setup-<version>-x64.exe` (instalador) o `ClaudeCodeMonitor-<version>-x64-portable.exe` (sin instalar) y ejecútelo.
 
-Para construirlos tú mismo en su lugar:
+Para construirlo tú mismo en su lugar:
 
 ```bash
 npm run desktop:install        # install Electron + electron-builder into desktop/ (preflights native deps; prints setup help on failure)
 npm run desktop:dmg:arm64      # macOS: fast single-arch DMG (Apple Silicon)
-npm run desktop:win            # Windows: NSIS installer .exe (run on Windows)
 ```
 
-La cobertura completa de la aplicación de escritorio, incluida la descarga, la instalación, las funciones de bandeja/menú, los comandos de construcción y la firma, se encuentra en la sección [Aplicación de escritorio (macOS y Windows)](#aplicación-de-escritorio-macos-y-windows) a continuación. Consulte también [`DESKTOP.md`](./DESKTOP.md) (guía del usuario) y [`desktop/README.md`](./desktop/README.md) (arquitectura).
+La cobertura completa de la aplicación de escritorio, incluida la descarga, la instalación, las funciones de bandeja/menú, los comandos de construcción y la firma, se encuentra en la sección [Aplicación de escritorio (macOS)](#aplicación-de-escritorio-macos) a continuación. Consulte también [`DESKTOP.md`](./DESKTOP.md) (guía del usuario) y [`desktop/README.md`](./desktop/README.md) (arquitectura).
 
 ### Alternativa: Docker / Podman
 
@@ -749,8 +745,6 @@ Los comandos respaldados por API necesitan que el servidor esté en ejecución, 
 | `npm run desktop:dmg:arm64` | Construye un DMG solo de Apple-Silicona - **rápido**, recomendado para tu propio Mac |
 | `npm run desktop:dmg:x64` | Construye un DMG solo para Intel — **rápido**                           |
 | `npm run desktop:dmg:universal` | Construye un DMG **universal** fusionado (arm64 + x86_64) - opcional, **más lento**, no es lo que se envía con la versión |
-| `npm run desktop:win` | Construir un instalador **NSIS** para Windows `.exe` (x64) — ejecutar en Windows |
-| `npm run desktop:win:portable` | Construir un **portátil** de Windows (sin instalar) `.exe` (x64) — ejecutar en Windows |
 | `npm run monitoring:install` | Ejecuta `npm install` en `monitoring/` — descarga Prometheus + Grafana a través de `postinstall` |
 | `npm run monitoring:setup` | Alias para `monitoring:install` |
 | `npm run monitoring:up` | Iniciar Prometheus (:9090) + Grafana (:3000) en segundo plano (sin Docker) |
@@ -1638,20 +1632,14 @@ Para la configuración detallada del desarrollador, consulte los directorios [.v
 
 ---
 
-## Aplicación de escritorio (macOS y Windows)
+## Aplicación de escritorio (macOS)
 
-El panel de control también se envía como una **aplicación de escritorio nativa opcional** que instales una vez y olvidas - un `.app` de macOS (distribuido como un `.dmg`) y un `.exe` de Windows (un instalador NSIS más una construcción portátil sin instalación). Vive en el espacio de trabajo `desktop/`, un hermano de `client/`, `server/`, `mcp/` y `vscode-extension/`, y está construido con **Electron 35**.
+El panel de control también se envía como una **aplicación de escritorio nativa opcional** que instales una vez y olvidas - un `.app` de macOS (distribuido como un `.dmg`). Vive en el espacio de trabajo `desktop/`, un hermano de `client/`, `server/`, `mcp/` y `vscode-extension/`, y está construido con **Electron 35**.
 
 <p align="center">
 <img src="images/macos.png" alt="Claude Code Monitor ejecutándose como una aplicación de escritorio nativa" width="100%">
 <br>
-<em>🍎🪟 <strong>Aplicación para escritorio</strong> — shell nativo con una barra de menú / icono de área de notificaciones ( bandeja), Abre al iniciar sesión y un bloqueo de instancia única. El mismo panel de control, en una ventana real del sistema operativo (macOS mostrado).</em>
-</p>
-
-<p align="center">
-<img src="images/windows_app.png" alt="Claude Code Monitor ejecutándose como una aplicación de escritorio nativa de Windows, mostrando el Feed de Actividad con la barra de menú de la ventana de Windows y el panel Tabby" width="100%">
-<br>
-<em>🪟 El mismo panel de control que una aplicación nativa de Windows: icono de la zona de notificaciones ( bandeja), menú de ventana nativo y Abrir al iniciar sesión.</em>
+<em>🍎 <strong>Aplicación para escritorio</strong> — shell nativo con una barra de menú ( bandeja), Abre al iniciar sesión y un bloqueo de instancia única. El mismo panel de control, en una ventana real del sistema operativo.</em>
 </p>
 
 Todo lo que ves en el navegador en `localhost:4820` vive dentro de esta ventana, con el ciclo de vida nativo del sistema operativo encima: un icono de bandeja, un menú de aplicaciones nativo, integración de inicio automático y un solo botón de salida que apaga el servidor de forma limpia.
@@ -1690,21 +1678,21 @@ Al iniciar la aplicación:
 1. Elige un puerto gratuito, prefiriendo **4820**, retrocediendo a **4821-4829**, y luego un puerto alto aleatorio si todos esos están ocupados.
 2. Si un servidor de panel de control saludable ya responde a `/api/health` en `4820` (por ejemplo, has ejecutado `npm start` en un terminal), **adoptará ese servidor** en lugar de vincularlo de forma doble: sin colisión de puertos, sin competencia de SQLite. Un servidor adoptado sigue funcionando después de que cierres la aplicación.
 3. De lo contrario, inicia el servidor incorporado y, en el **primer arranque del servidor propiedad**, instala automáticamente los ganchos del código Claude y inicia los servicios de fondo (programador de actualizaciones, `cc-watcher`, reconciliación de ejecución huérfana). Un usuario que solo tenga un DMG, por lo tanto, recibe eventos con **cero configuración manual**: sin realizar una compra, sin `npm run install-hooks`.
-4. **(macOS)** Recupera tu **PATH de la cáscara de inicio de sesión** para que la función **Ejecutar Claude** pueda encontrar y crear la CLI `claude`: una aplicación lanzada desde Finder/Dock que de otra manera heredaría solo el PATH mínimo de launchd y perdería las CLIs en `~/.local/bin`, `/opt/homebrew/bin`, los contenedores del gestor de versiones, etc. (En Windows, el proceso ya hereda el PATH del usuario).
-5. Abre la ventana del panel de control, a menos que la aplicación se haya iniciado al iniciar sesión (en macOS a través de los elementos de inicio de sesión; en Windows a través de la entrada etiquetada `HKCU\…\Run`), en cuyo caso solo se mantiene como bandeja.
+4. Recupera tu **PATH de la cáscara de inicio de sesión** para que la función **Ejecutar Claude** pueda encontrar y crear la CLI `claude`: una aplicación lanzada desde Finder/Dock que de otra manera heredaría solo el PATH mínimo de launchd y perdería las CLIs en `~/.local/bin`, `/opt/homebrew/bin`, los contenedores del gestor de versiones, etc.
+5. Abre la ventana del panel de control, a menos que la aplicación se haya iniciado al iniciar sesión a través de los elementos de inicio de sesión, en cuyo caso solo se mantiene como bandeja.
 6. Al salir, apaga el servidor incorporado con gracia y **cierra SQLite de forma limpia** (punto de control WAL).
 
 ### Características
 
-- **Ícono de bandeja** — superficie de estado siempre activa (barra de menú de macOS / área de notificaciones de Windows). Haga clic con el botón izquierdo para alternar la ventana del panel de control; haga clic con el botón derecho para abrir un menú contextual con **Abrir panel de control**, **Abrir en el navegador**, **Reiniciar servidor**, **Mostrar registros**, **Abrir al iniciar sesión** (alternar) y **Salir**. macOS utiliza un glifo de plantilla con tono; Windows utiliza el icono `icon.ico` coloreado (una plantilla negra desaparecería en la barra de tareas oscura).
-- **Icono de ventana y barra de tareas**: el `BrowserWindow` está conectado al logotipo de la aplicación de color (`icon.ico` en Windows, `icon.png` en otro lugar), por lo que la barra de título / barra de tareas muestra el verdadero icono de Claude Code Monitor: incluso una ejecución de `npm run desktop:dev` sin descomprimir ya no muestra el icono genérico de Electron.
-- **Menú de aplicación nativo** — menú estándar de "Acerca de" / "Archivo" / "Editar" / "Ver" / "Ventana" / "Ayuda" con atajos de `⌘` / `Ctrl`. El elemento **Archivo → Abrir Panel de control** (`⌘1`) es **solo para macOS**: macOS mantiene una barra de menú global después de que la ventana se oculte, por lo que puede volver a abrir la ventana: en Windows/Linux el menú está adjunto a la ventana y no se puede ejecutar mientras está oculto, por lo que vuelva a abrir desde el menú **Abrir Panel de control** de la bandeja (que eleva la ventana de forma fiable incluso cuando está minimizada o detrás de otras ventanas).
-- **Inicio automático al iniciar sesión** — alterna **Abrir al iniciar sesión** desde la bandeja o el menú de la aplicación. En macOS se registra a través de la moderna API `SMAppService`, por lo que la entrada aparece en **Configuración del sistema → General → Elementos de inicio de sesión**; en Windows escribe una entrada `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` por usuario, visible en **Gestor de tareas → Inicio**.
+- **Ícono de bandeja** — superficie de estado siempre activa en la barra de menú de macOS. Haga clic con el botón izquierdo para alternar la ventana del panel de control; haga clic con el botón derecho para abrir un menú contextual con **Abrir panel de control**, **Abrir en el navegador**, **Reiniciar servidor**, **Mostrar registros**, **Abrir al iniciar sesión** (alternar) y **Salir**. Utiliza un glifo de plantilla con tono que la barra de menú entinta automáticamente para modo claro/oscuro.
+- **Icono de ventana y Dock**: el `BrowserWindow` está conectado al logotipo de la aplicación (`icon.png`), por lo que la barra de título muestra el verdadero icono de Claude Code Monitor: incluso una ejecución de `npm run desktop:dev` sin descomprimir ya no muestra el icono genérico de Electron.
+- **Menú de aplicación nativo** — menú estándar de "Acerca de" / "Archivo" / "Editar" / "Ver" / "Ventana" / "Ayuda" con atajos de `⌘`. El elemento **Archivo → Abrir Panel de control** (`⌘1`) eleva la ventana de forma fiable incluso cuando está minimizada o detrás de otras ventanas.
+- **Inicio automático al iniciar sesión** — alterna **Abrir al iniciar sesión** desde la bandeja o el menú de la aplicación. Se registra a través de la moderna API `SMAppService`, por lo que la entrada aparece en **Configuración del sistema → General → Elementos de inicio de sesión**.
 - **El cierre de la ventana oculta, el servidor sigue funcionando**: cerrar la ventana solo la oculta; el servidor y la bandeja permanecen abiertos. Haga clic en la bandeja para volver a mostrar la ventana.
-- **Bloqueo de una sola instancia**: el doble lanzamiento simplemente centra la ventana existente; no hay segundo servidor, no hay colisión de puertos. (Se aplica en todas las plataformas).
-- **Los datos sobreviven a las reinstalaciones y actualizaciones**: la base de datos SQLite y las claves VAPID se encuentran en el directorio de datos de la aplicación por usuario **fuera del paquete de la aplicación / directorio de instalación**: `~/Biblioteca/Soporte de Aplicaciones/Claude Code Monitor/data/` en macOS, `%APPDATA%\Claude Code Monitor\data\` en Windows. Un paquete empaquetado es de solo lectura, por lo que escribir la base de datos dentro de él rompería la Importación de Historial y la persistencia de eventos; mantenerla en datos de la aplicación soluciona eso y significa que su historial importado no se ve afectado cuando reemplaza o actualiza la aplicación. (El desinstalador NSIS de Windows guarda estos datos por defecto).
-- **`claude` CLI en PATH** — en macOS la aplicación recupera su `PATH` de inicio de sesión en el arranque, por lo que la función **Ejecutar Claude** funciona incluso si una aplicación lanzada desde Finder/Dock de otro modo solo heredaría el `PATH` mínimo de launchd. (En Windows el `PATH` de usuario heredado ya lo incluye).
-- **Registros**: el proceso principal escribe en `~/Biblioteca/Registros/Claude Code Monitor/desktop.log` (macOS) o `%APPDATA%\Claude Code Monitor\logs\desktop.log` (Windows); accédalo desde el menú **Mostrar registros** del panel.
+- **Bloqueo de una sola instancia**: el doble lanzamiento simplemente centra la ventana existente; no hay segundo servidor, no hay colisión de puertos.
+- **Los datos sobreviven a las reinstalaciones y actualizaciones**: la base de datos SQLite y las claves VAPID se encuentran en el directorio de datos de la aplicación por usuario **fuera del paquete de la aplicación**: `~/Biblioteca/Soporte de Aplicaciones/Claude Code Monitor/data/`. Un paquete empaquetado es de solo lectura, por lo que escribir la base de datos dentro de él rompería la Importación de Historial y la persistencia de eventos; mantenerla en datos de la aplicación soluciona eso y significa que su historial importado no se ve afectado cuando reemplaza o actualiza la aplicación.
+- **`claude` CLI en PATH** — la aplicación recupera su `PATH` de inicio de sesión en el arranque, por lo que la función **Ejecutar Claude** funciona incluso si una aplicación lanzada desde Finder/Dock de otro modo solo heredaría el `PATH` mínimo de launchd.
+- **Registros**: el proceso principal escribe en `~/Biblioteca/Registros/Claude Code Monitor/desktop.log`; accédalo desde el menú **Mostrar registros** del panel.
 
 ### Entiéndelo
 
@@ -1714,10 +1702,8 @@ Al iniciar la aplicación:
 | --- | --- | --- |
 | macOS (Apple Silicon) | `ClaudeCodeMonitor-<ver>-arm64.dmg` | arrastrar a `/Applications` |
 | macOS (Intel) | `ClaudeCodeMonitor-<ver>-x64.dmg` | arrastrar a `/Applications` |
-| Windows (instalador) | `ClaudeCodeMonitor-Setup-<ver>-x64.exe` | instalación por usuario, sin administrador |
-| Windows (portátil) | `ClaudeCodeMonitor-<ver>-x64-portable.exe` | ejecutar sin instalar |
 
-Las construcciones frescas por compromiso también existen como artefactos CI (se requiere inicio de sesión, retención de 14 días): `ClaudeCodeMonitor-dmg` del trabajo `🍎 macOS Desktop (DMG)` y `ClaudeCodeMonitor-win` del trabajo `🪟 Windows Desktop (EXE)`, útiles para probar `master` antes de la próxima etiqueta de lanzamiento.
+Las construcciones frescas por compromiso también existen como artefactos CI (se requiere inicio de sesión, retención de 14 días): `ClaudeCodeMonitor-dmg` del trabajo `🍎 macOS Desktop (DMG)`, útiles para probar `master` antes de la próxima etiqueta de lanzamiento.
 
 **Opción B: construíselo tú mismo.** Desde la raíz del repositorio:
 
@@ -1725,16 +1711,13 @@ Las construcciones frescas por compromiso también existen como artefactos CI (s
 npm run setup                # install root + client deps, build client, install hooks
 npm run build                # build the React client (client/dist)
 npm run desktop:install      # install Electron + electron-builder into desktop/ (preflights native deps; prints setup help on failure)
-npm run desktop:dmg:arm64    # macOS:   fast single-arch DMG → desktop/release/ClaudeCodeMonitor-<ver>-arm64.dmg
-npm run desktop:win          # Windows: NSIS installer → desktop/release/ClaudeCodeMonitor-Setup-<ver>-x64.exe
+npm run desktop:dmg:arm64    # fast single-arch DMG → desktop/release/ClaudeCodeMonitor-<ver>-arm64.dmg
 ```
 
 > [!NOTA]
-> **Los DMG se construyen en macOS; los `.exe` de Windows se construyen en Windows** — paquetes electron-builder para el sistema operativo de host. El paquete de construcción `npm run desktop:dmg` de macOS construye la aplicación **dos veces** (una vez por arquitectura) y emite **ambos** DMG por arquitectura (`arm64` + `x64`) — la construcción de lanzamiento; no los fusiona en un binario universal. Para su propio Mac, utilice el `desktop:dmg:arm64` / `desktop:dmg:x64` de arquitectura única. En Windows, `better-sqlite3` se obtiene como un binario Electron preconstruido por `npm run desktop:install`, por lo que no se necesita ninguna cadena de herramientas Visual Studio C++ en el caso común. Si la construcción falla (sin binario preconstruido o cadena de herramientas C++ faltante), `desktop:install` imprime la solución exacta por sistema operativo más una alternativa sin cadena de herramientas y falla ruidosamente en lugar de dejar una instalación rota.
+> electron-builder empaqueta para el sistema operativo anfitrión, por lo que el DMG debe construirse en macOS. El paquete de construcción `npm run desktop:dmg` construye la aplicación **dos veces** (una vez por arquitectura) y emite **ambos** DMG por arquitectura (`arm64` + `x64`) — la construcción de lanzamiento; no los fusiona en un binario universal. Para su propio Mac, utilice el `desktop:dmg:arm64` / `desktop:dmg:x64` de arquitectura única. Si la construcción falla (sin binario preconstruido de `better-sqlite3` o cadena de herramientas C++ faltante), `desktop:install` imprime la solución exacta más una alternativa sin cadena de herramientas y falla ruidosamente en lugar de dejar una instalación rota.
 
 ### Instálalo
-
-**macOS:**
 
 1. Haga doble clic en el `.dmg` para montarlo.
 2. Arrastra **Claude Code Monitor.app** a tu carpeta `/Applications`.
@@ -1748,30 +1731,6 @@ O abra **Configuración del sistema → Privacidad y seguridad** y haga clic en 
 
 4. Inicie la aplicación. Aparece el icono de la bandeja y se abre la ventana del panel de control.
 
-**Ventanas:**
-
-1. Ejecute `ClaudeCodeMonitor-Setup-<ver>-x64.exe`. Instala **por usuario** en `%LOCALAPPDATA%\Programas\Claude Code Monitor` (sin elevación de administrador) y le permite elegir el directorio de instalación; o ejecute `*-portable.exe` para iniciar sin instalar.
-2. El instalador está **sin firmar** por defecto, por lo que Windows **SmartScreen** puede mostrar *"Windows protegido su PC"* en la primera vez que se inicie, haga clic en **Más información → Ejecutar de todos modos**.
-3. Lanzar desde el menú Inicio / atajo del escritorio. Aparece el icono de la zona de notificaciones ( bandeja) y se abre la ventana del panel de control.
-
-<p align="center">
-<img src="images/setup_win_wizard.png" alt="Paso 1 del instalador NSIS: Elija las opciones de instalación, con selección por usuario (Solo para mí) versus selección para todos los usuarios" width="100%">
-<br>
-<em>Instalador de Windows · Paso 1 — <strong>Elija las opciones de instalación</strong> (por usuario "Solo para mí" vs. todos los usuarios).</em>
-</p>
-
-<p align="center">
-<img src="images/setup_win_wizard2.png" alt="Paso 2 del instalador NSIS: Elija la ubicación de instalación, con la carpeta de destino %LOCALAPPDATA%\Programas por usuario" width="100%">
-<br>
-<em>Instalador de Windows · Paso 2 — <strong>Elija la ubicación de instalación</strong> (por defecto es <code>%LOCALAPPDATA%\Programas</code> por usuario).</em>
-</p>
-
-<p align="center">
-<img src="images/setup_win_wizard3.png" alt="Paso 3 del instalador NSIS: completando la configuración, con la opción de terminar y ejecutar la aplicación" width="100%">
-<br>
-<em>Instalador de Windows · Paso 3 — <strong>Completar la configuración</strong> (Finalizar y lanzar la aplicación).</em>
-</p>
-
 ### Comandos de construcción
 
 Todos los comandos se ejecutan desde la **raíz del repositorio**:
@@ -1782,27 +1741,25 @@ Todos los comandos se ejecutan desde la **raíz del repositorio**:
 | `npm run desktop:build` | Compila las fuentes TypeScript del escritorio en `desktop/out/`                    |
 | `npm run desktop:dev`       | Construye y lanza la aplicación Electron para iteraciones locales                         |
 | `npm run desktop:test`      | Ejecutar la prueba de humo (iniciar Electron, sondear `/api/health`, apagar)            |
-| `npm run desktop:dmg`       | **macOS:** construye **ambos** DMG (arm64 + x64) — correctos para la versión, **más lentos** (paquetes para cada arquitectura) |
-| `npm run desktop:dmg:arm64` | **macOS:** construye un DMG solo de Apple-Silicon — **rápido** (~1 min), recomendado para tu propio Mac |
-| `npm run desktop:dmg:x64`   | **macOS:** construye un DMG solo para Intel — **rápido** (~1 min)                         |
-| `npm run desktop:dmg:universal` | **macOS:** construye un DMG **universal** fusionado (arm64 + x86_64) — opcional, **más lento**, no es lo que se envía con la versión |
-| `npm run desktop:win`       | **Windows:** construye el instalador NSIS `.exe` (x64)                             |
-| `npm run desktop:win:portable` | **Windows:** construye el `.exe` portátil sin instalar (x64)                     |
+| `npm run desktop:dmg`       | construye **ambos** DMG (arm64 + x64) — correctos para la versión, **más lentos** (paquetes para cada arquitectura) |
+| `npm run desktop:dmg:arm64` | construye un DMG solo de Apple-Silicon — **rápido** (~1 min), recomendado para tu propio Mac |
+| `npm run desktop:dmg:x64`   | construye un DMG solo para Intel — **rápido** (~1 min)                         |
+| `npm run desktop:dmg:universal` | construye un DMG **universal** fusionado (arm64 + x86_64) — opcional, **más lento**, no es lo que se envía con la versión |
 
-El DMG de macOS resultante es **~80 MB** (≈ 250 MB en el disco una vez instalado) y el instalador de Windows es comparable: el impuesto estándar del paquete Electron.
+El DMG de macOS resultante es **~80 MB** (≈ 250 MB en el disco una vez instalado): el impuesto estándar del paquete Electron.
 
 ### Firma y notariedad
 
-El DMG de macOS está **firmado ad hoc** por defecto, por lo que cualquiera puede crear un `.app` funcional sin una cuenta de desarrollador de Apple pagada. El script `package` establece `CSC_IDENTITY_AUTO_DISCOVERY=false`, por lo que un certificado de firma de código ya en la llave de acceso del contribuyente nunca se selecciona automáticamente. La **firma de ID de desarrollador real** es opcional a través de `CSC_LINK` (un `.p12` codificado en base64) y `CSC_KEY_PASSWORD`; la **notificación de Apple** es opcional a través de `APPLE_ID`, `APPLE_TEAM_ID` y `APPLE_APP_SPECIFIC_PASSWORD`. La construcción de **Windows** está **sin firma** por defecto (SmartScreen puede aparecer al iniciar la aplicación por primera vez; *Más información → Ejecutar de todos modos*); la firma de Authenticode solo se activa cuando se proporciona un certificado explícito a través de `CSC_LINK` + `CSC_KEY_PASSWORD`. CI recoge todo esto automáticamente cuando se proporciona, sin necesidad de cambios en el código.
+El DMG de macOS está **firmado ad hoc** por defecto, por lo que cualquiera puede crear un `.app` funcional sin una cuenta de desarrollador de Apple pagada. El script `package` establece `CSC_IDENTITY_AUTO_DISCOVERY=false`, por lo que un certificado de firma de código ya en la llave de acceso del contribuyente nunca se selecciona automáticamente. La **firma de ID de desarrollador real** es opcional a través de `CSC_LINK` (un `.p12` codificado en base64) y `CSC_KEY_PASSWORD`; la **notificación de Apple** es opcional a través de `APPLE_ID`, `APPLE_TEAM_ID` y `APPLE_APP_SPECIFIC_PASSWORD`. CI recoge todo esto automáticamente cuando se proporciona, sin necesidad de cambios en el código.
 
 ### Notas de implementación
 
 - **`better-sqlite3`** es el único módulo nativo en el árbol de dependencias, y un módulo nativo debe compilarse contra la ABI exacta del Nodo A en la que se ejecuta. El espacio de trabajo `desktop/` envía su **propia copia** de `better-sqlite3` reconstruida para la ABI de Electron y utiliza un redireccionamiento `require` local al proceso para apuntar a `server/db.js`; la copia de la raíz del repositorio se mantiene construida para el Nodo del sistema (por lo que `npm run test:server` sigue funcionando).
 - **La construcción de un DMG reconstruye `better-sqlite3` para la arquitectura de destino**, lo que puede dejar la copia del escritorio construida para la otra arquitectura de CPU y romper `npm run desktop:dev` / `npm run desktop:test` con `ERR_DLOPEN_FAILED`. El paso de `prebuild` del escritorio ahora **auto-curará** el módulo nativo para la máquina local en la próxima construcción, por lo que los flujos de desarrollo y prueba de humo siguen funcionando después de una construcción de DMG específica de la arquitectura. El paso de `prebuild` también **falla rápidamente con ayuda de configuración** cuando el binario nativo de `better-sqlite3` falta por completo, convirtiendo un fallo de tiempo de ejecución en un error de tiempo de construcción que se puede copiar y pegar.
 - El **único cambio fuera de `desktop/`** es una refactorización que preserva el comportamiento de `server/index.js`: su post-listen bootstrap (programador de actualización, `cc-watcher`, reconciliación de ejecución huérfana) se extrajo en un `startBackgroundServices()` exportado para que el servidor incorporado ejecute exactamente lo que ejecuta `node server/index.js`. El camino independiente de `node server/index.js` no ha cambiado funcionalmente; `client/`, `scripts/`, `mcp/` y `vscode-extension/` no han sido tocados.
-- Dos trabajos de CI de escritorio filtrados por ruta construyen, prueban con humo y empaquetan la aplicación: **`🍎 macOS Desktop (DMG)`** en `macos-latest` (carga el artefacto `ClaudeCodeMonitor-dmg` — dos DMG de arquitectura única) y **`🪟 Windows Desktop (EXE)`** en `windows-latest` (carga el artefacto `ClaudeCodeMonitor-win` — instalador NSIS + portátil). En una actualización de versión a `master`, el trabajo de `release` adjunta **ambos** los DMG de macOS y los `.exe` de Windows a la publicación de la versión `vX.Y.Z` de GitHub. El icono de Windows (`desktop/assets/icon.ico`) se compromete al repositorio (regénéralo desde `icon.png` con `npm run build:win-icon`, PowerShell + .NET, sin herramientas adicionales).
+- Un trabajo de CI de escritorio filtrado por ruta construye, prueba con humo y empaqueta la aplicación: **`🍎 macOS Desktop (DMG)`** en `macos-latest` (carga el artefacto `ClaudeCodeMonitor-dmg` — dos DMG de arquitectura única). En una actualización de versión a `master`, el trabajo de `release` adjunta los DMG de macOS a la publicación de la versión `vX.Y.Z` de GitHub.
 
-Para la guía completa del usuario (descargar, instalar, Gatekeeper / SmartScreen, menú de bandeja, inicio automático), consulte [`DESKTOP.md`](./DESKTOP.md); para la referencia del contribuyente / arquitectura (modelo de proceso, ciclo de vida de arranque, descubrimiento de puertos, pipeline de construcción, con diagramas de Mermaid), consulte [`desktop/README.md`](./desktop/README.md).
+Para la guía completa del usuario (descargar, instalar, Gatekeeper, menú de bandeja, inicio automático), consulte [`DESKTOP.md`](./DESKTOP.md); para la referencia del contribuyente / arquitectura (modelo de proceso, ciclo de vida de arranque, descubrimiento de puertos, pipeline de construcción, con diagramas de Mermaid), consulte [`desktop/README.md`](./desktop/README.md).
 
 ---
 
@@ -2119,11 +2076,11 @@ graph LR
     style M_REPL fill:#0f766e,stroke:#14b8a6,color:#fff
 ```
 
-Opcional **aplicación de escritorio (macOS y Windows)**: un solo proceso Electron que hospeda el servidor Express en el proceso (sin terminal, sin proceso hijo):
+Opcional **aplicación de escritorio (macOS)**: un solo proceso Electron que hospeda el servidor Express en el proceso (sin terminal, sin proceso hijo):
 
 ```mermaid
 flowchart LR
-    subgraph desktop["Desktop App (macOS & Windows) — 1 Electron process"]
+    subgraph desktop["Desktop App (macOS) — 1 Electron process"]
         E_MAIN["Electron Main Process<br/>(Node 22 / Electron 35)"]
         E_HOST["server-host.ts<br/>require() server/index.js"]
         E_SRV["Embedded Express :4820<br/>API · SQLite · WebSocket"]

@@ -58,10 +58,7 @@ function printNativeDepHelp(reason) {
   out("  fails for one of two reasons:");
   out("");
   out("    1. No C++ build toolchain, so the module can't compile from source:");
-  out('       • Windows: install "Visual Studio Build Tools" with the');
-  out('                  "Desktop development with C++" workload.');
-  out("       • macOS:   xcode-select --install");
-  out("       • Linux:   install build-essential + python3.");
+  out("       • macOS: xcode-select --install");
   out("");
   out("    2. Your Node.js is newer than any published better-sqlite3 prebuilt");
   out(`       binary (you are on Node ${process.version}). A Node LTS (20 or 22)`);

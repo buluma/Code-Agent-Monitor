@@ -5,10 +5,8 @@
  * menu showing live status snapshots from the embedded server plus an Open
  * Dashboard action.
  *
- * The image is platform-specific: macOS uses a black "template" PNG so the OS
- * tints it for light/dark menu bars; Windows uses the colored `icon.ico`,
- * because a black template glyph would be invisible on the (usually dark)
- * Windows taskbar notification area.
+ * The image is a black "template" PNG so macOS tints it for light/dark
+ * menu bars.
  * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
@@ -126,14 +124,12 @@ export interface ServerSnapshot {
  * asar can yield empty `nativeImage` results, which is why we keep them
  * unpacked.
  *
- * Windows gets the colored `icon.ico`; macOS gets the black template PNG that
- * the menu bar tints automatically.
+ * The black template PNG the menu bar tints automatically for light/dark.
  */
-/** Pick the platform-appropriate tray image filename — a colored `.ico` on
- * Windows (a black glyph would vanish on the usually-dark taskbar), or the
- * black "template" PNG on macOS (the menu bar auto-tints it for light/dark). */
+/** The tray image filename — the black "template" PNG the menu bar
+ * auto-tints for light/dark. */
 function trayImageFile(): string {
-  return process.platform === "win32" ? "icon.ico" : "tray-icon-Template.png";
+  return "tray-icon-Template.png";
 }
 
 /** Resolve `trayImageFile()` to an absolute path, branching on dev vs
@@ -167,9 +163,7 @@ export function createTray(actions: TrayActions): Tray {
   const image = nativeImage.createFromPath(imagePath);
   if (image.isEmpty()) {
     log.warn("tray image is empty; falling back to in-memory placeholder", imagePath);
-  } else if (process.platform === "darwin") {
-    // Template tinting is a macOS concept; on Windows the icon is colored and
-    // must be shown as-is.
+  } else {
     image.setTemplateImage(true);
   }
 
