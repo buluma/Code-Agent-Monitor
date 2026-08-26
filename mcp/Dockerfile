@@ -27,8 +27,10 @@ COPY scripts/postinstall.js ./scripts/postinstall.js
 WORKDIR /workspace/mcp
 RUN npm ci
 
+WORKDIR /workspace
 COPY mcp ./mcp
 
+WORKDIR /workspace/mcp
 RUN npm run build
 
 FROM ${NODE_IMAGE} AS runtime
