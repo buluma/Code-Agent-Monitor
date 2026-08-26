@@ -38,7 +38,7 @@ on:
 
 env:
   NODE_VERSION: "24"
-  IMAGE_NAME: claude-code-agent-monitor
+  IMAGE_NAME: code-agent-monitor
 
 jobs:
   # ────────────────────────────────────────────────────────────────
