@@ -104,7 +104,7 @@ const state: AppState = {
 };
 
 /**
- * Show the "Quit Claude Code Monitor?" confirmation dialog. Clicking Quit
+ * Show the "Quit Code Agent Monitor?" confirmation dialog. Clicking Quit
  * runs the synchronous teardown and exits. Pressing ⌘Q again while the
  * dialog is open is caught by `before-quit` below and skips this prompt.
  */
@@ -120,7 +120,7 @@ function requestQuit(): void {
     defaultId: 0,
     cancelId: 1,
     title: APP_NAME,
-    message: "Quit Claude Code Monitor?",
+    message: "Quit Code Agent Monitor?",
     detail:
       "The embedded server will stop and your dashboard window will close. " +
       `Press ${quitAccel} again to skip this prompt and quit immediately.`,

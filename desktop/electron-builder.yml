@@ -14,7 +14,7 @@
 # No code changes are required to enable notarization later.
 
 appId: com.buluma.ccam.desktop
-productName: Claude Code Monitor
+productName: Code Agent Monitor
 copyright: Copyright (c) 2026 Michael Buluma. MIT License.
 
 directories:
@@ -95,7 +95,7 @@ mac:
     NSRequiresAquaSystemAppearance: false
 
 dmg:
-  artifactName: "ClaudeCodeMonitor-${version}-${arch}.dmg"
+  artifactName: "CodeAgentMonitor-${version}-${arch}.dmg"
   # The mounted-volume title carries the architecture so that, when a release/
   # directory holds more than one DMG, the Finder windows are distinguishable
   # and nobody drags an x64 build onto Apple Silicon (which triggers a Rosetta
@@ -103,7 +103,7 @@ dmg:
   # inconsistently inside `title` — it yields `-arm64` / an empty string rather
   # than `arm64` / `x64`. The per-arch `dmg:*` scripts in package.json override
   # `dmg.title` with an explicit, clean label instead.
-  title: "Claude Code Monitor"
+  title: "Code Agent Monitor"
   icon: assets/icon.icns
   contents:
     # Left slot: the .app bundle. Do NOT set `type: file` here — electron-builder

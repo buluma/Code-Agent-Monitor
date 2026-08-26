@@ -78,7 +78,7 @@
  * ----------------------------------------------------------------------------- */
 
 /** Human-readable product name shown in window title and About menu. */
-export const APP_NAME = "Claude Code Monitor";
+export const APP_NAME = "Code Agent Monitor";
 
 /**
  * Preferred dashboard port — matches the project's documented default. Also

@@ -19,9 +19,9 @@
     "dev": "npm run build && electron out/main.js",
     "package": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --arm64 --x64 --publish never",
     "dmg": "npm run package",
-    "dmg:arm64": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --arm64 --publish never --config.dmg.title='Claude Code Monitor (Apple Silicon)'",
-    "dmg:x64": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --x64 --publish never --config.dmg.title='Claude Code Monitor (Intel)'",
-    "dmg:universal": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --universal --publish never --config.dmg.title='Claude Code Monitor (Universal)'",
+    "dmg:arm64": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --arm64 --publish never --config.dmg.title='Code Agent Monitor (Apple Silicon)'",
+    "dmg:x64": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --x64 --publish never --config.dmg.title='Code Agent Monitor (Intel)'",
+    "dmg:universal": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --universal --publish never --config.dmg.title='Code Agent Monitor (Universal)'",
     "test": "npm run build && node --test --test-reporter=spec tests/smoke.test.mjs",
     "postinstall": "electron-builder install-app-deps"
   },
