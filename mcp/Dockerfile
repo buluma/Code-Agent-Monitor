@@ -14,7 +14,8 @@ COPY package.json package-lock.json ./
 COPY mcp/package.json mcp/package-lock.json ./mcp/
 COPY scripts/postinstall.js ./scripts/postinstall.js
 
-RUN npm --prefix mcp ci --omit=dev --no-workspaces
+WORKDIR /workspace/mcp
+RUN npm ci --omit=dev
 
 FROM ${NODE_IMAGE} AS build
 WORKDIR /workspace
@@ -23,11 +24,12 @@ COPY package.json package-lock.json ./
 COPY mcp/package.json mcp/package-lock.json ./mcp/
 COPY scripts/postinstall.js ./scripts/postinstall.js
 
-RUN npm --prefix mcp ci --no-workspaces
+WORKDIR /workspace/mcp
+RUN npm ci
 
 COPY mcp ./mcp
 
-RUN npm --prefix mcp run build
+RUN npm run build
 
 FROM ${NODE_IMAGE} AS runtime
 WORKDIR /app
