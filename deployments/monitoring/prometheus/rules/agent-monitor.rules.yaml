@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Prometheus alerting rules for Claude Code Agent Monitor
+# Prometheus alerting rules for Code Agent Monitor
 # ─────────────────────────────────────────────────────────────────────────────
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule

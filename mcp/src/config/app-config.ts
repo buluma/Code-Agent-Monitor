@@ -80,7 +80,7 @@ export type TransportMode = "stdio" | "http" | "repl";
  * field has a safe default so the server boots with no env vars set.
  */
 export interface AppConfig {
-  /** From `MCP_SERVER_NAME`, default `"agent-dashboard-mcp"`. */
+  /** From `MCP_SERVER_NAME`, default `"code-agent-monitor-mcp"`. */
   serverName: string;
   /** From `MCP_SERVER_VERSION`, default `"1.0.0"`. */
   serverVersion: string;
@@ -268,7 +268,7 @@ function parseTransport(value: string | undefined): TransportMode {
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const dashboardBaseUrl = parseDashboardUrl(env.MCP_DASHBOARD_BASE_URL);
   return {
-    serverName: env.MCP_SERVER_NAME?.trim() || "agent-dashboard-mcp",
+    serverName: env.MCP_SERVER_NAME?.trim() || "code-agent-monitor-mcp",
     serverVersion: env.MCP_SERVER_VERSION?.trim() || "1.0.0",
     dashboardBaseUrl,
     dashboardApiToken: parseDashboardToken(env, dashboardBaseUrl),

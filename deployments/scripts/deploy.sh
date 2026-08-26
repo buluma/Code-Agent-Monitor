@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# deploy.sh – Main deployment orchestrator for Claude Code Agent Monitor
+# deploy.sh – Main deployment orchestrator for Code Agent Monitor
 #
 # Usage:
 #   ./deploy.sh --env dev|staging|production --method helm|kustomize
@@ -38,7 +38,7 @@ fatal() { err "$@"; exit 1; }
 banner() {
   echo ""
   echo -e "${BOLD}${BLUE}╔══════════════════════════════════════════════════╗${NC}"
-  echo -e "${BOLD}${BLUE}║   Claude Code Agent Monitor – Deploy            ║${NC}"
+  echo -e "${BOLD}${BLUE}║   Code Agent Monitor – Deploy                   ║${NC}"
   echo -e "${BOLD}${BLUE}╚══════════════════════════════════════════════════╝${NC}"
   echo ""
 }

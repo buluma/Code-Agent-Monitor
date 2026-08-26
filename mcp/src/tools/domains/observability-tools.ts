@@ -1,6 +1,6 @@
 /**
  * @file observability-tools.ts
- * @description Tool registration for observability-related tools in the MCP server. This module defines a set of tools that interact with the Agent Dashboard API to provide health checks, stats, analytics, system information, data export, and operational snapshots. These tools enable users to monitor and analyze the performance and usage of their agents and sessions through the dashboard. Each tool is registered with a name, description, input schema (if applicable), and an asynchronous handler function that makes API calls to retrieve the necessary data.
+ * @description Tool registration for observability-related tools in the MCP server. This module defines a set of tools that interact with the Code Agent Monitor API to provide health checks, stats, analytics, system information, data export, and operational snapshots. These tools enable users to monitor and analyze the performance and usage of their agents and sessions through the dashboard. Each tool is registered with a name, description, input schema (if applicable), and an asynchronous handler function that makes API calls to retrieve the necessary data.
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
@@ -73,7 +73,7 @@ export function registerObservabilityTools(context: ToolContext): void {
   // config.dashboardBaseUrl or it fails with an ApiError network/timeout.
   register(
     "dashboard_health_check",
-    "Check health of the local Agent Dashboard API.",
+    "Check health of the local Code Agent Monitor API.",
     {},
     async () => api.get("/api/health")
   );

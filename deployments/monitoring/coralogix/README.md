@@ -1,6 +1,8 @@
 # Coralogix Integration
 
-Full-stack observability for Claude Code Agent Monitor via [Coralogix](https://coralogix.com) — logs, metrics, traces, and SLO tracking through a single platform.
+Full-stack observability for Code Agent Monitor via
+[Coralogix](https://coralogix.com) — logs, metrics, traces, and SLO tracking
+through a single platform.
 
 ## Architecture
 
@@ -41,12 +43,12 @@ graph TB
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `values.yaml` | Helm values for Coralogix OpenTelemetry Collector |
-| `alerts.yaml` | Alert definitions (mirrors Prometheus/Alertmanager rules) |
-| `dashboards.yaml` | Custom dashboard with 6 rows, 18 panels, SLO tracking |
-| `coralogix-terraform.tf` | Terraform-managed alerts, parsing rules, recording rules |
+| File                     | Purpose                                                   |
+| ------------------------ | --------------------------------------------------------- |
+| `values.yaml`            | Helm values for Coralogix OpenTelemetry Collector         |
+| `alerts.yaml`            | Alert definitions (mirrors Prometheus/Alertmanager rules) |
+| `dashboards.yaml`        | Custom dashboard with 6 rows, 18 panels, SLO tracking     |
+| `coralogix-terraform.tf` | Terraform-managed alerts, parsing rules, recording rules  |
 
 ## Quick Start
 
@@ -91,29 +93,29 @@ terraform apply
 
 ## What Gets Collected
 
-| Signal | Source | Destination |
-|--------|--------|-------------|
-| **Logs** | Pod stdout/stderr (JSON structured) | Coralogix Log Analytics |
-| **Metrics** | Prometheus scrape (`/api/metrics`) | Coralogix Metrics |
-| **K8s Metrics** | kubelet, cAdvisor, host metrics | Coralogix Metrics |
-| **Traces** | OTLP from application (if instrumented) | Coralogix Tracing |
+| Signal          | Source                                  | Destination             |
+| --------------- | --------------------------------------- | ----------------------- |
+| **Logs**        | Pod stdout/stderr (JSON structured)     | Coralogix Log Analytics |
+| **Metrics**     | Prometheus scrape (`/api/metrics`)      | Coralogix Metrics       |
+| **K8s Metrics** | kubelet, cAdvisor, host metrics         | Coralogix Metrics       |
+| **Traces**      | OTLP from application (if instrumented) | Coralogix Tracing       |
 
 ## Alert Parity
 
 All 10 Prometheus/Alertmanager rules are replicated in Coralogix:
 
-| Alert | Severity | Prometheus | Coralogix |
-|-------|----------|:----------:|:---------:|
-| Instance Down | Critical | ✓ | ✓ |
-| High Error Rate | Critical | ✓ | ✓ |
-| Pod Restart Loop | Critical | ✓ | ✓ |
-| PV Nearly Full | Critical | ✓ | ✓ |
-| High Latency | Warning | ✓ | ✓ |
-| WebSocket Spike | Warning | ✓ | ✓ |
-| High Memory | Warning | ✓ | ✓ |
-| High CPU | Warning | ✓ | ✓ |
-| Dashboard Replica Contract Violated | Warning | ✓ | ✓ |
-| Slow DB Queries | Warning | ✓ | ✓ |
+| Alert                               | Severity | Prometheus | Coralogix |
+| ----------------------------------- | -------- | :--------: | :-------: |
+| Instance Down                       | Critical |     ✓      |     ✓     |
+| High Error Rate                     | Critical |     ✓      |     ✓     |
+| Pod Restart Loop                    | Critical |     ✓      |     ✓     |
+| PV Nearly Full                      | Critical |     ✓      |     ✓     |
+| High Latency                        | Warning  |     ✓      |     ✓     |
+| WebSocket Spike                     | Warning  |     ✓      |     ✓     |
+| High Memory                         | Warning  |     ✓      |     ✓     |
+| High CPU                            | Warning  |     ✓      |     ✓     |
+| Dashboard Replica Contract Violated | Warning  |     ✓      |     ✓     |
+| Slow DB Queries                     | Warning  |     ✓      |     ✓     |
 
 ## Dashboard Panels
 
@@ -121,20 +123,22 @@ The custom dashboard provides 18 panels across 6 rows:
 
 1. **Overview** — Active sessions, request rate, WebSocket connections
 2. **HTTP Performance** — Latency distribution, error rate, status codes
-3. **Application Logs** — Error log stream (DataPrime), log volume by severity, hook throughput
+3. **Application Logs** — Error log stream (DataPrime), log volume by severity,
+   hook throughput
 4. **Infrastructure** — CPU, memory, pod status
 5. **Database & Storage** — SQLite query duration, PV usage, network I/O
-6. **SLO Tracking** — Availability SLO (99.9%), latency SLO (P95 < 500ms), error budget burn
+6. **SLO Tracking** — Availability SLO (99.9%), latency SLO (P95 < 500ms), error
+   budget burn
 
 ## Coralogix Regions
 
 Set `global.domain` in `values.yaml` to match your Coralogix region:
 
-| Region | Domain |
-|--------|--------|
-| US1 | `coralogix.us` |
-| US2 | `cx498.coralogix.com` |
-| EU1 | `coralogix.com` |
-| EU2 | `eu2.coralogix.com` |
-| AP1 (India) | `coralogix.in` |
-| AP2 (Singapore) | `coralogix.sg` |
+| Region          | Domain                |
+| --------------- | --------------------- |
+| US1             | `coralogix.us`        |
+| US2             | `cx498.coralogix.com` |
+| EU1             | `coralogix.com`       |
+| EU2             | `eu2.coralogix.com`   |
+| AP1 (India)     | `coralogix.in`        |
+| AP2 (Singapore) | `coralogix.sg`        |

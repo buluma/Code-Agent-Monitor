@@ -1,9 +1,9 @@
 {
-  "id": "claude-code-agent-monitor-wiki",
-  "name": "Claude Code Agent Monitor - Wiki",
+  "id": "code-agent-monitor-wiki",
+  "name": "Code Agent Monitor - Wiki",
   "author": "Michael Buluma",
   "short_name": "CC Wiki",
-  "description": "Comprehensive technical wiki for Claude Code Agent Monitor.",
+  "description": "Comprehensive technical wiki for Code Agent Monitor.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

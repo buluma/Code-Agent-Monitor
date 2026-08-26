@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# health-check.sh – Comprehensive health check for Claude Code Agent Monitor
+# health-check.sh – Comprehensive health check for Code Agent Monitor
 #
 # Usage:
 #   ./health-check.sh --url http://localhost:4820
@@ -338,7 +338,7 @@ main() {
   [[ "$JSON_OUTPUT" != true ]] && {
     echo ""
     echo -e "${BOLD}${GREEN}╔══════════════════════════════════════════════════╗${NC}"
-    echo -e "${BOLD}${GREEN}║   Claude Code Agent Monitor – Health Check      ║${NC}"
+    echo -e "${BOLD}${GREEN}║   Code Agent Monitor – Health Check             ║${NC}"
     echo -e "${BOLD}${GREEN}╚══════════════════════════════════════════════════╝${NC}"
     echo ""
     info "Target: ${BASE_URL}"

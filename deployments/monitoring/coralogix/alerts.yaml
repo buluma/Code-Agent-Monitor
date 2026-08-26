@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Coralogix Alert Definitions for Claude Code Agent Monitor
+# Coralogix Alert Definitions for Code Agent Monitor
 #
 # These alerts can be imported via the Coralogix Alerts API or Terraform
 # provider (coralogix/coralogix). They mirror the Prometheus/Alertmanager

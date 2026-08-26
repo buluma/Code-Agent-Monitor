@@ -1,5 +1,5 @@
 /**
- * @file Sidebar provider for Claude Code Agent Monitor VSCode extension
+ * @file Sidebar provider for Code Agent Monitor VSCode extension
  * Renders a rich, real-time WebviewView showing backend status, live agent
  * health, usage analytics, recent sessions, and quick navigation.
  *

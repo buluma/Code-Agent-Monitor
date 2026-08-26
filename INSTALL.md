@@ -1,16 +1,18 @@
 # Installation
 
-A step-by-step guide to get the Claude Code Agent Monitor up and running on your machine, with optional sections for importing history, running in a container, and using the native desktop app (macOS).
+A step-by-step guide to get the Code Agent Monitor up and running on your
+machine, with optional sections for importing history, running in a container,
+and using the native desktop app (macOS).
 
 ## Requirements
 
-| Requirement | Version | Notes |
-|---|---|---|
-| Node.js | 22.22+ (24 LTS recommended) | Required for server and client builds |
-| npm | 9+ | Comes with Node.js |
-| Claude Code | 2.x+ | Required for hook integration |
-| Python | 3.6+ | Optional — statusline utility only |
-| Git | Any | For cloning the repository |
+| Requirement | Version                     | Notes                                 |
+| ----------- | --------------------------- | ------------------------------------- |
+| Node.js     | 22.22+ (24 LTS recommended) | Required for server and client builds |
+| npm         | 9+                          | Comes with Node.js                    |
+| Claude Code | 2.x+                        | Required for hook integration         |
+| Python      | 3.6+                        | Optional — statusline utility only    |
+| Git         | Any                         | For cloning the repository            |
 
 ---
 
@@ -29,15 +31,22 @@ cd Claude-Code-Agent-Monitor
 npm run setup
 ```
 
-This installs all server and client dependencies, plus the VS Code extension, and links the `ccam` CLI.
+This installs all server and client dependencies, plus the VS Code extension,
+and links the `ccam` CLI.
 
-A plain root install already covers server **and** client — a `postinstall` hook installs the client dependencies automatically, so this alone is enough to build and run the dashboard:
+A plain root install already covers server **and** client — a `postinstall` hook
+installs the client dependencies automatically, so this alone is enough to build
+and run the dashboard:
 
 ```bash
 npm install
 ```
 
-`npm run setup` additionally installs the VS Code extension, installs and builds the MCP package, and links the `ccam` CLI. The bundled Claude/Codex plugins use `ccam mcp stdio`, so the MCP build is part of normal setup. If you install with `--ignore-scripts`, the `postinstall` hook is skipped. Run `cd client && npm install` manually in that case.
+`npm run setup` additionally installs the VS Code extension, installs and builds
+the MCP package, and links the `ccam` CLI. The bundled Claude/Codex plugins use
+`ccam mcp stdio`, so the MCP build is part of normal setup. If you install with
+`--ignore-scripts`, the `postinstall` hook is skipped. Run
+`cd client && npm install` manually in that case.
 
 Or via Makefile (also installs MCP dependencies):
 
@@ -55,21 +64,27 @@ npm run dev
 
 This starts two processes concurrently:
 
-| Process | URL | Description |
-|---|---|---|
-| Express server | http://localhost:4820 | API, WebSocket, SQLite |
+| Process         | URL                   | Description             |
+| --------------- | --------------------- | ----------------------- |
+| Express server  | http://localhost:4820 | API, WebSocket, SQLite  |
 | Vite dev server | http://localhost:5173 | React frontend with HMR |
 
 Open **http://localhost:5173** in your browser.
 
 > [!TIP]
-> When you run the dashboard directly on the host with `npm run dev` or `npm start`, the server automatically writes the Claude Code hook configuration to `~/.claude/settings.json`. If you run the dashboard in Docker or Podman, install hooks from the host with `npm run install-hooks` after the container is up.
+> When you run the dashboard directly on the host with `npm run dev` or
+> `npm start`, the server automatically writes the Claude Code hook
+> configuration to `~/.claude/settings.json`. If you run the dashboard in Docker
+> or Podman, install hooks from the host with `npm run install-hooks` after the
+> container is up.
 
 ---
 
 ## Step 4 — Start a Claude Code session
 
-Start a new Claude Code session from any directory **after** the dashboard server is running. The hooks will fire automatically and your sessions, agents, and events will appear in real-time.
+Start a new Claude Code session from any directory **after** the dashboard
+server is running. The hooks will fire automatically and your sessions, agents,
+and events will appear in real-time.
 
 ```bash
 # In a separate terminal, from any project directory:
@@ -82,36 +97,45 @@ claude
 
 After starting a Claude Code session, you should see:
 
-- **Sessions page** — your session listed with status `Waiting` (a fresh CLI sitting at the prompt) or `Active` (mid-turn)
-- **Agent Board** — a `Main Agent` card in the `Waiting` column until you type your first message; it flips to `Working` on `UserPromptSubmit` / `PreToolUse` and back to `Waiting` after each `Stop`
+- **Sessions page** — your session listed with status `Waiting` (a fresh CLI
+  sitting at the prompt) or `Active` (mid-turn)
+- **Agent Board** — a `Main Agent` card in the `Waiting` column until you type
+  your first message; it flips to `Working` on `UserPromptSubmit` / `PreToolUse`
+  and back to `Waiting` after each `Stop`
 - **Activity Feed** — events streaming in as Claude Code uses tools
 - **Dashboard** — stats updating in real-time
-- **Settings page** — model pricing rules, hook configuration status, data export and cleanup tools
+- **Settings page** — model pricing rules, hook configuration status, data
+  export and cleanup tools
 
 If nothing appears after 30 seconds, see [SETUP.md](./SETUP.md#troubleshooting).
 
 ### PWA install (optional)
 
-The dashboard is a Progressive Web App. After opening it in a supported browser (Chrome, Edge, Firefox), you can install it to your dock / home screen:
+The dashboard is a Progressive Web App. After opening it in a supported browser
+(Chrome, Edge, Firefox), you can install it to your dock / home screen:
 
-1. Look for the **install icon** (⊕) in the browser address bar, or open the browser menu → "Install app"
-2. Once installed, the dashboard launches in its own window with no browser chrome
-3. Offline support: previously visited pages and assets are served from the Service Worker cache when the network is unavailable
+1. Look for the **install icon** (⊕) in the browser address bar, or open the
+   browser menu → "Install app"
+2. Once installed, the dashboard launches in its own window with no browser
+   chrome
+3. Offline support: previously visited pages and assets are served from the
+   Service Worker cache when the network is unavailable
 
-The landing page and wiki are also installable PWAs with their own manifests and service workers — visit each in a browser to install independently.
+The landing page and wiki are also installable PWAs with their own manifests and
+service workers — visit each in a browser to install independently.
 
 ---
 
 ## Step 5 — (Optional) Import existing Claude Code history
 
-The server **automatically imports** every session under
-`~/.claude/projects/` on startup, so if you've used Claude Code on this
-machine before, your historical sessions, agents, events, token counts,
-and cost totals should already be visible in the Sessions list.
+The server **automatically imports** every session under `~/.claude/projects/`
+on startup, so if you've used Claude Code on this machine before, your
+historical sessions, agents, events, token counts, and cost totals should
+already be visible in the Sessions list.
 
-To bring in history from another machine, a backup, or a `.tar.gz`
-archive a teammate sent you, use **Settings → Import History** in the
-UI. It supports three modes:
+To bring in history from another machine, a backup, or a `.tar.gz` archive a
+teammate sent you, use **Settings → Import History** in the UI. It supports
+three modes:
 
 ```mermaid
 flowchart LR
@@ -128,13 +152,13 @@ flowchart LR
     style DB fill:#10b981,stroke:#34d399,color:#fff
 ```
 
-Re-imports are idempotent: sessions are deduplicated by UUID and
-compaction baselines preserve pre-compaction token totals, so running
-the importer twice never double-counts tokens or cost.
+Re-imports are idempotent: sessions are deduplicated by UUID and compaction
+baselines preserve pre-compaction token totals, so running the importer twice
+never double-counts tokens or cost.
 
-Verify it worked by opening the **Analytics** page and checking that
-per-model token totals and estimated cost look correct. Full walkthrough
-with per-OS archive commands in
+Verify it worked by opening the **Analytics** page and checking that per-model
+token totals and estimated cost look correct. Full walkthrough with per-OS
+archive commands in
 [SETUP.md → Importing existing Claude Code history](./SETUP.md#importing-existing-claude-code-history).
 
 <p align="center">
@@ -143,14 +167,14 @@ with per-OS archive commands in
 
 ### Optional: tune import limits
 
-If you regularly import very large archives, these environment variables
-can be raised (the defaults are generous for typical use):
+If you regularly import very large archives, these environment variables can be
+raised (the defaults are generous for typical use):
 
-| Variable                          | Default | Purpose                                                     |
-| --------------------------------- | ------- | ----------------------------------------------------------- |
-| `CCAM_IMPORT_MAX_BYTES`           | 1 GB    | Maximum size per uploaded file                              |
-| `CCAM_IMPORT_MAX_FILES`           | 2000    | Maximum files per upload request                            |
-| `CCAM_IMPORT_MAX_EXTRACT_BYTES`   | 4 GB    | Ceiling on uncompressed bytes per archive (zip-bomb guard)  |
+| Variable                        | Default | Purpose                                                    |
+| ------------------------------- | ------- | ---------------------------------------------------------- |
+| `CCAM_IMPORT_MAX_BYTES`         | 1 GB    | Maximum size per uploaded file                             |
+| `CCAM_IMPORT_MAX_FILES`         | 2000    | Maximum files per upload request                           |
+| `CCAM_IMPORT_MAX_EXTRACT_BYTES` | 4 GB    | Ceiling on uncompressed bytes per archive (zip-bomb guard) |
 
 Set them before `npm run dev` or `npm start`:
 
@@ -175,33 +199,47 @@ Open **http://localhost:4820** in your browser.
 
 ## Desktop App (macOS) (optional)
 
-If you'd rather not keep a terminal window open, the project also ships an Electron 35-based **native desktop app** (the `desktop/` workspace), available for **macOS**. It embeds the Express server in-process, renders the built React client in a `BrowserWindow`, registers a menu-bar / notification-area (tray) icon, and offers a one-click "Open at Login" toggle. Everything you'd see in the browser at `localhost:4820` lives inside a single app you install once — distributed as a macOS `.app` (in a `.dmg`).
+If you'd rather not keep a terminal window open, the project also ships an
+Electron 35-based **native desktop app** (the `desktop/` workspace), available
+for **macOS**. It embeds the Express server in-process, renders the built React
+client in a `BrowserWindow`, registers a menu-bar / notification-area (tray)
+icon, and offers a one-click "Open at Login" toggle. Everything you'd see in the
+browser at `localhost:4820` lives inside a single app you install once —
+distributed as a macOS `.app` (in a `.dmg`).
 
 ### Prerequisites
 
-| For… | You need |
-|---|---|
-| Downloading a pre-built installer (macOS) | macOS — nothing else |
-| Building the DMG locally (macOS) | macOS, Node.js 22.22+ (24 LTS recommended), npm 10+, and **Xcode command-line tools** (`xcode-select --install`) so the native `better-sqlite3` module can be rebuilt for Electron's ABI |
+| For…                                      | You need                                                                                                                                                                                 |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Downloading a pre-built installer (macOS) | macOS — nothing else                                                                                                                                                                     |
+| Building the DMG locally (macOS)          | macOS, Node.js 22.22+ (24 LTS recommended), npm 10+, and **Xcode command-line tools** (`xcode-select --install`) so the native `better-sqlite3` module can be rebuilt for Electron's ABI |
 
 ### Way 1 — Download a pre-built installer
 
 The fastest path. There are two flavours:
 
-**1a. From the latest GitHub Release** *(recommended — public, no sign-in)*
+**1a. From the latest GitHub Release** _(recommended — public, no sign-in)_
 
-Open [**Releases → latest**](https://github.com/buluma/Code-Agent-Monitor/releases/latest) and download the asset for your platform. CI publishes a new `vX.Y.Z` release automatically every time the version in `package.json` is bumped on `master`, so this link always points at the current shipping build.
+Open
+[**Releases → latest**](https://github.com/buluma/Code-Agent-Monitor/releases/latest)
+and download the asset for your platform. CI publishes a new `vX.Y.Z` release
+automatically every time the version in `package.json` is bumped on `master`, so
+this link always points at the current shipping build.
 
-| Platform | Asset | Notes |
-|---|---|---|
+| Platform              | Asset                               | Notes                     |
+| --------------------- | ----------------------------------- | ------------------------- |
 | macOS (Apple Silicon) | `ClaudeCodeMonitor-<ver>-arm64.dmg` | drag into `/Applications` |
-| macOS (Intel) | `ClaudeCodeMonitor-<ver>-x64.dmg` | drag into `/Applications` |
+| macOS (Intel)         | `ClaudeCodeMonitor-<ver>-x64.dmg`   | drag into `/Applications` |
 
-**1b. From the per-commit CI artifact** *(useful for testing master before it's tagged — sign-in required, 14-day retention)*
+**1b. From the per-commit CI artifact** _(useful for testing master before it's
+tagged — sign-in required, 14-day retention)_
 
-Every green run of the desktop CI job uploads a packaged artifact — `ClaudeCodeMonitor-dmg` from the `🍎 macOS Desktop (DMG)` job:
+Every green run of the desktop CI job uploads a packaged artifact —
+`ClaudeCodeMonitor-dmg` from the `🍎 macOS Desktop (DMG)` job:
 
-- **Via the GitHub UI:** open the latest passing run under [Actions](https://github.com/buluma/Code-Agent-Monitor/actions/workflows/ci.yml?query=branch%3Amaster+is%3Asuccess), scroll to **Artifacts**, and download `ClaudeCodeMonitor-dmg`.
+- **Via the GitHub UI:** open the latest passing run under
+  [Actions](https://github.com/buluma/Code-Agent-Monitor/actions/workflows/ci.yml?query=branch%3Amaster+is%3Asuccess),
+  scroll to **Artifacts**, and download `ClaudeCodeMonitor-dmg`.
 - **Via the `gh` CLI:**
 
   ```bash
@@ -214,7 +252,8 @@ Then jump to [Install the app](#install-the-app).
 
 ### Way 2 — Build the installer locally
 
-From the project root, after `git clone`. electron-builder packages for the **host OS**, so build the macOS DMG on a Mac. The common prelude is the same:
+From the project root, after `git clone`. electron-builder packages for the
+**host OS**, so build the macOS DMG on a Mac. The common prelude is the same:
 
 ```bash
 npm run setup                # install root + client + vscode-extension + MCP deps, build MCP, link ccam
@@ -225,28 +264,35 @@ npm run desktop:install      # install Electron + electron-builder into desktop/
 npm run desktop:dmg:arm64    # fast single-arch DMG → desktop/release/
 ```
 
-The artifact lands in `desktop/release/`. Pick the build command that matches your goal:
+The artifact lands in `desktop/release/`. Pick the build command that matches
+your goal:
 
-| Command | Platform / Architecture | Speed | Use when |
-|---|---|---|---|
-| `npm run desktop:dmg` | macOS — both per-arch DMGs (arm64 + x64) | **Slower** | Building the release DMGs for everyone |
-| `npm run desktop:dmg:arm64` | macOS — Apple Silicon only | Fast (~1 min) | Building for your own Apple Silicon Mac |
-| `npm run desktop:dmg:x64` | macOS — Intel only | Fast (~1 min) | Building for your own Intel Mac |
-| `npm run desktop:dmg:universal` | macOS — one merged universal DMG (arm64 + x86_64) | **Slowest** | Hand-distributing a single file that runs on any Mac (not what the release ships) |
-| `npm run desktop:install` | — | — | Install Electron + electron-builder deps; preflights the native `better-sqlite3` build and prints actionable setup help on failure |
-| `npm run desktop:build` | — | — | TypeScript compile only (`out/`) |
-| `npm run desktop:dev` | — | — | Build, then launch Electron locally |
-| `npm run desktop:test` | — | — | Smoke test (spawn Electron, probe `/api/health`) |
+| Command                         | Platform / Architecture                           | Speed         | Use when                                                                                                                           |
+| ------------------------------- | ------------------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run desktop:dmg`           | macOS — both per-arch DMGs (arm64 + x64)          | **Slower**    | Building the release DMGs for everyone                                                                                             |
+| `npm run desktop:dmg:arm64`     | macOS — Apple Silicon only                        | Fast (~1 min) | Building for your own Apple Silicon Mac                                                                                            |
+| `npm run desktop:dmg:x64`       | macOS — Intel only                                | Fast (~1 min) | Building for your own Intel Mac                                                                                                    |
+| `npm run desktop:dmg:universal` | macOS — one merged universal DMG (arm64 + x86_64) | **Slowest**   | Hand-distributing a single file that runs on any Mac (not what the release ships)                                                  |
+| `npm run desktop:install`       | —                                                 | —             | Install Electron + electron-builder deps; preflights the native `better-sqlite3` build and prints actionable setup help on failure |
+| `npm run desktop:build`         | —                                                 | —             | TypeScript compile only (`out/`)                                                                                                   |
+| `npm run desktop:dev`           | —                                                 | —             | Build, then launch Electron locally                                                                                                |
+| `npm run desktop:test`          | —                                                 | —             | Smoke test (spawn Electron, probe `/api/health`)                                                                                   |
 
 > [!IMPORTANT]
-> **DMGs build on macOS** — electron-builder packages for the host OS. On macOS, `npm run desktop:dmg` builds the app **twice** (one tree per architecture) and emits **both** per-arch DMGs (`arm64` + `x64`) — the release build. It does **not** merge them into a single universal binary; the two DMGs are what ship. **When building for your own Mac, use `desktop:dmg:arm64` or `desktop:dmg:x64`** — a single architecture finishes in roughly a minute. CI already builds both DMGs for you (see Way 1).
+> **DMGs build on macOS** — electron-builder packages for the host OS. On macOS,
+> `npm run desktop:dmg` builds the app **twice** (one tree per architecture) and
+> emits **both** per-arch DMGs (`arm64` + `x64`) — the release build. It does
+> **not** merge them into a single universal binary; the two DMGs are what ship.
+> **When building for your own Mac, use `desktop:dmg:arm64` or
+> `desktop:dmg:x64`** — a single architecture finishes in roughly a minute. CI
+> already builds both DMGs for you (see Way 1).
 
 ### Install the app
 
 **macOS.** Each `desktop:dmg*` build wipes `release/` first. `desktop:dmg:arm64`
 → `…-arm64.dmg` and `desktop:dmg:x64` → `…-x64.dmg` each emit a single DMG whose
-mounted-volume title states the architecture (e.g. *Claude Code Monitor (Apple
-Silicon)*); `desktop:dmg` emits **both** (`…-arm64.dmg` + `…-x64.dmg`) for
+mounted-volume title states the architecture (e.g. _Claude Code Monitor (Apple
+Silicon)_); `desktop:dmg` emits **both** (`…-arm64.dmg` + `…-x64.dmg`) for
 release. Install the one matching your Mac: an x64 build on Apple Silicon makes
 macOS prompt for Rosetta.
 
@@ -254,28 +300,48 @@ macOS prompt for Rosetta.
 open desktop/release/ClaudeCodeMonitor-*-arm64.dmg   # the arch you built
 ```
 
-1. The DMG mounts — drag **Claude Code Monitor** into your `Applications` folder.
-2. The DMG is ad-hoc signed, so macOS Gatekeeper shows a warning (*"Apple could not verify…"*) on first launch. Strip the quarantine attribute, then open it:
+1. The DMG mounts — drag **Claude Code Monitor** into your `Applications`
+   folder.
+2. The DMG is ad-hoc signed, so macOS Gatekeeper shows a warning (_"Apple could
+   not verify…"_) on first launch. Strip the quarantine attribute, then open it:
 
    ```bash
    xattr -cr "/Applications/Claude Code Monitor.app"
    open "/Applications/Claude Code Monitor.app"
    ```
 
-   Alternatively, open  → *System Settings → Privacy & Security* and click *Open Anyway*.
+   Alternatively, open → _System Settings → Privacy & Security_ and click _Open
+   Anyway_.
 
-Once running, the embedded server boots on port `4820` (or adopts an already-healthy server on `4820`, or falls back to `4821`–`4829` / a random high port), the menu-bar / notification-area (tray) icon appears, and the dashboard window opens. **Hooks are installed automatically on first boot** — an install-only user does not need `npm run install-hooks`; just start a new Claude Code session. Closing the window hides it but keeps the server running; **Quit** from the tray exits.
+Once running, the embedded server boots on port `4820` (or adopts an
+already-healthy server on `4820`, or falls back to `4821`–`4829` / a random high
+port), the menu-bar / notification-area (tray) icon appears, and the dashboard
+window opens. **Hooks are installed automatically on first boot** — an
+install-only user does not need `npm run install-hooks`; just start a new Claude
+Code session. Closing the window hides it but keeps the server running; **Quit**
+from the tray exits.
 
 > [!NOTE]
-> The packaged app stores its SQLite database and VAPID keys in a per-user app-data directory **outside** the app bundle / install dir — `~/Library/Application Support/Claude Code Monitor/data/`. Your imported history and events therefore **survive app reinstalls and updates**. (Older macOS builds kept the database inside the bundle, which is read-only once installed and code-signed — that broke History Import; it is now fixed. If you are upgrading from a pre-fix build, there is a one-time data gap: re-run **Settings → Import History → Rescan** once.)
+> The packaged app stores its SQLite database and VAPID keys in a per-user
+> app-data directory **outside** the app bundle / install dir —
+> `~/Library/Application Support/Claude Code Monitor/data/`. Your imported
+> history and events therefore **survive app reinstalls and updates**. (Older
+> macOS builds kept the database inside the bundle, which is read-only once
+> installed and code-signed — that broke History Import; it is now fixed. If you
+> are upgrading from a pre-fix build, there is a one-time data gap: re-run
+> **Settings → Import History → Rescan** once.)
 
-Full user guide: [`DESKTOP.md`](DESKTOP.md). Contributor / architecture reference: [`desktop/README.md`](desktop/README.md). Desktop-specific setup details (logs, auto-start, port adoption) are in [SETUP.md → Desktop App Setup](./SETUP.md#desktop-app-setup).
+Full user guide: [`DESKTOP.md`](DESKTOP.md). Contributor / architecture
+reference: [`desktop/README.md`](desktop/README.md). Desktop-specific setup
+details (logs, auto-start, port adoption) are in
+[SETUP.md → Desktop App Setup](./SETUP.md#desktop-app-setup).
 
 ---
 
 ## Optional: Local MCP server
 
-If you want AI agents to call dashboard functionality through MCP tools, run the local MCP server in `mcp/`:
+If you want AI agents to call dashboard functionality through MCP tools, run the
+local MCP server in `mcp/`:
 
 ```bash
 npm run mcp:install
@@ -302,7 +368,8 @@ graph LR
     style REPL fill:#a855f7,stroke:#c084fc,color:#fff
 ```
 
-See [mcp/README.md](./mcp/README.md) for host config, tool catalog, and safety flags.
+See [mcp/README.md](./mcp/README.md) for host config, tool catalog, and safety
+flags.
 
 To build the MCP server as a container image instead:
 
@@ -335,19 +402,24 @@ See [`.codex/README.md`](./.codex/README.md) for Codex extension details.
 
 ## Optional: VS Code extension
 
-The **Claude Code Agent Monitor** is also available as a dedicated VS Code extension for seamless, integrated monitoring.
+The **Code Agent Monitor** is also available as a dedicated VS Code extension
+for seamless, integrated monitoring.
 
 <p align="center">
   <img src="vscode-extension/vscode.png" alt="VS Code Extension Screenshot" width="100%">
 </p>
 
 ### Features
-- **Real-time Sidebar**: Monitor agent status, health, and usage stats in the Activity Bar.
-- **Pulse Status Bar**: High-level session and agent counts in the bottom status bar.
+
+- **Real-time Sidebar**: Monitor agent status, health, and usage stats in the
+  Activity Bar.
+- **Pulse Status Bar**: High-level session and agent counts in the bottom status
+  bar.
 - **Direct Navigation**: Jump to specific dashboard pages or recent sessions.
 - **Embedded Dashboard**: Full dashboard interface within a native VS Code tab.
 
 ### Installation
+
 1. Open the [vscode-extension](./vscode-extension) folder in VS Code.
 2. Install via the Marketplace or package it manually:
    ```bash
@@ -356,13 +428,16 @@ The **Claude Code Agent Monitor** is also available as a dedicated VS Code exten
    # Generate .vsix for local install
    npm run package
    ```
-3. After installation, ensure the main dashboard server is running (`npm run dev`).
+3. After installation, ensure the main dashboard server is running
+   (`npm run dev`).
 4. Look for the **Radar icon** in your VS Code Activity Bar.
 
-For advanced configuration, refer to the [.vscode](./.vscode) and [vscode-extension](./vscode-extension) directories.
+For advanced configuration, refer to the [.vscode](./.vscode) and
+[vscode-extension](./vscode-extension) directories.
 
 > [!TIP]
-> Extension on VS Code Marketplace: [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=buluma.claude-code-agent-monitor)
+> Extension on VS Code Marketplace:
+> [Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=buluma.claude-code-agent-monitor)
 
 ---
 
@@ -386,10 +461,10 @@ openssl rand -base64 32 > deployments/secrets/grafana-admin-password
 npm run docker:full:up
 ```
 
-Host ports bind loopback by default: dashboard `4820`, MCP `8819`, Nginx
-`8080`, Prometheus `9090`, and Grafana `3000`. Claude and Codex homes mount
-read-only at `/home/node/.claude` and `/home/node/.codex`. Named volumes retain
-SQLite and dashboard-owned config.
+Host ports bind loopback by default: dashboard `4820`, MCP `8819`, Nginx `8080`,
+Prometheus `9090`, and Grafana `3000`. Claude and Codex homes mount read-only at
+`/home/node/.claude` and `/home/node/.codex`. Named volumes retain SQLite and
+dashboard-owned config.
 
 > [!IMPORTANT]
 > Install hooks on the host. For remote cloud hooks, use
@@ -427,18 +502,26 @@ SQLite and dashboard-owned config.
 
 ### `npm run setup` shows `better-sqlite3` errors
 
-This is expected and **non-fatal**. `better-sqlite3` is a native C++ module listed as an optional dependency. If prebuilt binaries are not available for your Node version or platform, npm will print gyp/compilation errors but still complete successfully.
+This is expected and **non-fatal**. `better-sqlite3` is a native C++ module
+listed as an optional dependency. If prebuilt binaries are not available for
+your Node version or platform, npm will print gyp/compilation errors but still
+complete successfully.
 
 At runtime the server uses this fallback chain:
 
-1. **`better-sqlite3`** — used when prebuilt binaries are available (Node 20/22/24 on Windows x64, macOS arm64/x64, Linux x64/arm64)
-2. **`node:sqlite`** — Node.js built-in SQLite module, used automatically on Node 22+ when `better-sqlite3` is unavailable
+1. **`better-sqlite3`** — used when prebuilt binaries are available (Node
+   20/22/24 on Windows x64, macOS arm64/x64, Linux x64/arm64)
+2. **`node:sqlite`** — Node.js built-in SQLite module, used automatically on
+   Node 22+ when `better-sqlite3` is unavailable
 
-If you see an error box at startup saying *"SQLite backend not available"*, either:
+If you see an error box at startup saying _"SQLite backend not available"_,
+either:
 
 - **Upgrade to Node.js 22+** (recommended — zero native dependencies needed), or
 - **Install build tools** so `better-sqlite3` can compile from source:
-  - **Windows:** `npm install -g windows-build-tools` or install [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with the C++ workload
+  - **Windows:** `npm install -g windows-build-tools` or install
+    [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+    with the C++ workload
   - **macOS:** `xcode-select --install`
   - **Linux:** `sudo apt install python3 make g++` (Debian/Ubuntu) or equivalent
 
@@ -446,7 +529,13 @@ If you see an error box at startup saying *"SQLite backend not available"*, eith
 
 ### Desktop build or install fails on the native dependency
 
-Unlike the root server (which falls back to `node:sqlite`), the desktop app **requires** `better-sqlite3` built for Electron's ABI. If that build can't happen, `npm run desktop:install` (and the desktop `prebuild` gate that runs before every `desktop:*` build) now stops with copy-pasteable setup help instead of a raw node-gyp trace or a runtime crash: it lists the macOS C++ toolchain prerequisite (`xcode-select --install`), notes that Node LTS 20/22 ship prebuilt binaries, and offers a no-toolchain alternative:
+Unlike the root server (which falls back to `node:sqlite`), the desktop app
+**requires** `better-sqlite3` built for Electron's ABI. If that build can't
+happen, `npm run desktop:install` (and the desktop `prebuild` gate that runs
+before every `desktop:*` build) now stops with copy-pasteable setup help instead
+of a raw node-gyp trace or a runtime crash: it lists the macOS C++ toolchain
+prerequisite (`xcode-select --install`), notes that Node LTS 20/22 ship prebuilt
+binaries, and offers a no-toolchain alternative:
 
 ```bash
 cd desktop
@@ -463,7 +552,9 @@ Ensure both server and client dependencies are installed:
 npm run setup
 ```
 
-If the error mentions a missing module like `express` or `react`, dependencies may be incomplete. Delete `node_modules` in both root and `client/`, then re-run setup:
+If the error mentions a missing module like `express` or `react`, dependencies
+may be incomplete. Delete `node_modules` in both root and `client/`, then re-run
+setup:
 
 ```bash
 rm -rf node_modules client/node_modules
@@ -472,28 +563,31 @@ npm run setup
 
 ### Server starts but client shows a blank page
 
-The Vite dev server and Express server run on different ports. Make sure both are running (`npm run dev` starts both). Open **http://localhost:5173**, not `http://localhost:4820`, during development.
+The Vite dev server and Express server run on different ports. Make sure both
+are running (`npm run dev` starts both). Open **http://localhost:5173**, not
+`http://localhost:4820`, during development.
 
 ### No sessions appearing after starting Claude Code
 
-See [SETUP.md — Troubleshooting](./SETUP.md#troubleshooting) for detailed hook debugging steps.
+See [SETUP.md — Troubleshooting](./SETUP.md#troubleshooting) for detailed hook
+debugging steps.
 
 ### Desktop App (macOS) issues
 
-| Symptom | Cause | Fix |
-|---|---|---|
-| *"Apple could not verify…"* on first launch (macOS) | The DMG is ad-hoc signed (no paid Apple Developer ID) | `xattr -cr "/Applications/Claude Code Monitor.app"`, then open it — or use *System Settings → Privacy & Security → Open Anyway* |
-| `npm run desktop:dmg` seems slow (macOS) | Not hung — it packages two architectures back-to-back (`arch=x64` then `arch=arm64`) | Wait it out, or use `npm run desktop:dmg:arm64` / `npm run desktop:dmg:x64` for a fast single-arch build |
-| `entry file out/main.js does not exist` | `npm run clean` (in `desktop/`) deleted `out/`; `electron-builder` only packages, it does not compile | Re-run `npm run desktop:build` (or just use a `desktop:dmg*` script, which chains the build) |
-| Desktop window opens but is blank | The embedded server failed `/api/health` within 30 s | Check the desktop log (`~/Library/Logs/Claude Code Monitor/desktop.log`), then tray → *Restart Server* |
-| "Run Claude" says `claude` is not on your PATH | A Finder/Dock-launched macOS app only inherits launchd's minimal PATH, not your login-shell PATH | The app recovers your login-shell PATH at startup so it can find and spawn the `claude` CLI. If it still fails, make sure `claude` is a real executable on your shell PATH — not a shell alias or function |
-| Imported history vanished after updating the app | Older builds stored the database inside the (replaceable) `.app` bundle | Fixed — data now lives in the per-user app-data dir (`~/Library/Application Support/Claude Code Monitor/data/`) and survives reinstalls/updates. After upgrading from a pre-fix build, re-run **Settings → Import History → Rescan** once |
+| Symptom                                             | Cause                                                                                                 | Fix                                                                                                                                                                                                                                       |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| _"Apple could not verify…"_ on first launch (macOS) | The DMG is ad-hoc signed (no paid Apple Developer ID)                                                 | `xattr -cr "/Applications/Claude Code Monitor.app"`, then open it — or use _System Settings → Privacy & Security → Open Anyway_                                                                                                           |
+| `npm run desktop:dmg` seems slow (macOS)            | Not hung — it packages two architectures back-to-back (`arch=x64` then `arch=arm64`)                  | Wait it out, or use `npm run desktop:dmg:arm64` / `npm run desktop:dmg:x64` for a fast single-arch build                                                                                                                                  |
+| `entry file out/main.js does not exist`             | `npm run clean` (in `desktop/`) deleted `out/`; `electron-builder` only packages, it does not compile | Re-run `npm run desktop:build` (or just use a `desktop:dmg*` script, which chains the build)                                                                                                                                              |
+| Desktop window opens but is blank                   | The embedded server failed `/api/health` within 30 s                                                  | Check the desktop log (`~/Library/Logs/Claude Code Monitor/desktop.log`), then tray → _Restart Server_                                                                                                                                    |
+| "Run Claude" says `claude` is not on your PATH      | A Finder/Dock-launched macOS app only inherits launchd's minimal PATH, not your login-shell PATH      | The app recovers your login-shell PATH at startup so it can find and spawn the `claude` CLI. If it still fails, make sure `claude` is a real executable on your shell PATH — not a shell alias or function                                |
+| Imported history vanished after updating the app    | Older builds stored the database inside the (replaceable) `.app` bundle                               | Fixed — data now lives in the per-user app-data dir (`~/Library/Application Support/Claude Code Monitor/data/`) and survives reinstalls/updates. After upgrading from a pre-fix build, re-run **Settings → Import History → Rescan** once |
 
 ---
 
 ## Ports
 
-| Service | Default | Override |
-|---|---|---|
-| Dashboard server | `4820` | `DASHBOARD_PORT=xxxx npm run dev` |
-| Client dev server | `5173` | Edit `client/vite.config.ts` |
+| Service           | Default | Override                          |
+| ----------------- | ------- | --------------------------------- |
+| Dashboard server  | `4820`  | `DASHBOARD_PORT=xxxx npm run dev` |
+| Client dev server | `5173`  | Edit `client/vite.config.ts`      |

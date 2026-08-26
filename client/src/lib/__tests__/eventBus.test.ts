@@ -1,6 +1,6 @@
 /**
  * @file eventBus.test.ts
- * @description Unit tests for the eventBus module to ensure correct subscription, publishing, and unsubscription behavior in the agent dashboard application.
+ * @description Unit tests for the eventBus module to ensure correct subscription, publishing, and unsubscription behavior in the Code Agent Monitor application.
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 

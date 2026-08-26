@@ -1,5 +1,5 @@
 /**
- * @file Main extension file for Claude Code Agent Monitor VSCode extension
+ * @file Main extension file for Code Agent Monitor VSCode extension
  * Sets up the extension, registers commands, and manages the status bar item.
  * Implements a dynamic dashboard view that checks for active servers on ports 5173 and 4820.
  * Provides real-time status updates in the sidebar and status bar with background polling.
@@ -15,19 +15,19 @@ let statusBarItem;
 let outputChannel;
 
 function activate(context) {
-  outputChannel = vscode.window.createOutputChannel("Claude Code Monitor");
+  outputChannel = vscode.window.createOutputChannel("Code Agent Monitor");
   outputChannel.appendLine("[activate] " + new Date().toISOString());
   context.subscriptions.push(outputChannel);
 
   const statusProvider = new DashboardWebviewProvider(context, outputChannel);
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider("claude-code-monitor-view", statusProvider, {
+    vscode.window.registerWebviewViewProvider("code-agent-monitor-view", statusProvider, {
       webviewOptions: { retainContextWhenHidden: true },
     })
   );
 
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-  statusBarItem.command = "claude-code-agent-monitor.openDashboard";
+  statusBarItem.command = "code-agent-monitor.openDashboard";
   context.subscriptions.push(statusBarItem);
 
   updateStatusBar();
@@ -36,11 +36,11 @@ function activate(context) {
   }, 5000); // Auto-refresh every 5 seconds
 
   let openDashboard = vscode.commands.registerCommand(
-    "claude-code-agent-monitor.openDashboard",
+    "code-agent-monitor.openDashboard",
     async (target) => {
       const panel = vscode.window.createWebviewPanel(
         "agentMonitor",
-        "Claude Code Agent Monitor",
+        "Code Agent Monitor",
         vscode.ViewColumn.One,
         { enableScripts: true, retainContextWhenHidden: true }
       );

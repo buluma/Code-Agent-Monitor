@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: Agent Dashboard for Claude Code API
+  title: Code Agent Monitor API
   version: 2.0.13
-  description: HTTP API for real-time Claude Code session monitoring, agent lifecycle tracking, analytics, pricing, hooks ingestion, and workflow intelligence.
+  description: HTTP API for real-time code agent session monitoring, agent lifecycle tracking, analytics, pricing, hooks ingestion, and workflow intelligence.
   contact:
     name: Michael Buluma
     email: 1452922+buluma@users.noreply.github.com

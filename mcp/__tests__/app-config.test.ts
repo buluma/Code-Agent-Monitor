@@ -21,7 +21,7 @@ function env(overrides: Record<string, string> = {}): NodeJS.ProcessEnv {
 describe("loadConfig", () => {
   it("returns sane defaults when no env vars set", () => {
     const cfg = loadConfig(env());
-    assert.equal(cfg.serverName, "agent-dashboard-mcp");
+    assert.equal(cfg.serverName, "code-agent-monitor-mcp");
     assert.equal(cfg.serverVersion, "1.0.0");
     assert.equal(cfg.dashboardBaseUrl.toString(), "http://127.0.0.1:4820/");
     assert.equal(cfg.dashboardApiToken, undefined);

@@ -1,11 +1,11 @@
-# Agent Dashboard for Claude Code & Codex
+# Code Agent Monitor
 
-### Real-time monitoring platform for Claude Code & Codex agent activity 🚀
+### Real-time monitoring platform for code agent activity 🚀
 
-A professional dashboard to track and visualize your Claude Code and Codex agent
-sessions, tool usage, and subagent orchestration in real-time. Built with
-Node.js, Express, React, and SQLite, it integrates directly with Claude Code and
-Codex via their native hook systems for seamless session tracking and analytics.
+A professional dashboard to track and visualize your code agent sessions, tool
+usage, and subagent orchestration in real-time. Built with Node.js, Express,
+React, and SQLite, it integrates directly with Claude Code and Codex via their
+native hook systems for seamless session tracking and analytics.
 
 ![Claude Code](https://img.shields.io/badge/Claude_Code-orange?style=flat-square&logo=claude&logoColor=white)
 ![OpenAI Codex](https://img.shields.io/badge/OpenAI_Codex-blue?style=flat-square&logo=githubcopilot&logoColor=white)
@@ -2065,8 +2065,8 @@ everything on demand.
 
 ## VS Code Extension
 
-The **Claude Code Agent Monitor** is available as a first-class VS Code
-extension, allowing you to monitor your AI agents without leaving your editor.
+The **Code Agent Monitor** is available as a first-class VS Code extension,
+allowing you to monitor your AI agents without leaving your editor.
 
 <p align="center">
   <img src="vscode-extension/vscode.png" alt="VS Code Extension Screenshot" width="100%">
@@ -2098,7 +2098,7 @@ For detailed developer configuration, see the [.vscode](./.vscode) and
 
 > [!TIP]
 > Extension on VS Code Marketplace:
-> [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=buluma.claude-code-agent-monitor)
+> [Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=buluma.claude-code-agent-monitor)
 
 ---
 
@@ -2491,7 +2491,7 @@ buluma@host ~/agent-dashboard/client | Sonnet 4.6 | main | ███████
 | Segment     | Color                | Example                                                         |
 | ----------- | -------------------- | --------------------------------------------------------------- |
 | Model       | Cyan                 | `Sonnet 4.6`                                                    |
-| User        | Green                | `buluma`                                                      |
+| User        | Green                | `buluma`                                                        |
 | CWD         | Yellow               | `~/agent-dashboard`                                             |
 | Git branch  | Magenta              | `main`                                                          |
 | Context bar | Green / Yellow / Red | `████████░░ 79%`                                                |

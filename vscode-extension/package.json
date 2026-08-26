@@ -1,7 +1,7 @@
 {
-  "name": "claude-code-agent-monitor",
-  "displayName": "Claude Code Agent Monitor",
-  "description": "Professional integrated dashboard for monitoring Claude Code AI agent activity, token usage, and costs directly in VS Code.",
+  "name": "code-agent-monitor",
+  "displayName": "Code Agent Monitor",
+  "description": "Professional integrated dashboard for monitoring code agent activity, token usage, and costs directly in VS Code.",
   "version": "1.2.4",
   "publisher": "buluma",
   "engines": {
@@ -14,7 +14,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:claude-code-monitor-view"
+    "onView:code-agent-monitor-view"
   ],
   "main": "./extension.js",
   "icon": "apple-touch-icon.png",
@@ -30,43 +30,43 @@
   "contributes": {
     "commands": [
       {
-        "command": "claude-code-agent-monitor.openDashboard",
-        "title": "Open Agent Dashboard",
-        "category": "Claude Code",
+        "command": "code-agent-monitor.openDashboard",
+        "title": "Open Dashboard",
+        "category": "Code Agent Monitor",
         "icon": "$(dashboard)"
       },
       {
-        "command": "claude-code-agent-monitor.refreshStatus",
+        "command": "code-agent-monitor.refreshStatus",
         "title": "Refresh Dashboard Status",
-        "category": "Claude Code",
+        "category": "Code Agent Monitor",
         "icon": "$(refresh)"
       },
       {
-        "command": "claude-code-agent-monitor.clearHistory",
+        "command": "code-agent-monitor.clearHistory",
         "title": "Clear Monitor History",
-        "category": "Claude Code",
+        "category": "Code Agent Monitor",
         "icon": "$(trash)"
       },
       {
-        "command": "claude-code-agent-monitor.openInBrowser",
+        "command": "code-agent-monitor.openInBrowser",
         "title": "Open Dashboard in Browser",
-        "category": "Claude Code",
+        "category": "Code Agent Monitor",
         "icon": "$(globe)"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "claude-code-monitor",
-          "title": "Claude Code Agent Monitor",
+          "id": "code-agent-monitor",
+          "title": "Code Agent Monitor",
           "icon": "icon.svg"
         }
       ]
     },
     "views": {
-      "claude-code-monitor": [
+      "code-agent-monitor": [
         {
-          "id": "claude-code-monitor-view",
+          "id": "code-agent-monitor-view",
           "name": "Monitor Control Center",
           "type": "webview"
         }
@@ -75,18 +75,18 @@
     "menus": {
       "view/title": [
         {
-          "command": "claude-code-agent-monitor.openDashboard",
-          "when": "view == claude-code-monitor-view",
+          "command": "code-agent-monitor.openDashboard",
+          "when": "view == code-agent-monitor-view",
           "group": "navigation@1"
         },
         {
-          "command": "claude-code-agent-monitor.refreshStatus",
-          "when": "view == claude-code-monitor-view",
+          "command": "code-agent-monitor.refreshStatus",
+          "when": "view == code-agent-monitor-view",
           "group": "navigation@2"
         },
         {
-          "command": "claude-code-agent-monitor.openInBrowser",
-          "when": "view == claude-code-monitor-view",
+          "command": "code-agent-monitor.openInBrowser",
+          "when": "view == code-agent-monitor-view",
           "group": "navigation@3"
         }
       ]

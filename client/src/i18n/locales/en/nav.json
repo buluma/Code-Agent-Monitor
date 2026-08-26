@@ -1,6 +1,6 @@
 {
-  "brand": "Agent Dashboard",
-  "brandSub": "Claude Code Monitor",
+  "brand": "Code Agent Monitor",
+  "brandSub": "",
   "dashboard": "Dashboard",
   "agentBoard": "Kanban Board",
   "sessions": "Sessions",

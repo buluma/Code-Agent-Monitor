@@ -57,9 +57,9 @@
  *
  * ----------------------------------------------------------------------------- */
 
-const ENABLED_KEY = "agent-dashboard-tabby-enabled";
-const MUTED_KEY = "agent-dashboard-tabby-muted";
-const POS_KEY = "agent-dashboard-tabby-pos";
+const ENABLED_KEY = "code-agent-monitor-tabby-enabled";
+const MUTED_KEY = "code-agent-monitor-tabby-muted";
+const POS_KEY = "code-agent-monitor-tabby-pos";
 const EVENT = "tabby:prefs";
 
 /**

@@ -9,13 +9,14 @@ description: >
 
 # Daily Standup
 
-Generate a daily standup report from Claude Code Agent Monitor data.
+Generate a daily standup report from Code Agent Monitor data.
 
 ## Input
 
 The user provides: **$ARGUMENTS**
 
 This may be:
+
 - "today" or empty (default: last 24 hours)
 - "yesterday" for the previous day
 - A specific date: "2025-04-10"
@@ -62,4 +63,6 @@ This may be:
 
 ## Output Format
 
-Present as a clean standup report with emoji section headers, bullet points for items, and a compact metrics table. Add a one-line summary at the top suitable for pasting into Slack or a team channel.
+Present as a clean standup report with emoji section headers, bullet points for
+items, and a compact metrics table. Add a one-line summary at the top suitable
+for pasting into Slack or a team channel.

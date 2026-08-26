@@ -1,6 +1,6 @@
 /**
  * @file api.ts
- * @description Defines a set of functions for interacting with the backend API of the agent dashboard application. It includes methods for fetching statistics, managing sessions and agents, retrieving analytics data, handling settings, and managing model pricing. The module abstracts away the details of making HTTP requests and provides a clean interface for the rest of the application to use when communicating with the server.
+ * @description Defines a set of functions for interacting with the backend API of the Code Agent Monitor application. It includes methods for fetching statistics, managing sessions and agents, retrieving analytics data, handling settings, and managing model pricing. The module abstracts away the details of making HTTP requests and provides a clean interface for the rest of the application to use when communicating with the server.
  *
  * ## What this module is
  * `api.ts` is the single, centralized REST client for the React dashboard. Every page/hook that

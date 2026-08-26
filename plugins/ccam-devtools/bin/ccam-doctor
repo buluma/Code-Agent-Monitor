@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ccam-doctor — Diagnostic tool for Claude Code Agent Monitor
+# ccam-doctor — Diagnostic tool for Code Agent Monitor
 # Usage: ccam-doctor [--quick] [--deep] [--fix]
 set -euo pipefail
 
@@ -20,7 +20,7 @@ FAIL=0
 
 usage() {
   cat <<EOF
-ccam-doctor — Claude Code Agent Monitor Diagnostic Tool
+ccam-doctor — Code Agent Monitor Diagnostic Tool
 
 USAGE:
   ccam-doctor [OPTIONS]

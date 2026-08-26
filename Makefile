@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Claude Code Agent Monitor — Makefile
+# Code Agent Monitor — Makefile
 # A collection of convenient commands for development, testing, and deployment.
 # Prerequisites: GNU Make, Node.js, npm
 # Author: Michael Buluma <1452922+buluma@users.noreply.github.com>
@@ -138,7 +138,7 @@ docker-logs: ## Tail docker-compose logs
 
 .PHONY: mcp-docker-build
 mcp-docker-build: ## Build MCP Docker image
-	docker build -f mcp/Dockerfile -t agent-dashboard-mcp:local .
+	docker build -f mcp/Dockerfile -t code-agent-monitor-mcp:local .
 
 .PHONY: podman-build
 podman-build: ## Build dashboard Podman image
@@ -146,7 +146,7 @@ podman-build: ## Build dashboard Podman image
 
 .PHONY: mcp-podman-build
 mcp-podman-build: ## Build MCP Podman image
-	podman build -f mcp/Dockerfile -t localhost/agent-dashboard-mcp:local .
+	podman build -f mcp/Dockerfile -t localhost/code-agent-monitor-mcp:local .
 
 # ─── Help ───────────────────────────────────────────────────────────────────
 

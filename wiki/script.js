@@ -1779,13 +1779,12 @@ document.querySelectorAll(".diagram-toggle").forEach((toggle) => {
       es: "Seleccionar idioma",
     },
     Language: { zh: "语言", vi: "Ngôn ngữ", ko: "언어", es: "Idioma" },
-    "Claude Code Agent Monitor dashboard showing live agent cards, stats, and recent activity feed":
-      {
-        zh: "Claude Code Agent Monitor 仪表盘，显示实时 Agent 卡片、统计数据和最近活动流",
-        vi: "Bảng điều khiển Claude Code Agent Monitor hiển thị thẻ Agent trực tiếp, số liệu và luồng hoạt động gần đây",
-        ko: "실시간 Agent 카드, 통계, 최근 활동 피드를 보여 주는 Claude Code Agent Monitor 대시보드",
-        es: "Panel de Claude Code Agent Monitor con tarjetas de Agent en tiempo real, estadísticas y actividad reciente",
-      },
+    "Code Agent Monitor dashboard showing live agent cards, stats, and recent activity feed": {
+      zh: "Code Agent Monitor 仪表盘，显示实时 Agent 卡片、统计数据和最近活动流",
+      vi: "Bảng điều khiển Code Agent Monitor hiển thị thẻ Agent trực tiếp, số liệu và luồng hoạt động gần đây",
+      ko: "실시간 Agent 카드, 통계, 최근 활동 피드를 보여 주는 Code Agent Monitor 대시보드",
+      es: "Panel de Code Agent Monitor con tarjetas de Agent en tiempo real, estadísticas y actividad reciente",
+    },
     "Previous features": {
       zh: "上一组功能",
       vi: "Tính năng trước",
@@ -2124,61 +2123,60 @@ document.querySelectorAll(".diagram-toggle").forEach((toggle) => {
   );
   const META = {
     en: {
-      title: "Claude Code Agent Monitor - Project Wiki",
+      title: "Code Agent Monitor - Project Wiki",
       description:
-        "Comprehensive technical wiki for Claude Code Agent Monitor — real-time local monitoring with MCP server integration plus Claude Code and Codex extension scaffolding.",
-      socialTitle: "Claude Code Agent Monitor - Project Wiki",
+        "Comprehensive technical wiki for Code Agent Monitor — real-time local monitoring with MCP server integration plus Claude Code and Codex extension scaffolding.",
+      socialTitle: "Code Agent Monitor - Project Wiki",
       socialDescription:
-        "Comprehensive technical wiki for Claude Code Agent Monitor — real-time local monitoring with MCP server integration plus Claude Code and Codex extension scaffolding.",
+        "Comprehensive technical wiki for Code Agent Monitor — real-time local monitoring with MCP server integration plus Claude Code and Codex extension scaffolding.",
       twitterDescription:
         "Real-time local monitoring for Claude Code agent activity with MCP integration, extension scaffolding, analytics, and WebSocket push.",
-      socialImageAlt: "Claude Code Agent Monitor — real-time Claude Code monitoring platform",
+      socialImageAlt: "Code Agent Monitor — real-time Claude Code monitoring platform",
     },
     zh: {
-      title: "Claude Code Agent Monitor - 项目维基",
+      title: "Code Agent Monitor - 项目维基",
       description:
-        "Claude Code Agent Monitor 综合技术维基：本地实时监控、MCP Server 集成，以及 Claude Code 和 Codex 扩展脚手架。",
-      socialTitle: "Claude Code Agent Monitor - 项目维基",
+        "Code Agent Monitor 综合技术维基：本地实时监控、MCP Server 集成，以及 Claude Code 和 Codex 扩展脚手架。",
+      socialTitle: "Code Agent Monitor - 项目维基",
       socialDescription:
-        "Claude Code Agent Monitor 综合技术维基：本地实时监控、MCP Server 集成，以及 Claude Code 和 Codex 扩展脚手架。",
+        "Code Agent Monitor 综合技术维基：本地实时监控、MCP Server 集成，以及 Claude Code 和 Codex 扩展脚手架。",
       twitterDescription:
         "面向 Claude Code Agent 活动的本地实时监控，集成 MCP、扩展脚手架、分析和 WebSocket 推送。",
-      socialImageAlt: "Claude Code Agent Monitor — Claude Code 实时监控平台",
+      socialImageAlt: "Code Agent Monitor — Claude Code 实时监控平台",
     },
     vi: {
-      title: "Claude Code Agent Monitor - Wiki dự án",
+      title: "Code Agent Monitor - Wiki dự án",
       description:
-        "Wiki kỹ thuật toàn diện cho Claude Code Agent Monitor — giám sát cục bộ theo thời gian thực, tích hợp MCP Server và bộ khung tiện ích Claude Code cùng Codex.",
-      socialTitle: "Claude Code Agent Monitor - Wiki dự án",
+        "Wiki kỹ thuật toàn diện cho Code Agent Monitor — giám sát cục bộ theo thời gian thực, tích hợp MCP Server và bộ khung tiện ích Claude Code cùng Codex.",
+      socialTitle: "Code Agent Monitor - Wiki dự án",
       socialDescription:
-        "Wiki kỹ thuật toàn diện cho Claude Code Agent Monitor — giám sát cục bộ theo thời gian thực, tích hợp MCP Server và bộ khung tiện ích Claude Code cùng Codex.",
+        "Wiki kỹ thuật toàn diện cho Code Agent Monitor — giám sát cục bộ theo thời gian thực, tích hợp MCP Server và bộ khung tiện ích Claude Code cùng Codex.",
       twitterDescription:
         "Giám sát cục bộ theo thời gian thực cho hoạt động Agent Claude Code, với MCP, tiện ích mở rộng, phân tích và WebSocket.",
-      socialImageAlt:
-        "Claude Code Agent Monitor — nền tảng giám sát Claude Code theo thời gian thực",
+      socialImageAlt: "Code Agent Monitor — nền tảng giám sát Claude Code theo thời gian thực",
     },
     ko: {
-      title: "Claude Code Agent Monitor - 프로젝트 위키",
+      title: "Code Agent Monitor - 프로젝트 위키",
       description:
-        "Claude Code Agent Monitor 종합 기술 위키 — 실시간 로컬 모니터링, MCP Server 통합, Claude Code 및 Codex 확장 스캐폴딩.",
-      socialTitle: "Claude Code Agent Monitor - 프로젝트 위키",
+        "Code Agent Monitor 종합 기술 위키 — 실시간 로컬 모니터링, MCP Server 통합, Claude Code 및 Codex 확장 스캐폴딩.",
+      socialTitle: "Code Agent Monitor - 프로젝트 위키",
       socialDescription:
-        "Claude Code Agent Monitor 종합 기술 위키 — 실시간 로컬 모니터링, MCP Server 통합, Claude Code 및 Codex 확장 스캐폴딩.",
+        "Code Agent Monitor 종합 기술 위키 — 실시간 로컬 모니터링, MCP Server 통합, Claude Code 및 Codex 확장 스캐폴딩.",
       twitterDescription:
         "MCP 통합, 확장 스캐폴딩, 분석, WebSocket 푸시를 갖춘 Claude Code Agent 활동 실시간 로컬 모니터링.",
-      socialImageAlt: "Claude Code Agent Monitor — 실시간 Claude Code 모니터링 플랫폼",
+      socialImageAlt: "Code Agent Monitor — 실시간 Claude Code 모니터링 플랫폼",
     },
     es: {
-      title: "Claude Code Agent Monitor - Wiki del proyecto",
+      title: "Code Agent Monitor - Wiki del proyecto",
       description:
-        "Wiki técnica completa para Claude Code Agent Monitor: monitorización local en tiempo real con integración de servidor MCP y andamiaje de extensiones para Claude Code y Codex.",
-      socialTitle: "Claude Code Agent Monitor - Wiki del proyecto",
+        "Wiki técnica completa para Code Agent Monitor: monitorización local en tiempo real con integración de servidor MCP y andamiaje de extensiones para Claude Code y Codex.",
+      socialTitle: "Code Agent Monitor - Wiki del proyecto",
       socialDescription:
-        "Wiki técnica completa para Claude Code Agent Monitor: monitorización local en tiempo real con integración de servidor MCP y andamiaje de extensiones para Claude Code y Codex.",
+        "Wiki técnica completa para Code Agent Monitor: monitorización local en tiempo real con integración de servidor MCP y andamiaje de extensiones para Claude Code y Codex.",
       twitterDescription:
         "Monitorización local en tiempo real de la actividad del agente Claude Code con integración MCP, andamiaje de extensiones, análisis y envío por WebSocket.",
       socialImageAlt:
-        "Claude Code Agent Monitor — plataforma de monitorización de Claude Code en tiempo real",
+        "Code Agent Monitor — plataforma de monitorización de Claude Code en tiempo real",
     },
   };
   const trH = (lang, en) => (lang === "en" ? en : (H[lang] && H[lang][norm(en)]) || en);

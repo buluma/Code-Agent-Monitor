@@ -1,6 +1,6 @@
 /**
  * @file push.ts
- * @description Provides functions for managing push notifications in the agent dashboard application. It includes utilities for subscribing and unsubscribing to push notifications using the Push API and Service Workers. The module handles the conversion of VAPID public keys, manages push subscriptions, and communicates with the backend API to register or unregister push endpoints. This allows the application to send real-time notifications to users about important events or updates.
+ * @description Provides functions for managing push notifications in the Code Agent Monitor application. It includes utilities for subscribing and unsubscribing to push notifications using the Push API and Service Workers. The module handles the conversion of VAPID public keys, manages push subscriptions, and communicates with the backend API to register or unregister push endpoints. This allows the application to send real-time notifications to users about important events or updates.
  *
  * ## Web Push in one paragraph
  * Web Push lets the server deliver a notification to this browser even when the dashboard

@@ -55,7 +55,7 @@ describe("banner", () => {
         })
       );
       const text = stripAnsi(output);
-      assert.ok(text.includes("Agent Dashboard MCP Server"));
+      assert.ok(text.includes("Code Agent Monitor MCP Server"));
       assert.ok(text.includes("2.0.0"));
       assert.ok(text.includes("HTTP"));
       assert.ok(text.includes("localhost:4820"));

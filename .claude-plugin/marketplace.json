@@ -1,6 +1,6 @@
 {
-  "name": "claude-code-agent-monitor-plugins",
-  "description": "Official Claude Code plugin marketplace for CCAM with 14 plugins, 66 skills, 18 agents, 34 commands, and comprehensive local dashboard operations.",
+  "name": "code-agent-monitor-plugins",
+  "description": "Official Code Agent plugin marketplace for CCAM with 14 plugins, 66 skills, 18 agents, 34 commands, and comprehensive local dashboard operations.",
   "owner": { "name": "buluma", "url": "https://github.com/buluma" },
   "plugins": [
     {
@@ -24,13 +24,13 @@
     {
       "name": "ccam-dashboard",
       "source": "./plugins/ccam-dashboard",
-      "description": "Direct MCP integration with the Claude Code Agent Monitor dashboard — real-time session data access, quick stats, and dashboard health monitoring via Model Context Protocol.",
+      "description": "Direct MCP integration with the Code Agent Monitor dashboard — real-time session data access, quick stats, and dashboard health monitoring via Model Context Protocol.",
       "tags": ["dashboard", "status", "mcp", "connector"]
     },
     {
       "name": "ccam-devtools",
       "source": "./plugins/ccam-devtools",
-      "description": "Developer tools for Claude Code Agent Monitor — session debugging, hook diagnostics, data export, and system health checks for maintaining a healthy monitoring setup.",
+      "description": "Developer tools for Code Agent Monitor — session debugging, hook diagnostics, data export, and system health checks for maintaining a healthy monitoring setup.",
       "tags": ["devtools", "debug", "diagnostics", "export"]
     },
     {
@@ -60,7 +60,7 @@
     {
       "name": "ccam-quality",
       "source": "./plugins/ccam-quality",
-      "description": "Reliability and error monitoring for Claude Code sessions — surfaces APIError events, hook delivery failures, tool-failure ratios (PreToolUse/PostToolUse gaps), and SLO tracking with error-budget reporting, all derived from the Claude Code Agent Monitor event stream at http://localhost:4820.",
+      "description": "Reliability and error monitoring for Claude Code sessions — surfaces APIError events, hook delivery failures, tool-failure ratios (PreToolUse/PostToolUse gaps), and SLO tracking with error-budget reporting, all derived from the Code Agent Monitor event stream at http://localhost:4820.",
       "tags": ["reliability", "errors", "slo", "quality"]
     },
     {

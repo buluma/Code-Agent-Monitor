@@ -1,4 +1,4 @@
-# electron-builder configuration for Claude Code Agent Monitor (macOS).
+# electron-builder configuration for Code Agent Monitor (macOS).
 #
 # Defaults to ad-hoc signing so the project can build distributable DMGs
 # without a paid Apple Developer account. When the following environment

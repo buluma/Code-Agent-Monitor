@@ -1,6 +1,7 @@
-# Contributing to Agent Dashboard
+# Contributing to Code Agent Monitor
 
-Thanks for taking the time to contribute. Please read this guide before opening a PR or issue.
+Thanks for taking the time to contribute. Please read this guide before opening
+a PR or issue.
 
 ---
 
@@ -20,24 +21,33 @@ Thanks for taking the time to contribute. Please read this guide before opening 
 
 ## Code of Conduct
 
-This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to uphold it.
+This project follows the
+[Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating,
+you agree to uphold it.
 
 ---
 
 ## Contributor License Agreement (CLA)
 
-All contributions require a signed **[Contributor License Agreement](../CLA.md)**. This is enforced automatically — there is nothing to set up ahead of time.
+All contributions require a signed
+**[Contributor License Agreement](../CLA.md)**. This is enforced automatically —
+there is nothing to set up ahead of time.
 
 1. Open your pull request as normal.
-2. On your **first** PR, the `🖋️ CLA Assistant` bot comments asking you to sign. Read [`CLA.md`](../CLA.md), then post this comment on the PR, verbatim:
+2. On your **first** PR, the `🖋️ CLA Assistant` bot comments asking you to sign.
+   Read [`CLA.md`](../CLA.md), then post this comment on the PR, verbatim:
 
    ```
    I have read the CLA Document and I hereby sign the CLA
    ```
 
-3. The bot records your signature and turns the **CLA Assistant** status check green. The PR cannot be merged until it is green.
+3. The bot records your signature and turns the **CLA Assistant** status check
+   green. The PR cannot be merged until it is green.
 
-You sign **once** — the signature covers all of your current and future contributions, so returning contributors are never asked again. If you contribute **on behalf of a company**, contact the maintainer ([@buluma](https://github.com/buluma)) to arrange a Corporate CLA first.
+You sign **once** — the signature covers all of your current and future
+contributions, so returning contributors are never asked again. If you
+contribute **on behalf of a company**, contact the maintainer
+([@buluma](https://github.com/buluma)) to arrange a Corporate CLA first.
 
 ---
 
@@ -57,7 +67,8 @@ npm run setup
 npm run dev
 ```
 
-The Express server runs on `http://localhost:4820` and the Vite dev server on `http://localhost:5173`.
+The Express server runs on `http://localhost:4820` and the Vite dev server on
+`http://localhost:5173`.
 
 ---
 
@@ -65,10 +76,10 @@ The Express server runs on `http://localhost:4820` and the Vite dev server on `h
 
 The repo has two packages:
 
-| Package | Path | Description |
-| --- | --- | --- |
-| Server | `server/` | Express 4 REST API + WebSocket + SQLite |
-| Client | `client/` | React 18 + Vite + Tailwind CSS SPA |
+| Package | Path      | Description                             |
+| ------- | --------- | --------------------------------------- |
+| Server  | `server/` | Express 4 REST API + WebSocket + SQLite |
+| Client  | `client/` | React 18 + Vite + Tailwind CSS SPA      |
 
 **Adding a new API endpoint:**
 
@@ -118,8 +129,8 @@ bash .claude/skills/file-headers/scripts/check-headers-pr.sh origin/master HEAD
 ```
 
 Applicable source files (`.js`, `.ts`, `.tsx`, `.py`, `.sh`, `.css`, etc.) must
-include the `@author Michael Buluma <1452922+buluma@users.noreply.github.com>` header — CI enforces
-this on every PR via the **File Headers** workflow.
+include the `@author Michael Buluma <1452922+buluma@users.noreply.github.com>`
+header — CI enforces this on every PR via the **File Headers** workflow.
 
 ---
 
@@ -155,4 +166,5 @@ Open an issue and include:
 
 ## Requesting Features
 
-Open an issue. Explain the problem you're solving, not just the solution you want.
+Open an issue. Explain the problem you're solving, not just the solution you
+want.

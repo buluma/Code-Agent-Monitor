@@ -1,5 +1,5 @@
 ╔══════════════════════════════════════════════════════════════════════╗
-║           Claude Code Agent Monitor - Deployment Notes              ║
+║           Code Agent Monitor - Deployment Notes                     ║
 ╚══════════════════════════════════════════════════════════════════════╝
 
 {{- $fullName := include "agent-monitor.fullname" . -}}

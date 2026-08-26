@@ -1,10 +1,17 @@
 # Setup Guide
 
-A comprehensive guide to setting up and configuring the Agent Dashboard, including how it integrates with Claude Code, environment variables, container deployment, and troubleshooting common issues.
+A comprehensive guide to setting up and configuring the Code Agent Monitor,
+including how it integrates with Claude Code, environment variables, container
+deployment, and troubleshooting common issues.
 
 ## How it works
 
-Agent Dashboard integrates with Claude Code through its native hook system. When Claude Code performs any action (session start, tool use, turn completion, subagent finish, session exit), it fires a hook that calls a small Node.js script bundled with this project. That script forwards the event over HTTP to the dashboard server, which stores it in SQLite and broadcasts it to the browser over WebSocket.
+Code Agent Monitor integrates with Claude Code through its native hook system.
+When Claude Code performs any action (session start, tool use, turn completion,
+subagent finish, session exit), it fires a hook that calls a small Node.js
+script bundled with this project. That script forwards the event over HTTP to
+the dashboard server, which stores it in SQLite and broadcasts it to the browser
+over WebSocket.
 
 ```
 Claude Code  →  hook fires  →  hook-handler.js  →  POST /api/hooks/event
@@ -12,7 +19,11 @@ Claude Code  →  hook fires  →  hook-handler.js  →  POST /api/hooks/event
 Browser  ←  WebSocket broadcast  ←  Express server  ←  SQLite
 ```
 
-No extra Claude Code configuration is required in the normal host-run path — when you start the dashboard with `npm run dev` or `npm start`, the server configures the hooks automatically on startup. Container deployments are the exception: after the container is up, run `npm run install-hooks` on the host so Claude Code points at `http://localhost:4820`.
+No extra Claude Code configuration is required in the normal host-run path —
+when you start the dashboard with `npm run dev` or `npm start`, the server
+configures the hooks automatically on startup. Container deployments are the
+exception: after the container is up, run `npm run install-hooks` on the host so
+Claude Code points at `http://localhost:4820`.
 
 ---
 
@@ -20,26 +31,97 @@ No extra Claude Code configuration is required in the normal host-run path — w
 
 ### Hook auto-installation
 
-When the dashboard is running directly on the host, the server writes the following to `~/.claude/settings.json` every time it starts:
+When the dashboard is running directly on the host, the server writes the
+following to `~/.claude/settings.json` every time it starts:
 
 ```json
 {
   "hooks": {
-    "SessionStart": [{ "hooks": [{ "type": "command", "command": "node \"/path/to/scripts/hook-handler.js\" SessionStart" }] }],
-    "PreToolUse":   [{ "matcher": "*", "hooks": [{ "type": "command", "command": "node \"/path/to/scripts/hook-handler.js\" PreToolUse" }] }],
-    "PostToolUse":  [{ "matcher": "*", "hooks": [{ "type": "command", "command": "node \"/path/to/scripts/hook-handler.js\" PostToolUse" }] }],
-    "Stop":         [{ "matcher": "*", "hooks": [{ "type": "command", "command": "node \"/path/to/scripts/hook-handler.js\" Stop" }] }],
-    "SubagentStop": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "node \"/path/to/scripts/hook-handler.js\" SubagentStop" }] }],
-    "Notification": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "node \"/path/to/scripts/hook-handler.js\" Notification" }] }],
-    "SessionEnd":   [{ "hooks": [{ "type": "command", "command": "node \"/path/to/scripts/hook-handler.js\" SessionEnd" }] }]
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/path/to/scripts/hook-handler.js\" SessionStart"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/path/to/scripts/hook-handler.js\" PreToolUse"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/path/to/scripts/hook-handler.js\" PostToolUse"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/path/to/scripts/hook-handler.js\" Stop"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/path/to/scripts/hook-handler.js\" SubagentStop"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/path/to/scripts/hook-handler.js\" Notification"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/path/to/scripts/hook-handler.js\" SessionEnd"
+          }
+        ]
+      }
+    ]
   }
 }
 ```
 
 > [!NOTE]
-> Note: `SessionStart` and `SessionEnd` hooks do not support the `matcher` field — they fire unconditionally on every session start and exit.
+> Note: `SessionStart` and `SessionEnd` hooks do not support the `matcher` field
+> — they fire unconditionally on every session start and exit.
 
-Existing hooks in that file are preserved. The dashboard only adds or updates entries that contain `hook-handler.js`.
+Existing hooks in that file are preserved. The dashboard only adds or updates
+entries that contain `hook-handler.js`.
 
 To re-run hook installation manually:
 
@@ -48,16 +130,30 @@ npm run install-hooks
 ```
 
 > [!TIP]
-> Container note: do not rely on hook auto-install from inside Docker or Podman. The hook path written by a container would point at the container filesystem, not the host. Start the container first, then run `npm run install-hooks` on the host. As a safeguard (issue #193), the installer now **detects container execution and refuses to run** (exiting non-zero) so it can never poison a bind-mounted host `~/.claude`; the containerized server logs the same guidance instead of silently writing a bad path. If you genuinely run Claude Code inside the same container, override with `CCAM_ALLOW_CONTAINER_HOOKS=1 npm run install-hooks`.
+> Container note: do not rely on hook auto-install from inside Docker or Podman.
+> The hook path written by a container would point at the container filesystem,
+> not the host. Start the container first, then run `npm run install-hooks` on
+> the host. As a safeguard (issue #193), the installer now **detects container
+> execution and refuses to run** (exiting non-zero) so it can never poison a
+> bind-mounted host `~/.claude`; the containerized server logs the same guidance
+> instead of silently writing a bad path. If you genuinely run Claude Code
+> inside the same container, override with
+> `CCAM_ALLOW_CONTAINER_HOOKS=1 npm run install-hooks`.
 
 > [!NOTE]
-> Prefer a ready-made dev environment? This repo ships an **optional** Dev Container (`.devcontainer/`) for VS Code / GitHub Codespaces — Node 24 LTS, native build tools for `better-sqlite3`, Python, and ports `4820`/`5173` preconfigured. It's purely opt-in and changes nothing for host-based development. See [`.devcontainer/README.md`](.devcontainer/README.md). (Hooks remain host-side there too.)
+> Prefer a ready-made dev environment? This repo ships an **optional** Dev
+> Container (`.devcontainer/`) for VS Code / GitHub Codespaces — Node 24 LTS,
+> native build tools for `better-sqlite3`, Python, and ports `4820`/`5173`
+> preconfigured. It's purely opt-in and changes nothing for host-based
+> development. See [`.devcontainer/README.md`](.devcontainer/README.md). (Hooks
+> remain host-side there too.)
 
 ### Container runtime (Docker / Podman)
 
-The repository ships a non-root OCI image plus dashboard-only and complete Compose stacks. Docker Compose and Podman Compose use the same file.
+The repository ships a non-root OCI image plus dashboard-only and complete
+Compose stacks. Docker Compose and Podman Compose use the same file.
 
-```bash
+````bash
 +# Dashboard only
 docker compose up -d --build
 +# or
@@ -115,20 +211,37 @@ Example with a custom port:
 
 ```bash
 DASHBOARD_PORT=9000 npm run dev
-```
+````
 
 > [!NOTE]
-> You usually do **not** need to set `DASHBOARD_PORT` manually. `npm run dev` is wrapped by `scripts/dev.js`, which probes both `127.0.0.1` and `::1` (so an SSH `LocalForward` bound to one loopback can't slip past) and picks the first free port in `4820–4859` automatically. The chosen port is propagated to the Vite dev proxy via `DASHBOARD_PORT`, and the Express server writes it to `~/.claude/.agent-dashboard.json` so the Claude Code hook handler discovers it without any env var.
+> You usually do **not** need to set `DASHBOARD_PORT` manually. `npm run dev` is
+> wrapped by `scripts/dev.js`, which probes both `127.0.0.1` and `::1` (so an
+> SSH `LocalForward` bound to one loopback can't slip past) and picks the first
+> free port in `4820–4859` automatically. The chosen port is propagated to the
+> Vite dev proxy via `DASHBOARD_PORT`, and the Express server writes it to
+> `~/.claude/.agent-dashboard.json` so the Claude Code hook handler discovers it
+> without any env var.
 >
-> Multiple dashboards can run side by side — for example `npm run dev` and the desktop app (macOS) at the same time. Each one appends its `{port, pid, startedAt}` entry to the discovery file, and `scripts/hook-handler.js` fan-outs every hook event to every live entry, so both UIs keep their real-time stream.
+> Multiple dashboards can run side by side — for example `npm run dev` and the
+> desktop app (macOS) at the same time. Each one appends its
+> `{port, pid, startedAt}` entry to the discovery file, and
+> `scripts/hook-handler.js` fan-outs every hook event to every live entry, so
+> both UIs keep their real-time stream.
 >
-> Setting `CLAUDE_DASHBOARD_PORT=N` overrides discovery entirely and forces the hook handler to a single port — useful for tests and container setups where the in-process discovery file isn't reachable from the host.
+> Setting `CLAUDE_DASHBOARD_PORT=N` overrides discovery entirely and forces the
+> hook handler to a single port — useful for tests and container setups where
+> the in-process discovery file isn't reachable from the host.
 >
-> If you bypass the picker (e.g. `npm run dev:raw`, container builds, or anything else that calls `node server/index.js` directly), make sure your client is built / proxied against the port the server actually bound.
+> If you bypass the picker (e.g. `npm run dev:raw`, container builds, or
+> anything else that calls `node server/index.js` directly), make sure your
+> client is built / proxied against the port the server actually bound.
 
 ### MCP server (optional)
 
-The project includes a local MCP server under `mcp/` so AI agents can call dashboard operations through standardized tools. It supports three transport modes: stdio for MCP host integration, HTTP+SSE for networked clients, and an interactive REPL for operator debugging.
+The project includes a local MCP server under `mcp/` so AI agents can call
+dashboard operations through standardized tools. It supports three transport
+modes: stdio for MCP host integration, HTTP+SSE for networked clients, and an
+interactive REPL for operator debugging.
 
 ```mermaid
 graph LR
@@ -190,101 +303,186 @@ installation details.
 
 ### VS Code extension setup
 
-The **Claude Code Agent Monitor** is available as an integrated VS Code extension for seamless monitoring within your editor.
+The **Code Agent Monitor** is available as an integrated VS Code extension for
+seamless monitoring within your editor.
 
-- **Activity Bar View**: Adds a custom "Radar" icon to the activity bar providing real-time agent health, token counts, and session stats.
-- **Status Bar Integration**: Displays live session and agent pulse counts in the bottom bar.
-- **Embedded Dashboard**: Renders the full web dashboard directly in a VS Code editor tab.
-- **Automated Detection**: Automatically finds your dashboard server on ports `5173` or `4820`.
+- **Activity Bar View**: Adds a custom "Radar" icon to the activity bar
+  providing real-time agent health, token counts, and session stats.
+- **Status Bar Integration**: Displays live session and agent pulse counts in
+  the bottom bar.
+- **Embedded Dashboard**: Renders the full web dashboard directly in a VS Code
+  editor tab.
+- **Automated Detection**: Automatically finds your dashboard server on ports
+  `5173` or `4820`.
 
 <p align="center">
   <img src="vscode-extension/vscode.png" alt="VS Code Extension Screenshot" width="100%">
 </p>
 
 To install or develop the extension:
+
 1. Open the [vscode-extension](./vscode-extension) directory in VS Code.
-2. Run `npm install` and `npm run package` to generate a local `.vsix` installer.
-3. For developer details, see [vscode-extension/README.md](./vscode-extension/README.md).
+2. Run `npm install` and `npm run package` to generate a local `.vsix`
+   installer.
+3. For developer details, see
+   [vscode-extension/README.md](./vscode-extension/README.md).
 
 > [!TIP]
-> Extension on VS Code Marketplace: [Claude Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=buluma.claude-code-agent-monitor)
+> Extension on VS Code Marketplace:
+> [Code Agent Monitor](https://marketplace.visualstudio.com/items?itemName=buluma.claude-code-agent-monitor)
 
 ### PWA configuration (optional)
 
-The dashboard, landing page, and wiki each ship as independent Progressive Web Apps. No configuration is required — manifests and service workers are included out of the box.
+The dashboard, landing page, and wiki each ship as independent Progressive Web
+Apps. No configuration is required — manifests and service workers are included
+out of the box.
 
-**Customising the manifest:** Edit the `manifest.json` in the relevant directory (`client/public/` for dashboard, root for landing, `wiki/` for wiki). Common fields to change:
+**Customising the manifest:** Edit the `manifest.json` in the relevant directory
+(`client/public/` for dashboard, root for landing, `wiki/` for wiki). Common
+fields to change:
 
 - `name` / `short_name` — displayed on the home screen / dock
 - `theme_color` — address bar / title bar tint (default: `#6366f1`)
 - `background_color` — splash screen background
 - `start_url` — entry point when launched from home screen
 
-**Updating the service worker cache:** Each SW has a `CACHE_NAME` constant (e.g. `dashboard-v2`). After deploying new assets, bump the version string to force browsers to re-fetch — though for the dashboard this is rarely needed: hashed `/assets/*` URLs are immutable per build, everything else is fetched network-first with cache fallback, and a `controllerchange` listener in the client reloads the page exactly once when a new SW takes over, so a rebuild propagates without a hard refresh.
+**Updating the service worker cache:** Each SW has a `CACHE_NAME` constant (e.g.
+`dashboard-v2`). After deploying new assets, bump the version string to force
+browsers to re-fetch — though for the dashboard this is rarely needed: hashed
+`/assets/*` URLs are immutable per build, everything else is fetched
+network-first with cache fallback, and a `controllerchange` listener in the
+client reloads the page exactly once when a new SW takes over, so a rebuild
+propagates without a hard refresh.
 
-**Browser support:** PWA install prompts appear in Chrome 107+, Edge 107+, and Firefox 110+ (desktop and Android). Safari supports `apple-mobile-web-app-capable` for iOS home-screen mode but does not show an install banner.
+**Browser support:** PWA install prompts appear in Chrome 107+, Edge 107+, and
+Firefox 110+ (desktop and Android). Safari supports
+`apple-mobile-web-app-capable` for iOS home-screen mode but does not show an
+install banner.
 
-**Verifying PWA status:** Open DevTools → Application → Manifest to confirm the manifest loads. Check the Service Workers section to verify the SW is registered and active. The Lighthouse PWA audit should pass all core checks.
+**Verifying PWA status:** Open DevTools → Application → Manifest to confirm the
+manifest loads. Check the Service Workers section to verify the SW is registered
+and active. The Lighthouse PWA audit should pass all core checks.
 
 ### Desktop App Setup
 
-The `desktop/` workspace ships the dashboard as a **native desktop app** for **macOS** (a `.app` distributed as a `.dmg`), built with Electron 35. It is an Electron shell that **embeds the existing Express server in-process** — it does not reimplement anything. For installation (download a pre-built installer from the [latest GitHub Release](https://github.com/buluma/Code-Agent-Monitor/releases/latest) or the per-commit `ClaudeCodeMonitor-dmg` CI artifact, or build one locally — then mount, drag, Gatekeeper bypass), see [INSTALL.md → Desktop App (macOS)](./INSTALL.md#desktop-app-macos-optional). The full user guide is [`DESKTOP.md`](./DESKTOP.md); the contributor / architecture reference is [`desktop/README.md`](./desktop/README.md).
+The `desktop/` workspace ships the dashboard as a **native desktop app** for
+**macOS** (a `.app` distributed as a `.dmg`), built with Electron 35. It is an
+Electron shell that **embeds the existing Express server in-process** — it does
+not reimplement anything. For installation (download a pre-built installer from
+the
+[latest GitHub Release](https://github.com/buluma/Code-Agent-Monitor/releases/latest)
+or the per-commit `ClaudeCodeMonitor-dmg` CI artifact, or build one locally —
+then mount, drag, Gatekeeper bypass), see
+[INSTALL.md → Desktop App (macOS)](./INSTALL.md#desktop-app-macos-optional). The
+full user guide is [`DESKTOP.md`](./DESKTOP.md); the contributor / architecture
+reference is [`desktop/README.md`](./desktop/README.md).
 
 This section covers the parts of running the desktop app that matter for setup.
 
-**Building and running.** All commands run from the repo root. electron-builder packages for the **host OS** — build the macOS DMG on a Mac (`desktop:dmg*`):
+**Building and running.** All commands run from the repo root. electron-builder
+packages for the **host OS** — build the macOS DMG on a Mac (`desktop:dmg*`):
 
-| Script | Command | Description |
-|---|---|---|
-| `desktop:install` | `npm run desktop:install` | Install Electron + electron-builder into `desktop/`; fetches `better-sqlite3` as a prebuilt Electron binary for Electron's ABI (no Visual Studio C++ toolchain needed in the common case; on macOS, Xcode CLI tools cover any fallback build). Preflights the native `better-sqlite3` build; on failure prints actionable per-OS setup help plus a no-toolchain alternative and exits non-zero (also enforced by the desktop `prebuild` gate) |
-| `desktop:build` | `npm run desktop:build` | Prebuild guard + `tsc` → `desktop/out/` |
-| `desktop:dev` | `npm run desktop:dev` | Build, then launch Electron against `out/main.js` |
-| `desktop:test` | `npm run desktop:test` | Build, then run the smoke test (spawn Electron, probe `/api/health`) |
-| `desktop:dmg` | `npm run desktop:dmg` | **macOS** — **both** per-arch DMGs (arm64 + x64) → `desktop/release/`. Correct for release. **Slower** (packages each arch). |
-| `desktop:dmg:arm64` | `npm run desktop:dmg:arm64` | **macOS** — Apple-Silicon-only DMG → `desktop/release/`. **Fast (~1 min).** |
-| `desktop:dmg:x64` | `npm run desktop:dmg:x64` | **macOS** — Intel-only DMG → `desktop/release/`. **Fast (~1 min).** |
+| Script              | Command                     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `desktop:install`   | `npm run desktop:install`   | Install Electron + electron-builder into `desktop/`; fetches `better-sqlite3` as a prebuilt Electron binary for Electron's ABI (no Visual Studio C++ toolchain needed in the common case; on macOS, Xcode CLI tools cover any fallback build). Preflights the native `better-sqlite3` build; on failure prints actionable per-OS setup help plus a no-toolchain alternative and exits non-zero (also enforced by the desktop `prebuild` gate) |
+| `desktop:build`     | `npm run desktop:build`     | Prebuild guard + `tsc` → `desktop/out/`                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `desktop:dev`       | `npm run desktop:dev`       | Build, then launch Electron against `out/main.js`                                                                                                                                                                                                                                                                                                                                                                                             |
+| `desktop:test`      | `npm run desktop:test`      | Build, then run the smoke test (spawn Electron, probe `/api/health`)                                                                                                                                                                                                                                                                                                                                                                          |
+| `desktop:dmg`       | `npm run desktop:dmg`       | **macOS** — **both** per-arch DMGs (arm64 + x64) → `desktop/release/`. Correct for release. **Slower** (packages each arch).                                                                                                                                                                                                                                                                                                                  |
+| `desktop:dmg:arm64` | `npm run desktop:dmg:arm64` | **macOS** — Apple-Silicon-only DMG → `desktop/release/`. **Fast (~1 min).**                                                                                                                                                                                                                                                                                                                                                                   |
+| `desktop:dmg:x64`   | `npm run desktop:dmg:x64`   | **macOS** — Intel-only DMG → `desktop/release/`. **Fast (~1 min).**                                                                                                                                                                                                                                                                                                                                                                           |
 
 > [!NOTE]
-> Every `desktop:dmg*` script chains `npm run build` first. Running `electron-builder` bare skips the TypeScript compile and fails with `entry file out/main.js does not exist`. `npm run clean` inside `desktop/` deletes `out/` and `release/` — after a clean you must `npm run desktop:build` again before packaging.
+> Every `desktop:dmg*` script chains `npm run build` first. Running
+> `electron-builder` bare skips the TypeScript compile and fails with
+> `entry file out/main.js does not exist`. `npm run clean` inside `desktop/`
+> deletes `out/` and `release/` — after a clean you must `npm run desktop:build`
+> again before packaging.
 
 > [!TIP]
-> On macOS, building a DMG rebuilds the native `better-sqlite3` module for the **target** architecture, which can leave it built for the wrong CPU arch for your local machine. The desktop `prebuild` step auto-heals this — it rebuilds `better-sqlite3` for the local machine on the next `desktop:build` — so `npm run desktop:dev` and `npm run desktop:test` keep working after a cross-arch DMG build with no manual `npm run desktop:install` needed.
+> On macOS, building a DMG rebuilds the native `better-sqlite3` module for the
+> **target** architecture, which can leave it built for the wrong CPU arch for
+> your local machine. The desktop `prebuild` step auto-heals this — it rebuilds
+> `better-sqlite3` for the local machine on the next `desktop:build` — so
+> `npm run desktop:dev` and `npm run desktop:test` keep working after a
+> cross-arch DMG build with no manual `npm run desktop:install` needed.
 
-**Hooks are auto-installed by the app.** On its first **owned-server** boot the desktop app writes the Claude Code hook configuration to `~/.claude/settings.json` itself, then starts the background services (update scheduler, `cc-watcher` config watcher, orphaned-run reconciliation) — the same `startBackgroundServices()` that `node server/index.js` runs. An install-only user therefore never needs `npm run install-hooks` from a checkout: just **start a new Claude Code session** after the app is running. (If the app *adopts* an existing server instead of starting its own, that server already did its own hook bootstrap — see port adoption below.)
+**Hooks are auto-installed by the app.** On its first **owned-server** boot the
+desktop app writes the Claude Code hook configuration to
+`~/.claude/settings.json` itself, then starts the background services (update
+scheduler, `cc-watcher` config watcher, orphaned-run reconciliation) — the same
+`startBackgroundServices()` that `node server/index.js` runs. An install-only
+user therefore never needs `npm run install-hooks` from a checkout: just **start
+a new Claude Code session** after the app is running. (If the app _adopts_ an
+existing server instead of starting its own, that server already did its own
+hook bootstrap — see port adoption below.)
 
-**Port-adoption behavior.** When the desktop app launches, its embedded server picks a port:
+**Port-adoption behavior.** When the desktop app launches, its embedded server
+picks a port:
 
 1. It prefers **`4820`**.
-2. If a healthy dashboard server already answers `GET /api/health` on `4820` (for example you ran `npm start` in a terminal), the app **adopts that server** instead of double-binding — no SQLite contention. An adopted server is *not* owned by the app, so quitting the app leaves it running.
-3. Otherwise it falls back to `4821`–`4829`, then to a random high port (`49152`–`49500`).
+2. If a healthy dashboard server already answers `GET /api/health` on `4820`
+   (for example you ran `npm start` in a terminal), the app **adopts that
+   server** instead of double-binding — no SQLite contention. An adopted server
+   is _not_ owned by the app, so quitting the app leaves it running.
+3. Otherwise it falls back to `4821`–`4829`, then to a random high port
+   (`49152`–`49500`).
 
-The chosen port is shown in the tray menu. The embedded server also honors the dashboard env vars in [Environment variables](#environment-variables) (`DASHBOARD_PORT` is set automatically by the desktop host).
+The chosen port is shown in the tray menu. The embedded server also honors the
+dashboard env vars in [Environment variables](#environment-variables)
+(`DASHBOARD_PORT` is set automatically by the desktop host).
 
-**Data directory.** The packaged app stores its SQLite database and VAPID keys in a per-user app-data directory — `~/Library/Application Support/Claude Code Monitor/data/` — **outside** the app bundle / install dir. The desktop host sets `DASHBOARD_DATA_DIR` to this per-user location automatically. Keeping writable state out of the bundle means a packaged, code-signed (and therefore read-only) `.app` never tries to write inside itself, and your imported history and events **survive app reinstalls and updates**. (Older macOS builds kept the database inside the bundle, which broke History Import; after upgrading from a pre-fix build, re-run **Settings → Import History → Rescan** once to close the one-time data gap.)
+**Data directory.** The packaged app stores its SQLite database and VAPID keys
+in a per-user app-data directory —
+`~/Library/Application Support/Claude Code Monitor/data/` — **outside** the app
+bundle / install dir. The desktop host sets `DASHBOARD_DATA_DIR` to this
+per-user location automatically. Keeping writable state out of the bundle means
+a packaged, code-signed (and therefore read-only) `.app` never tries to write
+inside itself, and your imported history and events **survive app reinstalls and
+updates**. (Older macOS builds kept the database inside the bundle, which broke
+History Import; after upgrading from a pre-fix build, re-run **Settings → Import
+History → Rescan** once to close the one-time data gap.)
 
-**`claude` CLI resolution.** A Finder/Dock-launched macOS app inherits only launchd's minimal `PATH`, not your login-shell `PATH`. So the app can find and spawn the `claude` CLI for the "Run Claude" feature, the desktop host recovers your login-shell `PATH` at startup. If "Run Claude" still reports that `claude` is not on `PATH`, make sure `claude` is a real executable on your shell `PATH` — a shell alias or function cannot be spawned.
+**`claude` CLI resolution.** A Finder/Dock-launched macOS app inherits only
+launchd's minimal `PATH`, not your login-shell `PATH`. So the app can find and
+spawn the `claude` CLI for the "Run Claude" feature, the desktop host recovers
+your login-shell `PATH` at startup. If "Run Claude" still reports that `claude`
+is not on `PATH`, make sure `claude` is a real executable on your shell `PATH` —
+a shell alias or function cannot be spawned.
 
-**Auto-start at login.** Toggle *Open at Login* from the tray menu or the application menu. It registers via the first-party `SMAppService` API (Electron's `app.setLoginItemSettings`), so the entry appears under  → *System Settings → General → Login Items*. When the app is launched at login, it starts **tray-only** — the dashboard window stays hidden until you click the tray icon.
+**Auto-start at login.** Toggle _Open at Login_ from the tray menu or the
+application menu. It registers via the first-party `SMAppService` API
+(Electron's `app.setLoginItemSettings`), so the entry appears under → _System
+Settings → General → Login Items_. When the app is launched at login, it starts
+**tray-only** — the dashboard window stays hidden until you click the tray icon.
 
-**Logs.** The Electron main process has no terminal when launched from Finder, so it writes to a per-user log file:
+**Logs.** The Electron main process has no terminal when launched from Finder,
+so it writes to a per-user log file:
 
 ```
 ~/Library/Logs/Claude Code Monitor/desktop.log     # macOS
 ```
 
-Open it from the tray menu → **Show Logs**. Set `CCAM_DESKTOP_VERBOSE=1` to also mirror `info`/`warn` lines to stdout when running via `npm run desktop:dev`.
+Open it from the tray menu → **Show Logs**. Set `CCAM_DESKTOP_VERBOSE=1` to also
+mirror `info`/`warn` lines to stdout when running via `npm run desktop:dev`.
 
-**Lifecycle reminder.** Closing the dashboard window only **hides** it — the server and tray keep running. **Quit** (⌘Q or tray → *Quit*) shuts the embedded server down gracefully and exits. Double-launching just focuses the existing window (single-instance lock); it never starts a second server.
+**Lifecycle reminder.** Closing the dashboard window only **hides** it — the
+server and tray keep running. **Quit** (⌘Q or tray → _Quit_) shuts the embedded
+server down gracefully and exits. Double-launching just focuses the existing
+window (single-instance lock); it never starts a second server.
 
 ---
 
 ## Database
 
-The SQLite database is created automatically at `data/dashboard.db` on first run. The directory is created if it does not exist. The database uses WAL mode for concurrent reads and foreign keys for referential integrity.
+The SQLite database is created automatically at `data/dashboard.db` on first
+run. The directory is created if it does not exist. The database uses WAL mode
+for concurrent reads and foreign keys for referential integrity.
 
 ### Clear all data
 
-To remove all sessions, agents, events, and token usage (useful after running seed data or for a clean start):
+To remove all sessions, agents, events, and token usage (useful after running
+seed data or for a clean start):
 
 ```bash
 npm run clear-data
@@ -294,16 +492,21 @@ npm run clear-data
 
 The Settings page (`/settings`) provides a UI for:
 
-- **Model Pricing** — view and edit per-model cost rates, reset to defaults, add custom models
+- **Model Pricing** — view and edit per-model cost rates, reset to defaults, add
+  custom models
 - **Hook Configuration** — check which hooks are installed and reinstall them
-- **Data Export** — download all sessions, agents, events, and pricing as a JSON file
-- **Session Cleanup** — abandon stale active sessions after N hours, purge old completed sessions after N days
+- **Data Export** — download all sessions, agents, events, and pricing as a JSON
+  file
+- **Session Cleanup** — abandon stale active sessions after N hours, purge old
+  completed sessions after N days
 - **Clear All Data** — remove all sessions, agents, events, and token usage
-- **Data Management** and **About** sections render with loading placeholders while server info is being fetched, so the page is always fully navigable
+- **Data Management** and **About** sections render with loading placeholders
+  while server info is being fetched, so the page is always fully navigable
 
 ### Seed demo data
 
-To populate the dashboard with sample sessions, agents, and events for UI exploration:
+To populate the dashboard with sample sessions, agents, and events for UI
+exploration:
 
 ```bash
 npm run seed
@@ -314,11 +517,11 @@ npm run seed
 ## Importing existing Claude Code history
 
 The dashboard automatically imports sessions from `~/.claude/projects/` on
-**every startup**, so if Claude Code has been used on this machine, you'll
-see history immediately after the first launch. If you need to bring in
-history from another machine, from a backup, or just force a rescan, use
-**Settings → Import History** in the UI — it's a guided, drag-and-drop
-experience with live progress.
+**every startup**, so if Claude Code has been used on this machine, you'll see
+history immediately after the first launch. If you need to bring in history from
+another machine, from a backup, or just force a rescan, use **Settings → Import
+History** in the UI — it's a guided, drag-and-drop experience with live
+progress.
 
 <p align="center">
   <img src="images/import.png" alt="Import History UI" width="100%">
@@ -377,22 +580,21 @@ folder given to **Scan a folder**:
 
 ### Accuracy guarantees
 
-- **Idempotent** — re-importing never double-counts. Sessions are
-  deduplicated by UUID.
-- **Cost-preserving** — the `token_usage` table uses `baseline_*` columns
-  to preserve pre-compaction token totals, so re-ingesting a compacted
-  transcript never erases historical cost.
-- **Same parser as live** — `parseSessionFile` + `importSession` is the
-  single source of truth for both hook-driven ingestion and manual
-  import, so imported numbers match captured numbers exactly.
+- **Idempotent** — re-importing never double-counts. Sessions are deduplicated
+  by UUID.
+- **Cost-preserving** — the `token_usage` table uses `baseline_*` columns to
+  preserve pre-compaction token totals, so re-ingesting a compacted transcript
+  never erases historical cost.
+- **Same parser as live** — `parseSessionFile` + `importSession` is the single
+  source of truth for both hook-driven ingestion and manual import, so imported
+  numbers match captured numbers exactly.
 
 ### Safety
 
-Archive extraction is hardened against path traversal and archive bombs.
-The defaults are generous for real-world transcripts but tight enough to
-stop obvious attacks; see the env vars table above for
-`CCAM_IMPORT_MAX_BYTES`, `CCAM_IMPORT_MAX_FILES`, and
-`CCAM_IMPORT_MAX_EXTRACT_BYTES`.
+Archive extraction is hardened against path traversal and archive bombs. The
+defaults are generous for real-world transcripts but tight enough to stop
+obvious attacks; see the env vars table above for `CCAM_IMPORT_MAX_BYTES`,
+`CCAM_IMPORT_MAX_FILES`, and `CCAM_IMPORT_MAX_EXTRACT_BYTES`.
 
 ### CLI alternative
 
@@ -433,55 +635,58 @@ Scope, precisely:
   default `<proj>/<sid>.jsonl` layout, then by the `transcript_path` stored on
   the session row — so a session imported from a custom directory via
   `ccam import path` is covered too.
-- Only **non-workflow** rows are rewritten. Workflow rows (`service_tier =
-  'workflow'`) come from run journals, not transcripts, and are preserved.
+- Only **non-workflow** rows are rewritten. Workflow rows
+  (`service_tier =
+  'workflow'`) come from run journals, not transcripts, and
+  are preserved.
 - **Codex sessions are skipped entirely.** Their usage comes from rollout
   journals rather than Claude transcripts, so the sweep must not rebuild — or
   clear — their rows.
-- Sessions whose transcript has been deleted, or whose stored path is stale,
-  are skipped and reported as `missingFiles`: their totals cannot be re-derived,
-  so they keep whatever was recorded.
+- Sessions whose transcript has been deleted, or whose stored path is stale, are
+  skipped and reported as `missingFiles`: their totals cannot be re-derived, so
+  they keep whatever was recorded.
 
 ---
 
 ## Scripts reference
 
-| Script | Command | Description |
-|---|---|---|
-| `setup` | `npm run setup` | Install root, client, VS Code extension, and MCP dependencies, build MCP, and link `ccam` |
-| `dev` | `npm run dev` | Start server + client in development mode |
-| `start` | `npm start` | Start server in production mode |
-| `build` | `npm run build` | Build the React client to `client/dist/` |
-| `install-hooks` | `npm run install-hooks` | Write Claude Code hooks to `~/.claude/settings.json` |
-| `clear-data` | `npm run clear-data` | Delete all data from the database |
-| `seed` | `npm run seed` | Insert demo sessions/agents/events |
-| `import-history` | `npm run import-history` | Import legacy sessions from `~/.claude/` (also runs on startup) |
-| `reconcile-tokens` | `npm run reconcile-tokens` | Refresh token totals for imported sessions (never lowers a total) |
-| `repair-tokens` | `npm run repair-tokens` | Re-derive non-workflow token totals for every Claude session with a transcript on disk and zero the compaction baselines, preserving workflow and Codex rows (one-time fix for pre-v2.0.9 inflation; stop the dashboard first) |
-| `mcp:install` | `npm run mcp:install` | Install MCP package dependencies |
-| `mcp:build` | `npm run mcp:build` | Build MCP server into `mcp/build/` |
-| `mcp:start` | `npm run mcp:start` | Start MCP server (stdio, for MCP hosts) |
-| `mcp:start:http` | `npm run mcp:start:http` | Start MCP HTTP+SSE server on port 8819 |
-| `mcp:start:repl` | `npm run mcp:start:repl` | Start interactive MCP REPL |
-| `mcp:dev` | `npm run mcp:dev` | Start MCP server in dev mode (stdio) |
-| `mcp:dev:http` | `npm run mcp:dev:http` | Start MCP HTTP server in dev mode |
-| `mcp:dev:repl` | `npm run mcp:dev:repl` | Start MCP REPL in dev mode |
-| `mcp:typecheck` | `npm run mcp:typecheck` | Type-check MCP source |
-| `mcp:docker:build` | `npm run mcp:docker:build` | Build MCP container image with Docker |
-| `mcp:podman:build` | `npm run mcp:podman:build` | Build MCP container image with Podman |
-| `test:mcp` | `npm run test:mcp` | Run MCP server unit tests |
-| `claude` | Claude CLI | Uses `CLAUDE.md`, `.claude/rules`, and `.claude/skills` automatically |
-| `test` | `npm test` | Run all server and client tests |
-| `test:server` | `npm run test:server` | Run server integration tests only |
-| `test:client` | `npm run test:client` | Run client unit tests only |
-| `format` | `npm run format` | Format all files with Prettier |
-| `format:check` | `npm run format:check` | Check formatting without writing |
+| Script             | Command                    | Description                                                                                                                                                                                                                    |
+| ------------------ | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `setup`            | `npm run setup`            | Install root, client, VS Code extension, and MCP dependencies, build MCP, and link `ccam`                                                                                                                                      |
+| `dev`              | `npm run dev`              | Start server + client in development mode                                                                                                                                                                                      |
+| `start`            | `npm start`                | Start server in production mode                                                                                                                                                                                                |
+| `build`            | `npm run build`            | Build the React client to `client/dist/`                                                                                                                                                                                       |
+| `install-hooks`    | `npm run install-hooks`    | Write Claude Code hooks to `~/.claude/settings.json`                                                                                                                                                                           |
+| `clear-data`       | `npm run clear-data`       | Delete all data from the database                                                                                                                                                                                              |
+| `seed`             | `npm run seed`             | Insert demo sessions/agents/events                                                                                                                                                                                             |
+| `import-history`   | `npm run import-history`   | Import legacy sessions from `~/.claude/` (also runs on startup)                                                                                                                                                                |
+| `reconcile-tokens` | `npm run reconcile-tokens` | Refresh token totals for imported sessions (never lowers a total)                                                                                                                                                              |
+| `repair-tokens`    | `npm run repair-tokens`    | Re-derive non-workflow token totals for every Claude session with a transcript on disk and zero the compaction baselines, preserving workflow and Codex rows (one-time fix for pre-v2.0.9 inflation; stop the dashboard first) |
+| `mcp:install`      | `npm run mcp:install`      | Install MCP package dependencies                                                                                                                                                                                               |
+| `mcp:build`        | `npm run mcp:build`        | Build MCP server into `mcp/build/`                                                                                                                                                                                             |
+| `mcp:start`        | `npm run mcp:start`        | Start MCP server (stdio, for MCP hosts)                                                                                                                                                                                        |
+| `mcp:start:http`   | `npm run mcp:start:http`   | Start MCP HTTP+SSE server on port 8819                                                                                                                                                                                         |
+| `mcp:start:repl`   | `npm run mcp:start:repl`   | Start interactive MCP REPL                                                                                                                                                                                                     |
+| `mcp:dev`          | `npm run mcp:dev`          | Start MCP server in dev mode (stdio)                                                                                                                                                                                           |
+| `mcp:dev:http`     | `npm run mcp:dev:http`     | Start MCP HTTP server in dev mode                                                                                                                                                                                              |
+| `mcp:dev:repl`     | `npm run mcp:dev:repl`     | Start MCP REPL in dev mode                                                                                                                                                                                                     |
+| `mcp:typecheck`    | `npm run mcp:typecheck`    | Type-check MCP source                                                                                                                                                                                                          |
+| `mcp:docker:build` | `npm run mcp:docker:build` | Build MCP container image with Docker                                                                                                                                                                                          |
+| `mcp:podman:build` | `npm run mcp:podman:build` | Build MCP container image with Podman                                                                                                                                                                                          |
+| `test:mcp`         | `npm run test:mcp`         | Run MCP server unit tests                                                                                                                                                                                                      |
+| `claude`           | Claude CLI                 | Uses `CLAUDE.md`, `.claude/rules`, and `.claude/skills` automatically                                                                                                                                                          |
+| `test`             | `npm test`                 | Run all server and client tests                                                                                                                                                                                                |
+| `test:server`      | `npm run test:server`      | Run server integration tests only                                                                                                                                                                                              |
+| `test:client`      | `npm run test:client`      | Run client unit tests only                                                                                                                                                                                                     |
+| `format`           | `npm run format`           | Format all files with Prettier                                                                                                                                                                                                 |
+| `format:check`     | `npm run format:check`     | Check formatting without writing                                                                                                                                                                                               |
 
 ---
 
 ## Makefile targets
 
-All npm scripts are mirrored as `make` targets for convenience. Run `make help` to list them:
+All npm scripts are mirrored as `make` targets for convenience. Run `make help`
+to list them:
 
 ```bash
 make help
@@ -489,32 +694,35 @@ make help
 
 Commonly used targets:
 
-| Make target | Equivalent npm command | Description |
-|---|---|---|
-| `make setup` | `npm run setup` | Install all dependencies, build MCP, and link `ccam` |
-| `make dev` | `npm run dev` | Start server + client in watch mode |
-| `make build` | `npm run build` | Build the React client for production |
-| `make start` | `npm start` | Start the production server |
-| `make prod` | `npm run build && npm start` | Build then start in one step |
-| `make test` | `npm test` | Run all tests (server + client) |
-| `make test-server` | `npm run test:server` | Run server tests only |
-| `make test-client` | `npm run test:client` | Run client tests only |
-| `make format` | `npm run format` | Format all files with Prettier |
-| `make format-check` | `npm run format:check` | Check formatting without writing |
-| `make mcp-build` | `npm run mcp:build` | Compile MCP TypeScript |
-| `make mcp-typecheck` | `npm run mcp:typecheck` | Type-check MCP source |
-| `make seed` | `npm run seed` | Load demo data |
-| `make clear-data` | `npm run clear-data` | Delete all data rows |
-| `make docker-up` | `docker compose up -d` | Start via docker-compose |
-| `make docker-down` | `docker compose down` | Stop docker-compose stack |
+| Make target          | Equivalent npm command       | Description                                          |
+| -------------------- | ---------------------------- | ---------------------------------------------------- |
+| `make setup`         | `npm run setup`              | Install all dependencies, build MCP, and link `ccam` |
+| `make dev`           | `npm run dev`                | Start server + client in watch mode                  |
+| `make build`         | `npm run build`              | Build the React client for production                |
+| `make start`         | `npm start`                  | Start the production server                          |
+| `make prod`          | `npm run build && npm start` | Build then start in one step                         |
+| `make test`          | `npm test`                   | Run all tests (server + client)                      |
+| `make test-server`   | `npm run test:server`        | Run server tests only                                |
+| `make test-client`   | `npm run test:client`        | Run client tests only                                |
+| `make format`        | `npm run format`             | Format all files with Prettier                       |
+| `make format-check`  | `npm run format:check`       | Check formatting without writing                     |
+| `make mcp-build`     | `npm run mcp:build`          | Compile MCP TypeScript                               |
+| `make mcp-typecheck` | `npm run mcp:typecheck`      | Type-check MCP source                                |
+| `make seed`          | `npm run seed`               | Load demo data                                       |
+| `make clear-data`    | `npm run clear-data`         | Delete all data rows                                 |
+| `make docker-up`     | `docker compose up -d`       | Start via docker-compose                             |
+| `make docker-down`   | `docker compose down`        | Stop docker-compose stack                            |
 
 ---
 
 ## Statusline (optional)
 
-The `statusline/` directory contains a standalone terminal statusline for Claude Code showing model, working directory, git branch, context window usage, and token counts. It is independent of the web dashboard.
+The `statusline/` directory contains a standalone terminal statusline for Claude
+Code showing model, working directory, git branch, context window usage, and
+token counts. It is independent of the web dashboard.
 
-See [statusline/README.md](./statusline/README.md) for installation instructions.
+See [statusline/README.md](./statusline/README.md) for installation
+instructions.
 
 ---
 
@@ -522,29 +730,42 @@ See [statusline/README.md](./statusline/README.md) for installation instructions
 
 ### `better-sqlite3` errors during `npm install` / `npm run setup`
 
-These warnings are **harmless**. `better-sqlite3` is an optional dependency — if it cannot compile, npm skips it and the server falls back to Node.js built-in `node:sqlite` (available on Node 22+).
+These warnings are **harmless**. `better-sqlite3` is an optional dependency — if
+it cannot compile, npm skips it and the server falls back to Node.js built-in
+`node:sqlite` (available on Node 22+).
 
-You do **not** need Python, Visual Studio Build Tools, or any C++ compiler to run this project on Node 22+.
+You do **not** need Python, Visual Studio Build Tools, or any C++ compiler to
+run this project on Node 22+.
 
-If you are on Node 20 or 21 and `better-sqlite3` prebuilds are not available for your platform (there is no `node:sqlite` fallback below Node 22), you have two options:
+If you are on Node 20 or 21 and `better-sqlite3` prebuilds are not available for
+your platform (there is no `node:sqlite` fallback below Node 22), you have two
+options:
 
-1. **Upgrade to Node.js 22+** — the built-in `node:sqlite` fallback requires no native compilation at all
+1. **Upgrade to Node.js 22+** — the built-in `node:sqlite` fallback requires no
+   native compilation at all
 2. **Install build tools** and run `npm rebuild better-sqlite3`:
-   - **Windows:** install [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with the C++ workload
+   - **Windows:** install
+     [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+     with the C++ workload
    - **macOS:** `xcode-select --install`
    - **Linux:** `sudo apt install python3 make g++` (Debian/Ubuntu)
 
 ### "SQLite backend not available" error on startup
 
-This means neither `better-sqlite3` nor `node:sqlite` could be loaded. The most common cause is running Node.js < 22 without `better-sqlite3` prebuilds. Upgrade to Node.js 22+ to resolve this.
+This means neither `better-sqlite3` nor `node:sqlite` could be loaded. The most
+common cause is running Node.js < 22 without `better-sqlite3` prebuilds. Upgrade
+to Node.js 22+ to resolve this.
 
 ### Database is locked / busy errors
 
-The SQLite database uses WAL mode with a 5-second busy timeout. If you see lock errors:
+The SQLite database uses WAL mode with a 5-second busy timeout. If you see lock
+errors:
 
 - Ensure only one dashboard server instance is running
-- Check for zombie `node server/index.js` processes: `ps aux | grep server/index`
-- Delete `data/dashboard.db-wal` and `data/dashboard.db-shm` if the server was killed uncleanly, then restart
+- Check for zombie `node server/index.js` processes:
+  `ps aux | grep server/index`
+- Delete `data/dashboard.db-wal` and `data/dashboard.db-shm` if the server was
+  killed uncleanly, then restart
 
 ---
 
@@ -559,7 +780,8 @@ curl http://localhost:4820/api/health
 
 **Check 2 — Are hooks installed?**
 
-Open `~/.claude/settings.json` and confirm it contains a `hooks` section with entries referencing `hook-handler.js`. If not, run:
+Open `~/.claude/settings.json` and confirm it contains a `hooks` section with
+entries referencing `hook-handler.js`. If not, run:
 
 ```bash
 npm run install-hooks
@@ -571,13 +793,16 @@ Hooks only apply to sessions started after installation. Restart Claude Code.
 
 **Check 4 — Is Node.js in PATH when Claude Code runs hooks?**
 
-On some systems, the shell environment when Claude Code fires hooks may not include the full PATH. Test with:
+On some systems, the shell environment when Claude Code fires hooks may not
+include the full PATH. Test with:
 
 ```bash
 node --version
 ```
 
-If Node.js is not found, use the full path to `node` in the hook command. Edit `scripts/install-hooks.js`, replace `node` with the absolute path (e.g. `/usr/local/bin/node`), and re-run `npm run install-hooks`.
+If Node.js is not found, use the full path to `node` in the hook command. Edit
+`scripts/install-hooks.js`, replace `node` with the absolute path (e.g.
+`/usr/local/bin/node`), and re-run `npm run install-hooks`.
 
 ---
 
@@ -589,13 +814,15 @@ The WebSocket connection to the server failed. Ensure the server is running:
 npm run dev
 ```
 
-The client will automatically reconnect every 2 seconds once the server is available.
+The client will automatically reconnect every 2 seconds once the server is
+available.
 
 ---
 
 ### Events Today shows 0 despite recent activity
 
-This was a known timezone bug (fixed in current version). If you are still seeing this, ensure you are running the latest code and restart the server.
+This was a known timezone bug (fixed in current version). If you are still
+seeing this, ensure you are running the latest code and restart the server.
 
 ---
 
@@ -634,7 +861,8 @@ curl http://localhost:4820/api/health
 
 **Check 2 — Did you install hooks on the host?**
 
-Hooks run on the host machine, not inside the container. After the container is up:
+Hooks run on the host machine, not inside the container. After the container is
+up:
 
 ```bash
 npm run install-hooks
@@ -642,53 +870,85 @@ npm run install-hooks
 
 **Check 3 — Are hooks pointing to the right port?**
 
-Open `~/.claude/settings.json` and verify the hook commands reference `localhost:4820` (or whatever port the container is mapped to). If you changed the port mapping, update hooks accordingly.
+Open `~/.claude/settings.json` and verify the hook commands reference
+`localhost:4820` (or whatever port the container is mapped to). If you changed
+the port mapping, update hooks accordingly.
 
 ---
 
 ### Docker build fails during `npm ci`
 
-If the build fails in Stage 1 with `better-sqlite3` errors, this is expected and should not block the build — `better-sqlite3` is an optional dependency. If the build still fails:
+If the build fails in Stage 1 with `better-sqlite3` errors, this is expected and
+should not block the build — `better-sqlite3` is an optional dependency. If the
+build still fails:
 
-- Ensure you are using the latest multi-stage Dockerfile (`node:24.19.0-alpine3.24`, non-root runtime, Git/OpenSSH/SQLite/Tini, no compiler toolchain in the final image)
+- Ensure you are using the latest multi-stage Dockerfile
+  (`node:24.19.0-alpine3.24`, non-root runtime, Git/OpenSSH/SQLite/Tini, no
+  compiler toolchain in the final image)
 - Run `docker build --no-cache -t agent-monitor .` to force a clean rebuild
-- Check that `package.json` has `better-sqlite3` under `optionalDependencies`, not `dependencies`
+- Check that `package.json` has `better-sqlite3` under `optionalDependencies`,
+  not `dependencies`
 
 ---
 
 ### macOS desktop app — `npm run desktop:dmg` is slow
 
-This is expected. `desktop:dmg` compiles, packages, and ad-hoc-signs the app **twice** — once for `arm64`, once for `x64` — and emits **both** per-arch DMGs (`…-arm64.dmg` + `…-x64.dmg`). It does not merge them into a single universal binary; the two per-arch DMGs are what ship. Packaging two architectures back-to-back is what takes the time; it is not hung.
+This is expected. `desktop:dmg` compiles, packages, and ad-hoc-signs the app
+**twice** — once for `arm64`, once for `x64` — and emits **both** per-arch DMGs
+(`…-arm64.dmg` + `…-x64.dmg`). It does not merge them into a single universal
+binary; the two per-arch DMGs are what ship. Packaging two architectures
+back-to-back is what takes the time; it is not hung.
 
-For a build that targets your own Mac, use a single-arch command instead — it builds one architecture and finishes in roughly a minute:
+For a build that targets your own Mac, use a single-arch command instead — it
+builds one architecture and finishes in roughly a minute:
 
 ```bash
 npm run desktop:dmg:arm64   # Apple Silicon
 npm run desktop:dmg:x64     # Intel
 ```
 
-CI already produces both DMGs — pulled either from the [latest GitHub Release](https://github.com/buluma/Code-Agent-Monitor/releases/latest) (CI auto-publishes a `vX.Y.Z` when `package.json` is bumped on `master`) or from the per-commit `ClaudeCodeMonitor-dmg` workflow artifact — so you rarely need to build them locally.
+CI already produces both DMGs — pulled either from the
+[latest GitHub Release](https://github.com/buluma/Code-Agent-Monitor/releases/latest)
+(CI auto-publishes a `vX.Y.Z` when `package.json` is bumped on `master`) or from
+the per-commit `ClaudeCodeMonitor-dmg` workflow artifact — so you rarely need to
+build them locally.
 
 ---
 
 ### Desktop app — `entry file out/main.js does not exist`
 
-You ran `electron-builder` without a TypeScript compile. `npm run clean` (in `desktop/`) deletes `out/`, and `electron-builder` only packages — it does not compile. Re-run `npm run desktop:build` first, or use a `desktop:dmg*` / `desktop:win*` script (each one chains `npm run build` for you). Never invoke `electron-builder` bare.
+You ran `electron-builder` without a TypeScript compile. `npm run clean` (in
+`desktop/`) deletes `out/`, and `electron-builder` only packages — it does not
+compile. Re-run `npm run desktop:build` first, or use a `desktop:dmg*` /
+`desktop:win*` script (each one chains `npm run build` for you). Never invoke
+`electron-builder` bare.
 
 ---
 
 ### macOS desktop app — Gatekeeper blocks the app on first launch
 
-The DMG is **ad-hoc signed** by default (the project ships no paid Apple Developer ID), so macOS shows *"Apple could not verify…"* the first time you open the app. Strip the quarantine attribute:
+The DMG is **ad-hoc signed** by default (the project ships no paid Apple
+Developer ID), so macOS shows _"Apple could not verify…"_ the first time you
+open the app. Strip the quarantine attribute:
 
 ```bash
 xattr -cr "/Applications/Claude Code Monitor.app"
 ```
 
-Or open  → *System Settings → Privacy & Security* and click *Open Anyway*. Real Developer ID signing and notarization are opt-in via the `CSC_LINK` / `CSC_KEY_PASSWORD` and `APPLE_ID` / `APPLE_TEAM_ID` / `APPLE_APP_SPECIFIC_PASSWORD` repository secrets — see [`DESKTOP.md`](./DESKTOP.md#notarization-for-the-maintainer).
+Or open → _System Settings → Privacy & Security_ and click _Open Anyway_. Real
+Developer ID signing and notarization are opt-in via the `CSC_LINK` /
+`CSC_KEY_PASSWORD` and `APPLE_ID` / `APPLE_TEAM_ID` /
+`APPLE_APP_SPECIFIC_PASSWORD` repository secrets — see
+[`DESKTOP.md`](./DESKTOP.md#notarization-for-the-maintainer).
 
 ---
 
 ### Desktop app — no sessions appearing
 
-The desktop app installs hooks on its **first owned-server boot**, not before. After the app is running, start a **new** Claude Code session and confirm `~/.claude/settings.json` contains entries referencing `hook-handler.js`. If the app adopted an existing server on `4820`, that server's own hook configuration applies instead. For a blank dashboard window, check the desktop log (`~/Library/Logs/Claude Code Monitor/desktop.log`) via tray → *Show Logs* and use tray → *Restart Server*.
+The desktop app installs hooks on its **first owned-server boot**, not before.
+After the app is running, start a **new** Claude Code session and confirm
+`~/.claude/settings.json` contains entries referencing `hook-handler.js`. If the
+app adopted an existing server on `4820`, that server's own hook configuration
+applies instead. For a blank dashboard window, check the desktop log
+(`~/Library/Logs/Claude Code Monitor/desktop.log`) via tray → _Show Logs_ and
+use tray → _Restart Server_.

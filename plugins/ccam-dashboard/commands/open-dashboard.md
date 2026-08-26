@@ -2,8 +2,8 @@
 description: Print the Agent Monitor dashboard URL and how to start/open it
 ---
 
-Print how to open the Claude Code Agent Monitor dashboard. Do not start anything
-or modify data — just print the URL and the relevant commands.
+Print how to open the Code Agent Monitor dashboard. Do not start anything or
+modify data — just print the URL and the relevant commands.
 
 The dashboard URL is:
 

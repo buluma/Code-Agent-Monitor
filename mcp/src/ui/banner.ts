@@ -115,7 +115,7 @@ export function printServerInfo(info: {
 
   process.stdout.write(divider + "\n");
   process.stdout.write(
-    `  ${c.dim(c.cyan("│"))} ${c.bold(c.brightWhite("Agent Dashboard MCP Server"))}\n`
+    `  ${c.dim(c.cyan("│"))} ${c.bold(c.brightWhite("Code Agent Monitor MCP Server"))}\n`
   );
   process.stdout.write(divider + "\n");
   process.stdout.write(line("Version", c.brightCyan(info.version)) + "\n");

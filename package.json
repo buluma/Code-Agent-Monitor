@@ -1,5 +1,5 @@
 {
-  "name": "agent-dashboard",
+  "name": "code-agent-monitor",
   "version": "2.0.13",
   "bin": {
     "ccam": "bin/ccam.js"
@@ -73,8 +73,8 @@
     "mcp:typecheck": "npm --prefix mcp run typecheck",
     "extensions:sync": "node scripts/sync-agent-extensions.js",
     "extensions:validate": "node scripts/validate-agent-extensions.js",
-    "mcp:docker:build": "docker build -f mcp/Dockerfile -t agent-dashboard-mcp:local .",
-    "mcp:podman:build": "podman build -f mcp/Dockerfile -t localhost/agent-dashboard-mcp:local .",
+    "mcp:docker:build": "docker build -f mcp/Dockerfile -t code-agent-monitor-mcp:local .",
+    "mcp:podman:build": "podman build -f mcp/Dockerfile -t localhost/code-agent-monitor-mcp:local .",
     "desktop:install": "cd desktop && node scripts/install.js",
     "desktop:dev": "npm run build && cd desktop && npm run dev",
     "desktop:build": "cd desktop && npm run build",

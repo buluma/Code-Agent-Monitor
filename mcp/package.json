@@ -1,11 +1,11 @@
 {
-  "name": "agent-dashboard-mcp-server",
+  "name": "code-agent-monitor-mcp-server",
   "version": "1.0.0",
-  "description": "Local MCP server for the Claude Code Agent Monitor",
+  "description": "Local MCP server for the Code Agent Monitor",
   "private": true,
   "type": "module",
   "bin": {
-    "agent-dashboard-mcp": "./build/index.js"
+    "code-agent-monitor-mcp": "./build/index.js"
   },
   "scripts": {
     "clean": "node -e \"require('node:fs').rmSync('build',{recursive:true,force:true})\"",
@@ -18,12 +18,12 @@
     "dev": "tsx src/index.ts",
     "dev:http": "tsx src/index.ts --transport=http",
     "dev:repl": "tsx src/index.ts --transport=repl",
-    "docker:build": "docker build -f Dockerfile -t agent-dashboard-mcp:local ..",
-    "podman:build": "podman build -f Dockerfile -t localhost/agent-dashboard-mcp:local .."
+    "docker:build": "docker build -f Dockerfile -t code-agent-monitor-mcp:local ..",
+    "podman:build": "podman build -f Dockerfile -t localhost/code-agent-monitor-mcp:local .."
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.30.0",
-    "agent-dashboard": "file:..",
+    "code-agent-monitor": "file:..",
     "zod": "^3.25.76"
   },
   "devDependencies": {

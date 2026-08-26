@@ -1,6 +1,6 @@
 /**
  * @file format.ts
- * @description Provides utility functions for formatting dates, times, durations, and numbers in the agent dashboard application. It includes functions to parse ISO timestamp strings while normalizing UTC, format time and date-time strings for display, calculate and format durations between timestamps, and format large numbers with appropriate suffixes (K/M/B) for better readability. These utilities help ensure consistent and user-friendly presentation of temporal and numerical data throughout the application.
+ * @description Provides utility functions for formatting dates, times, durations, and numbers in the Code Agent Monitor application. It includes functions to parse ISO timestamp strings while normalizing UTC, format time and date-time strings for display, calculate and format durations between timestamps, and format large numbers with appropriate suffixes (K/M/B) for better readability. These utilities help ensure consistent and user-friendly presentation of temporal and numerical data throughout the application.
  *
  * ## Two cross-cutting concerns
  * 1. **UTC normalization.** The backend stores timestamps via SQLite's

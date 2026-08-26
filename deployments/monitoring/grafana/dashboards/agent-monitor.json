@@ -20,7 +20,7 @@
       }
     ]
   },
-  "description": "Comprehensive monitoring dashboard for Claude Code Agent Monitor",
+  "description": "Comprehensive monitoring dashboard for Code Agent Monitor",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -701,7 +701,7 @@
     "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
   },
   "timezone": "browser",
-  "title": "Claude Code Agent Monitor",
+  "title": "Code Agent Monitor",
   "uid": "agent-monitor-main",
   "version": 1
 }

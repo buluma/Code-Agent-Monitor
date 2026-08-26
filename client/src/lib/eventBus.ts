@@ -1,6 +1,6 @@
 /**
  * @file eventBus.ts
- * @description Implements a simple event bus for managing WebSocket messages and connection status in the agent dashboard application. It allows components to subscribe to real-time updates from the server and react to changes in WebSocket connectivity. The event bus maintains a list of handlers for incoming messages and connection status changes, providing a clean interface for publishing events and managing subscriptions.
+ * @description Implements a simple event bus for managing WebSocket messages and connection status in the Code Agent Monitor application. It allows components to subscribe to real-time updates from the server and react to changes in WebSocket connectivity. The event bus maintains a list of handlers for incoming messages and connection status changes, providing a clean interface for publishing events and managing subscriptions.
  *
  * ## Design
  * This is a module-level singleton (there is exactly one bus per browser tab) built on

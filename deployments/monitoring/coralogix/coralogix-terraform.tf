@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Coralogix Terraform Integration for Claude Code Agent Monitor
+# Coralogix Terraform Integration for Code Agent Monitor
 #
 # Provisions Coralogix resources via the official Terraform provider:
 #   - Alert rules (mirroring Prometheus/Alertmanager rules)

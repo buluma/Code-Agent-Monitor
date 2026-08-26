@@ -1,4 +1,4 @@
-# CI / CD Pipeline for Claude Code Agent Monitor
+# CI / CD Pipeline for Code Agent Monitor
 #
 # This workflow runs on every push and pull request, executing the following stages:
 # 1. Format Check: Ensures code adheres to formatting standards.
@@ -24,7 +24,7 @@
 # Any failure in the stages will cause the pipeline to fail, ensuring that only well-formatted, tested, and built code is merged and deployed.
 #
 # Author: Michael Buluma <1452922+buluma@users.noreply.github.com>
-name: 🚀 CI / CD Pipeline for Claude Code Agent Monitor
+name: 🚀 CI / CD Pipeline for Code Agent Monitor
 
 on:
   push:

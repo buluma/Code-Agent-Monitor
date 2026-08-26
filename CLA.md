@@ -1,13 +1,13 @@
 # Contributor License Agreement (CLA)
 
-**Project:** Claude Code Agent Monitor
-**Maintainer / "Project Owner":** Michael Buluma ([@buluma](https://github.com/buluma))
+**Project:** Code Agent Monitor **Maintainer / "Project Owner":** Michael Buluma
+([@buluma](https://github.com/buluma))
 
-Thank you for your interest in contributing to Claude Code Agent Monitor (the
-"Project"). This Contributor License Agreement ("Agreement") documents the rights
-granted by contributors to the Project Owner. It protects you as a contributor as
-well as the Project Owner and the Project's users; it does **not** change your
-rights to use your own contributions for any other purpose.
+Thank you for your interest in contributing to Code Agent Monitor (the
+"Project"). This Contributor License Agreement ("Agreement") documents the
+rights granted by contributors to the Project Owner. It protects you as a
+contributor as well as the Project Owner and the Project's users; it does
+**not** change your rights to use your own contributions for any other purpose.
 
 This Agreement applies to every contribution you submit to the Project, whether
 the contribution is submitted before or after the date you sign, and regardless
@@ -31,8 +31,8 @@ Contributions to the Project.
   modification of or addition to an existing work, that is intentionally
   submitted by You to the Project for inclusion in, or documentation of, any of
   the products owned or managed by the Project ("Work"). "Submitted" means any
-  form of electronic, verbal, or written communication sent to the Project or its
-  maintainers, including but not limited to communication on source-code
+  form of electronic, verbal, or written communication sent to the Project or
+  its maintainers, including but not limited to communication on source-code
   control systems, issue trackers, and pull requests, but excluding
   communication that is conspicuously marked or otherwise designated in writing
   by You as **"Not a Contribution."**
@@ -56,11 +56,11 @@ adopts for the Project.
 Subject to the terms and conditions of this Agreement, You hereby grant to the
 Project Owner and to recipients of software distributed by the Project a
 perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-(except as stated in this section) patent license to make, have made, use,
-offer to sell, sell, import, and otherwise transfer the Work. This license
-applies only to those patent claims licensable by You that are necessarily
-infringed by Your Contribution(s) alone or by combination of Your
-Contribution(s) with the Work to which such Contribution(s) was submitted.
+(except as stated in this section) patent license to make, have made, use, offer
+to sell, sell, import, and otherwise transfer the Work. This license applies
+only to those patent claims licensable by You that are necessarily infringed by
+Your Contribution(s) alone or by combination of Your Contribution(s) with the
+Work to which such Contribution(s) was submitted.
 
 If any entity institutes patent litigation against You or any other entity
 (including a cross-claim or counterclaim in a lawsuit) alleging that Your
@@ -88,12 +88,12 @@ You represent that:
 
 ## 5. Third-Party Work
 
-Should You wish to submit work that is not Your original creation, You may submit
-it to the Project separately from any Contribution, identifying the complete
-details of its source and of any license or other restriction (including, but
-not limited to, related patents, trademarks, and license agreements) of which
-You are personally aware, and conspicuously marking the work as
-**"Submitted on behalf of a third-party: [named here]"**.
+Should You wish to submit work that is not Your original creation, You may
+submit it to the Project separately from any Contribution, identifying the
+complete details of its source and of any license or other restriction
+(including, but not limited to, related patents, trademarks, and license
+agreements) of which You are personally aware, and conspicuously marking the
+work as **"Submitted on behalf of a third-party: [named here]"**.
 
 ## 6. No Obligation & No Warranty
 

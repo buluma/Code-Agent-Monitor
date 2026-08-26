@@ -1,4 +1,4 @@
-# Claude Code Agent Monitor
+# Code Agent Monitor
 
 > Local-first real-time dashboard for Claude Code: native hooks POST to an Express + SQLite server, the React UI updates over WebSocket, and an optional local MCP server exposes safe dashboard tools. This repository is MIT-licensed; default stack is Node.js 18+, React 18, Vite, TypeScript, and better-sqlite3.
 

@@ -1,6 +1,6 @@
 /**
  * @file App.tsx
- * @description Top-level React tree for the Claude Code Agent Monitor dashboard.
+ * @description Top-level React tree for the Code Agent Monitor dashboard.
  * Wires together routing, real-time WebSocket ingestion, browser notifications,
  * and the splash screen shown on cold load.
  *

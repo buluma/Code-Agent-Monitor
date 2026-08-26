@@ -1,11 +1,11 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it using the metadata from this file."
-title: "Agent Dashboard for Claude Code"
+title: "Code Agent Monitor"
 type: software
 authors:
   - family-names: "Buluma"
     given-names: "Michael"
-abstract: "Real-time dashboard for tracking Claude Code agent activity."
+abstract: "Real-time dashboard for tracking code agent activity."
 repository-code: "https://github.com/buluma/Code-Agent-Monitor"
 url: "https://github.com/buluma/Code-Agent-Monitor"
 version: "2.0.13"

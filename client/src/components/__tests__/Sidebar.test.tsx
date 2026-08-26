@@ -25,12 +25,14 @@ describe("Sidebar", () => {
 
   it("should render the brand name", () => {
     renderSidebar(true);
-    expect(screen.getByText("Agent Dashboard")).toBeInTheDocument();
+    expect(screen.getByText("Code Agent Monitor")).toBeInTheDocument();
   });
 
   it("should render the subtitle", () => {
     renderSidebar(true);
-    expect(screen.getByText("Claude Code Monitor")).toBeInTheDocument();
+    const subtitle = screen.getByText("Code Agent Monitor").closest("div")?.querySelector("p");
+    expect(subtitle).toBeInTheDocument();
+    expect(subtitle?.textContent).toBe("");
   });
 
   it("should render all navigation links", () => {

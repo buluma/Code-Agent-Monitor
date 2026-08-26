@@ -1,6 +1,7 @@
 # Database Schema Reference
 
-Comprehensive database schema documentation for Agent Dashboard SQLite database.
+Comprehensive database schema documentation for Code Agent Monitor SQLite
+database.
 
 ---
 
@@ -20,7 +21,8 @@ Comprehensive database schema documentation for Agent Dashboard SQLite database.
 
 ## Overview
 
-Agent Dashboard uses **SQLite 3** as its primary data store with the following characteristics:
+Code Agent Monitor uses **SQLite 3** as its primary data store with the
+following characteristics:
 
 - **File-based** - Single database file, portable across systems
 - **Embedded** - No separate server process required
@@ -64,9 +66,14 @@ graph TB
 ```
 
 **Database Location:**
-- **Canonical (default):** `~/.claude/agent-dashboard/dashboard.db` — shared by `npm start`, `npm run dev`, Docker (bind mount), and the desktop app when it uses the same data dir
-- **Override:** set `DASHBOARD_DATA_DIR` (directory) or `DASHBOARD_DB_PATH` (file path) for tests or custom deployments
-- **Legacy:** repo-local `./data/dashboard.db` is migrated into the canonical location on first launch (see `server/db.js`)
+
+- **Canonical (default):** `~/.claude/agent-dashboard/dashboard.db` — shared by
+  `npm start`, `npm run dev`, Docker (bind mount), and the desktop app when it
+  uses the same data dir
+- **Override:** set `DASHBOARD_DATA_DIR` (directory) or `DASHBOARD_DB_PATH`
+  (file path) for tests or custom deployments
+- **Legacy:** repo-local `./data/dashboard.db` is migrated into the canonical
+  location on first launch (see `server/db.js`)
 
 ---
 
@@ -171,9 +178,13 @@ graph LR
 
 ### sessions
 
-Tracks Claude Code and Codex sessions (one per CLI invocation or background task). Schema mirrors `server/db.js`.
+Tracks Claude Code and Codex sessions (one per CLI invocation or background
+task). Schema mirrors `server/db.js`.
 
-> **Cursor (informational):** Rows imported from `~/.claude` JSONL transcripts may also represent **Cursor** agent sessions — Cursor happens to use the same on-disk layout as Claude Code. The schema does not record which app created a session.
+> **Cursor (informational):** Rows imported from `~/.claude` JSONL transcripts
+> may also represent **Cursor** agent sessions — Cursor happens to use the same
+> on-disk layout as Claude Code. The schema does not record which app created a
+> session.
 
 ```sql
 CREATE TABLE sessions (
@@ -198,25 +209,26 @@ CREATE TABLE sessions (
 
 **Columns:**
 
-| Column | Type | Nullable | Description |
-|--------|------|----------|-------------|
-| `id` | TEXT | NO | Session UUID (assigned by Claude Code) |
-| `name` | TEXT | YES | Human-readable label. Synced from the transcript title by `routes/hooks.js` (and the 15 s watchdog) on every event: the `custom-title` line (`/rename`, `claude -n`, picker `Ctrl+R`) always wins, otherwise the auto-generated `ai-title` fills a placeholder/auto name, otherwise the session's first user prompt (60-char label) fills it. Falls back to `Session <id8>` |
-| `status` | TEXT | NO | `active`, `completed`, `error`, or `abandoned` (CHECK-constrained). Besides the `SessionEnd` hook, the 15 s watchdog's **liveness reap** also lands `active` → `completed` when no running matching local `claude` or `codex` process has the session's `cwd` (a `SessionEnd` lost while the dashboard was down); gated by `DASHBOARD_LIVENESS_IDLE_SECONDS`, disabled via `DASHBOARD_LIVENESS_PROBE=0`. Sessions with a non-`local` `source` (Remote Data Sources) are always exempt from the local process reap and transcript watchdog. Each remote provider has independent health: sessions stay out of stale sweeps only while their own Claude or Codex mirror is healthy. If that provider reports `error`/`unavailable`, or remains `syncing` longer than `DASHBOARD_STALE_MINUTES`, an active session older than that same window falls back to the ordinary stale sweep (`abandoned`, agents completed) until a fresh mirror can reactivate it |
-| `cwd` | TEXT | YES | Working directory the CLI was launched from |
-| `model` | TEXT | YES | Claude model ID (e.g. `claude-opus-4-7`) |
-| `provider` | TEXT | NO | Product that produced the session: `claude` (default) or `codex`. Powers the composable `providers` API scope and lets shared token buckets use the correct rate card. |
-| `started_at` | TEXT | NO | ISO 8601 timestamp |
-| `ended_at` | TEXT | YES | ISO 8601 timestamp on terminal transition |
-| `metadata` | TEXT | YES | JSON blob for extras (turn duration totals, thinking blocks, …) |
-| `card_prompt_preview` | TEXT | YES | Newline-separated, bounded card-only context containing the two newest distinct human prompts. Claude Code derives it from the shared transcript cache during hooks, imports, and watchdog sweeps; Codex reads equivalent durable `codex_user_message` events when list/detail responses are built. It is not a transcript copy: full conversation content remains in JSONL, and historical rows fall back to their main-agent task. |
-| `updated_at` | TEXT | NO | Bumped on every event for staleness detection |
-| `awaiting_input_since` | TEXT | YES | ISO 8601 stamp set when the session is **Waiting** (Claude Stop, SessionStart with source `startup`/`resume`/`clear`, permission Notification, watchdog user-interrupt/Esc recovery, or Codex `task_complete` / `turn_aborted`). NULL otherwise. A Claude SessionStart with source `compact` (auto-compaction fires mid-turn while Claude is working) leaves this column untouched, so a genuinely-active session is not mislabeled Waiting |
-| `awaiting_reason` | TEXT | YES | Why the row is waiting: `notification`, `stop`, `session_start`, or `interrupted`. Set/cleared in lock-step with `awaiting_input_since` (Claude SessionStart→`session_start`, Claude Stop and Codex `task_complete`→`stop`, permission/input Notification→`notification`, watchdog/Esc recovery and Codex `turn_aborted`→`interrupted`). NULL otherwise. Exception: a Claude `compact`-source SessionStart preserves the existing value (neither stamps `session_start` nor clears it) |
-| `transcript_path` | TEXT | YES | Absolute path to the session's JSONL transcript. Written by `routes/hooks.js` on the first event that carries it (subsequent events no-op via a SQL guard) and read by the periodic compaction sweep — so the sweep touches only active session rows instead of scanning the entire `events` table for `json_extract(data,'$.transcript_path')`. Backfilled once from `events` by the `db.js` migration |
-| `source` | TEXT | NO | Data source this session was captured from. `'local'` for this machine's own Claude Code or Codex history (the default); otherwise the `remote_sources.id` of the remote SSH machine it was pulled from. Powers the `sources` query filter on `/api/sessions`, `/api/events`, `/api/agents`, `/api/stats`, and `/api/analytics`, and the `sources` facet on `/api/sessions/facets`. Indexed by `idx_sessions_source` |
+| Column                 | Type | Nullable | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ---------------------- | ---- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                   | TEXT | NO       | Session UUID (assigned by Claude Code)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `name`                 | TEXT | YES      | Human-readable label. Synced from the transcript title by `routes/hooks.js` (and the 15 s watchdog) on every event: the `custom-title` line (`/rename`, `claude -n`, picker `Ctrl+R`) always wins, otherwise the auto-generated `ai-title` fills a placeholder/auto name, otherwise the session's first user prompt (60-char label) fills it. Falls back to `Session <id8>`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `status`               | TEXT | NO       | `active`, `completed`, `error`, or `abandoned` (CHECK-constrained). Besides the `SessionEnd` hook, the 15 s watchdog's **liveness reap** also lands `active` → `completed` when no running matching local `claude` or `codex` process has the session's `cwd` (a `SessionEnd` lost while the dashboard was down); gated by `DASHBOARD_LIVENESS_IDLE_SECONDS`, disabled via `DASHBOARD_LIVENESS_PROBE=0`. Sessions with a non-`local` `source` (Remote Data Sources) are always exempt from the local process reap and transcript watchdog. Each remote provider has independent health: sessions stay out of stale sweeps only while their own Claude or Codex mirror is healthy. If that provider reports `error`/`unavailable`, or remains `syncing` longer than `DASHBOARD_STALE_MINUTES`, an active session older than that same window falls back to the ordinary stale sweep (`abandoned`, agents completed) until a fresh mirror can reactivate it |
+| `cwd`                  | TEXT | YES      | Working directory the CLI was launched from                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `model`                | TEXT | YES      | Claude model ID (e.g. `claude-opus-4-7`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `provider`             | TEXT | NO       | Product that produced the session: `claude` (default) or `codex`. Powers the composable `providers` API scope and lets shared token buckets use the correct rate card.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `started_at`           | TEXT | NO       | ISO 8601 timestamp                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `ended_at`             | TEXT | YES      | ISO 8601 timestamp on terminal transition                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `metadata`             | TEXT | YES      | JSON blob for extras (turn duration totals, thinking blocks, …)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `card_prompt_preview`  | TEXT | YES      | Newline-separated, bounded card-only context containing the two newest distinct human prompts. Claude Code derives it from the shared transcript cache during hooks, imports, and watchdog sweeps; Codex reads equivalent durable `codex_user_message` events when list/detail responses are built. It is not a transcript copy: full conversation content remains in JSONL, and historical rows fall back to their main-agent task.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `updated_at`           | TEXT | NO       | Bumped on every event for staleness detection                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `awaiting_input_since` | TEXT | YES      | ISO 8601 stamp set when the session is **Waiting** (Claude Stop, SessionStart with source `startup`/`resume`/`clear`, permission Notification, watchdog user-interrupt/Esc recovery, or Codex `task_complete` / `turn_aborted`). NULL otherwise. A Claude SessionStart with source `compact` (auto-compaction fires mid-turn while Claude is working) leaves this column untouched, so a genuinely-active session is not mislabeled Waiting                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `awaiting_reason`      | TEXT | YES      | Why the row is waiting: `notification`, `stop`, `session_start`, or `interrupted`. Set/cleared in lock-step with `awaiting_input_since` (Claude SessionStart→`session_start`, Claude Stop and Codex `task_complete`→`stop`, permission/input Notification→`notification`, watchdog/Esc recovery and Codex `turn_aborted`→`interrupted`). NULL otherwise. Exception: a Claude `compact`-source SessionStart preserves the existing value (neither stamps `session_start` nor clears it)                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `transcript_path`      | TEXT | YES      | Absolute path to the session's JSONL transcript. Written by `routes/hooks.js` on the first event that carries it (subsequent events no-op via a SQL guard) and read by the periodic compaction sweep — so the sweep touches only active session rows instead of scanning the entire `events` table for `json_extract(data,'$.transcript_path')`. Backfilled once from `events` by the `db.js` migration                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `source`               | TEXT | NO       | Data source this session was captured from. `'local'` for this machine's own Claude Code or Codex history (the default); otherwise the `remote_sources.id` of the remote SSH machine it was pulled from. Powers the `sources` query filter on `/api/sessions`, `/api/events`, `/api/agents`, `/api/stats`, and `/api/analytics`, and the `sources` facet on `/api/sessions/facets`. Indexed by `idx_sessions_source`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
 **Constraints:**
+
 - `status` must be one of the four enum values
 - `awaiting_input_since` is ignored on non-`active` sessions for UI bucketing
 
@@ -247,7 +259,8 @@ stateDiagram-v2
 
 ### agents
 
-Tracks main agents and subagents within a session. Main agents have id `${session_id}-main`; subagents get a fresh UUID.
+Tracks main agents and subagents within a session. Main agents have id
+`${session_id}-main`; subagents get a fresh UUID.
 
 ```sql
 CREATE TABLE agents (
@@ -274,20 +287,20 @@ CREATE TABLE agents (
 
 **Columns:**
 
-| Column | Type | Nullable | Description |
-|--------|------|----------|-------------|
-| `id` | TEXT | NO | UUID (subagents) or `${session_id}-main` (main agent) |
-| `session_id` | TEXT | NO | FK to `sessions.id`, cascades on delete |
-| `name` | TEXT | NO | Display label (e.g. `Main Agent - {session name}` or subagent description) |
-| `type` | TEXT | NO | `main` or `subagent` |
-| `subagent_type` | TEXT | YES | `Explore`, `general-purpose`, `code-review`, `compaction`, … |
-| `status` | TEXT | NO | `idle`, `connected`, `working`, `completed`, `error` (CHECK-constrained). The dashboard's **Waiting** badge is the UI overlay produced by `awaiting_input_since`; it is not a persisted status |
-| `task` | TEXT | YES | Subagent prompt / brief |
-| `current_tool` | TEXT | YES | Tool currently running (cleared on `PostToolUse`) |
-| `parent_agent_id` | TEXT | YES | FK to the spawning agent for nested subagent trees (`ON DELETE SET NULL`). Set to the main agent at insert, then repointed to the true spawner by `reconcileSubagentParents` from each subagent transcript's Task tool result (`toolUseResult.agentId`), so subagents-of-subagents nest correctly instead of flattening under main |
-| `metadata` | TEXT | YES | JSON blob for extras. For subagents it carries `model` (the subagent's own model, issue #185) and `tokens` — an array of per-agent token buckets parsed from the subagent's transcript. The agent-list endpoints price `tokens` at the current rates to attach a per-agent `cost` (so a subagent card shows its OWN cost, not the session total). Empty `[]` means the subagent did no billable work; absent means its transcript wasn't available to parse |
-| `awaiting_input_since` | TEXT | YES | Mirrors the parent session's flag for the main agent, including Codex `task_complete` / `turn_aborted` waiting state. NULL on subagents |
-| `awaiting_reason` | TEXT | YES | Why the row is waiting: `notification`, `stop`, `session_start`, or `interrupted`. Set/cleared in lock-step with `awaiting_input_since`; for Codex, `task_complete` uses `stop` and `turn_aborted` uses `interrupted`. NULL on subagents |
+| Column                 | Type | Nullable | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ---------------------- | ---- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                   | TEXT | NO       | UUID (subagents) or `${session_id}-main` (main agent)                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `session_id`           | TEXT | NO       | FK to `sessions.id`, cascades on delete                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `name`                 | TEXT | NO       | Display label (e.g. `Main Agent - {session name}` or subagent description)                                                                                                                                                                                                                                                                                                                                                                                  |
+| `type`                 | TEXT | NO       | `main` or `subagent`                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `subagent_type`        | TEXT | YES      | `Explore`, `general-purpose`, `code-review`, `compaction`, …                                                                                                                                                                                                                                                                                                                                                                                                |
+| `status`               | TEXT | NO       | `idle`, `connected`, `working`, `completed`, `error` (CHECK-constrained). The dashboard's **Waiting** badge is the UI overlay produced by `awaiting_input_since`; it is not a persisted status                                                                                                                                                                                                                                                              |
+| `task`                 | TEXT | YES      | Subagent prompt / brief                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `current_tool`         | TEXT | YES      | Tool currently running (cleared on `PostToolUse`)                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `parent_agent_id`      | TEXT | YES      | FK to the spawning agent for nested subagent trees (`ON DELETE SET NULL`). Set to the main agent at insert, then repointed to the true spawner by `reconcileSubagentParents` from each subagent transcript's Task tool result (`toolUseResult.agentId`), so subagents-of-subagents nest correctly instead of flattening under main                                                                                                                          |
+| `metadata`             | TEXT | YES      | JSON blob for extras. For subagents it carries `model` (the subagent's own model, issue #185) and `tokens` — an array of per-agent token buckets parsed from the subagent's transcript. The agent-list endpoints price `tokens` at the current rates to attach a per-agent `cost` (so a subagent card shows its OWN cost, not the session total). Empty `[]` means the subagent did no billable work; absent means its transcript wasn't available to parse |
+| `awaiting_input_since` | TEXT | YES      | Mirrors the parent session's flag for the main agent, including Codex `task_complete` / `turn_aborted` waiting state. NULL on subagents                                                                                                                                                                                                                                                                                                                     |
+| `awaiting_reason`      | TEXT | YES      | Why the row is waiting: `notification`, `stop`, `session_start`, or `interrupted`. Set/cleared in lock-step with `awaiting_input_since`; for Codex, `task_complete` uses `stop` and `turn_aborted` uses `interrupted`. NULL on subagents                                                                                                                                                                                                                    |
 
 **Lifecycle:**
 
@@ -306,6 +319,7 @@ stateDiagram-v2
 ```
 
 **current_tool Behavior:**
+
 - Set to tool name on `PreToolUse` hook (e.g., `"bash"`, `"view"`)
 - Cleared to `NULL` on `PostToolUse` hook
 - Used to show real-time tool execution in UI
@@ -331,17 +345,18 @@ CREATE TABLE tool_executions (
 
 **Columns:**
 
-| Column | Type | Nullable | Description |
-|--------|------|----------|-------------|
-| `id` | INTEGER | NO | Auto-increment primary key |
-| `agent_id` | TEXT | NO | Foreign key to `agents.agent_id` |
-| `tool_name` | TEXT | NO | Tool name (`bash`, `view`, `edit`, `grep`, etc.) |
-| `duration_ms` | INTEGER | YES | Execution time in milliseconds |
-| `success` | INTEGER | NO | 1 = success, 0 = failure |
-| `error_message` | TEXT | YES | NULL if success, error details if failed |
-| `created_at` | TEXT | NO | ISO8601 timestamp of execution |
+| Column          | Type    | Nullable | Description                                      |
+| --------------- | ------- | -------- | ------------------------------------------------ |
+| `id`            | INTEGER | NO       | Auto-increment primary key                       |
+| `agent_id`      | TEXT    | NO       | Foreign key to `agents.agent_id`                 |
+| `tool_name`     | TEXT    | NO       | Tool name (`bash`, `view`, `edit`, `grep`, etc.) |
+| `duration_ms`   | INTEGER | YES      | Execution time in milliseconds                   |
+| `success`       | INTEGER | NO       | 1 = success, 0 = failure                         |
+| `error_message` | TEXT    | YES      | NULL if success, error details if failed         |
+| `created_at`    | TEXT    | NO       | ISO8601 timestamp of execution                   |
 
 **Common Tool Names:**
+
 - `bash` - Shell command execution
 - `view` - File/directory viewing
 - `edit` - File editing
@@ -382,15 +397,16 @@ CREATE TABLE notifications (
 
 **Columns:**
 
-| Column | Type | Nullable | Description |
-|--------|------|----------|-------------|
-| `id` | INTEGER | NO | Auto-increment primary key |
-| `session_id` | TEXT | NO | Foreign key to `sessions.session_id` |
-| `notification_type` | TEXT | NO | Type of notification |
-| `message` | TEXT | YES | Notification message content |
-| `created_at` | TEXT | NO | ISO8601 timestamp |
+| Column              | Type    | Nullable | Description                          |
+| ------------------- | ------- | -------- | ------------------------------------ |
+| `id`                | INTEGER | NO       | Auto-increment primary key           |
+| `session_id`        | TEXT    | NO       | Foreign key to `sessions.session_id` |
+| `notification_type` | TEXT    | NO       | Type of notification                 |
+| `message`           | TEXT    | YES      | Notification message content         |
+| `created_at`        | TEXT    | NO       | ISO8601 timestamp                    |
 
 **Common Notification Types:**
+
 - `backgroundTaskComplete` - Background agent finished
 - `errorOccurred` - Error during execution
 - `systemMessage` - General system message
@@ -399,7 +415,9 @@ CREATE TABLE notifications (
 
 ### model_pricing
 
-Per-model pricing rules for cost calculation, keyed by `model_pattern` (a SQL-style glob; `%` matches any characters). Rates are per **million** tokens (USD).
+Per-model pricing rules for cost calculation, keyed by `model_pattern` (a
+SQL-style glob; `%` matches any characters). Rates are per **million** tokens
+(USD).
 
 ```sql
 CREATE TABLE model_pricing (
@@ -427,30 +445,35 @@ CREATE TABLE model_pricing (
 
 **Columns (highlights):**
 
-| Column | Type | Nullable | Description |
-|--------|------|----------|-------------|
-| `model_pattern` | TEXT | NO | Primary key. SQL-style glob (e.g. `claude-opus-4-7%`, `claude-%-haiku`). Rules are matched longest-pattern-first |
-| `display_name` | TEXT | NO | Human-readable model name shown in Settings |
-| `input_per_mtok` / `output_per_mtok` | REAL | NO | Standard input / output rate per 1M tokens |
-| `cache_read_per_mtok` / `cache_write_per_mtok` / `cache_write_1h_per_mtok` | REAL | NO | Cache read + 5m/1h cache-write rates |
-| `fast_input_per_mtok` / `fast_output_per_mtok` | REAL | NO | Fast-mode premium rates (0 = no premium) |
-| `intro_*_per_mtok` | REAL | NO | Introductory (promo) rates, mirroring the standard fields |
-| `intro_until` | TEXT | YES | Promo cutoff `YYYY-MM-DD`. Usage on/before it uses the intro rates; NULL = no promo. Editable per-rule in Settings |
-| `updated_at` | TEXT | NO | ISO8601 timestamp of the last edit |
+| Column                                                                     | Type | Nullable | Description                                                                                                        |
+| -------------------------------------------------------------------------- | ---- | -------- | ------------------------------------------------------------------------------------------------------------------ |
+| `model_pattern`                                                            | TEXT | NO       | Primary key. SQL-style glob (e.g. `claude-opus-4-7%`, `claude-%-haiku`). Rules are matched longest-pattern-first   |
+| `display_name`                                                             | TEXT | NO       | Human-readable model name shown in Settings                                                                        |
+| `input_per_mtok` / `output_per_mtok`                                       | REAL | NO       | Standard input / output rate per 1M tokens                                                                         |
+| `cache_read_per_mtok` / `cache_write_per_mtok` / `cache_write_1h_per_mtok` | REAL | NO       | Cache read + 5m/1h cache-write rates                                                                               |
+| `fast_input_per_mtok` / `fast_output_per_mtok`                             | REAL | NO       | Fast-mode premium rates (0 = no premium)                                                                           |
+| `intro_*_per_mtok`                                                         | REAL | NO       | Introductory (promo) rates, mirroring the standard fields                                                          |
+| `intro_until`                                                              | TEXT | YES      | Promo cutoff `YYYY-MM-DD`. Usage on/before it uses the intro rates; NULL = no promo. Editable per-rule in Settings |
+| `updated_at`                                                               | TEXT | NO       | ISO8601 timestamp of the last edit                                                                                 |
 
-Standard rates and intro rates are edited independently: the pricing update path writes intro columns only when the caller sends intro fields, so a standard-rate edit never disturbs a promo (and vice versa). Clearing `intro_until` also zeroes the intro rates.
+Standard rates and intro rates are edited independently: the pricing update path
+writes intro columns only when the caller sends intro fields, so a standard-rate
+edit never disturbs a promo (and vice versa). Clearing `intro_until` also zeroes
+the intro rates.
 
 **Example default rule (Claude Sonnet 5, with its launch promo):**
 
-| Pattern | Input | Output | Intro Input | Intro Output | Intro Until |
-|---------|-------|--------|-------------|--------------|-------------|
-| `claude-sonnet-5%` | $3.00 | $15.00 | $2.00 | $10.00 | `2026-08-31` |
+| Pattern            | Input | Output | Intro Input | Intro Output | Intro Until  |
+| ------------------ | ----- | ------ | ----------- | ------------ | ------------ |
+| `claude-sonnet-5%` | $3.00 | $15.00 | $2.00       | $10.00       | `2026-08-31` |
 
 ---
 
 ### gpt_model_pricing
 
-Separate OpenAI/Codex rate card. It deliberately does not reuse `model_pricing`: Codex tracks explicit cached-input and cache-write token classes, and OpenAI's published card has short, long, and Fast groups.
+Separate OpenAI/Codex rate card. It deliberately does not reuse `model_pricing`:
+Codex tracks explicit cached-input and cache-write token classes, and OpenAI's
+published card has short, long, and Fast groups.
 
 ```sql
 CREATE TABLE gpt_model_pricing (
@@ -472,21 +495,46 @@ CREATE TABLE gpt_model_pricing (
 );
 ```
 
-Standard Codex usage whose request input is `<= 272000` tokens uses the `short_*` group; requests above that boundary use `long_*`; `speed = fast` uses `fast_*`. A zero/missing group is reported as unpriced rather than treated as a free model. Users manage these rows through `/api/pricing/gpt` and the dedicated Settings table.
+Standard Codex usage whose request input is `<= 272000` tokens uses the
+`short_*` group; requests above that boundary use `long_*`; `speed = fast` uses
+`fast_*`. A zero/missing group is reported as unpriced rather than treated as a
+free model. Users manage these rows through `/api/pricing/gpt` and the dedicated
+Settings table.
 
 ### codex_ingest_state
 
-Durable append cursor for every Codex `rollout-*.jsonl`. It stores the byte offset, incomplete-line remainder, owning session id, and latest cumulative token snapshot. This makes simultaneous hook, `fs.watch`, and 4-second poll notifications idempotent: only newly appended complete JSONL records become events or token deltas. The latest persisted `codex_user_message`, `codex_task_started`, `codex_task_complete`, or `codex_turn_aborted` event also lets restart reconciliation restore the correct Working or Waiting card state without replaying the full rollout history.
+Durable append cursor for every Codex `rollout-*.jsonl`. It stores the byte
+offset, incomplete-line remainder, owning session id, and latest cumulative
+token snapshot. This makes simultaneous hook, `fs.watch`, and 4-second poll
+notifications idempotent: only newly appended complete JSONL records become
+events or token deltas. The latest persisted `codex_user_message`,
+`codex_task_started`, `codex_task_complete`, or `codex_turn_aborted` event also
+lets restart reconciliation restore the correct Working or Waiting card state
+without replaying the full rollout history.
 
 ### codex_tool_ingest_state
 
-Independent durable byte cursor for each Codex rollout's `response_item` records. It is transactionally advanced only after every newly discovered invocation is stored as a `codex_tool_call` event with a normalized display category and its raw tool name. This gives the Workflows tool flow and session drill-in an exact, once-only record of Codex commands, edits, reads, searches, MCP calls, and delegation tools while the separate `codex_ingest_state` cursor remains responsible for messages, lifecycle state, and cumulative token deltas. Existing rollout history is safely backfilled without replaying token accounting or changing historical session freshness.
+Independent durable byte cursor for each Codex rollout's `response_item`
+records. It is transactionally advanced only after every newly discovered
+invocation is stored as a `codex_tool_call` event with a normalized display
+category and its raw tool name. This gives the Workflows tool flow and session
+drill-in an exact, once-only record of Codex commands, edits, reads, searches,
+MCP calls, and delegation tools while the separate `codex_ingest_state` cursor
+remains responsible for messages, lifecycle state, and cumulative token deltas.
+Existing rollout history is safely backfilled without replaying token accounting
+or changing historical session freshness.
 
 ---
 
 ### remote_sources
 
-Config for remote SSH machines the dashboard pulls Claude Code and Codex history from, so a single dashboard can consolidate sessions from several machines. **No secrets are stored** — SSH authentication defers entirely to the host's SSH stack (ssh-agent, `~/.ssh/config`, key files). The optional `remote_home` and `remote_codex_home` values are the UI's **Remote Claude home** and **Remote Codex home** overrides; each row's `id` is used as the `source` value on every session imported from that machine (see `sessions.source`).
+Config for remote SSH machines the dashboard pulls Claude Code and Codex history
+from, so a single dashboard can consolidate sessions from several machines. **No
+secrets are stored** — SSH authentication defers entirely to the host's SSH
+stack (ssh-agent, `~/.ssh/config`, key files). The optional `remote_home` and
+`remote_codex_home` values are the UI's **Remote Claude home** and **Remote
+Codex home** overrides; each row's `id` is used as the `source` value on every
+session imported from that machine (see `sessions.source`).
 
 ```sql
 CREATE TABLE remote_sources (
@@ -512,26 +560,32 @@ CREATE TABLE remote_sources (
 
 **Columns:**
 
-| Column | Type | Nullable | Description |
-|--------|------|----------|-------------|
-| `id` | TEXT | NO | Primary key. Also used as `sessions.source` for sessions pulled from this machine |
-| `label` | TEXT | NO | Human-readable name shown in the UI |
-| `host` | TEXT | NO | SSH destination (`user@host`) or a `~/.ssh/config` alias |
-| `ssh_port` | INTEGER | YES | Optional SSH port; NULL defers to the SSH default / `~/.ssh/config` |
-| `identity_file` | TEXT | YES | Optional private-key path passed to ssh (`-i`); NULL to omit |
-| `remote_home` | TEXT | YES | Optional remote Claude home to read transcripts from; NULL defaults to remote `~/.claude` |
-| `remote_codex_home` | TEXT | YES | Optional remote Codex home; NULL defaults to remote `~/.codex` and sync imports `sessions/` plus the native title index when available |
-| `enabled` | INTEGER | NO | `1` = eligible for scheduled/manual syncs, `0` = disabled (default `1`) |
-| `status` | TEXT | NO | Last sync status: `idle`, `syncing`, `ok`, or `error` (CHECK-constrained) |
-| `claude_status` | TEXT | YES | Provider-specific Claude Code sync state: `idle`, `syncing`, `ok`, `error`, or `unavailable`; existing sources retain NULL until their first provider-aware sync |
-| `codex_status` | TEXT | YES | Provider-specific Codex sync state: `idle`, `syncing`, `ok`, `error`, or `unavailable`; lets a healthy Codex mirror remain authoritative if Claude is unavailable (and vice versa) |
-| `last_error` | TEXT | YES | Error message from the last failed sync/test, or NULL |
-| `last_sync_at` | TEXT | YES | ISO 8601 timestamp of the last successful sync, or NULL |
-| `last_sync_counts` | TEXT | YES | JSON blob of the last sync's counters (imported/skipped/backfilled/errors/sessions_seen/sessions_tagged), or NULL |
-| `created_at` | TEXT | YES | ISO 8601 creation timestamp |
-| `updated_at` | TEXT | YES | ISO 8601 timestamp of the last edit |
+| Column              | Type    | Nullable | Description                                                                                                                                                                        |
+| ------------------- | ------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                | TEXT    | NO       | Primary key. Also used as `sessions.source` for sessions pulled from this machine                                                                                                  |
+| `label`             | TEXT    | NO       | Human-readable name shown in the UI                                                                                                                                                |
+| `host`              | TEXT    | NO       | SSH destination (`user@host`) or a `~/.ssh/config` alias                                                                                                                           |
+| `ssh_port`          | INTEGER | YES      | Optional SSH port; NULL defers to the SSH default / `~/.ssh/config`                                                                                                                |
+| `identity_file`     | TEXT    | YES      | Optional private-key path passed to ssh (`-i`); NULL to omit                                                                                                                       |
+| `remote_home`       | TEXT    | YES      | Optional remote Claude home to read transcripts from; NULL defaults to remote `~/.claude`                                                                                          |
+| `remote_codex_home` | TEXT    | YES      | Optional remote Codex home; NULL defaults to remote `~/.codex` and sync imports `sessions/` plus the native title index when available                                             |
+| `enabled`           | INTEGER | NO       | `1` = eligible for scheduled/manual syncs, `0` = disabled (default `1`)                                                                                                            |
+| `status`            | TEXT    | NO       | Last sync status: `idle`, `syncing`, `ok`, or `error` (CHECK-constrained)                                                                                                          |
+| `claude_status`     | TEXT    | YES      | Provider-specific Claude Code sync state: `idle`, `syncing`, `ok`, `error`, or `unavailable`; existing sources retain NULL until their first provider-aware sync                   |
+| `codex_status`      | TEXT    | YES      | Provider-specific Codex sync state: `idle`, `syncing`, `ok`, `error`, or `unavailable`; lets a healthy Codex mirror remain authoritative if Claude is unavailable (and vice versa) |
+| `last_error`        | TEXT    | YES      | Error message from the last failed sync/test, or NULL                                                                                                                              |
+| `last_sync_at`      | TEXT    | YES      | ISO 8601 timestamp of the last successful sync, or NULL                                                                                                                            |
+| `last_sync_counts`  | TEXT    | YES      | JSON blob of the last sync's counters (imported/skipped/backfilled/errors/sessions_seen/sessions_tagged), or NULL                                                                  |
+| `created_at`        | TEXT    | YES      | ISO 8601 creation timestamp                                                                                                                                                        |
+| `updated_at`        | TEXT    | YES      | ISO 8601 timestamp of the last edit                                                                                                                                                |
 
-Managed through the `/api/remote-sources/*` routes. One source may expose Claude Code, Codex, or both; its top-level `status` is healthy when either provider imports, while `claude_status` / `codex_status` control the matching provider's remote lifecycle and stale-session fallback. Sync/status changes are broadcast over the WebSocket as `remote_source.status` and, on success, `remote_data.updated` plus per-session `session_created` / `session_updated`. See [docs/API.md → Remote Data Sources](./API.md#remote-data-sources).
+Managed through the `/api/remote-sources/*` routes. One source may expose Claude
+Code, Codex, or both; its top-level `status` is healthy when either provider
+imports, while `claude_status` / `codex_status` control the matching provider's
+remote lifecycle and stale-session fallback. Sync/status changes are broadcast
+over the WebSocket as `remote_source.status` and, on success,
+`remote_data.updated` plus per-session `session_created` / `session_updated`.
+See [docs/API.md → Remote Data Sources](./API.md#remote-data-sources).
 
 ---
 
@@ -555,11 +609,14 @@ CREATE INDEX idx_sessions_active_tp
 ```
 
 **Query Patterns:**
+
 - `SELECT * FROM sessions WHERE session_id = ?` - Primary key lookup
 - `SELECT * FROM sessions WHERE status = 'active'` - Filter by status
-- `SELECT * FROM sessions WHERE source IN ('local', ?)` - Filter by data source (covered by `idx_sessions_source`)
+- `SELECT * FROM sessions WHERE source IN ('local', ?)` - Filter by data source
+  (covered by `idx_sessions_source`)
 - `SELECT * FROM sessions ORDER BY updated_at DESC LIMIT 50` - Recent sessions
-- `SELECT id, transcript_path FROM sessions WHERE status='active' AND transcript_path IS NOT NULL ORDER BY updated_at DESC` — periodic compaction sweep (covered by the partial index above)
+- `SELECT id, transcript_path FROM sessions WHERE status='active' AND transcript_path IS NOT NULL ORDER BY updated_at DESC`
+  — periodic compaction sweep (covered by the partial index above)
 
 ### agents Indexes
 
@@ -570,6 +627,7 @@ CREATE INDEX idx_agents_status ON agents(status);
 ```
 
 **Query Patterns:**
+
 - `SELECT * FROM agents WHERE agent_id = ?` - Primary key lookup
 - `SELECT * FROM agents WHERE session_id = ?` - All agents for session
 - `SELECT * FROM agents WHERE status = 'running'` - Active agents
@@ -593,8 +651,10 @@ CREATE INDEX idx_tools_created_at ON tool_executions(created_at DESC);
 ```
 
 **Query Patterns:**
+
 - `SELECT * FROM tool_executions WHERE agent_id = ?` - All tools for agent
-- `SELECT * FROM tool_executions ORDER BY created_at DESC LIMIT 100` - Recent tools
+- `SELECT * FROM tool_executions ORDER BY created_at DESC LIMIT 100` - Recent
+  tools
 
 ### notifications Indexes
 
@@ -603,7 +663,9 @@ CREATE INDEX idx_notifications_session_id ON notifications(session_id);
 ```
 
 **Query Patterns:**
-- `SELECT * FROM notifications WHERE session_id = ?` - All notifications for session
+
+- `SELECT * FROM notifications WHERE session_id = ?` - All notifications for
+  session
 
 ---
 
@@ -629,8 +691,8 @@ graph TB
 const SCHEMA_VERSION = 3;
 
 function runMigrations() {
-  const currentVersion = db.pragma('user_version', { simple: true });
-  
+  const currentVersion = db.pragma("user_version", { simple: true });
+
   if (currentVersion < 1) {
     // Initial schema
     db.exec(`
@@ -638,19 +700,21 @@ function runMigrations() {
       CREATE TABLE agents (...);
       -- etc.
     `);
-    db.pragma('user_version = 1');
+    db.pragma("user_version = 1");
   }
-  
+
   if (currentVersion < 2) {
     // Add updated_at column
-    db.exec(`ALTER TABLE sessions ADD COLUMN updated_at TEXT DEFAULT (datetime('now'))`);
-    db.pragma('user_version = 2');
+    db.exec(
+      `ALTER TABLE sessions ADD COLUMN updated_at TEXT DEFAULT (datetime('now'))`,
+    );
+    db.pragma("user_version = 2");
   }
-  
+
   if (currentVersion < 3) {
     // Add pricing_rules table
     db.exec(`CREATE TABLE pricing_rules (...)`);
-    db.pragma('user_version = 3');
+    db.pragma("user_version = 3");
   }
 }
 ```
@@ -760,12 +824,12 @@ graph TB
 
 ```javascript
 // db.js - Performance tuning
-db.pragma('journal_mode = WAL');        // Write-Ahead Logging
-db.pragma('synchronous = NORMAL');      // Faster writes (safe with WAL)
-db.pragma('cache_size = -64000');       // 64MB cache
-db.pragma('temp_store = MEMORY');       // Temp tables in memory
-db.pragma('mmap_size = 30000000000');   // Memory-mapped I/O (30GB)
-db.pragma('page_size = 4096');          // Optimal page size
+db.pragma("journal_mode = WAL"); // Write-Ahead Logging
+db.pragma("synchronous = NORMAL"); // Faster writes (safe with WAL)
+db.pragma("cache_size = -64000"); // 64MB cache
+db.pragma("temp_store = MEMORY"); // Temp tables in memory
+db.pragma("mmap_size = 30000000000"); // Memory-mapped I/O (30GB)
+db.pragma("page_size = 4096"); // Optimal page size
 ```
 
 ### Prepared Statements
@@ -773,15 +837,21 @@ db.pragma('page_size = 4096');          // Optimal page size
 ```javascript
 // db.js - Prepared statements prevent SQL injection + optimize performance
 const stmts = {
-  findSession: db.prepare('SELECT * FROM sessions WHERE session_id = ?'),
-  createSession: db.prepare('INSERT INTO sessions (session_id, model) VALUES (?, ?)'),
-  updateSession: db.prepare('UPDATE sessions SET status = ?, total_cost = ? WHERE session_id = ?'),
-  touchSession: db.prepare("UPDATE sessions SET updated_at = datetime('now') WHERE session_id = ?")
+  findSession: db.prepare("SELECT * FROM sessions WHERE session_id = ?"),
+  createSession: db.prepare(
+    "INSERT INTO sessions (session_id, model) VALUES (?, ?)",
+  ),
+  updateSession: db.prepare(
+    "UPDATE sessions SET status = ?, total_cost = ? WHERE session_id = ?",
+  ),
+  touchSession: db.prepare(
+    "UPDATE sessions SET updated_at = datetime('now') WHERE session_id = ?",
+  ),
 };
 
 // Usage
-const session = stmts.findSession.get('sess_abc123');
-stmts.touchSession.run('sess_abc123');
+const session = stmts.findSession.get("sess_abc123");
+stmts.touchSession.run("sess_abc123");
 ```
 
 ### Transaction Batching
@@ -790,24 +860,28 @@ stmts.touchSession.run('sess_abc123');
 // Batch multiple writes in a transaction
 const insertMany = db.transaction((tools) => {
   for (const tool of tools) {
-    stmts.createToolExecution.run(tool.agent_id, tool.tool_name, tool.duration_ms);
+    stmts.createToolExecution.run(
+      tool.agent_id,
+      tool.tool_name,
+      tool.duration_ms,
+    );
   }
 });
 
 insertMany([
-  { agent_id: 'agent_1', tool_name: 'bash', duration_ms: 100 },
-  { agent_id: 'agent_1', tool_name: 'view', duration_ms: 50 },
+  { agent_id: "agent_1", tool_name: "bash", duration_ms: 100 },
+  { agent_id: "agent_1", tool_name: "view", duration_ms: 50 },
   // ... more tools
 ]);
 ```
 
 ### Performance Benchmarks
 
-| Operation | Without Optimization | With Optimization | Improvement |
-|-----------|---------------------|-------------------|-------------|
-| Session list (50) | 25ms | 5ms | 5x faster |
-| Hook processing | 15ms | 2ms | 7.5x faster |
-| Batch insert (100 tools) | 500ms | 50ms | 10x faster |
+| Operation                | Without Optimization | With Optimization | Improvement |
+| ------------------------ | -------------------- | ----------------- | ----------- |
+| Session list (50)        | 25ms                 | 5ms               | 5x faster   |
+| Hook processing          | 15ms                 | 2ms               | 7.5x faster |
+| Batch insert (100 tools) | 500ms                | 50ms              | 10x faster  |
 
 ---
 
@@ -842,10 +916,10 @@ graph TB
 ```javascript
 // Validate before insert
 function validateSession(session) {
-  if (!session.session_id) throw new Error('session_id required');
-  if (session.total_cost < 0) throw new Error('total_cost must be >= 0');
-  if (!['active', 'completed'].includes(session.status)) {
-    throw new Error('Invalid status');
+  if (!session.session_id) throw new Error("session_id required");
+  if (session.total_cost < 0) throw new Error("total_cost must be >= 0");
+  if (!["active", "completed"].includes(session.status)) {
+    throw new Error("Invalid status");
   }
 }
 ```
@@ -863,7 +937,8 @@ VACUUM INTO '/backups/dashboard_20240318.db';
 
 ### Backup Verification
 
-A backup is useful only when it can be opened independently of the live database. Verify each new snapshot before relying on it:
+A backup is useful only when it can be opened independently of the live
+database. Verify each new snapshot before relying on it:
 
 ```bash
 # Expect exactly: ok
@@ -873,7 +948,11 @@ sqlite3 /backups/dashboard_20240318.db 'PRAGMA integrity_check;'
 sqlite3 /backups/dashboard_20240318.db 'SELECT count(*) FROM sessions;'
 ```
 
-Keep the verified snapshot outside the live data directory, and periodically perform a restore drill against a **copy** of the backup. Point that isolated dashboard at the copy with `DASHBOARD_DB_PATH` (or an isolated `DASHBOARD_DATA_DIR`) and a different port; never use a restore drill to overwrite the running database.
+Keep the verified snapshot outside the live data directory, and periodically
+perform a restore drill against a **copy** of the backup. Point that isolated
+dashboard at the copy with `DASHBOARD_DB_PATH` (or an isolated
+`DASHBOARD_DATA_DIR`) and a different port; never use a restore drill to
+overwrite the running database.
 
 ### Offline Backup
 

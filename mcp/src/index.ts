@@ -112,7 +112,7 @@ async function main() {
 
     await server.connect(stdioTransport);
 
-    logger.info("Agent Dashboard MCP server started", {
+    logger.info("Code Agent Monitor MCP server started", {
       serverName: config.serverName,
       serverVersion: config.serverVersion,
       dashboardBaseUrl: config.dashboardBaseUrl.toString(),

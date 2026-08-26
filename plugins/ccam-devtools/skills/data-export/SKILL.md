@@ -8,13 +8,14 @@ description: >
 
 # Data Export
 
-Export Agent Monitor data in various formats.
+Export Code Agent Monitor data in various formats.
 
 ## Input
 
 The user provides: **$ARGUMENTS**
 
 This may be:
+
 - A data type: "sessions", "events", "analytics", "costs", "all"
 - A format: "json", "csv", "markdown" (default: json)
 - A filter: "last 7 days", "session {id}", "completed only"
@@ -41,7 +42,7 @@ This may be:
    ```json
    {
      "export": {
-       "source": "Claude Code Agent Monitor",
+        "source": "Code Agent Monitor",
        "exported_at": "2025-04-11T12:00:00Z",
        "filters": { "type": "sessions", "range": "last 7 days" },
        "count": 42
@@ -60,9 +61,9 @@ This may be:
    Human-readable tables with summary statistics:
    ```markdown
    # Agent Monitor Export — Sessions (Last 7 Days)
-   | ID | Name | Status | Model | Duration | Cost |
-   |...
-   **Total: 42 sessions, $12.34 cost**
+
+   | ID | Name | Status | Model | Duration | Cost | |... **Total: 42 sessions,
+   $12.34 cost**
    ```
 
 4. **Output the data**:
@@ -73,6 +74,7 @@ This may be:
 ## Output Format
 
 Deliver the exported data in the requested format. Always include:
+
 - Export metadata (when, what, filters applied)
 - Row/record count
 - Suggested filename for saving

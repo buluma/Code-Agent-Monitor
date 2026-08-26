@@ -1,8 +1,8 @@
 {
-  "name": "agent-dashboard-desktop",
+  "name": "code-agent-monitor-desktop",
   "version": "2.0.13",
   "private": true,
-  "description": "Native macOS desktop shell for Claude Code Agent Monitor.",
+  "description": "Native macOS desktop shell for Code Agent Monitor.",
   "author": "Michael Buluma <1452922+buluma@users.noreply.github.com>",
   "license": "MIT",
   "homepage": "https://github.com/buluma/Code-Agent-Monitor",

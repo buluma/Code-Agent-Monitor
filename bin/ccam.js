@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * @file ccam — the Claude Code Agent Monitor command-line interface.
+ * @file ccam — the Code Agent Monitor command-line interface.
  *
  * A dependency-free umbrella CLI that brings the full dashboard feature
  * surface to the terminal. After the normal project setup (`npm run setup`,
@@ -2287,7 +2287,7 @@ function cmdHelp() {
       `${section(group)}\n` + items.map(([n, a, d]) => catalogRow(n, a, d)).join("\n")
   ).join("\n");
   console.log(
-    `${c.cyan("▍")}${c.bold("ccam")} — Claude Code Agent Monitor CLI\n\n` +
+    `${c.cyan("▍")}${c.bold("ccam")} — Code Agent Monitor CLI\n\n` +
       `${c.bold("Usage:")} ccam <command> [options]\n` +
       body +
       "\n" +
@@ -2635,7 +2635,7 @@ function replBanner(up) {
   const dot = up ? c.green("●") : c.red("○");
   const where = up ? baseUrl().replace(/^https?:\/\//, "") : "offline";
   console.log(
-    `  ${c.bold("Claude Code Agent Monitor")} ${c.dim("· interactive shell")}` +
+    `  ${c.bold("Code Agent Monitor")} ${c.dim("· interactive shell")}` +
       (v ? c.dim(` · v${v}`) : "") +
       `   ${dot} ${c.dim(where)}`
   );

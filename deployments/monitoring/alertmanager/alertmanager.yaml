@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Alertmanager configuration for Claude Code Agent Monitor
+# Alertmanager configuration for Code Agent Monitor
 #
 # Replace placeholder values (marked with <PLACEHOLDER>) before deploying.
 # ─────────────────────────────────────────────────────────────────────────────

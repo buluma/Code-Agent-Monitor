@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# teardown.sh – Clean removal of Claude Code Agent Monitor infrastructure
+# teardown.sh – Clean removal of Code Agent Monitor infrastructure
 #
 # Usage:
 #   ./teardown.sh --env dev --method helm
@@ -250,7 +250,7 @@ verify_teardown() {
 main() {
   echo ""
   echo -e "${BOLD}${RED}╔══════════════════════════════════════════════════╗${NC}"
-  echo -e "${BOLD}${RED}║   Claude Code Agent Monitor – Teardown          ║${NC}"
+  echo -e "${BOLD}${RED}║   Code Agent Monitor – Teardown                 ║${NC}"
   echo -e "${BOLD}${RED}╚══════════════════════════════════════════════════╝${NC}"
   echo ""
 

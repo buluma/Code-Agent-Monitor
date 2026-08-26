@@ -313,8 +313,8 @@ async function sync() {
     plugins: claudeEntries,
   });
   await writeJson(CODEX_MARKETPLACE, {
-    name: "claude-code-agent-monitor-plugins",
-    interface: { displayName: "Claude Code Agent Monitor" },
+    name: "code-agent-monitor-plugins",
+    interface: { displayName: "Code Agent Monitor" },
     plugins: codexEntries,
   });
 

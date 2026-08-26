@@ -1,4 +1,4 @@
-# Optional dev-container image for Claude Code Agent Monitor.
+# Optional dev-container image for Code Agent Monitor.
 # Node 24 LTS to match the production Dockerfile and recommended toolchain.
 # Adds the native-addon toolchain (better-sqlite3 builds via node-gyp) plus
 # Python 3 (statusline.py and helper scripts) and the sqlite3 CLI.

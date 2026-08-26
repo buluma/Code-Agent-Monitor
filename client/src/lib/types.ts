@@ -1,6 +1,6 @@
 /**
  * @file types.ts
- * @description Defines TypeScript types and interfaces for the agent dashboard application, including data structures for sessions, agents, events, statistics, analytics, model pricing, cost breakdowns, WebSocket messages, and workflow-related data. These types provide a clear contract for the shape of data used throughout the application and facilitate type safety when interacting with the backend API and managing state within the frontend components.
+ * @description Defines TypeScript types and interfaces for the Code Agent Monitor application, including data structures for sessions, agents, events, statistics, analytics, model pricing, cost breakdowns, WebSocket messages, and workflow-related data. These types provide a clear contract for the shape of data used throughout the application and facilitate type safety when interacting with the backend API and managing state within the frontend components.
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================

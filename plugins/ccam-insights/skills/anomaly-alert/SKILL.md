@@ -11,13 +11,14 @@ description: >
 
 # Anomaly Alert
 
-Detect anomalous sessions in Claude Code Agent Monitor data.
+Detect anomalous sessions in Code Agent Monitor data.
 
 ## Input
 
 The user provides: **$ARGUMENTS**
 
 This may be:
+
 - "all" or empty (default: check all anomaly types)
 - "cost" for cost anomalies only
 - "duration" for duration anomalies only
@@ -82,6 +83,7 @@ Present as an **Anomaly Report**:
 ```
 
 For each anomaly:
+
 - Session ID and timestamp
 - Anomaly type and severity
 - Observed value vs expected range

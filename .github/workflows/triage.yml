@@ -1,4 +1,4 @@
-# Auto-Triage for Claude Code Agent Monitor
+# Auto-Triage for Code Agent Monitor
 #
 # Runs whenever an issue or a pull request is OPENED and performs three things:
 #   1. Labels      — applies the full label set (bug, documentation, enhancement,

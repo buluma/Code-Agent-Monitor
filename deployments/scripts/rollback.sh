@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# rollback.sh – Rollback deployments for Claude Code Agent Monitor
+# rollback.sh – Rollback deployments for Code Agent Monitor
 #
 # Usage:
 #   ./rollback.sh --env production --method helm --revision 5
@@ -237,7 +237,7 @@ run_health_check() {
 main() {
   echo ""
   echo -e "${BOLD}${YELLOW}╔══════════════════════════════════════════════════╗${NC}"
-  echo -e "${BOLD}${YELLOW}║   Claude Code Agent Monitor – Rollback          ║${NC}"
+  echo -e "${BOLD}${YELLOW}║   Code Agent Monitor – Rollback                 ║${NC}"
   echo -e "${BOLD}${YELLOW}╚══════════════════════════════════════════════════╝${NC}"
   echo ""
 

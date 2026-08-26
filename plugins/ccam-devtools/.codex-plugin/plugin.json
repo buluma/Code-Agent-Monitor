@@ -1,7 +1,7 @@
 {
   "name": "ccam-devtools",
   "version": "2.0.13",
-  "description": "Developer tools for Claude Code Agent Monitor — session debugging, hook diagnostics, data export, and system health checks for maintaining a healthy monitoring setup.",
+  "description": "Developer tools for Code Agent Monitor — session debugging, hook diagnostics, data export, and system health checks for maintaining a healthy monitoring setup.",
   "author": {
     "name": "Michael Buluma",
     "email": "1452922+buluma@users.noreply.github.com",
@@ -14,8 +14,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "CCAM Devtools",
-    "shortDescription": "Developer tools for Claude Code Agent Monitor — session debugging, hook diagnostics, data...",
-    "longDescription": "Developer tools for Claude Code Agent Monitor — session debugging, hook diagnostics, data export, and system health checks for maintaining a healthy monitoring setup.",
+    "shortDescription": "Developer tools for Code Agent Monitor — session debugging, hook diagnostics, data...",
+    "longDescription": "Developer tools for Code Agent Monitor — session debugging, hook diagnostics, data export, and system health checks for maintaining a healthy monitoring setup.",
     "developerName": "Michael Buluma",
     "category": "Developer Tools",
     "capabilities": ["Read"],

@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Prometheus configuration for Claude Code Agent Monitor
+# Prometheus configuration for Code Agent Monitor
 # ─────────────────────────────────────────────────────────────────────────────
 global:
   scrape_interval: 15s
