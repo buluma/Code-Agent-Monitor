@@ -1,7 +1,7 @@
 {
   "name": "ccam-devtools",
   "description": "Developer tools for Code Agent Monitor — session debugging, hook diagnostics, data export, and system health checks for maintaining a healthy monitoring setup.",
-  "version": "2.0.13",
+  "version": "3.0.0",
   "author": { "name": "Michael Buluma", "url": "https://github.com/buluma" },
   "homepage": "https://github.com/buluma/Code-Agent-Monitor",
   "repository": "https://github.com/buluma/Code-Agent-Monitor",

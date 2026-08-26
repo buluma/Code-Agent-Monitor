@@ -31,4 +31,4 @@ patches:
 
 images:
   - name: ccam-dashboard
-    newTag: 2.0.13
+    newTag: 3.0.0
