@@ -413,7 +413,7 @@ Full schema, ERD, and query reference: [docs/DATABASE.md](docs/DATABASE.md).
 
 ## Plugin Marketplace
 
-CCAM ships **14 plugins** (66 skills, 18 subagents, 34 commands) from one shared source tree, installable for Claude Code, Codex, or via the skills.sh-compatible `skills` CLI.
+CCAM ships **14 plugins** (66 plugin skills, 18 subagents, 34 commands) from one shared source tree, installable for Claude Code, Codex, or via the skills.sh-compatible `skills` CLI.
 
 ```bash
 # Claude Code
@@ -425,7 +425,7 @@ codex plugin marketplace add buluma/Code-Agent-Monitor
 codex plugin add ccam-platform@claude-code-agent-monitor-plugins
 ```
 
-Full catalog, `skills` CLI usage, and per-plugin breakdown: [docs/PLUGINS.md](docs/PLUGINS.md).
+The skills.sh-compatible `skills` CLI discovers **76 total repository skills** (the 66 plugin skills plus repository-maintenance skills). Full catalog, `skills` CLI usage, and per-plugin breakdown: [docs/PLUGINS.md](docs/PLUGINS.md).
 
 ## Statusline
 
