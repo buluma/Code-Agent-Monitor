@@ -1,6 +1,6 @@
 # Helm Code Integration Spec
 
-Status: **Phase 1 Shipped (v3.1.0)** — Phase 2 in progress Date: 2026-08-28
+Status: **Phase 1 Shipped (v3.1.0), Phase 2 partially shipped (v3.2.0)** — Remote Sources home and the launch-from-dashboard spawner skipped (not used) Date: 2026-08-28
 Scope owner: monitor backend (`server/`), client, MCP, docs
 
 ---
@@ -366,6 +366,13 @@ All open questions raised with the reviewer are resolved; see the
   page**, is implemented in the next PR (`feat/helmcode-config-explorer` →
   v3.2.0) and mirrors the existing Codex Config Explorer read-only surface plus
   a non-destructive Resync trigger.
+- **2026-08-28 — Phase 2 partially shipped as v3.2.0 (PR #12).** Config Explorer
+  page, `/api/import` rescan + history, and best-effort cost attribution (§5
+  Costs, §7 sub-features 1/2/4) are implemented. Remote Sources home and the
+  launch-from-dashboard spawner (sub-features 3/5) are explicitly skipped —
+  this deployment runs Helm Code locally and doesn't need either. Also fixed:
+  `dashboard_get_helmcode_config` was falling into the MCP REPL's `"other"`
+  domain bucket instead of `"config"` (`mcp/src/transports/repl.ts`).
 
 Subsequent changes to this spec must be appended here with date and rationale
 rather than silently rewritten.
