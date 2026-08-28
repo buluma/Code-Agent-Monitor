@@ -212,9 +212,11 @@ Use a hook token separate from the browser/dashboard token.
 
 For Codex, the installer writes only this dashboard's lifecycle entries to
 `~/.codex/hooks.json`. Each entry runs `scripts/codex-hook-handler.js`, which
-immediately POSTs the rollout path — or a version-dependent session/thread id
-that the server resolves against the rollout tree — to `POST /api/hooks/codex`
-and exits. The server acknowledges `202` before parsing, then incrementally
+immediately POSTs the rollout path — or the session/thread id every Codex hook
+carries — to `POST /api/hooks/codex` and exits. A rollout is **not** required:
+the thread id alone identifies the session, and only a payload carrying
+neither is answered as an unqueued no-op. The server acknowledges `202`
+before parsing, then incrementally
 consumes `~/.codex/sessions/**/rollout-*.jsonl`; duplicate hook and watcher
 notifications are idempotent through a durable byte cursor. Before Codex creates
 either a hook identity or a native live-thread row, a one-second process probe
@@ -247,6 +249,55 @@ matches a live session; if the probe is unavailable, the existing fail-safe cwd
 behavior remains in force. The transient pre-identity overlay collapses the Node
 launcher/native-child PID pair before reconciliation, so a single interactive
 Codex launch cannot produce duplicate cards.
+
+### Hook-only Codex sessions (`codex exec --ephemeral`)
+
+`codex exec --ephemeral` runs "without persisting session files to disk", so
+no `rollout-*.jsonl` is ever written and every one of its hooks arrives with
+`transcript_path: null`. Such a session is driven entirely by its lifecycle
+notifications:
+
+- **Lifecycle.** `SessionStart` creates the card, `UserPromptSubmit` /
+  `PreToolUse` / `PostToolUse` set the main agent `working`, `Stop` lands it
+  in **Waiting** with `awaiting_reason = stop`, and `SessionEnd` completes the
+  session and stamps `ended_at` — the same states a rollout-backed session
+  moves through.
+- **History.** While the session has no rollout, the payloads themselves are
+  persisted as ordinary events, each tagged `data.source = "hook"`: the
+  prompt as `codex_user_message`, each call as `codex_tool_call`, a
+  shell/MCP/web-search result as its matching `codex_*_end` record, the
+  final assistant message as `codex_task_complete`, and the close as
+  `SessionEnd`. The first prompt titles the session and fills the card's
+  task exactly as a rollout `user_message` would.
+- **Precedence.** The rollout is always authoritative. If one is later
+  linked to the session — an interactive run whose rollout was simply
+  flushed late — the whole hook-built reconstruction is deleted before the
+  byte cursor replays those turns, so nothing is counted twice.
+- **Marking.** The session carries `hook_only: true` in `sessions.metadata`
+  (cleared with the reconstruction above). Session detail uses it to
+  explain that no full transcript exists, instead of the generic
+  "transcript not found" warning.
+- **Lost `SessionEnd`.** Hooks are fire-and-forget, so a dashboard that was
+  down at exit never hears the terminal notification, and a hook-only
+  session has neither a transcript mtime nor an open rollout for the
+  liveness probes to judge — which is also why Windows, where both probes
+  report unavailable, has no other fallback. The synchronizer therefore
+  completes a `hook_only` session whose `awaiting_reason` is still `stop`
+  after `DASHBOARD_CODEX_HOOK_IDLE_SECONDS` (default `60`): a real `Stop`
+  hook arrived, and `SessionEnd` follows `Stop` within a few hundred
+  milliseconds (82 ms / 70 ms / 265 ms across captured codex-cli 0.147.0
+  runs), so an unanswered `Stop` is positive evidence the notification was
+  lost. A session that is somehow still running self-heals on its next hook
+  through the usual reactivation path.
+
+  Silence is deliberately **not** a trigger. A rollout-less run emits no
+  hooks whatsoever for the entire duration of a tool call — a captured
+  `sleep 12` produced a 12,119 ms `PreToolUse`→`PostToolUse` gap, and a CI
+  build or test suite is unbounded — so an idle-time rule would complete a
+  live run mid-build. For the same reason `awaiting_reason = interrupted`
+  is not eligible either: that reason is the 90-second idle-working
+  heuristic's own inference rather than something Codex reported, and a
+  guess must not be promoted to a terminal state.
 
 Claude `TurnDuration` records use a stable transcript identity (the record UUID
 when present, otherwise its byte offset). Complete transcript parses atomically

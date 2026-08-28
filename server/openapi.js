@@ -2478,7 +2478,12 @@ function createOpenApiSpec() {
                     },
                     data: {
                       type: "object",
-                      properties: { transcript_path: { type: "string" } },
+                      description:
+                        "Codex hook payload. A rollout path is optional — the session/thread id alone identifies the session, which is how `codex exec --ephemeral` runs (no rollout is ever written) are tracked.",
+                      properties: {
+                        transcript_path: { type: "string", nullable: true },
+                        session_id: { type: "string" },
+                      },
                       additionalProperties: true,
                     },
                   },
@@ -2488,13 +2493,18 @@ function createOpenApiSpec() {
           },
           responses: {
             202: {
-              description: "Hook acknowledged; rollout parsing continues asynchronously",
+              description:
+                "Hook acknowledged; ingestion continues asynchronously. `queued` is false only when the payload carries neither a rollout path nor a session id, in which case `reason` explains the no-op.",
               content: {
                 "application/json": {
                   schema: {
                     type: "object",
                     required: ["ok", "queued"],
-                    properties: { ok: { type: "boolean" }, queued: { type: "boolean" } },
+                    properties: {
+                      ok: { type: "boolean" },
+                      queued: { type: "boolean" },
+                      reason: { type: "string" },
+                    },
                   },
                 },
               },

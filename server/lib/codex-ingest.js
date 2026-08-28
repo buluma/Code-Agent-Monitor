@@ -41,6 +41,27 @@ const LIFECYCLE_EVENT_TYPES = new Set([
 ]);
 const DEFAULT_WORKING_IDLE_MS = 90_000;
 const LIVE_THREAD_MAX_AGE_MS = 15 * 60 * 1_000;
+// Tags every event reconstructed from a lifecycle hook rather than read from a
+// rollout. A rollout that appears later is authoritative, so these rows are
+// removed the moment one is linked to the session (see `dropHookOnlyHistory`).
+const HOOK_EVENT_SOURCE = "hook";
+// How long a rollout-less Codex session that has ALREADY reported a finished
+// turn may stay silent before the synchronizer concludes its SessionEnd hook
+// was lost. Hooks are fire-and-forget, so a dashboard that was down at exit
+// never hears the terminal one, and such a session has neither a transcript
+// mtime nor an open rollout for the liveness probes (both unavailable on
+// Windows regardless).
+//
+// This gate is deliberately NOT a "how long can a run be quiet" timer — see
+// `reconcileCodexSessionLiveness` for why silence alone proves nothing. It only
+// bounds the wait for a SessionEnd that measurement shows arrives within a few
+// hundred milliseconds of Stop (82 ms / 70 ms / 265 ms across captured
+// codex-cli 0.147.0 runs). The 60 s default matches the existing
+// DASHBOARD_LIVENESS_IDLE_SECONDS gate rather than inventing a second scale.
+const DEFAULT_HOOK_ONLY_IDLE_MS = (() => {
+  const seconds = Number.parseFloat(process.env.DASHBOARD_CODEX_HOOK_IDLE_SECONDS || "");
+  return Number.isFinite(seconds) && seconds >= 0 ? seconds * 1_000 : 60_000;
+})();
 
 // Hooks generally identify a Codex thread but do not consistently include its
 // rollout path. Keep this small, disposable index so a hook can ingest the
@@ -471,23 +492,34 @@ function syncCodexStateSessions(options = {}) {
 }
 
 /**
+ * The one place that knows every spelling Codex has used for the thread id in a
+ * lifecycle hook payload. Every hook carries this id even when it carries no
+ * rollout path, so it — not the transcript — is what identifies a session.
+ */
+function codexHookSessionId(data) {
+  if (!data || typeof data !== "object") return null;
+  return (
+    [
+      data.session_id,
+      data.sessionId,
+      data.thread_id,
+      data.threadId,
+      data.session?.id,
+      data.thread?.id,
+      data.context?.session_id,
+      data.context?.thread_id,
+    ].find((candidate) => typeof candidate === "string" && candidate.trim()) || null
+  );
+}
+
+/**
  * Normalize the stable identity Codex supplies to lifecycle hooks. A rollout
- * is sometimes created or flushed after SessionStart, so this lets the hook
- * create the same initial, prompt-waiting card that Claude's SessionStart
- * creates without depending on a readable transcript yet.
+ * is sometimes created or flushed after SessionStart — and with
+ * `codex exec --ephemeral` never appears at all — so this lets the hook create
+ * and maintain a session card without depending on a readable transcript.
  */
 function codexHookMeta(data) {
-  if (!data || typeof data !== "object") return null;
-  const id = [
-    data.session_id,
-    data.sessionId,
-    data.thread_id,
-    data.threadId,
-    data.session?.id,
-    data.thread?.id,
-    data.context?.session_id,
-    data.context?.thread_id,
-  ].find((candidate) => typeof candidate === "string" && candidate.trim());
+  const id = codexHookSessionId(data);
   if (!id) return null;
   return {
     id,
@@ -793,7 +825,14 @@ function ingestCodexTranscript(transcriptPath, options = {}) {
   if (!session) return { changed: false, events: [] };
   // Backfill sessions created by an older dashboard build that stored the path
   // only in metadata. The prepared statement is intentionally one-shot.
-  stmts.setSessionTranscriptPath.run(transcriptPath, session.id);
+  const linkedTranscript = stmts.setSessionTranscriptPath.run(transcriptPath, session.id);
+  // The rollout is authoritative the moment it exists. Anything hooks had to
+  // reconstruct while it was missing is about to be replayed from byte 0 below,
+  // so withdraw the reconstruction rather than double every turn.
+  if (linkedTranscript.changes > 0) {
+    dropHookOnlyHistory(session.id);
+    session = stmts.getSession.get(session.id);
+  }
 
   const agentId = `codex:${session.id}`;
   if (confirmedLive === false && session.status === "active") {
@@ -897,7 +936,179 @@ function ingestCodexTranscript(transcriptPath, options = {}) {
   };
 }
 
-function applyCodexHookLifecycle(result, hookType) {
+/**
+ * Merge one flag into a session's opaque metadata JSON. Reads/writes go through
+ * the whole document so a key written by another build is never dropped, and an
+ * unchanged value performs no write (the card broadcast path stays quiet).
+ */
+function setSessionMetadataFlag(sessionId, key, value) {
+  const session = stmts.getSession.get(sessionId);
+  if (!session) return false;
+  let metadata = {};
+  try {
+    const parsed = JSON.parse(session.metadata || "{}");
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) metadata = parsed;
+  } catch {
+    // Unparseable metadata is replaced rather than propagated — the flag below
+    // is the only consumer-visible key this function is responsible for.
+  }
+  const current = metadata[key];
+  if (value === undefined || value === null) {
+    if (!(key in metadata)) return false;
+    delete metadata[key];
+  } else {
+    if (current === value) return false;
+    metadata[key] = value;
+  }
+  return stmts.updateSession.run(null, null, null, JSON.stringify(metadata), sessionId).changes > 0;
+}
+
+/**
+ * Reconstruct the events a rollout would have contained, from the lifecycle
+ * hook payload itself. Codex sends the prompt, the tool call and its response,
+ * and the final assistant message to hooks, so a session that never persists a
+ * rollout can still show a real Conversation/Timeline instead of an empty one.
+ *
+ * Every row is tagged `data.source = "hook"` so {@link dropHookOnlyHistory} can
+ * withdraw the whole reconstruction if the authoritative rollout shows up.
+ */
+function persistCodexHookEvents(sessionId, hookType, data) {
+  const agentId = `codex:${sessionId}`;
+  // events.agent_id is a FOREIGN KEY. Attributing a row to a main agent that is
+  // missing (a partially deleted session, a row from an older build) would throw
+  // inside the fail-safe hook path and silently drop the notification — the very
+  // failure this whole path exists to remove. The column is nullable, so fall
+  // back to an unattributed event rather than losing the turn.
+  const attributedAgentId = stmts.getAgent.get(agentId) ? agentId : null;
+  const turnId = typeof data?.turn_id === "string" ? data.turn_id : null;
+  const insert = (eventType, tool, summary, extra) => {
+    const info = stmts.insertEvent.run(
+      sessionId,
+      attributedAgentId,
+      eventType,
+      tool,
+      summary,
+      JSON.stringify({
+        provider: "codex",
+        source: HOOK_EVENT_SOURCE,
+        turn_id: turnId,
+        ...extra,
+      })
+    );
+    return db.prepare("SELECT * FROM events WHERE id = ?").get(info.lastInsertRowid);
+  };
+
+  if (hookType === "userpromptsubmit") {
+    const prompt = truncate(extractText(data?.prompt));
+    if (!prompt) return [];
+    // Same card bookkeeping the rollout's `user_message` record performs, so a
+    // hook-only session is titled and described like any other Codex session.
+    const name = stmts.getSession.get(sessionId)?.name;
+    if (!name || !name.trim() || name === "Codex session") {
+      stmts.updateSessionName.run(prompt, sessionId, prompt);
+    }
+    stmts.updateAgent.run(null, null, prompt, null, null, null, agentId);
+    return [insert("codex_user_message", null, prompt, { event: "user_message" })];
+  }
+
+  if (hookType === "pretooluse") {
+    const rawName = String(data?.tool_name || "").trim();
+    if (!rawName) return [];
+    return [
+      insert("codex_tool_call", codexToolCategory(rawName), truncate(`Called ${rawName}`), {
+        event: "tool_call",
+        raw_tool_name: rawName,
+        call_id: data?.tool_use_id || null,
+      }),
+    ];
+  }
+
+  if (hookType === "posttooluse") {
+    const rawName = String(data?.tool_name || "").trim();
+    if (!rawName) return [];
+    // Only the three categories Codex itself reports a terminal record for get
+    // a completion event; anything else is already fully described by the
+    // `codex_tool_call` above, exactly as in a rollout.
+    const category = codexToolCategory(rawName);
+    const endTypes = {
+      Bash: "codex_exec_command_end",
+      MCP: "codex_mcp_tool_call_end",
+      WebSearch: "codex_web_search_end",
+    };
+    const eventType = endTypes[category];
+    if (!eventType) return [];
+    const summary = truncate(
+      data?.tool_input?.command ||
+        data?.tool_input?.query ||
+        extractText(data?.tool_response) ||
+        `${rawName} completed`
+    );
+    return [
+      insert(eventType, null, summary, {
+        event: eventType.replace(/^codex_/, ""),
+        raw_tool_name: rawName,
+        call_id: data?.tool_use_id || null,
+      }),
+    ];
+  }
+
+  if (hookType === "stop") {
+    const message = truncate(extractText(data?.last_assistant_message));
+    return [
+      insert("codex_task_complete", null, message || "Task complete", { event: "task_complete" }),
+    ];
+  }
+
+  if (hookType === "sessionend") {
+    const session = stmts.getSession.get(sessionId);
+    const label = session?.name || `Session ${String(sessionId).slice(0, 8)}`;
+    return [
+      insert("SessionEnd", null, `Session closed: ${label}`, {
+        event: "session_end",
+        session_id: sessionId,
+        reason: data?.reason || null,
+      }),
+    ];
+  }
+
+  return [];
+}
+
+/**
+ * Withdraw a hook-built reconstruction once the real rollout is linked. The
+ * transcript cursor starts at byte 0 and replays the same turns, so leaving the
+ * synthesized rows in place would double every prompt and tool call.
+ */
+function dropHookOnlyHistory(sessionId) {
+  const removed = db
+    .prepare(
+      `DELETE FROM events
+       WHERE session_id = ? AND json_extract(data, '$.source') = ?`
+    )
+    .run(sessionId, HOOK_EVENT_SOURCE);
+  const cleared = setSessionMetadataFlag(sessionId, "hook_only", null);
+  return removed.changes > 0 || cleared;
+}
+
+/**
+ * Retire a Codex session: drop any waiting overlay and mark both the session
+ * and its main agent completed. Shared by the SessionEnd hook and the
+ * synchronizer's fallback for a SessionEnd that never arrived.
+ */
+function completeCodexSession(sessionId) {
+  const agentId = `codex:${sessionId}`;
+  const endedAt = new Date().toISOString();
+  let changed = stmts.clearSessionAwaitingInput.run(sessionId).changes > 0;
+  changed = stmts.clearAgentAwaitingInput.run(agentId).changes > 0 || changed;
+  changed =
+    stmts.updateSession.run(null, "completed", endedAt, null, sessionId).changes > 0 || changed;
+  changed =
+    stmts.updateAgent.run(null, "completed", null, null, endedAt, null, agentId).changes > 0 ||
+    changed;
+  return changed;
+}
+
+function applyCodexHookLifecycle(result, hookType, hookData = null) {
   if (!result?.session || !hookType) return result;
   const normalized = String(hookType)
     .replace(/[_\s-]/g, "")
@@ -906,13 +1117,7 @@ function applyCodexHookLifecycle(result, hookType) {
   const agentId = `codex:${sessionId}`;
   let changed = false;
   if (normalized === "sessionend") {
-    changed = stmts.clearSessionAwaitingInput.run(sessionId).changes > 0 || changed;
-    changed = stmts.clearAgentAwaitingInput.run(agentId).changes > 0 || changed;
-    const endedAt = new Date().toISOString();
-    changed = stmts.updateSession.run(null, "completed", endedAt, null, sessionId).changes > 0;
-    changed =
-      stmts.updateAgent.run(null, "completed", null, null, endedAt, null, agentId).changes > 0 ||
-      changed;
+    changed = completeCodexSession(sessionId) || changed;
   } else if (normalized === "sessionstart") {
     // A Codex SessionStart/Stop hook is emitted at an interactive prompt, not
     // a process exit. Match Claude's SessionStart/Stop semantics: retain the
@@ -923,11 +1128,35 @@ function applyCodexHookLifecycle(result, hookType) {
   } else if (["userpromptsubmit", "pretooluse", "posttooluse"].includes(normalized)) {
     changed = setCodexWorking(sessionId);
   }
+
+  // No rollout to read from — `codex exec --ephemeral` never writes one, and an
+  // interactive session has not always flushed one yet. Rebuild this turn's
+  // history from the hook payload so the session is more than a status, and
+  // mark it so the UI can explain the missing transcript honestly. SessionStart
+  // is excluded: on its own it is indistinguishable from an interactive session
+  // whose rollout simply has not appeared yet.
+  const events = [...(result.events || [])];
+  if (!result.session.transcript_path && normalized !== "sessionstart") {
+    const synthesized = persistCodexHookEvents(sessionId, normalized, hookData);
+    if (synthesized.length) {
+      events.push(...synthesized);
+      changed = true;
+    }
+    changed = setSessionMetadataFlag(sessionId, "hook_only", true) || changed;
+    // The reconciler measures a hook-only session's idle window from
+    // `updated_at`, so that column has to mean "when did a hook last arrive".
+    // Every write above is conditional — a repeated Stop changes no state and a
+    // settled flag writes nothing — which would otherwise freeze the clock at
+    // the first hook of its kind and retire a session that is still reporting.
+    stmts.touchSession.run(sessionId);
+  }
+
   return {
     ...result,
     changed: Boolean(result.changed || changed),
     session: stmts.getSession.get(sessionId),
     agent: stmts.getAgent.get(agentId),
+    events,
   };
 }
 
@@ -937,10 +1166,14 @@ function applyCodexHookLifecycle(result, hookType) {
  * that was already cursor-consumed and a working turn that went silent before
  * Codex could write its terminal record.
  */
-function reconcileCodexSessionLiveness({ workingIdleMs = DEFAULT_WORKING_IDLE_MS } = {}) {
+function reconcileCodexSessionLiveness({
+  workingIdleMs = DEFAULT_WORKING_IDLE_MS,
+  hookOnlyIdleMs = DEFAULT_HOOK_ONLY_IDLE_MS,
+} = {}) {
   const activeSessions = db
     .prepare(
-      `SELECT id, transcript_path, updated_at, awaiting_input_since
+      `SELECT id, transcript_path, updated_at, awaiting_input_since, awaiting_reason,
+              json_extract(metadata, '$.hook_only') AS hook_only
        FROM sessions WHERE provider = 'codex' AND status = 'active'`
     )
     .all();
@@ -950,6 +1183,35 @@ function reconcileCodexSessionLiveness({ workingIdleMs = DEFAULT_WORKING_IDLE_MS
     if (!agent) continue;
     const latest = stmts.getLatestCodexLifecycleEvent.get(session.id);
     let didChange = false;
+    // Retire a hook-only session ONLY on Codex's own evidence that its turn
+    // finished: `awaiting_reason = 'stop'` means a real Stop hook arrived, and
+    // SessionEnd follows Stop within a few hundred ms, so a Stop still
+    // unanswered after the idle window means that SessionEnd was lost.
+    //
+    // Silence is deliberately NOT sufficient. A rollout-less run emits no hooks
+    // at all for the entire duration of a tool call — a captured 12 s sleep
+    // produced a 12,119 ms PreToolUse→PostToolUse gap, and a CI build or test
+    // suite is unbounded — so reaping a quiet session would complete a live run
+    // mid-build. Nor is `interrupted` accepted: that reason is the 90 s
+    // idle-working heuristic's own guess, not something Codex reported, and
+    // promoting a guess to a terminal state is how a long tool call would die.
+    // Those sessions stay put until a real hook resolves them.
+    if (session.hook_only && !session.transcript_path && session.awaiting_reason === "stop") {
+      const idleSince = Date.parse(session.updated_at) || 0;
+      if (Date.now() - idleSince >= hookOnlyIdleMs) {
+        didChange = completeCodexSession(session.id);
+        if (didChange) {
+          changed.push({
+            changed: true,
+            created: false,
+            session: stmts.getSession.get(session.id),
+            agent: stmts.getAgent.get(`codex:${session.id}`),
+            events: [],
+          });
+        }
+        continue;
+      }
+    }
     if (latest?.event_type === "codex_task_complete") {
       didChange = setCodexWaiting(session.id, "stop");
     } else if (latest?.event_type === "codex_turn_aborted") {
@@ -990,14 +1252,34 @@ function ingestCodexHook(transcriptPath, hookType, hookData) {
   const result = transcriptPath
     ? ingestCodexTranscript(transcriptPath)
     : { changed: false, events: [] };
-  if (result.session) return applyCodexHookLifecycle(result, hookType);
+  if (result.session) return applyCodexHookLifecycle(result, hookType, hookData);
   const normalized = String(hookType || "")
     .replace(/[_\s-]/g, "")
     .toLowerCase();
-  if (normalized === "sessionstart") {
-    const meta = codexHookMeta(hookData);
-    const existing = meta && stmts.getSession.get(meta.id);
-    const session = meta && (existing || createCodexSession(meta, transcriptPath));
+
+  // The hook's own thread id is the fallback identity for EVERY notification,
+  // not just SessionStart. `codex exec --ephemeral` runs entirely without a
+  // rollout, so requiring one here discarded its whole lifecycle — including
+  // the terminal SessionEnd — and left the card stuck at Waiting forever.
+  const meta = codexHookMeta(hookData);
+  if (meta) {
+    // The id comes from the hook payload, so confirm it names a session this
+    // module actually owns. Without that, a colliding or forged id could drive
+    // Codex lifecycle transitions — including completion — against a Claude or
+    // remote-mirrored session, and attribute events to a `codex:<id>` agent
+    // that was never created. Mirrors the guard in resumeCodexSessionAtPrompt.
+    const candidate = stmts.getSession.get(meta.id);
+    const existing =
+      candidate &&
+      candidate.provider === "codex" &&
+      (candidate.source === null || candidate.source === "local")
+        ? candidate
+        : null;
+    if (candidate && !existing) return result;
+    // Only SessionStart may CREATE a session; a later notification for an
+    // unknown id would otherwise resurrect a session the user already deleted.
+    const session =
+      existing || (normalized === "sessionstart" ? createCodexSession(meta, transcriptPath) : null);
     if (session) {
       return applyCodexHookLifecycle(
         {
@@ -1007,10 +1289,12 @@ function ingestCodexHook(transcriptPath, hookType, hookData) {
           agent: stmts.getAgent.get(`codex:${session.id}`),
           events: [],
         },
-        hookType
+        hookType,
+        hookData
       );
     }
   }
+
   if (!isCodexTranscript(transcriptPath)) return result;
   const state = stmts.getCodexIngestState.get(transcriptPath);
   const sessionId = state?.session_id || sessionIdFromPath(transcriptPath);
@@ -1018,7 +1302,8 @@ function ingestCodexHook(transcriptPath, hookType, hookData) {
   if (!session) return result;
   return applyCodexHookLifecycle(
     { ...result, session, agent: stmts.getAgent.get(`codex:${session.id}`) },
-    hookType
+    hookType,
+    hookData
   );
 }
 
@@ -1029,6 +1314,7 @@ module.exports = {
   ingestCodexToolEvents,
   ingestCodexTranscript,
   ingestCodexHook,
+  codexHookSessionId,
   applyCodexHookLifecycle,
   applyCodexTranscriptLifecycle,
   reconcileCodexSessionLiveness,
