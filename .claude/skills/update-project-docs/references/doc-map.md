@@ -44,8 +44,9 @@ REST API reference (endpoints, params, example responses). Update for route/resp
 ### `docs/PLUGINS.md`
 Plugin/marketplace docs incl. an **Event Types** enumeration line — keep it in sync with the canonical event-type list.
 
-### `docs/MCP.md` + `mcp/README.md`
-MCP server + tool reference. Update for new/changed MCP tools.
+### `mcp/README.md` (canonical)
+MCP server + tool reference. Update for new/changed MCP tools. `docs/MCP.md`
+is a one-line stub pointing here — do not duplicate content into it.
 
 ### `docs/I18N.md`
 i18n architecture: `supportedLngs` (English only), the active namespaces. Update when adding a namespace. Client UI strings live in `client/src/i18n/locales/en/*.json` (code).
@@ -53,7 +54,7 @@ i18n architecture: `supportedLngs` (English only), the active namespaces. Update
 ## Tier 3 — situational
 
 - `.env.example` — every env var belongs here with a sane default + comment.
-- `INSTALL.md`, `SETUP.md`, `DEPLOYMENT.md`, `docs/DEPLOYMENT.md` — install/run/deploy commands.
+- `INSTALL.md`, `DEPLOYMENT.md` (canonical) — install/run/deploy commands. `SETUP.md` and `docs/DEPLOYMENT.md` are one-line stubs pointing at these — do not duplicate content into them.
 - `CLAUDE.md`, `AGENTS.md` — agent working guides; update when commands, file locations, or workflows change.
 - `docs/README.md` — docs index; add a link when a new `docs/*.md` is created.
 - `desktop/README.md`, `vscode-extension/README.md`, `statusline/README.md` — surface-specific; update only when that surface changes.

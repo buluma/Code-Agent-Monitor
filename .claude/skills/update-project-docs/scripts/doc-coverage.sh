@@ -27,7 +27,6 @@ DOCS=(
   "docs/DATABASE.md"
   "docs/API.md"
   "docs/PLUGINS.md"
-  "docs/MCP.md"
   "mcp/README.md"
   "docs/I18N.md"
   ".env.example"

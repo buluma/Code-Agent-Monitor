@@ -1,6 +1,6 @@
 # Code Agent Monitor
 
-> Local-first real-time dashboard for Claude Code: native hooks POST to an Express + SQLite server, the React UI updates over WebSocket, and an optional local MCP server exposes safe dashboard tools. This repository is MIT-licensed; default stack is Node.js 18+, React 18, Vite, TypeScript, and better-sqlite3.
+> Local-first real-time dashboard for Claude Code: native hooks POST to an Express + SQLite server, the React UI updates over WebSocket, and an optional local MCP server exposes safe dashboard tools. This repository is MIT-licensed; default stack is Node.js 22.22+, React 19, Vite, TypeScript, and better-sqlite3.
 
 Important context for tools and answers:
 
@@ -19,8 +19,7 @@ Techniques and patterns used:
 ## Core documentation
 
 - [README](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/README.md): Install, features, npm scripts, API summary, deployment overview, troubleshooting.
-- [INSTALL](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/INSTALL.md): Installation paths and prerequisites.
-- [SETUP](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/SETUP.md): First-time project setup.
+- [INSTALL](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/INSTALL.md): Canonical install and setup guide — requirements, first run, hook configuration, environment variables, desktop/VS Code/container/MCP setup, database, scripts reference, troubleshooting. `SETUP.md` is a stub pointing here.
 - [CLAUDE.md](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/CLAUDE.md): Claude Code working guide (repo map, commands, change rules for agents).
 - [AGENTS.md](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/AGENTS.md): Codex / general agent instructions and validation expectations.
 - [ARCHITECTURE.md](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/ARCHITECTURE.md): High-level system and data-flow architecture.
@@ -38,15 +37,12 @@ Techniques and patterns used:
 
 ## Deployment & packaging
 
-- [DEPLOYMENT.md](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/DEPLOYMENT.md): Deployment modes and operational notes.
-- [docs/DEPLOYMENT.md](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/docs/DEPLOYMENT.md): Additional deployment documentation.
+- [DEPLOYMENT.md](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/DEPLOYMENT.md): Canonical deployment doc — Docker/Podman, Kubernetes (Helm/Kustomize), Terraform, backup/restore, rollback. `docs/DEPLOYMENT.md` is a stub pointing here.
 - [deployments/README.md](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/deployments/README.md): Deployment assets index (e.g. Kubernetes, Terraform paths).
 - [vscode-extension/README.md](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/vscode-extension/README.md): VS Code extension behavior and packaging.
 
 ## Optional
 
-- [README-CN.md](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/README-CN.md): Chinese README (localized tips).
-- [README-VN.md](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/README-VN.md): Vietnamese README.
 - [docs/I18N.md](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/docs/I18N.md): Internationalization notes for the UI.
 - [Project wiki (HTML, diagrams)](https://buluma.github.io/Code-Agent-Monitor/): GitHub Pages wiki with Mermaid diagrams; complements Markdown docs above (same project, richer layout — not a second source of truth for API contracts).
 - [Repository](https://github.com/buluma/Code-Agent-Monitor): Source, issues, and discussions.

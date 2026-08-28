@@ -738,7 +738,7 @@ unrelated server on `:4820`.
 
 The embedded server also honors the dashboard's own env vars (`DASHBOARD_PORT`
 and `DASHBOARD_DATA_DIR` are set automatically by `server-host.ts`; everything
-else in [`../SETUP.md`](../SETUP.md) applies).
+else in [`../INSTALL.md`](../INSTALL.md) applies).
 
 > **Writable state never lives in the `.app` bundle.** A packaged, code-signed,
 > or app-translocated bundle is read-only; a database written there would break
@@ -821,4 +821,4 @@ yourself wanting to edit those, that belongs in a separate PR.
 
 _User-facing docs: [`../DESKTOP.md`](../DESKTOP.md) · Project architecture:
 [`../ARCHITECTURE.md`](../ARCHITECTURE.md) · Setup:
-[`../SETUP.md`](../SETUP.md)_
+[`../INSTALL.md`](../INSTALL.md)_

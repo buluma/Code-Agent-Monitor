@@ -279,7 +279,7 @@ doesn't expose that breakdown, so this stays best-effort by design.
 README.md (+ VN/CN/KO mirrors), ARCHITECTURE.md, `index.html` landing,
 `server/README.md`, `client/README.md` (Event Types incl. new `session_removed`
 WS message), `docs/API.md`, `docs/DATABASE.md`, `docs/PLUGINS.md` (new
-`helmcode_*` event types), `docs/MCP.md`, `docs/README.md` (index row),
+`helmcode_*` event types), `mcp/README.md`, `docs/README.md` (index row),
 `openapi.yaml`, `.env.example`, wiki `index.html` + `wiki/i18n-content.js`
 (zh/vi) + `wiki/sw.js` cache bump. New env var: `DASHBOARD_HELMCODE_HOME`.
 

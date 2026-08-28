@@ -11,7 +11,7 @@
 
 **Tech Stack:** Node.js, `better-sqlite3`, `node:test` (built-in), Express, WebSocket (`ws`).
 
-**Design doc:** `docs/superpowers/specs/2026-05-22-fix-transcript-cache-leak-design.md`.
+**Design doc:** `docs/archive/superpowers/specs/2026-05-22-fix-transcript-cache-leak-design.md`.
 
 **Constraints (do not violate):**
 - `events` table is **read-only** to this work — never DELETE/TRUNCATE.
@@ -1242,17 +1242,17 @@ If anything is broken, **do not ship**. Diagnose and fix.
 ## Task 9: Update docs and finalize
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-05-22-fix-transcript-cache-leak-design.md` — append a "Result" section.
+- Modify: `docs/archive/superpowers/specs/2026-05-22-fix-transcript-cache-leak-design.md` — append a "Result" section.
 
 **Step 1: Append result section to design doc**
 
-Add to the bottom of `docs/superpowers/specs/2026-05-22-fix-transcript-cache-leak-design.md`:
+Add to the bottom of `docs/archive/superpowers/specs/2026-05-22-fix-transcript-cache-leak-design.md`:
 
 ```markdown
 
 ## Implementation Result (filled in after merge)
 
-- Implementation plan: `docs/superpowers/plans/2026-05-22-fix-transcript-cache-leak-plan.md`
+- Implementation plan: `docs/archive/superpowers/plans/2026-05-22-fix-transcript-cache-leak-plan.md`
 - Soak run result: RSS growth over 30 min = **___ MB** (target < 50 MB)
 - Backfill stats on real DB: ___ / ___ sessions got transcript_path populated
 - Commit range: `<first-commit>..<last-commit>`
@@ -1264,7 +1264,7 @@ Fill in the blanks from Task 8's real measurements.
 **Step 2: Commit**
 
 ```bash
-git add docs/superpowers/specs/2026-05-22-fix-transcript-cache-leak-design.md
+git add docs/archive/superpowers/specs/2026-05-22-fix-transcript-cache-leak-design.md
 git commit -m "docs(plans): record transcript-cache leak fix result"
 ```
 
