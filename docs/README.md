@@ -6,10 +6,9 @@ Comprehensive documentation for the Code Agent Monitor project.
 
 ## Quick Links
 
-- [Operator Handbook](https://github.com/buluma/Code-Agent-Monitor/wiki) -
-  Task-oriented usage, operations, automation, and troubleshooting
 - [Static Product Wiki](https://buluma.github.io/Code-Agent-Monitor/wiki/) -
-  English product and architecture tour
+  English product and architecture tour (GitHub Wiki is disabled for this
+  repo — this GitHub Pages site is the canonical wiki)
 - [Architecture Overview](../ARCHITECTURE.md) - System design and technical
   reference
 - [I18N Architecture](./I18N.md) - Internationalization architecture and usage
@@ -26,9 +25,9 @@ Comprehensive documentation for the Code Agent Monitor project.
 Start with the smallest set of documents for the job at hand, then use the
 catalog below as a reference:
 
-| Goal                                | Start here                                                       | Continue with                                                                                             |
-| ----------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Use or troubleshoot CCAM day to day | [GitHub Wiki](https://github.com/buluma/Code-Agent-Monitor/wiki) | [Localized product Wiki](https://buluma.github.io/Code-Agent-Monitor/wiki/) or the exact references below |
+| Goal                                | Start here                                                                    | Continue with                                        |
+| ----------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| Use or troubleshoot CCAM day to day | [Product Wiki](https://buluma.github.io/Code-Agent-Monitor/wiki/)              | the exact references below                            |
 | Run CCAM locally                    | [INSTALL.md](../INSTALL.md)                                      | [SETUP.md](../SETUP.md), then the dashboard                                                               |
 | Integrate with the API or WebSocket | [API.md](./API.md)                                               | [MCP.md](./MCP.md) for an MCP-based integration                                                           |
 | Understand captured activity        | [HOOKS.md](./HOOKS.md)                                           | [DATABASE.md](./DATABASE.md) and [ARCHITECTURE.md](../ARCHITECTURE.md)                                    |
@@ -438,17 +437,11 @@ graph TB
 
 ---
 
-## Performance Metrics
+## Performance
 
-### Benchmarks
-
-| Metric            | Target  | Actual |
-| ----------------- | ------- | ------ |
-| Hook processing   | < 100ms | ~70ms  |
-| API response time | < 50ms  | ~30ms  |
-| WebSocket latency | < 10ms  | ~5ms   |
-| Database query    | < 10ms  | ~5ms   |
-| Session list (50) | < 20ms  | ~10ms  |
+No published benchmark numbers here — none were verified against this
+codebase. See [server/README.md](../server/README.md#performance) for
+actual server-side optimization details.
 
 **Optimization Details:**
 
@@ -492,9 +485,9 @@ graph LR
 ### Getting Help
 
 - **Issues:**
-  [GitHub Issues](https://github.com/your-org/agent-dashboard/issues)
+  [GitHub Issues](https://github.com/buluma/Code-Agent-Monitor/issues)
 - **Discussions:**
-  [GitHub Discussions](https://github.com/your-org/agent-dashboard/discussions)
+  [GitHub Discussions](https://github.com/buluma/Code-Agent-Monitor/discussions)
 - **Documentation:** This folder
 
 ### Additional Resources

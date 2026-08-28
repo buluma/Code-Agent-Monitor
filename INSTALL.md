@@ -20,7 +20,7 @@ and using the native desktop app (macOS).
 
 ```bash
 git clone https://github.com/buluma/Code-Agent-Monitor.git
-cd Claude-Code-Agent-Monitor
+cd Code-Agent-Monitor
 ```
 
 ---

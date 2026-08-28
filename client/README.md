@@ -1012,20 +1012,13 @@ Web Audio API from a declarative list of partials (frequency, offset, duration,
 peak gain, oscillator type), routed through a master gain node and a low-pass
 filter.
 
-## | Export | Purpose | | ------------------------------------------ |
-
-| | `playCue(cue, { force })` | Plays one of `sessionStart`, `sessionComplete`,
-`sessionError`, `subagentSpawn`, `notification`, `connected`, `disconnected`,
-`click`. Returns whether audio was actually scheduled. `force` bypasses the
-per-cue flag and the rate limiter (used by the Settings previews). | |
-`getSoundPrefs()` / `setSoundPrefs(patch)` | Read / merge-write the `SoundPrefs`
-object persisted to `localStorage` under `agent-monitor-sound`. Defaults have
-`enabled: true`. | | `subscribeToSoundPrefs(handler)` | Subscribe to preference
-changes within the tab; returns an unsubscribe function. | |
-`installSoundUnlock()` / `unlockSound()` | Satisfy browser autoplay policy —
-cues stay silent until the first pointer / key / touch gesture. | |
-`DEFAULT_SOUND_PREFS` | The shipped defaults, also used as the merge base for
-partial saved objects. |
+| Export | Purpose |
+| --- | --- |
+| `playCue(cue, { force })` | Plays one of `sessionStart`, `sessionComplete`, `sessionError`, `subagentSpawn`, `notification`, `connected`, `disconnected`, `click`. Returns whether audio was actually scheduled. `force` bypasses the per-cue flag and the rate limiter (used by the Settings previews). |
+| `getSoundPrefs()` / `setSoundPrefs(patch)` | Read / merge-write the `SoundPrefs` object persisted to `localStorage` under `agent-monitor-sound`. Defaults have `enabled: true`. |
+| `subscribeToSoundPrefs(handler)` | Subscribe to preference changes within the tab; returns an unsubscribe function. |
+| `installSoundUnlock()` / `unlockSound()` | Satisfy browser autoplay policy — cues stay silent until the first pointer / key / touch gesture. |
+| `DEFAULT_SOUND_PREFS` | The shipped defaults, also used as the merge base for partial saved objects. |
 
 `hooks/useSoundCues.ts` is the automatic, event-driven consumer of the engine
 (the Settings page is the other caller, driving `playCue(..., { force: true })`
