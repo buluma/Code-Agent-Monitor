@@ -3,7 +3,7 @@
 openapi: 3.0.3
 info:
   title: Code Agent Monitor API
-  version: 3.0.1
+  version: 3.1.0
   description: HTTP API for real-time code agent session monitoring, agent lifecycle tracking, analytics, pricing, hooks ingestion, and workflow intelligence.
   contact:
     name: Michael Buluma
@@ -574,7 +574,7 @@ components:
         version:
           type: string
           description: Dashboard release version from package.json
-          example: 3.0.1
+          example: 3.1.0
         timestamp:
           type: string
           format: date-time
