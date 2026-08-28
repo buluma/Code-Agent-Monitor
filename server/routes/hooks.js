@@ -1125,6 +1125,14 @@ const processEvent = db.transaction((hookType, data) => {
   return event;
 });
 
+function codexHookSessionId(data) {
+  try {
+    return require("../lib/codex-ingest").codexHookSessionId(data);
+  } catch {
+    return null;
+  }
+}
+
 function codexTranscriptPath(data) {
   const candidates = [
     data?.transcript_path,
@@ -1139,19 +1147,7 @@ function codexTranscriptPath(data) {
   // id but omit the rollout path. Resolve that id through the same guarded
   // discovery index as the background synchronizer so a fresh turn is ingested
   // immediately instead of waiting for its next polling pass.
-  const sessionIdCandidates = [
-    data?.session_id,
-    data?.sessionId,
-    data?.thread_id,
-    data?.threadId,
-    data?.session?.id,
-    data?.thread?.id,
-    data?.context?.session_id,
-    data?.context?.thread_id,
-  ];
-  const sessionId = sessionIdCandidates.find(
-    (candidate) => typeof candidate === "string" && candidate.length > 0
-  );
+  const sessionId = codexHookSessionId(data);
   if (!sessionId) return null;
   try {
     return require("../lib/codex-ingest").findCodexTranscriptForSession(sessionId);
@@ -1169,12 +1165,16 @@ router.post("/codex", (req, res) => {
   const hookType = req.body?.hook_type || req.body?.event_type || "unknown";
   const data = req.body?.data || req.body || {};
   const transcriptPath = codexTranscriptPath(data);
-  const isSessionStart =
-    String(hookType)
-      .replace(/[_\s-]/g, "")
-      .toLowerCase() === "sessionstart";
-  if (!transcriptPath && !isSessionStart) {
-    return res.status(202).json({ ok: true, queued: false, reason: "No transcript path supplied" });
+  // A rollout is NOT required to identify a Codex session — every lifecycle
+  // hook carries the thread id, and `codex exec --ephemeral` deliberately runs
+  // without persisting session files at all. Requiring a transcript here meant
+  // an ephemeral run's UserPromptSubmit/Stop/SessionEnd were all discarded and
+  // its card sat at Waiting forever. Only a payload that identifies nothing at
+  // all is unusable.
+  if (!transcriptPath && !codexHookSessionId(data)) {
+    return res
+      .status(202)
+      .json({ ok: true, queued: false, reason: "No transcript path or session id supplied" });
   }
   res.status(202).json({ ok: true, queued: true });
   setImmediate(() => {

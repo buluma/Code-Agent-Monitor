@@ -81,6 +81,7 @@ import {
   MessageSquare,
   List,
   AlertCircle,
+  Info,
   Play,
   ExternalLink,
   Workflow,
@@ -369,6 +370,19 @@ export function SessionDetail() {
     });
     return map;
   }, [agents]);
+
+  // A Codex run started with `codex exec --ephemeral` never writes a rollout to
+  // disk, so the server rebuilds its history from the lifecycle hooks and marks
+  // the session `hook_only`. Saying so is the honest alternative to the generic
+  // "transcript not found" warning, which reads like something went wrong.
+  const hookOnly = useMemo(() => {
+    if (!session?.metadata) return false;
+    try {
+      return JSON.parse(session.metadata)?.hook_only === true;
+    } catch {
+      return false;
+    }
+  }, [session?.metadata]);
 
   // Event list is fetched separately from the session metadata so it can
   // respect the user's filters and use the server-driven pagination. Status
@@ -825,7 +839,13 @@ export function SessionDetail() {
       </div>
 
       {/* Tab Content */}
-      {transcriptNotFound && (
+      {hookOnly && (
+        <div className="flex items-start gap-2 px-4 py-2.5 mb-3 text-sm text-sky-300 bg-sky-500/10 border border-sky-500/20 rounded-lg">
+          <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>{t("detail.hookOnlySession")}</span>
+        </div>
+      )}
+      {transcriptNotFound && !hookOnly && (
         <div className="flex items-center gap-2 px-4 py-2.5 mb-3 text-sm text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{t("detail.transcriptNotFound")}</span>

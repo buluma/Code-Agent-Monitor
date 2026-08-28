@@ -37,6 +37,7 @@
  * - `../components/EmptyState`
  * - `../components/Tip`
  * - `../lib/format`
+ * - `../lib/event-grouping`
  * - `../lib/types`
  *
  * ## Public surface
@@ -105,6 +106,7 @@ import { AgentStatusBadge } from "../components/StatusBadge";
 import { EmptyState } from "../components/EmptyState";
 import { Tip } from "../components/Tip";
 import { timeAgo, fmt, fmtCost, formatModelName } from "../lib/format";
+import { activityStatusFromEvent } from "../lib/event-grouping";
 import type { Stats, Agent, DashboardEvent, WSMessage, WorkflowData, Session } from "../lib/types";
 
 interface SystemInfo {
@@ -1487,20 +1489,9 @@ export function Dashboard() {
                       className="px-4 py-3 flex items-center gap-3 hover:bg-surface-4 transition-colors cursor-pointer"
                       onClick={() => navigate(`/sessions/${event.session_id}`)}
                     >
-                      <AgentStatusBadge
-                        status={
-                          event.event_type === "Stop"
-                            ? event.summary?.toLowerCase().includes("error")
-                              ? "error"
-                              : "completed"
-                            : event.event_type === "APIError" ||
-                                event.summary?.toLowerCase().includes("error")
-                              ? "error"
-                              : event.event_type === "PreToolUse"
-                                ? "working"
-                                : "waiting"
-                        }
-                      />
+                      {/* Shared with ActivityFeed/SessionDetail so one event
+                          never shows two different badges (issue #310). */}
+                      <AgentStatusBadge status={activityStatusFromEvent(event)} pulse={false} />
                       <span className="text-sm text-gray-300 truncate flex-1">
                         {event.summary || event.event_type}
                       </span>
