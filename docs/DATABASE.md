@@ -501,6 +501,13 @@ Standard Codex usage whose request input is `<= 272000` tokens uses the
 free model. Users manage these rows through `/api/pricing/gpt` and the dedicated
 Settings table.
 
+**Helm Code deliberately has no third pricing table.** Helm Code can run any
+model any provider it wraps supports, so a curated table this dashboard has to
+maintain per-model doesn't fit. `token_usage` rows with `provider = 'helmcode'`
+price instead against Helm Code's own bundled litellm rate table
+(`usage-model-rates.json`, read live by `lib/helmcode-pricing.js`) — see
+`docs/HELMCODE-INTEGRATION.md` §5 Costs.
+
 ### codex_ingest_state
 
 Durable append cursor for every Codex `rollout-*.jsonl`. It stores the byte

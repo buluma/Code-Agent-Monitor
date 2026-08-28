@@ -42,6 +42,13 @@ export function registerSettingsTools(context: ToolContext): void {
   );
 
   register(
+    "dashboard_get_helmcode_config",
+    "Read the Helm Code Config Explorer overview (home, state DB, runtime, env overrides, projection counts).",
+    {},
+    async () => api.get("/api/helmcode-config/overview")
+  );
+
+  register(
     "dashboard_set_claude_home",
     "Set the Claude Code state directory used by hook and transcript discovery.",
     { path: z.string().min(1).max(4096) },

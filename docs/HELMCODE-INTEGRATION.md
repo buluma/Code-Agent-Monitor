@@ -1,7 +1,7 @@
 # Helm Code Integration Spec
 
-Status: **Proposed** — for review before implementation Date: 2026-08-28 Scope
-owner: monitor backend (`server/`), client, MCP, docs
+Status: **Phase 1 Shipped (v3.1.0)** — Phase 2 in progress Date: 2026-08-28
+Scope owner: monitor backend (`server/`), client, MCP, docs
 
 ---
 
@@ -193,8 +193,33 @@ duration and lifecycle analytics.
 
 **Not available in Phase 1.** `state.sqlite` has no usage/token/cost schema or
 event types (verified). The dashboard must not fabricate costs; display Helm
-Code sessions without token totals (Phase 2 may derive usage from Helm Code's
-`usage-scan-cache.json` / underlying driver transcripts).
+Code sessions without token totals.
+
+**Phase 2 (implemented).** `state.sqlite` still has no token table, but each
+thread's `projection_thread_activities` carries periodic `context-window.updated`
+activities — a cumulative snapshot (`{inputTokens, outputTokens, usedTokens,
+totalProcessedTokens, maxTokens}`), not a per-turn delta. `helmcode-ingest.js`
+(`syncThreadTokenUsage`) reads the thread's latest such snapshot each sweep,
+resolves the thread's model (`model_selection_json`, falling back to the
+project's `default_model_selection_json`), and writes both as one absolute
+`token_usage` bucket via the existing `replaceTokenUsage` high-water-mark
+statement — correct for a cumulative snapshot the same way it already is for a
+full Claude transcript re-parse. A snapshot without a clean input/output split
+(older Helm Code builds only recorded `usedTokens`) or an unresolved model is
+skipped for that sweep rather than guessed.
+
+Costing uses `usage-scan-cache.json`'s sibling file, `usage-model-rates.json`
+— Helm Code's own bundled litellm rate table — read directly by
+`server/lib/helmcode-pricing.js` rather than duplicated into the dashboard's
+curated `model_pricing`/`gpt_model_pricing` tables, since Helm Code can run any
+model any provider it wraps supports. `calculateProviderCost`
+(`server/routes/pricing.js`) now splits token rows three ways
+(`provider === "codex"` / `provider === "helmcode"` / else Claude) so no
+provider's rate card is ever applied to another's tokens; a Helm Code bucket
+with no matching rate entry (or before Helm Code has fetched the rate file at
+all) surfaces in `unpriced_models` with a reason instead of pricing at $0
+silently. No cache-read/write or server-tool costs — Helm Code's snapshot
+doesn't expose that breakdown, so this stays best-effort by design.
 
 ---
 
@@ -205,7 +230,8 @@ Code sessions without token totals (Phase 2 may derive usage from Helm Code's
 | File                            | Contents                                                                                                                                                                                                                                                                 |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `server/lib/helmcode-home.js`   | `getHelmcodeHome()` (`DASHBOARD_HELMCODE_HOME` → `HELMCODE_HOME` → `~/.helmcode`), `getHelmcodeStateDbPath()`, `getHelmcodeServerRuntime()` (read `server-runtime.json`), `onHelmcodeHomeChanged(listener)`, `setHelmcodeHome()` (settings persistence)                  |
-| `server/lib/helmcode-ingest.js` | `findHelmcodeThreads()`, `applyHelmcodeEvents()` (cursor), `syncHelmcodeSessions()` (projection reconcile), `ingestHelmcodeSnapshot()` (one-shot import), `reconcileHelmcodeLiveness()`; returns `{changed, created, session, agent, events}` shaped like `codex-ingest` |
+| `server/lib/helmcode-ingest.js` | `findHelmcodeThreads()`, `applyHelmcodeEvents()` (cursor), `syncHelmcodeSessions()` (projection reconcile), `ingestHelmcodeSnapshot()` (one-shot import), `reconcileHelmcodeLiveness()`, `syncThreadTokenUsage()` (Phase 2: latest `context-window.updated` snapshot → `replaceTokenUsage`); returns `{changed, created, session, agent, events}` shaped like `codex-ingest` |
+| `server/lib/helmcode-pricing.js` | Phase 2: `loadHelmcodeModelRates()` (mtime-cached read of `usage-model-rates.json`), `resolveHelmcodeModelRate()` (strips known region/provider routing prefixes), `calculateHelmcodeCost()` (same return shape as `calculateGptCost`) |
 
 ### Modified server files
 
@@ -264,8 +290,38 @@ WS message), `docs/API.md`, `docs/DATABASE.md`, `docs/PLUGINS.md` (new
 | Phase                           | Contents                                                                                                                                                                               | Rough effort                                                           |
 | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | **1 — MVP (read-only monitor)** | `helmcode-home` + `helmcode-ingest` (poll + watcher), DB migration, provider filter, session routes/renderer, MCP provider enums, UI selector + labels, tests, full doc set            | 1 focused PR (mirror of the original codex port), `minor` version bump |
-| **2 — Operational parity**      | launch-from-dashboard spawner (`helmcode` CLI), `/api/import` rescan + history, Remote Sources home, Config Explorer page, cost attribution from `usage-scan-cache.json` (best-effort) | 2–4 PRs                                                                |
+| **2 — Operational parity**      | Config Explorer page, `/api/import` rescan + history, cost attribution from `usage-model-rates.json` (best-effort); Remote Sources home and the launch-from-dashboard spawner skipped (not used) | 2–4 PRs                                                                |
 | **3 — Live path**               | WebSocket RPC client for Helm Code's event stream (pairing/auth ceremony via `auth_pairing_links`); genuine real-time instead of 4 s poll                                              | separate PR; needs helmcode API stability check                        |
+
+### Phase 2 sub-features (each its own PR, ordered by dependency)
+
+1. **Config Explorer page** (this PR — `feat/helmcode-config-explorer` →
+   v3.2.0). Read-only diagnostic UI for the Helm Code integration: home path,
+   state DB path, server runtime, env override chain, watch/poll state, last
+   sweep summary, and live projection counts (projects / threads / messages /
+   activities / turns). A non-destructive **Resync now** action re-runs
+   `ingestHelmcodeSnapshot({confirmedLive:true})` and is the only mutation.
+   Mirrors the existing Codex Config Explorer surface
+   (`/api/codex-config/overview` + `ccam config codex overview`); the config
+   lives in SQLite which the dashboard treats as read-only, so there are no
+   file-edit endpoints (parity with the Codex "no overwrite of the redacted
+   preview" rule). Adds `dashboard_get_helmcode_config` to MCP (read-only) and
+   `ccam config helmcode {overview|resync --yes}` to the CLI.
+2. **`/api/import` rescan + history** — **implemented.** `routes/import.js` and
+   `helmcode-ingest.js` accept `helmcode` as an import provider alongside
+   `claude`/`codex` (Claude/Codex parity via the existing Import History flow).
+3. ~~**Remote Sources home**~~ (skipped — not used) — `RemoteDataSource` flow
+   for Helm Code home (SSH, NFS, S3) mirroring the Claude/Codex remote-source
+   shape. Not planned: this deployment runs Helm Code locally only.
+4. **Cost attribution** (best-effort) — **implemented.** Reads Helm Code's own
+   `usage-model-rates.json` (not `usage-scan-cache.json`, which turned out to
+   be a cross-provider transcript scan keyed by file path, not by thread — see
+   §5 Costs) to surface best-effort token totals and cost; guarded by
+   defensive reads throughout (no fabricated costs, no crashed sweep on a
+   malformed snapshot or missing rate file).
+5. ~~**Launch-from-dashboard spawner**~~ (skipped — not used) —
+   `helmcode-run-spawner` that launches/resumes Helm Code threads via the
+   `helmcode` CLI. Most invasive (new destructive capability); not planned.
 
 ---
 
@@ -301,6 +357,15 @@ All open questions raised with the reviewer are resolved; see the
   never flagged.
 - **Config Explorer:** scheduled in Phase 2 (already listed).
 - **MCP enums:** all 14 sites advertise `"helmcode"` in Phase 1.
+
+### Subsequent amendments
+
+- **2026-08-28 — Phase 1 shipped as v3.1.0 (PR #11).** Spec status flipped from
+  _Proposed_ to _Phase 1 Shipped (v3.1.0) — Phase 2 in progress_. Phase 2
+  expanded into five sub-features (§7); the first sub-feature, **Config Explorer
+  page**, is implemented in the next PR (`feat/helmcode-config-explorer` →
+  v3.2.0) and mirrors the existing Codex Config Explorer read-only surface plus
+  a non-destructive Resync trigger.
 
 Subsequent changes to this spec must be appended here with date and rationale
 rather than silently rewritten.

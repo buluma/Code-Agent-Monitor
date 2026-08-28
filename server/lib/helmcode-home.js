@@ -84,6 +84,17 @@ function getHelmcodeServerRuntime() {
   }
 }
 
+/**
+ * The Helm Code model-rate cache: a periodically-refreshed litellm price table
+ * (`{fetchedAtMs, document: {modelKey: {input_cost_per_token, ...}}}`) that
+ * Helm Code itself downloads for its own cost display. Reused here for
+ * best-effort cost attribution rather than duplicating a rate table the
+ * dashboard would have to maintain for every provider Helm Code can run.
+ */
+function getHelmcodeUsageModelRatesPath() {
+  return path.join(getHelmcodeUserDataDir(), "usage-model-rates.json");
+}
+
 /** Subscribe to a successful runtime Helm Code home change. */
 function onHelmcodeHomeChanged(listener) {
   homeChangeListeners.add(listener);
@@ -125,6 +136,7 @@ module.exports = {
   getHelmcodeUserDataDir,
   getHelmcodeStateDbPath,
   getHelmcodeServerRuntime,
+  getHelmcodeUsageModelRatesPath,
   onHelmcodeHomeChanged,
   setHelmcodeHome,
 };

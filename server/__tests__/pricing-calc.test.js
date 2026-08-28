@@ -5,8 +5,17 @@
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
-const { describe, it } = require("node:test");
+const { describe, it, after } = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+
+// Isolated so calculateHelmcodeCost's rate lookup never reads a real machine's
+// ~/.helmcode/userdata/usage-model-rates.json (the default when unset).
+const HELMCODE_TMP = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-pricing-helmcode-"));
+process.env.DASHBOARD_HELMCODE_HOME = HELMCODE_TMP;
+after(() => fs.rmSync(HELMCODE_TMP, { recursive: true, force: true }));
 
 const { calculateCost, calculateGptCost, calculateProviderCost } = require("../routes/pricing");
 const {
@@ -337,6 +346,21 @@ describe("calculateGptCost — Codex pricing dimensions", () => {
     );
     assert.equal(r.total_cost, 17); // Claude input 5 + Codex output 12
     assert.equal(r.breakdown.length, 2);
+  });
+
+  it("keeps Helm Code rows out of Claude's rate card and reports them unpriced without a fetched rate file", () => {
+    const r = calculateProviderCost(
+      [
+        { ...bucket({ input_tokens: M }), provider: "claude" },
+        { model: "claude-opus-5", input_tokens: M, output_tokens: 0, provider: "helmcode" },
+      ],
+      RULES,
+      GPT_RULES
+    );
+    assert.equal(r.total_cost, 5); // Claude input 5; Helm Code unpriced (no rate file fetched)
+    assert.equal(r.breakdown.length, 1);
+    assert.equal(r.unpriced_models.length, 1);
+    assert.equal(r.unpriced_models[0].model, "claude-opus-5");
   });
 });
 

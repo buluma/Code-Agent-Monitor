@@ -102,7 +102,7 @@ const TOOL_DOMAIN_RULES: Array<[RegExp, string]> = [
   [/remote_source/, "remote"],
   [/import|restore_export|rescan_history|upload_history/, "imports"],
   [/_run|run_/, "runs"],
-  [/claude_config|codex_config|keybindings|profile/, "config"],
+  [/claude_config|codex_config|helmcode_config|keybindings|profile/, "config"],
   [/pricing|cost/, "pricing"],
   [/push/, "push"],
   [/session|transcript/, "sessions"],

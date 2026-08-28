@@ -1755,7 +1755,23 @@ async function cmdConfig(flags, positional) {
       return;
     }
   }
-  console.error(c.red("✖ Usage: ccam config claude|codex <action> [options]"));
+  if (provider === "helmcode") {
+    if (sub === "overview") {
+      console.log(JSON.stringify(await get("/api/helmcode-config/overview"), null, 2));
+      return;
+    }
+    if (sub === "resync") {
+      if (!flags.yes) {
+        console.error(c.red("✖ Resync requires --yes."));
+        process.exit(1);
+      }
+      console.log(
+        JSON.stringify(await post("/api/helmcode-config/resync", { confirmed: true }), null, 2)
+      );
+      return;
+    }
+  }
+  console.error(c.red("✖ Usage: ccam config claude|codex|helmcode <action> [options]"));
   process.exit(1);
 }
 
@@ -2246,7 +2262,11 @@ const COMMAND_GROUPS = [
       ["cleanup", "--hours N --days M", "Abandon stale / purge old sessions"],
       ["reinstall-hooks", "", "Reinstall Claude Code hooks"],
       ["hooks", "status|install …", "Inspect or install Claude Code/Codex hooks"],
-      ["config", "claude|codex <action>", "Inspect and edit supported agent configuration"],
+      [
+        "config",
+        "claude|codex|helmcode <action>",
+        "Inspect and edit supported agent configuration",
+      ],
       ["api", "<METHOD> /api/path", "Call any JSON API endpoint; writes require --yes"],
       ["mcp", "[stdio|http|repl]", "Launch the bundled MCP server"],
       ["update-check", "", "Check whether the dashboard checkout is behind upstream"],
