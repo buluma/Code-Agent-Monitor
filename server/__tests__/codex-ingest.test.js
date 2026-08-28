@@ -875,23 +875,25 @@ describe("Codex rollout ingestor", () => {
         return response.json();
       };
 
-      const accepted = await post({
-        hook_type: "SessionEnd",
-        data: {
-          session_id: "01a04300-3333-7000-8000-333333333333",
-          transcript_path: null,
-          hook_event_name: "SessionEnd",
-        },
-      });
-      assert.equal(accepted.queued, true, "a thread id is enough to identify the session");
+      try {
+        const accepted = await post({
+          hook_type: "SessionEnd",
+          data: {
+            session_id: "01a04300-3333-7000-8000-333333333333",
+            transcript_path: null,
+            hook_event_name: "SessionEnd",
+          },
+        });
+        assert.equal(accepted.queued, true, "a thread id is enough to identify the session");
 
-      const rejected = await post({
-        hook_type: "SessionEnd",
-        data: { hook_event_name: "SessionEnd" },
-      });
-      assert.equal(rejected.queued, false, "a payload identifying nothing is still a no-op");
-
-      await new Promise((resolve) => server.close(resolve));
+        const rejected = await post({
+          hook_type: "SessionEnd",
+          data: { hook_event_name: "SessionEnd" },
+        });
+        assert.equal(rejected.queued, false, "a payload identifying nothing is still a no-op");
+      } finally {
+        await new Promise((resolve) => server.close(resolve));
+      }
     });
 
     it("leaves a rollout-backed session out of the hook-only fallback", () => {
