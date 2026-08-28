@@ -46,6 +46,26 @@ if (!fs.existsSync(rootNodeModules)) {
   run("npm", ["ci"], { cwd: repoRoot });
 }
 
+// Stamp the build date into a generated module so the About panel can show
+// it (see main.ts's app.setAboutPanelOptions call). This is the only way to
+// surface a build timestamp: Electron main-process code is compiled ahead of
+// time, so there is no runtime signal for "when was this bundle produced"
+// short of baking one in here. Regenerated on every `npm run build` —
+// git-ignored, never hand-edited.
+const buildInfoPath = path.join(desktopRoot, "src", "build-info.ts");
+fs.writeFileSync(
+  buildInfoPath,
+  `/**
+ * @file Build timestamp, stamped by scripts/prebuild.js on every build.
+ * Generated — do not hand-edit; changes are overwritten on the next build.
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ */
+
+/** ISO 8601 timestamp of when this bundle was compiled. */
+export const BUILD_DATE = "${new Date().toISOString()}";
+`
+);
+
 if (!fs.existsSync(clientDist) || !fs.existsSync(path.join(clientDist, "index.html"))) {
   console.log("[prebuild] building client (client/dist missing)…");
   run("npm", ["ci"], { cwd: path.join(repoRoot, "client") });

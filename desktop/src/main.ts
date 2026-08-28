@@ -59,6 +59,7 @@
 
 import { BrowserWindow, Notification, app, dialog, shell } from "electron";
 
+import { BUILD_DATE } from "./build-info";
 import { APP_NAME } from "./constants";
 import { isOpenAtLogin, launchedAtLogin, toggleOpenAtLogin } from "./login-item";
 import { log } from "./logger";
@@ -266,6 +267,22 @@ async function boot(): Promise<void> {
     app.exit(1);
     return;
   }
+
+  // Customize the native About panel (macOS: app menu ▸ About Code Agent
+  // Monitor). Electron's default fills `version` from app.getVersion() too,
+  // which duplicates the semver on the "Version X (Y)" line — override it
+  // with the build date instead, so the panel actually answers "when was
+  // this DMG built" for support/bug-report purposes.
+  app.setAboutPanelOptions({
+    applicationName: APP_NAME,
+    applicationVersion: app.getVersion(),
+    version: `Built ${new Date(BUILD_DATE).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })}`,
+    copyright: `Copyright (c) ${new Date(BUILD_DATE).getFullYear()} Michael Buluma. MIT License.`,
+  });
 
   installApplicationMenu({
     showDashboard: () => ensureWindow(),
