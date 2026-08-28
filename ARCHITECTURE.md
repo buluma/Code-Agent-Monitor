@@ -850,6 +850,19 @@ flowchart LR
 - Keyboard accessible: `Enter` and `Space` on the row trigger expand; the
   Session button is a standard `<a>` element navigable by Tab.
 
+### Event Status Badges
+
+Every event row — on the Dashboard's Recent Activity panel, the Activity Feed, and Session Detail's timeline — is badged by a single mapping, `statusFromEventType` in `client/src/lib/event-grouping.ts`. The Dashboard previously hand-rolled its own, which knew only `Stop` / `APIError` / `PreToolUse` and defaulted everything else to a yellow **Waiting**: the same event could show Completed on one screen and Waiting on another, and every Codex-native `codex_*` type fell through to a badge that implied the session was idle (issue #310).
+
+| Badge | Event types |
+| --- | --- |
+| **Working** | `PreToolUse`, `UserPromptSubmit`, `codex_user_message`, `codex_task_started`, `codex_tool_call` |
+| **Waiting** | `PostToolUse`, `codex_exec_command_end`, `codex_mcp_tool_call_end`, `codex_web_search_end`, plus lifecycle/metadata with no reliable progress meaning (`SessionStart`, `Notification`, `TurnDuration`, `codex_turn_aborted`) and any unrecognized type |
+| **Completed** | `Stop`, `SessionEnd`, `SubagentStop`, `Compaction`, `codex_task_complete`, `codex_context_compacted` |
+| **Error** | `error`, `APIError`, `codex_error` |
+
+`Stop` is **Completed** on every surface — it is a turn boundary, and the shipped filter help has always described it that way. The Dashboard adds one rule on top through `activityStatusFromEvent`: a summary that reports a failure is an Error whatever the event type says. `STATUS_TO_EVENT_TYPES` in `EventFilters.tsx` inverts the *filterable* rows of this table — every type it lists badges as the status it is filed under, and a test asserts the two never drift. It deliberately omits the lifecycle/metadata types that reach **Waiting** only through the default (`SessionStart`, `Notification`, `TurnDuration`, `codex_turn_aborted`), since filtering on those would return rows the user did not ask for; that is also why the "Idle" preset expands to nothing.
+
 ### Workflows Page Architecture
 
 The Workflows page (`/workflows`) is the most visualization-heavy page, composed

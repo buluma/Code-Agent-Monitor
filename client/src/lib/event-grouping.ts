@@ -1,7 +1,9 @@
 /**
  * @file event-grouping.ts
  * @description Client-side helpers for rendering a flat stream of
- * `DashboardEvent` rows: a per-event status tag (`statusFromEventType`), a
+ * `DashboardEvent` rows: a per-event status tag (`statusFromEventType`, shared
+ * by every event surface, with `activityStatusFromEvent` layering the
+ * Dashboard's error-summary heuristic on top), a
  * smart human-readable title (`buildEventTitle`), and agent/origin labels for
  * the muted "{project} › {session} › {agent}" prefix. (The historical
  * tool-call grouping view was removed; the timeline now renders flat only.)
@@ -62,6 +64,7 @@
  *
  * ## Public surface
  * - `statusFromEventType` — exported API; see TSDoc on the symbol for behavior.
+ * - `activityStatusFromEvent` — exported API; see TSDoc on the symbol for behavior.
  * - `buildEventTitle` — exported API; see TSDoc on the symbol for behavior.
  * - `shortAgentLabel` — exported API; see TSDoc on the symbol for behavior.
  * - `AgentInfo` — exported API; see TSDoc on the symbol for behavior.
@@ -85,6 +88,11 @@
  * EXPORT CATALOG — quick index of symbols defined below (documentation only).
  * -----------------------------------------------------------------------------
  * **statusFromEventType**
+ *   Part of this module's public contract. Downstream imports should treat
+ *   the signature and return type as stable unless release notes say otherwise.
+ *   When behavior changes, update the `@file` overview and relevant tests.
+ *
+ * **activityStatusFromEvent**
  *   Part of this module's public contract. Downstream imports should treat
  *   the signature and return type as stable unless release notes say otherwise.
  *   When behavior changes, update the `@file` overview and relevant tests.
@@ -138,35 +146,70 @@ import type { DashboardEvent } from "./types";
 // ════════════════════════════════════════════════════════════════════════════
 
 /** Best-effort status tag per event_type - drives the status badge shown on
- *  each row in the ActivityFeed / SessionDetail event streams.
- * @param type A `DashboardEvent.event_type` value (e.g. "PreToolUse", "Stop").
+ *  each row in the Dashboard / ActivityFeed / SessionDetail event streams.
+ *
+ *  This is the SINGLE mapping for all three surfaces. The Dashboard used to
+ *  hand-roll its own (knowing only Stop / APIError / PreToolUse), which meant
+ *  the same event could render Completed on one screen and Waiting on another,
+ *  and every Codex-native type fell through to a misleading yellow "Waiting"
+ *  (issue #310). Keep {@link STATUS_TO_EVENT_TYPES} in EventFilters in sync -
+ *  it is the filter-preset inverse of this function.
+ *
+ * @param type A `DashboardEvent.event_type` value (e.g. "PreToolUse", "Stop",
+ *   or a Codex-native `codex_*` type).
  * @returns The badge status; unrecognized types default to "waiting" rather
  *   than throwing, since new hook event types should degrade gracefully. */
 export function statusFromEventType(type: string): "working" | "waiting" | "completed" | "error" {
   switch (type) {
-    // A tool is about to run: the agent is actively doing work.
+    // Work is starting or under way: a prompt was submitted, a Codex turn
+    // began, or a tool is about to run.
     case "PreToolUse":
+    case "UserPromptSubmit":
+    case "codex_user_message":
+    case "codex_task_started":
+    case "codex_tool_call":
       return "working";
-    // The tool finished, or the turn stopped: the agent is idle / awaiting the
-    // next step. "waiting" (not "completed") because more activity usually
-    // follows a PostToolUse within the same turn.
+    // A tool returned. "waiting" (not "completed") because more activity
+    // usually follows within the same turn. Codex reports the same moment
+    // through its per-surface terminal records.
     case "PostToolUse":
-    case "Stop":
+    case "codex_exec_command_end":
+    case "codex_mcp_tool_call_end":
+    case "codex_web_search_end":
       return "waiting";
-    // Terminal-ish milestones: a subagent handed control back, or the transcript
-    // was compacted. Both read as a finished unit of work.
+    // Turn and lifecycle boundaries: the agent finished a unit of work. Stop is
+    // deliberately "completed" — it is the end of a turn, and the shipped
+    // filter help has always described it that way.
+    case "Stop":
+    case "SessionEnd":
     case "SubagentStop":
     case "Compaction":
+    case "codex_task_complete":
+    case "codex_context_compacted":
       return "completed";
     // Explicit failure signals surface as the red "error" badge.
     case "error":
     case "APIError":
+    case "codex_error":
       return "error";
-    // Unknown / newer event types shouldn't blow up the badge — treat them as a
-    // neutral "waiting" so future hook additions render gracefully.
+    // Genuinely idle or metadata-only: a CLI sitting at a fresh prompt, a
+    // permission request, a turn cut short, a duration measurement. Plus any
+    // unknown / newer event type, so future hook additions render gracefully.
     default:
       return "waiting";
   }
+}
+
+/** Row status for the Dashboard's Recent Activity feed: {@link
+ *  statusFromEventType} plus the one heuristic that surface has always applied
+ *  — a summary that reports an error is an error, whatever the event type says
+ *  (a failed Stop, for instance). */
+export function activityStatusFromEvent(event: {
+  event_type: string;
+  summary?: string | null;
+}): "working" | "waiting" | "completed" | "error" {
+  if (event.summary?.toLowerCase().includes("error")) return "error";
+  return statusFromEventType(event.event_type);
 }
 
 // ════════════════════════════════════════════════════════════════════════════
