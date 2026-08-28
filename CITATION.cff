@@ -8,7 +8,7 @@ authors:
 abstract: "Real-time dashboard for tracking code agent activity."
 repository-code: "https://github.com/buluma/Code-Agent-Monitor"
 url: "https://github.com/buluma/Code-Agent-Monitor"
-version: "3.0.1"
+version: "3.1.0"
 license: "MIT"
 keywords:
   - "claude"

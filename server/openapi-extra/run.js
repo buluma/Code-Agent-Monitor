@@ -44,7 +44,7 @@ const ebadOrigin403 = {
 const schemas = {
   RunProvider: {
     type: "string",
-    enum: ["claude", "codex"],
+    enum: ["claude", "codex", "helmcode"],
     description: "The CLI provider used for the run.",
     example: "codex",
   },

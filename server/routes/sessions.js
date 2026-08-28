@@ -43,10 +43,11 @@ const SESSION_LAST_ACTIVITY_SQL = `COALESCE(
 )`;
 
 // Compact cards need enough context to distinguish a meaningful task from a
-// renamed session title. Both providers preserve their newest two distinct
-// human turns as a tiny newline-separated summary. Claude derives it from its
-// local JSONL scanner; Codex has equivalent append-only lifecycle events.
-// Historical rows still fall back to a main-agent task.
+// renamed session title. Both transcript providers preserve their newest two
+// distinct human turns as a tiny newline-separated summary (Claude from its
+// local JSONL scanner, Codex from equivalent append-only lifecycle events).
+// Helm Code has no transcript file; its durable message projection supplies the
+// same two-prompt summary. Historical rows still fall back to a main-agent task.
 const SESSION_PROMPT_PREVIEW_SQL = `COALESCE(
   NULLIF(s.card_prompt_preview, ''),
   CASE WHEN s.provider = 'codex' THEN (
@@ -64,6 +65,23 @@ const SESSION_PROMPT_PREVIEW_SQL = `COALESCE(
         LIMIT 2
       ) latest_prompts
       ORDER BY created_at ASC, id ASC
+    ) ordered_prompts
+  ) END,
+  CASE WHEN s.provider = 'helmcode' THEN (
+    SELECT group_concat(prompt, char(10))
+    FROM (
+      SELECT prompt
+      FROM (
+        SELECT substr(trim(COALESCE(m.text, '')), 1, 10240) AS prompt,
+               m.created_at, m.message_id
+        FROM helmcode_messages m
+        WHERE m.thread_id = s.id
+          AND m.role = 'user'
+          AND trim(COALESCE(m.text, '')) != ''
+        ORDER BY m.created_at DESC, m.message_id DESC
+        LIMIT 2
+      ) latest_prompts
+      ORDER BY created_at ASC, message_id ASC
     ) ordered_prompts
   ) END,
   NULLIF((
@@ -1176,6 +1194,15 @@ router.get("/:id/transcript", async (req, res) => {
     }
   }
 
+  if (session.provider === "helmcode") {
+    // Helm Code keeps no JSONL transcript; the durable message projection was
+    // mirrored into helmcode_messages by the ingest sweep. Line numbers index
+    // that ordered mirror (stable because rows are keyed and never rewritten).
+    return res.json(
+      readHelmcodeTranscript(req.params.id, { limit, afterLine, beforeLine, offset })
+    );
+  }
+
   // Determine the JSONL file path to read. Prefer the live file under
   // ~/.claude/projects, then fall back to the dashboard's durable snapshot —
   // the live file is gone once Claude Code prunes it under cleanupPeriodDays
@@ -1577,6 +1604,56 @@ router.get("/:id/transcript-image", async (req, res) => {
   }
 });
 
+/**
+ * Build the shared conversation DTO from the mirrored Helm Code message
+ * projection. Line numbers index the ordered mirror (`helmcode_messages` rows
+ * are keyed and never rewritten), so `after`/`before` cursors stay stable
+ * across incremental sweeps — the same live-pagination contract as the JSONL
+ * readers, minus the file-growth drift.
+ */
+function readHelmcodeTranscript(
+  sessionId,
+  { limit = 50, afterLine = null, beforeLine = null, offset = 0 } = {}
+) {
+  const rows = stmts.listHelmcodeMessages.all(sessionId);
+  const candidates = [];
+  for (let index = 0; index < rows.length; index++) {
+    const row = rows[index];
+    const text = typeof row.text === "string" ? row.text : "";
+    candidates.push({
+      type: row.role === "assistant" ? "assistant" : "user",
+      sender: row.role === "assistant" ? "assistant" : "user",
+      timestamp: row.created_at || null,
+      content: [{ type: "text", text: truncate(text, 10240) }],
+      line: index + 1,
+    });
+  }
+  const total = candidates.length;
+  const messages = [];
+  let hasMore = false;
+  for (const message of candidates) {
+    if (beforeLine !== null && message.line >= beforeLine) break;
+    if (afterLine !== null && message.line <= afterLine) continue;
+    if (offset > 0 && message.line <= offset) continue;
+    messages.push(message);
+    if (afterLine !== null || offset > 0) {
+      if (messages.length >= limit) {
+        hasMore = true;
+        break;
+      }
+    } else if (messages.length > limit) {
+      messages.shift();
+      hasMore = true;
+    }
+  }
+  const firstLine = messages[0]?.line || 0;
+  const lastLine = messages[messages.length - 1]?.line || 0;
+  for (const message of messages) {
+    delete message.line;
+  }
+  return { messages, total, has_more: hasMore, first_line: firstLine, last_line: lastLine };
+}
+
 function truncate(str, maxLen) {
   if (!str || str.length <= maxLen) return str;
   return str.slice(0, maxLen) + "[truncated]";
@@ -1593,3 +1670,4 @@ module.exports = router;
 // Exported for unit tests — sender attribution is correctness-critical.
 module.exports.classifyTranscriptSender = classifyTranscriptSender;
 module.exports.readCodexTranscript = readCodexTranscript;
+module.exports.readHelmcodeTranscript = readHelmcodeTranscript;

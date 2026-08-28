@@ -637,7 +637,7 @@ export const api = {
       sort_desc?: boolean;
       limit?: number;
       offset?: number;
-      provider?: "claude" | "codex";
+      provider?: "claude" | "codex" | "helmcode";
       include_transient?: boolean;
       include_task_progress?: boolean;
     }) => {
@@ -1016,6 +1016,18 @@ export const api = {
       /** @param path New absolute `~/.codex`-style directory. */
       set: (path: string) =>
         request<{ ok: boolean; codex_home: string }>("/settings/codex-home", {
+          method: "PUT",
+          body: JSON.stringify({ path }),
+        }),
+    },
+    /** Get/set the local Helm Code state root. Changing it re-arms the live
+     * state-DB watcher and immediately rescans the selected `userdata/` tree. */
+    helmcodeHome: {
+      /** @returns `{ helmcode_home }` — the resolved Helm Code home directory. */
+      get: () => request<{ helmcode_home: string }>("/settings/helmcode-home"),
+      /** @param path New absolute `~/.helmcode`-style directory. */
+      set: (path: string) =>
+        request<{ ok: boolean; helmcode_home: string }>("/settings/helmcode-home", {
           method: "PUT",
           body: JSON.stringify({ path }),
         }),

@@ -878,6 +878,45 @@ try {
   db.prepare("ALTER TABLE sessions ADD COLUMN card_prompt_preview TEXT").run();
 }
 
+// Helm Code ingest bookkeeping. Helm Code has no JSONL transcripts: all state
+// lives in its own `orchestration_events` log + projections, so the dashboard
+// keeps a per-thread cursor of the highest orchestration sequence applied and
+// mirrors the durable message projection rows locally for the Conversation tab.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS helmcode_sync (
+    thread_id TEXT PRIMARY KEY,
+    last_applied_sequence INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  );
+  CREATE TABLE IF NOT EXISTS helmcode_messages (
+    message_id TEXT PRIMARY KEY,
+    thread_id TEXT NOT NULL,
+    role TEXT NOT NULL,
+    text TEXT,
+    turn_id TEXT,
+    seq INTEGER,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (thread_id) REFERENCES sessions(id) ON DELETE CASCADE
+  );
+  CREATE INDEX IF NOT EXISTS idx_helmcode_messages_thread ON helmcode_messages(thread_id, created_at);
+  CREATE INDEX IF NOT EXISTS idx_helmcode_messages_thread_seq ON helmcode_messages(thread_id, seq);
+  -- Activity dedupe keys so activity events survive a partially-failed sweep
+  -- and a re-run never duplicates tool/task rows (events has no unique key).
+  CREATE TABLE IF NOT EXISTS helmcode_activities (
+    activity_id TEXT PRIMARY KEY,
+    thread_id TEXT NOT NULL,
+    FOREIGN KEY (thread_id) REFERENCES sessions(id) ON DELETE CASCADE
+  );
+  CREATE INDEX IF NOT EXISTS idx_helmcode_activities_thread ON helmcode_activities(thread_id);
+`);
+// Turn-record watermark for Helm Code turns; additive so pre-existing
+// helmcode_sync tables gain it without a rebuild.
+try {
+  db.prepare("SELECT last_turn_row FROM helmcode_sync LIMIT 1").get();
+} catch {
+  db.prepare("ALTER TABLE helmcode_sync ADD COLUMN last_turn_row INTEGER NOT NULL DEFAULT 0").run();
+}
+
 // Dashboard run records predate provider-aware launching. Keep existing rows
 // as Claude Code runs and add the Codex-specific sandbox metadata without
 // rebuilding the table, preserving installed users' run history.
@@ -1340,6 +1379,9 @@ const stmts = {
   insertCodexSession: db.prepare(
     "INSERT INTO sessions (id, name, status, cwd, model, provider, source, started_at, updated_at, metadata) VALUES (?, ?, ?, ?, ?, 'codex', ?, ?, ?, ?)"
   ),
+  insertHelmcodeSession: db.prepare(
+    "INSERT INTO sessions (id, name, status, cwd, model, provider, source, started_at, updated_at, metadata) VALUES (?, ?, ?, ?, ?, 'helmcode', ?, ?, ?, ?)"
+  ),
   updateSession: db.prepare(
     "UPDATE sessions SET name = COALESCE(?, name), status = COALESCE(?, status), ended_at = COALESCE(?, ended_at), metadata = COALESCE(?, metadata), updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?"
   ),
@@ -1360,6 +1402,28 @@ const stmts = {
   // case so the broadcast path stays quiet.
   updateSessionName: db.prepare(
     "UPDATE sessions SET name = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ? AND COALESCE(name, '') != ?"
+  ),
+  // Helm Code ingest cursor (per-thread watermark over `orchestration_events`)
+  getHelmcodeCursor: db.prepare("SELECT * FROM helmcode_sync WHERE thread_id = ?"),
+  listHelmcodeCursors: db.prepare("SELECT * FROM helmcode_sync"),
+  upsertHelmcodeCursor: db.prepare(
+    "INSERT INTO helmcode_sync (thread_id, last_applied_sequence, updated_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) ON CONFLICT(thread_id) DO UPDATE SET last_applied_sequence = excluded.last_applied_sequence, updated_at = excluded.updated_at"
+  ),
+  deleteHelmcodeCursor: db.prepare("DELETE FROM helmcode_sync WHERE thread_id = ?"),
+  // Durable message projection for the Conversation tab (no transcript file).
+  upsertHelmcodeMessage: db.prepare(
+    "INSERT INTO helmcode_messages (message_id, thread_id, role, text, turn_id, seq, created_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(message_id) DO UPDATE SET text = excluded.text, turn_id = excluded.turn_id, seq = excluded.seq, role = excluded.role, created_at = excluded.created_at"
+  ),
+  listHelmcodeMessages: db.prepare(
+    "SELECT * FROM helmcode_messages WHERE thread_id = ? ORDER BY created_at ASC, COALESCE(seq, 0) ASC, message_id ASC"
+  ),
+  deleteHelmcodeMessages: db.prepare("DELETE FROM helmcode_messages WHERE thread_id = ?"),
+  deleteHelmcodeSession: db.prepare("DELETE FROM sessions WHERE id = ? AND provider = 'helmcode'"),
+  listHelmcodeSessions: db.prepare(
+    "SELECT * FROM sessions WHERE provider = 'helmcode' ORDER BY updated_at DESC"
+  ),
+  listHelmcodeActivityIds: db.prepare(
+    "SELECT activity_id FROM helmcode_activities WHERE thread_id = ?"
   ),
   // A compact, durable summary of the two newest real human turns. It is
   // intentionally not a transcript cache: full content stays in JSONL, while
@@ -2064,6 +2128,7 @@ module.exports = {
   db,
   stmts,
   DB_PATH,
+  Database,
   DEFAULT_PRICING,
   DEFAULT_GPT_PRICING,
   applyIntroPricing,

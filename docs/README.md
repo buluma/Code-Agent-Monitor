@@ -66,18 +66,19 @@ graph TB
 
 ### 📋 Documentation Catalog
 
-| Document                                        | Description                                                                                                                                                                                                                                 | Audience                        |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| [client/README.md](../client/README.md)         | React frontend architecture, components, state management                                                                                                                                                                                   | Frontend developers             |
-| [server/README.md](../server/README.md)         | Express backend, database, WebSocket, API                                                                                                                                                                                                   | Backend developers              |
-| [API.md](./API.md)                              | REST API endpoints (sessions, agents, events, stats, analytics, hooks, pricing, workflows, settings, import history, **cc-config**, **run**), WebSocket protocol (including `run_stream` / `run_status` / `run_input_ack` for the Run page) | Integration developers          |
-| [DATABASE.md](./DATABASE.md)                    | SQLite schema, queries, performance                                                                                                                                                                                                         | Database administrators         |
-| [HOOKS.md](./HOOKS.md)                          | Claude Code hook system integration                                                                                                                                                                                                         | Hook developers                 |
-| [MCP.md](./MCP.md)                              | MCP server setup and tool reference                                                                                                                                                                                                         | MCP integrators                 |
-| [DEPLOYMENT.md](./DEPLOYMENT.md)                | Production deployment strategies                                                                                                                                                                                                            | DevOps engineers                |
-| [I18N.md](./I18N.md)                            | Language architecture, locale strategy, and rollout checklist                                                                                                                                                                               | Frontend and product teams      |
-| [CLI.md](./CLI.md)                              | `ccam` command reference — monitoring, browsing, insights, alerts, pricing, import, administration                                                                                                                                          | Terminal users and CI scripting |
-| [monitoring/README.md](../monitoring/README.md) | Prometheus + Grafana stack (`npm run monitoring:up` or Docker)                                                                                                                                                                              | DevOps / observability          |
+| Document                                             | Description                                                                                                                                                                                                                                 | Audience                        |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| [client/README.md](../client/README.md)              | React frontend architecture, components, state management                                                                                                                                                                                   | Frontend developers             |
+| [server/README.md](../server/README.md)              | Express backend, database, WebSocket, API                                                                                                                                                                                                   | Backend developers              |
+| [API.md](./API.md)                                   | REST API endpoints (sessions, agents, events, stats, analytics, hooks, pricing, workflows, settings, import history, **cc-config**, **run**), WebSocket protocol (including `run_stream` / `run_status` / `run_input_ack` for the Run page) | Integration developers          |
+| [DATABASE.md](./DATABASE.md)                         | SQLite schema, queries, performance                                                                                                                                                                                                         | Database administrators         |
+| [HOOKS.md](./HOOKS.md)                               | Claude Code hook system integration                                                                                                                                                                                                         | Hook developers                 |
+| [MCP.md](./MCP.md)                                   | MCP server setup and tool reference                                                                                                                                                                                                         | MCP integrators                 |
+| [DEPLOYMENT.md](./DEPLOYMENT.md)                     | Production deployment strategies                                                                                                                                                                                                            | DevOps engineers                |
+| [I18N.md](./I18N.md)                                 | Language architecture, locale strategy, and rollout checklist                                                                                                                                                                               | Frontend and product teams      |
+| [CLI.md](./CLI.md)                                   | `ccam` command reference — monitoring, browsing, insights, alerts, pricing, import, administration                                                                                                                                          | Terminal users and CI scripting |
+| [HELMCODE-INTEGRATION.md](./HELMCODE-INTEGRATION.md) | Spec for supporting Helm Code as a third monitored provider (ingest from `~/.helmcode/userdata/state.sqlite`)                                                                                                                               | Backend developers, reviewers   |
+| [monitoring/README.md](../monitoring/README.md)      | Prometheus + Grafana stack (`npm run monitoring:up` or Docker)                                                                                                                                                                              | DevOps / observability          |
 
 ---
 
@@ -359,14 +360,15 @@ graph LR
 
 ### WebSocket Events
 
-| Event Type              | Triggered By             |
-| ----------------------- | ------------------------ |
-| `session.created`       | SessionStart hook        |
-| `session.updated`       | Any session update       |
-| `agent.created`         | New agent started        |
-| `agent.updated`         | Agent status/cost change |
-| `tool.executed`         | Tool execution completed |
-| `notification.received` | System notification      |
+| Event Type              | Triggered By                                                                             |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| `session.created`       | SessionStart hook                                                                        |
+| `session.updated`       | Any session update                                                                       |
+| `agent.created`         | New agent started                                                                        |
+| `agent.updated`         | Agent status/cost change                                                                 |
+| `tool.executed`         | Tool execution completed                                                                 |
+| `notification.received` | System notification                                                                      |
+| `session.removed`       | Helm Code thread session wiped after a helmcode-side delete/archive (`{ id, provider }`) |
 
 **Full Reference:** [API.md](./API.md#websocket-api)
 

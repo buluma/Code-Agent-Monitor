@@ -96,7 +96,7 @@ export function registerPricingTools(context: ToolContext): void {
       timezone_offset_minutes: z.number().int().min(-1440).max(1440).optional(),
       sources: z.array(z.string().min(1).max(256)).max(100).optional(),
       providers: z
-        .array(z.enum(["claude", "codex"]))
+        .array(z.enum(["claude", "codex", "helmcode"]))
         .max(2)
         .optional(),
     },
@@ -121,7 +121,7 @@ export function registerPricingTools(context: ToolContext): void {
       timezone_offset_minutes: z.number().int().min(-1440).max(1440).optional(),
       sources: z.array(z.string().min(1).max(256)).max(100).optional(),
       providers: z
-        .array(z.enum(["claude", "codex"]))
+        .array(z.enum(["claude", "codex", "helmcode"]))
         .max(2)
         .optional(),
     },

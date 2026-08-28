@@ -115,9 +115,11 @@
     "description": "Choose which product’s sessions, tokens, costs, and activity appear across the app. The change takes effect immediately and remains independent from the machine data-source filter.",
     "claude": "Claude Code",
     "codex": "Codex",
+    "helmcode": "Helm Code",
     "both": "Both",
     "claudeDescription": "Show only Claude Code data.",
     "codexDescription": "Show only Codex data.",
+    "helmcodeDescription": "Show only Helm Code sessions and activity.",
     "bothDescription": "Combine Claude Code and Codex data.",
     "beta": "Beta"
   },

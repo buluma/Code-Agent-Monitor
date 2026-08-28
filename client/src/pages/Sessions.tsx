@@ -256,7 +256,11 @@ export function Sessions() {
       }, wait);
     };
     const unsubscribe = eventBus.subscribe((msg) => {
-      if (msg.type === "session_created" || msg.type === "session_updated") {
+      if (
+        msg.type === "session_created" ||
+        msg.type === "session_updated" ||
+        msg.type === "session_removed"
+      ) {
         scheduleLoad();
       }
       if (msg.type === "new_event") {

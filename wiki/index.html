@@ -981,6 +981,13 @@
                   </p>
                 </div>
                 <div class="feature-card">
+                  <div class="feature-icon ic-violet">◈</div>
+                  <h3 id="feat-helmcode">Helm Code Monitor</h3>
+                  <p>
+The provider filter adds a <strong>Helm Code</strong> scope that mirrors sessions read-only from Helm Code's local <code>state.sqlite</code> (no hooks installed). Threads appear live through an incremental sweep (filesystem watcher plus a 4 s safety-net poll), republishing each new orchestration activity as <code>helmcode_*</code> events with the same transcript pagination. Deleting or archiving a thread in Helm Code wipes its session row and broadcasts a <code>session_removed</code> frame, dropping its cards immediately.
+                  </p>
+                </div>
+                <div class="feature-card">
                   <div class="feature-icon ic-violet">🔬</div>
                   <h3 id="feat-session-detail">Session Detail</h3>
                   <p>
@@ -6934,7 +6941,7 @@ npm run install-hooks</code></pre>
     <!-- Body-content translations — must load before script.js so the
          i18n engine sees window.__WIKI_CONTENT_I18N. Both are deferred, so they
          run in document order. -->
-    <script src="i18n-content.js?v=87" defer></script>
+    <script src="i18n-content.js?v=88" defer></script>
     <script src="script.js?v=58" defer></script>
     <script>
       (function () {

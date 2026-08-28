@@ -703,14 +703,26 @@ export interface Session {
    * Remote Data Sources feature / `remote_sources`). Maps to `sessions.source`. */
   source?: string;
   /** Product that created this session. Historical records default to Claude;
-   *  Codex rollouts are marked `codex` and use the GPT price card. */
-  provider?: "claude" | "codex";
+   *  Codex rollouts are marked `codex` and use the GPT price card; Helm Code
+   *  sessions are marked `helmcode` (their mirror carries no token totals). */
+  provider?: "claude" | "codex" | "helmcode";
   /** Compact latest task progress attached to Sessions-list rows. Null when the
    * provider never emitted task/checklist/plan state. */
   todo_summary?: SessionTodoSummary | null;
   /** Full latest owner-attributed task state attached to Session Detail. Null
    * when no observable task/checklist/plan state exists. */
   todo_snapshot?: SessionTodoSnapshot | null;
+}
+
+/**
+ * Body of the `session_removed` WebSocket frame. Broadcast when a session row
+ * is deleted out-of-band — today only the Helm Code sweep wipe path (a thread
+ * deleted/archived in Helm Code removes its card). Boards drop the matching
+ * card on receipt instead of repainting it as completed.
+ */
+export interface SessionRemovedPayload {
+  id: string;
+  provider: string;
 }
 
 export type SessionTodoStatus = "pending" | "in_progress" | "completed" | "cancelled" | "unknown";
@@ -1740,7 +1752,8 @@ export interface WebhookTestResult {
  */
 export interface WSMessage {
   /** Discriminant selecting which member of the `data` union applies:
-   *  session_created/updated → Session; agent_created/updated → Agent;
+   *  session_created/updated → Session; session_removed → SessionRemovedPayload;
+   *  agent_created/updated → Agent;
    *  new_event → DashboardEvent; import.progress → ImportProgressMessage;
    *  update_status → UpdateStatusPayload; run_stream/run_status/run_input_ack
    *  → their matching Run*Payload; cc_config_changed / codex_config_changed
@@ -1751,6 +1764,7 @@ export interface WSMessage {
   type:
     | "session_created"
     | "session_updated"
+    | "session_removed"
     | "agent_created"
     | "agent_updated"
     | "new_event"
@@ -1769,6 +1783,7 @@ export interface WSMessage {
   /** The message body, whose concrete shape is selected by `type` above. */
   data:
     | Session
+    | SessionRemovedPayload
     | Agent
     | DashboardEvent
     | ImportProgressMessage
