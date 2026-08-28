@@ -27,30 +27,6 @@ const COUNTED_DOCS = [
     repositorySkills: /\b76 total repository skills\b/,
   },
   {
-    file: path.join(REPO_ROOT, "README-CN.md"),
-    plugin: /14 个共享插件/,
-    pluginSkills: /66 个插件技能/,
-    repositorySkills: /76 个仓库技能/,
-  },
-  {
-    file: path.join(REPO_ROOT, "README-ES.md"),
-    plugin: /14 plugins compartidos/,
-    pluginSkills: /66 habilidades empaquetadas/,
-    repositorySkills: /76 habilidades/,
-  },
-  {
-    file: path.join(REPO_ROOT, "README-KO.md"),
-    plugin: /14개 플러그인/,
-    pluginSkills: /66개 번들 스킬/,
-    repositorySkills: /76개 스킬/,
-  },
-  {
-    file: path.join(REPO_ROOT, "README-VN.md"),
-    plugin: /14 plugin/,
-    pluginSkills: /66 skill/,
-    repositorySkills: /76 skill/,
-  },
-  {
     file: path.join(REPO_ROOT, "docs", "PLUGINS.md"),
     plugin: /\b14 plugins\b/,
     pluginSkills: /\b66 bundled plugin skills\b/,

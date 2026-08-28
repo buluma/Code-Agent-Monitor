@@ -604,7 +604,7 @@ graph TD
 - **`SplashScreen.tsx`** — rendered by `App.tsx` as a fixed full-screen overlay
   alongside the router. Shows once per browser session (`sessionStorage` gate,
   read synchronously so a repeat mount never flashes). Time-aware greeting +
-  localized tagline/subtexts (`splash` i18n namespace, en/zh/vi/ko/es) + an
+  tagline/subtexts (`splash` i18n namespace, English only) + an
   animated node-graph brand mark on a dark backdrop (radial glow, drifting
   constellation, grain). It collects the global provider scope and checks
   readiness only for the providers that scope requires: Claude-only needs Claude
@@ -969,28 +969,29 @@ never clipped by the sidebar, the right edge of the screen, or any ancestor's
 
 ## Internationalization Architecture
 
-The client localization stack is powered by `i18next` + `react-i18next`
-(`client/src/i18n/index.ts`) and currently supports five languages: English
-(`en`), Chinese (`zh`), Vietnamese (`vi`), Korean (`ko`), and Spanish (`es`).
-The sidebar uses the shared custom `Select` dropdown, so locale choices remain
-compact as languages grow. Language detection prefers `localStorage`
-(`i18nextLng`) and falls back to the browser locale (`navigator`) with `en` as
-final fallback.
+The client uses `i18next` + `react-i18next` (`client/src/i18n/index.ts`) as a
+namespace-scoped translation-key framework — `common`, `nav`, `dashboard`,
+`sessions`, and the rest — rather than inline string literals, but ships
+**English only** (`supportedLngs: ["en"]`). This keeps every page/component
+free of hardcoded copy and every accessibility label centralized, without
+maintaining translations. Language detection prefers `localStorage`
+(`i18nextLng`) and falls back to the browser locale (`navigator`); anything
+unresolved falls back to `en`.
 
 ```mermaid
 flowchart LR
     A["Browser load"] --> B["LanguageDetector<br/>localStorage -> navigator"]
-    B --> C["Resolved language<br/>en | zh | vi | ko | es (fallback en)"]
+    B --> C["Resolved language<br/>en (fallback en)"]
     C --> D["Namespace resources<br/>common/nav/dashboard/sessions/..."]
     D --> E["React pages/components<br/>useTranslation(ns)"]
-    E --> F["format.ts locale mapping<br/>en-US | zh-CN | vi-VN | ko-KR | es-ES"]
-    F --> G["Localized labels,<br/>dates, number formatting,<br/>and model name display"]
+    E --> F["format.ts locale mapping<br/>en-US"]
+    F --> G["Labels, dates, number formatting,<br/>and model name display"]
 ```
 
 See [docs/I18N.md](docs/I18N.md) for resource strategy, key naming conventions,
-localization tests, troubleshooting, and rollout checklists.
+localization tests, and troubleshooting.
 
-**Coverage scope.** The translation layer extends end-to-end through the
+**Coverage scope.** The translation-key layer extends end-to-end through the
 Workflows tooltip surfaces — `workflows.stats.tooltip.*` (calculation copy,
 deterministic value-bucket interpretations, metric phrases),
 `workflows.chartInfo.*` (per-chart "What / How to read / Why" entries for all 11
@@ -1000,8 +1001,7 @@ sections),
 expansion narrative + suggestion buckets) — plus the Settings additions:
 `settings.pricing.tooltip.*` (pricing rule lookup, `%` wildcard syntax,
 manual-update reminder), `settings.claudeHome.*` (CLAUDE_HOME panel labels), and
-the full `settings.import.*` block (now translated to vi/zh, where the panel
-previously fell back to English).
+the full `settings.import.*` block.
 
 ---
 
@@ -2574,7 +2574,7 @@ touchpoints — nothing in the server, database, or WebSocket protocol changes:
 | `client/src/components/Layout.tsx`                       | Mounts `<Tabby />` once, as a sibling of `<UpdateNotifier />`.      |
 | `client/src/pages/Settings.tsx`                          | On/off toggle wired to `tabbyPrefs` (`localStorage`).               |
 | `client/src/pages/Run.tsx`                               | Reads `?prompt=` to prefill the prompt box for Tabby's Ask handoff. |
-| `client/src/i18n/locales/{en,zh,vi,ko,es}/settings.json` | `tabby.*` strings for the Settings toggle (en / zh / vi / ko / es). |
+| `client/src/i18n/locales/en/settings.json`               | `tabby.*` strings for the Settings toggle.                          |
 
 ---
 
