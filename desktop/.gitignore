@@ -8,3 +8,6 @@ release/
 # Committed copies live alongside the SVG so users without iconutil can still build.
 # Local rebuilds are ignored.
 assets/icon.iconset/
+
+# Build timestamp stamped by scripts/prebuild.js on every build.
+src/build-info.ts
