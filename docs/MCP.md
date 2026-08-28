@@ -149,7 +149,8 @@ and `before`. Transcript images are returned as
 - `dashboard_ingest_hook_event`
 
 Event filtering covers event types, tools, agents, sessions, text, time range,
-providers, and sources.
+providers, and sources. Provider arguments accept `claude`, `codex`, or the
+read-only `helmcode` mirror.
 
 ### Pricing and cost
 

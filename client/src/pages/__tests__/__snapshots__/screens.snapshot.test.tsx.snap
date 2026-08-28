@@ -7791,7 +7791,7 @@ exports[`screen snapshots > Settings 1`] = `
       >
         <div
           aria-label="Dashboard Data"
-          class="grid grid-cols-1 gap-2 sm:grid-cols-3"
+          class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4"
           role="radiogroup"
         >
           <button
@@ -7863,6 +7863,31 @@ exports[`screen snapshots > Settings 1`] = `
               class="mt-1 block text-xs leading-relaxed text-gray-500"
             >
               Show only Codex data.
+            </span>
+          </button>
+          <button
+            aria-checked="false"
+            class="rounded-lg border p-3 text-left transition-colors border-border bg-surface-2 hover:border-gray-600"
+            role="radio"
+            type="button"
+          >
+            <span
+              class="flex items-center justify-between gap-2"
+            >
+              <span
+                class="flex min-w-0 items-center gap-1.5"
+              >
+                <span
+                  class="text-sm font-medium text-gray-200"
+                >
+                  Helm Code
+                </span>
+              </span>
+            </span>
+            <span
+              class="mt-1 block text-xs leading-relaxed text-gray-500"
+            >
+              Show only Helm Code sessions and activity.
             </span>
           </button>
           <button

@@ -196,9 +196,9 @@ function createOpenApiSpec() {
           name: "providers",
           in: "query",
           required: false,
-          schema: { type: "string", example: "claude,codex" },
+          schema: { type: "string", example: "claude,codex,helmcode" },
           description:
-            "Comma-separated product providers to include: `claude`, `codex`, or both. Omit to include every provider.",
+            "Comma-separated product providers to include: `claude`, `codex`, `helmcode`, or both. Omit to include every provider.",
         },
       },
       schemas: {
@@ -314,7 +314,7 @@ function createOpenApiSpec() {
             "ownerBreakdown",
           ],
           properties: {
-            provider: { type: "string", enum: ["claude", "codex"] },
+            provider: { type: "string", enum: ["claude", "codex", "helmcode"] },
             source: { type: "string", enum: ["transcript", "mixed"] },
             sourceTool: { type: "string", nullable: true },
             sourceLine: { type: "integer", nullable: true },
@@ -1400,7 +1400,7 @@ function createOpenApiSpec() {
         ImportGuideResponse: {
           type: "object",
           properties: {
-            provider: { type: "string", enum: ["claude", "codex"] },
+            provider: { type: "string", enum: ["claude", "codex", "helmcode"] },
             platform: { type: "string" },
             default_projects_dir: { type: "string" },
             default_projects_dir_display: { type: "string" },
@@ -1434,7 +1434,7 @@ function createOpenApiSpec() {
           required: ["ok", "source", "imported", "skipped", "errors"],
           properties: {
             ok: { type: "boolean", enum: [true] },
-            provider: { type: "string", enum: ["claude", "codex"] },
+            provider: { type: "string", enum: ["claude", "codex", "helmcode"] },
             source: { type: "string", enum: ["default", "path", "upload"] },
             path: { type: "string", nullable: true },
             imported: { type: "integer" },
@@ -1473,7 +1473,7 @@ function createOpenApiSpec() {
           required: ["ok", "provider", "pricing", "gpt_pricing"],
           properties: {
             ok: { type: "boolean", enum: [true] },
-            provider: { type: "string", enum: ["claude", "codex", "both"] },
+            provider: { type: "string", enum: ["claude", "codex", "helmcode", "both"] },
             pricing: { type: "array", items: { $ref: "#/components/schemas/PricingRule" } },
             gpt_pricing: {
               type: "array",
@@ -2595,7 +2595,7 @@ function createOpenApiSpec() {
                       type: "array",
                       minItems: 1,
                       uniqueItems: true,
-                      items: { type: "string", enum: ["claude", "codex"] },
+                      items: { type: "string", enum: ["claude", "codex", "helmcode"] },
                     },
                   },
                 },
@@ -2642,7 +2642,7 @@ function createOpenApiSpec() {
                 schema: {
                   type: "object",
                   properties: {
-                    provider: { type: "string", enum: ["claude", "codex"] },
+                    provider: { type: "string", enum: ["claude", "codex", "helmcode"] },
                   },
                 },
               },

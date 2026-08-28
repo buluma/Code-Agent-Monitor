@@ -135,6 +135,7 @@ import type {
   CostResult,
   TranscriptInfo,
   WorkflowRun,
+  SessionRemovedPayload,
 } from "../lib/types";
 import { WorkflowRunsPanel } from "../components/workflows/WorkflowRunsPanel";
 
@@ -523,6 +524,13 @@ export function SessionDetail() {
       ) {
         load();
       }
+      // The session was wiped out-of-band (today only a Helm Code thread
+      // deleted/archived in the product): leave the dead page.
+      if (msg.type === "session_removed") {
+        const removed = msg.data as SessionRemovedPayload;
+        if (removed.id === id) navigate("/sessions", { replace: true });
+        return;
+      }
       if (msg.type === "new_event") {
         const event = msg.data as DashboardEvent;
         if (
@@ -556,7 +564,7 @@ export function SessionDetail() {
         eventsRefreshTimerRef.current = null;
       }
     };
-  }, [load, refreshEventsWithPagination]);
+  }, [load, refreshEventsWithPagination, navigate]);
 
   if (loading) {
     return (
@@ -714,7 +722,12 @@ export function SessionDetail() {
                 >
                   {cfg
                     ? t(cfg.descKey, {
-                        provider: session.provider === "codex" ? "Codex" : "Claude",
+                        provider:
+                          session.provider === "codex"
+                            ? "Codex"
+                            : session.provider === "helmcode"
+                              ? "Helm Code"
+                              : "Claude",
                       })
                     : t("detail.waitingBanner.generic")}
                 </div>

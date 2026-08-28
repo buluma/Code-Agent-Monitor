@@ -1113,7 +1113,7 @@ const paths = {
             schema: {
               type: "object",
               properties: {
-                provider: { type: "string", enum: ["claude", "codex"] },
+                provider: { type: "string", enum: ["claude", "codex", "helmcode"] },
               },
             },
             examples: {
@@ -1285,7 +1285,7 @@ const paths = {
           name: "provider",
           in: "query",
           required: false,
-          schema: { type: "string", enum: ["claude", "codex"], default: "claude" },
+          schema: { type: "string", enum: ["claude", "codex", "helmcode"], default: "claude" },
           description: "History provider to describe.",
         },
       ],
@@ -1317,7 +1317,11 @@ const paths = {
             schema: {
               type: "object",
               properties: {
-                provider: { type: "string", enum: ["claude", "codex"], default: "claude" },
+                provider: {
+                  type: "string",
+                  enum: ["claude", "codex", "helmcode"],
+                  default: "claude",
+                },
               },
             },
           },
@@ -1370,7 +1374,7 @@ const paths = {
                 },
                 provider: {
                   type: "string",
-                  enum: ["claude", "codex"],
+                  enum: ["claude", "codex", "helmcode"],
                   default: "claude",
                   description: "Transcript format and ingestion pipeline to use.",
                 },
@@ -1471,7 +1475,7 @@ const paths = {
                 },
                 provider: {
                   type: "string",
-                  enum: ["claude", "codex"],
+                  enum: ["claude", "codex", "helmcode"],
                   default: "claude",
                   description: "Transcript provider for the uploaded files.",
                 },

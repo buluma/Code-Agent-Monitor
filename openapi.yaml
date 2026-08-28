@@ -157,8 +157,8 @@ components:
       required: false
       schema:
         type: string
-        example: claude,codex
-      description: 'Comma-separated product providers to include: `claude`, `codex`, or both. Omit to include every provider.'
+        example: claude,codex,helmcode
+      description: 'Comma-separated product providers to include: `claude`, `codex`, `helmcode`, or both. Omit to include every provider.'
   schemas:
     ErrorObject:
       type: object
@@ -321,6 +321,7 @@ components:
           enum:
             - claude
             - codex
+            - helmcode
         source:
           type: string
           enum:
@@ -1838,6 +1839,7 @@ components:
           enum:
             - claude
             - codex
+            - helmcode
         platform:
           type: string
         default_projects_dir:
@@ -1892,6 +1894,7 @@ components:
           enum:
             - claude
             - codex
+            - helmcode
         source:
           type: string
           enum:
@@ -1963,6 +1966,7 @@ components:
           enum:
             - claude
             - codex
+            - helmcode
             - both
         pricing:
           type: array
@@ -3430,6 +3434,7 @@ components:
       enum:
         - claude
         - codex
+        - helmcode
       description: The CLI provider used for the run.
       example: codex
     RunHandle:
@@ -6671,6 +6676,7 @@ paths:
                     enum:
                       - claude
                       - codex
+                      - helmcode
       responses:
         '200':
           description: Selected hook installers completed
@@ -6715,6 +6721,7 @@ paths:
                   enum:
                     - claude
                     - codex
+                    - helmcode
             examples:
               claude:
                 value:
@@ -6906,6 +6913,7 @@ paths:
             enum:
               - claude
               - codex
+              - helmcode
             default: claude
           description: History provider to describe.
       responses:
@@ -6972,6 +6980,7 @@ paths:
                   enum:
                     - claude
                     - codex
+                    - helmcode
                   default: claude
       responses:
         '200':
@@ -7024,6 +7033,7 @@ paths:
                   enum:
                     - claude
                     - codex
+                    - helmcode
                   default: claude
                   description: Transcript format and ingestion pipeline to use.
             examples:
@@ -7121,6 +7131,7 @@ paths:
                   enum:
                     - claude
                     - codex
+                    - helmcode
                   default: claude
                   description: Transcript provider for the uploaded files.
             example:

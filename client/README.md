@@ -69,15 +69,17 @@ technologies:
 ### First-run hook setup
 
 `SplashScreen.tsx` asks which provider data to display (Claude Code, Codex, or
-both) before dashboard routes render. Continuing checks the current hook state
-against that exact scope: Claude-only needs Claude hooks, Codex-only needs Codex
-hooks, and Both needs both. A ready selection enters the dashboard immediately.
-A partial or missing setup opens the live-monitoring gate with only the missing
-selected providers, then calls `POST /api/settings/install-hooks` for that
-subset and shows command output in place. A status-check failure remains
-fail-soft by opening manual setup for the full selected scope. API paths are
-deliberately excluded, so Swagger, ReDoc, and the raw OpenAPI document remain
-unobstructed and retain the dashboard favicon.
+both — read-only Helm Code sessions are included automatically under both)
+before dashboard routes render. Continuing checks the current hook state against
+that exact scope: Claude-only needs Claude hooks, Codex-only needs Codex hooks,
+and Both needs both. Helm Code needs no hooks, so it is never part of hook
+installation. A ready selection enters the dashboard immediately. A partial or
+missing setup opens the live-monitoring gate with only the missing selected
+providers, then calls `POST /api/settings/install-hooks` for that subset and
+shows command output in place. A status-check failure remains fail-soft by
+opening manual setup for the full selected scope. API paths are deliberately
+excluded, so Swagger, ReDoc, and the raw OpenAPI document remain unobstructed
+and retain the dashboard favicon.
 
 Chart legends use the shared `PaginatedLegend.tsx` component. Lists at or below
 the configured page size render exactly as before with no controls. Longer
@@ -352,7 +354,7 @@ architecture simple. The one small exception is the **data-scope store**
 (`lib/dataScope.ts`): a lightweight app-wide store holding the current source
 set (`local` plus any configured
 [Remote Data Sources](../server/README.md#remote-data-sources)) and provider set
-(`claude`, `codex`, or both). Pages append the resulting `?sources=` and
+(`claude`, `codex`, `helmcode`, or any combination). Pages append the resulting
 `?providers=` parameters to their API requests, so the Settings selector
 immediately narrows the whole app to the chosen machines and/or agents. Remote
 sources are managed from the Settings page via the `RemoteSources` component
@@ -541,6 +543,7 @@ Server broadcasts these event types over WebSocket:
 | `notification.received` | Notification object                                                                                                                              | Notification hook                                                                                                                                                                                                                                               |
 | `remote_source.status`  | `{ id, status, error?, providers?, last_sync_at? }` (`status`: `idle`/`syncing`/`ok`/`error`/`deleted`; each provider can also be `unavailable`) | Remote Data Source sync poller + `/api/remote-sources` routes                                                                                                                                                                                                   |
 | `remote_data.updated`   | `{ sourceId, source, label?, counters?, providers?, last_sync_at? }`                                                                             | Emitted once per successful remote sync; provider-aware counters trigger stats/cost/session refetches. The server also broadcasts `session_created` / `session_updated` (and main-agent frames) for each mirrored session so Kanban/Sessions update immediately |
+| `session.removed`       | `{ id, provider }`                                                                                                                               | Helm Code sweep wipes a thread session after a helmcode-side delete or archive. Pages receiving `session.removed` reload their session lists; the Session detail page navigates back to the list when its own session is removed                                |
 
 ### EventBus Pattern
 
@@ -812,7 +815,13 @@ interface AgentCardProps {
 
 #### StatusBadge
 
-Colored status pills for agents (`AgentStatusBadge`) and sessions (`SessionStatusBadge`). When a row is in the yellow **Waiting** overlay (`awaiting_input_since` set), an optional `reason` prop explains WHY: a hover tooltip carries the full explanation, and — unless `compact` is set — a small nested chip (icon + short label) renders inline. Card layouts (Kanban / Dashboard trees) pass `compact` so the chip never squeezes the card title; the Sessions table and session-detail header show the full chip: 
+Colored status pills for agents (`AgentStatusBadge`) and sessions
+(`SessionStatusBadge`). When a row is in the yellow **Waiting** overlay
+(`awaiting_input_since` set), an optional `reason` prop explains WHY: a hover
+tooltip carries the full explanation, and — unless `compact` is set — a small
+nested chip (icon + short label) renders inline. Card layouts (Kanban /
+Dashboard trees) pass `compact` so the chip never squeezes the card title; the
+Sessions table and session-detail header show the full chip:
 
 | `awaiting_reason` | Label       | Meaning                                                         |
 | ----------------- | ----------- | --------------------------------------------------------------- |
@@ -987,11 +996,25 @@ Conventions worth keeping:
 ### Audio cues (lib/sound.ts + hooks/useSoundCues.ts)
 
 `lib/sound.ts` is a self-contained audio-cue engine. It ships **no audio files
-and no third-party dependency** — every cue is synthesized at play time with the Web Audio API from a declarative list of partials (frequency, offset, duration, peak gain, oscillator type), routed through a master gain node and a low-pass filter. 
+and no third-party dependency** — every cue is synthesized at play time with the
+Web Audio API from a declarative list of partials (frequency, offset, duration,
+peak gain, oscillator type), routed through a master gain node and a low-pass
+filter.
 
-| Export                                     | Purpose                                                                                                                                                                                                                                                                      | | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | | `playCue(cue, { force })`                  | Plays one of `sessionStart`, `sessionComplete`, `sessionError`, `subagentSpawn`, `notification`, `connected`, `disconnected`, `click`. Returns whether audio was actually scheduled. `force` bypasses the per-cue flag and the rate limiter (used by the Settings previews). | | `getSoundPrefs()` / `setSoundPrefs(patch)` | Read / merge-write the `SoundPrefs` object persisted to `localStorage` under `agent-monitor-sound`. Defaults have `enabled: true`.                                                                                                                                           | | `subscribeToSoundPrefs(handler)`           | Subscribe to preference changes within the tab; returns an unsubscribe function.                                                                                                                                                                                             | 
-| `installSoundUnlock()` / `unlockSound()`   | Satisfy browser autoplay policy — cues stay silent until the first pointer / key / touch gesture.                                                                                                                                                                            |
-| `DEFAULT_SOUND_PREFS`                      | The shipped defaults, also used as the merge base for partial saved objects.                                                                                                                                                                                                 |
+## | Export | Purpose | | ------------------------------------------ |
+
+| | `playCue(cue, { force })` | Plays one of `sessionStart`, `sessionComplete`,
+`sessionError`, `subagentSpawn`, `notification`, `connected`, `disconnected`,
+`click`. Returns whether audio was actually scheduled. `force` bypasses the
+per-cue flag and the rate limiter (used by the Settings previews). | |
+`getSoundPrefs()` / `setSoundPrefs(patch)` | Read / merge-write the `SoundPrefs`
+object persisted to `localStorage` under `agent-monitor-sound`. Defaults have
+`enabled: true`. | | `subscribeToSoundPrefs(handler)` | Subscribe to preference
+changes within the tab; returns an unsubscribe function. | |
+`installSoundUnlock()` / `unlockSound()` | Satisfy browser autoplay policy —
+cues stay silent until the first pointer / key / touch gesture. | |
+`DEFAULT_SOUND_PREFS` | The shipped defaults, also used as the merge base for
+partial saved objects. |
 
 `hooks/useSoundCues.ts` is the automatic, event-driven consumer of the engine
 (the Settings page is the other caller, driving `playCue(..., { force: true })`

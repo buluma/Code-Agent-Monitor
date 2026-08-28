@@ -146,18 +146,24 @@ export function AgentCard({ agent, session, label, onClick }: AgentCardProps) {
     : typeof agent.cost === "number"
       ? agent.cost
       : 0;
-  // Real (user-given) session name - auto-generated Claude/Codex fallbacks
-  // carry no extra info next to the ID, so they are suppressed.
+  // Real (user-given) session name - auto-generated Claude/Codex/Helm Code
+  // fallbacks carry no extra info next to the ID, so they are suppressed.
   const sessionName = session?.name?.trim() || "";
-  const realSessionName = /^(Session [0-9a-f]{8}|Codex session)$/i.test(sessionName)
+  const realSessionName = /^(Session [0-9a-f]{8}|Codex session|New session - .*)$/i.test(
+    sessionName
+  )
     ? ""
     : sessionName;
   const isCodexMain = isMain && session?.provider === "codex" && agent.name.trim() === "Codex";
+  const isHelmcodeMain =
+    isMain && session?.provider === "helmcode" && agent.name.trim() === "Helm Code";
   const displayName = isCodexMain
     ? `Codex · ${realSessionName || agent.session_id.slice(0, 8)}`
-    : isMain
-      ? mainAgentDisplayName(agent.name, realSessionName)
-      : agent.name;
+    : isHelmcodeMain
+      ? `Helm Code · ${realSessionName || agent.session_id.slice(0, 8)}`
+      : isMain
+        ? mainAgentDisplayName(agent.name, realSessionName)
+        : agent.name;
   // Session titles and requests are intentionally independent: Claude and
   // Codex both persist two recent real human turns on the session, while a
   // main-agent task remains the truthful fallback for pre-preview history.

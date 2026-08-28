@@ -103,7 +103,7 @@
 import { useSyncExternalStore } from "react";
 
 export type ScopeMode = "all" | "local" | "selected";
-export type ProviderScope = "claude" | "codex" | "both";
+export type ProviderScope = "claude" | "codex" | "helmcode" | "both";
 
 export interface DataScope {
   mode: ScopeMode;
@@ -129,7 +129,10 @@ function load(): DataScope {
       ? parsed.selected.filter((s): s is string => typeof s === "string")
       : [];
     const provider: ProviderScope | undefined =
-      parsed.provider === "codex" || parsed.provider === "both" || parsed.provider === "claude"
+      parsed.provider === "codex" ||
+      parsed.provider === "helmcode" ||
+      parsed.provider === "both" ||
+      parsed.provider === "claude"
         ? parsed.provider
         : undefined;
     return provider ? { mode, selected, provider } : { mode, selected };

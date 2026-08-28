@@ -524,12 +524,12 @@ Prometheus + Grafana stack with four auto-provisioned dashboards (default home
 **Data scope (`?sources=` and `?providers=`).** `GET /api/sessions`,
 `/api/events`, `/api/agents`, `/api/stats`, `/api/analytics`, `/api/workflows`,
 workflow drill-ins, and pricing cost endpoints accept an optional source list
-and a provider list (`claude`, `codex`, or both). The filters compose, so a
-single Settings choice immediately scopes every page by both machine and
-product. `server/lib/source-filter.js` and `server/lib/provider-filter.js` build
-the SQL predicates; `/api/stats` and `/api/analytics` use their scoped
-aggregates only when a filter is present. `GET /api/sessions/facets` returns
-both `sources` and `providers`.
+and a provider list (`claude`, `codex`, `helmcode`, or a scope). The filters
+compose, so a single Settings choice immediately scopes every page by both
+machine and product. `server/lib/source-filter.js` and
+`server/lib/provider-filter.js` build the SQL predicates; `/api/stats` and
+`/api/analytics` use their scoped aggregates only when a filter is present.
+`GET /api/sessions/facets` returns both `sources` and `providers`.
 
 **Session project filter (`cwd=`).** `GET /api/sessions` accepts one or more
 exact working directories. Repeat the query key (`?cwd=/work/a&cwd=/work/b`) to
@@ -591,18 +591,20 @@ is rendered as a user message at the point the model actually received it. Codex
 sessions map their human turns, legacy `function_call` records, and primary
 `custom_tool_call` records (including `exec` source and paired output) into that
 same DTO, so the Conversation tab does not collapse into a wait-only stream.
-Persisted PNG/JPEG/GIF/WebP attachments render as safe `image` blocks: Codex
-keeps its bounded inline raster data, while Claude receives an opaque
-same-origin `/transcript-image` URL that resolves only the referenced transcript
-line and never leaks the local path. Codex's response-item/event copies of the
-same human image turn are normalized and deduplicated before pagination. Codex
-`/rename` titles are read from the native `session_index.jsonl` and published as
-real-time `session_updated` frames even when no rollout byte changes. The queue
-is shared with harness injections, so queued lines are only attributed to the
-human when they aren't harness traffic:
-`<task-notification>`/`[SYSTEM NOTIFICATION` payloads and any non-`human`
-`origin.kind` render as `system` (harness notification attachments carry no
-`origin` field at all; typed messages carry `origin.kind = "human"`).
+Helm Code sessions map their `projection_thread_messages` (human turns plus the
+assistant output of each orchestration activity) into the same DTO, served with
+the identical `after`/`before` cursor pagination. Persisted PNG/JPEG/GIF/WebP
+attachments render as safe `image` blocks: Codex keeps its bounded inline raster
+data, while Claude receives an opaque same-origin `/transcript-image` URL that
+resolves only the referenced transcript line and never leaks the local path.
+Codex's response-item/event copies of the same human image turn are normalized
+and deduplicated before pagination. Codex `/rename` titles are read from the
+native `session_index.jsonl` and published as real-time `session_updated` frames
+even when no rollout byte changes. The queue is shared with harness injections,
+so queued lines are only attributed to the human when they aren't harness
+traffic: `<task-notification>`/`[SYSTEM NOTIFICATION` payloads and any
+non-`human` `origin.kind` render as `system` (harness notification attachments
+carry no `origin` field at all; typed messages carry `origin.kind = "human"`).
 Content-less `local_command` lines, other `system` subtypes, `queue-operation`
 lines, and every other attachment subtype are dropped.
 
@@ -667,6 +669,21 @@ cwd probe remains conservative. The pre-identity process overlay also collapses
 the Node launcher and direct native Codex child into one logical process before
 creating transient cards.
 
+**Helm Code mirror.** Helm Code sessions are mirrored read-only from the Helm
+Code thread engine (`DASHBOARD_HELMCODE_HOME` > `HELMCODE_HOME` >
+`~/.helmcode/userdata/state.sqlite`, with the `dev/` layout used by dev builds).
+A filesystem watcher on `state.sqlite` / `state.sqlite-wal` plus a
+`DASHBOARD_HELMCODE_SYNC_MS` safety-net poll (default 4000 ms) drives an
+incremental sweep: each thread's `projection_threads` row fingerprint
+(`last_turn_row`) decides what is new, and only fresh orchestration events are
+republished as `helmcode_*` activity/turn/human-message rows with the shared
+`prompt_preview` card summary and paginated transcript DTO. Threads deleted or
+archived in Helm Code are wiped — session row, agents, events, messages (via FK
+cascade) — and a `session_removed` WebSocket frame drops their cards live. A
+liveness wipe removes the thread row while the database stays readable. Helm
+Code installs **no dashboard hooks**; the primary sweep is an idempotent full
+pass so a missed watcher event still converges.
+
 Claude turn-duration ingestion assigns each `TurnDuration` a stable transcript
 identity (UUID or byte offset). A complete parse atomically reconciles rows and
 exact `turn_count` / `total_turn_duration_ms` metadata, repairing duplicates
@@ -679,6 +696,9 @@ historical turns.
 | ------ | ------------------ | -------------------------------------------------------------------------------- |
 | `POST` | `/api/hooks/event` | Ingest one Claude Code hook event envelope                                       |
 | `POST` | `/api/hooks/codex` | Acknowledge a Codex lifecycle notification and asynchronously ingest its rollout |
+
+Helm Code installs no hooks; its sessions arrive through the state-db sweep
+described above.
 
 Request body shape:
 
@@ -725,10 +745,10 @@ silently priced as zero.
 
 ### Workflows
 
-| Method | Path                         | Description                                                                                                                           |
-| ------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET`  | `/api/workflows`             | Provider/source-scoped aggregate workflow intelligence (`?status=active\|completed\|...`, `?sources=...`, `?providers=claude\|codex`) |
-| `GET`  | `/api/workflows/session/:id` | Provider/source-scoped per-session drill-in (tree, recorded tool timeline, swim lanes, events)                                        |
+| Method | Path                         | Description                                                                                                                                     |
+| ------ | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`  | `/api/workflows`             | Provider/source-scoped aggregate workflow intelligence (`?status=active\|completed\|...`, `?sources=...`, `?providers=claude\|codex\|helmcode`) |
+| `GET`  | `/api/workflows/session/:id` | Provider/source-scoped per-session drill-in (tree, recorded tool timeline, swim lanes, events)                                                  |
 
 ### Remote Data Sources
 
@@ -833,11 +853,13 @@ must already work without a prompt. Set a source up like this:
 | `POST`        | `/api/settings/cleanup`         | Abandon stale sessions and purge old data                                                                                                                                                |
 | `GET` / `PUT` | `/api/settings/claude-home`     | Read or update the Claude Code transcript/configuration root                                                                                                                             |
 | `GET` / `PUT` | `/api/settings/codex-home`      | Read or update the Codex rollout/hooks root; saving immediately re-arms the watcher and schedules a scan                                                                                 |
+| `GET` / `PUT` | `/api/settings/helmcode-home`   | Read or update the Helm Code data root; saving immediately re-arms the state-db watcher                                                                                                  |
 
-Both home updates accept `{ "path": "/absolute/path" }`; a leading `~/` is
+All home updates accept `{ "path": "/absolute/path" }`; a leading `~/` is
 expanded, and a missing or non-directory path returns `400 INVALID_PATH`. The
-Codex setting persists as `DASHBOARD_CODEX_HOME`, not `CODEX_HOME`, so Settings
-never mutates the broader Codex CLI environment.
+Codex setting persists as `DASHBOARD_CODEX_HOME`, not `CODEX_HOME`, and the Helm
+Code setting persists as `DASHBOARD_HELMCODE_HOME`, not `HELMCODE_HOME`, so
+Settings never mutates the broader CLI environments.
 
 Backup restore accepts exactly one export bundle up to 25 MiB from either
 multipart field `file` or a server-side absolute `path`. Larger inputs return
@@ -942,9 +964,10 @@ directory or any recent project.
 
 WebSocket message types added: `run_stream` (Claude stream-json envelopes or
 normalized Codex app-server events), `run_status` (status transitions),
-`run_input_ack` (follow-up accepted), `cc_config_changed`, and
+`run_input_ack` (follow-up accepted), `cc_config_changed`,
 `codex_config_changed` (the Codex workspace's filesystem/dashboard refresh
-signal).
+signal), and `session_removed` `{ id, provider }` (a Helm Code thread wiped
+after a Helm Code-side delete or archive).
 
 ### Import History
 
@@ -979,6 +1002,8 @@ returns a `reparented` count).
 | `server/routes/import.js`        | Express router, request validation, temp-dir lifecycle, progress broadcasts                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `server/lib/codex-import.js`     | Historical Codex rollout importer; snapshots external files and delegates parsing/accounting to `codex-ingest.js`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `server/lib/codex-ingest.js`     | Incremental Codex rollout ingestor. Discovery stats each rollout **once** rather than inside the sort comparator, which made newest-first ordering cost O(N log N) stat syscalls. Both read paths close their descriptor in a `finally`, and an I/O failure is reported as `failed` (distinct from a completed no-op) so the sweep keeps that file queued instead of recording its fingerprint and skipping it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `server/lib/helmcode-home.js`    | Resolves the Helm Code data root (`DASHBOARD_HELMCODE_HOME` > `HELMCODE_HOME` > `~/.helmcode`), its `userdata/state.sqlite` (release) or `dev/` layout, and per-thread row ids; persists the Settings override, notifies synchronizers of Moves, reads `server-runtime.json` for `?pid=threadId` transcripts                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `server/lib/helmcode-ingest.js`  | Incremental read-only Helm Code sweep: fingerprints each `projection_threads` row's `last_turn_row`, republishes only new orchestration activity as `helmcode_*` events, wipes deleted/archived threads (cascade + `session_removed` frame), and serves the paginated transcript DTO via `readHelmcodeTranscript`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `server/lib/archive.js`          | Safe archive extractors (`.zip` / `.tar(.gz)` / `.gz`) with path-traversal and size-cap enforcement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `scripts/import-history.js`      | Generalized directory walker (`importFromDirectory`) + shared `parseSessionFile` / `importSession`. Re-import is fully incremental: per-event-type high-water mark (`MAX(created_at) GROUP BY event_type` per session) drives `ts > cutoff[type]` dedup for Stop / PostToolUse / TurnDuration / ToolError, and `sessions.ended_at` is rolled forward when the JSONL has progressed past the stored value. After each batch imports, it calls `ingestWorkflowsForSession` (`server/lib/workflow-ingest.js`) per session — outside the SQLite transaction — so an offline/headless/CI/cluster **Workflow-tool** run (whose journal never reached a live server) has its inner agents linked to their `run_id` on a plain rescan / path import, not left orphaned (`workflow_run_id = NULL`). Both parsers reconcile usage per `message.id` (last record wins), matching `transcript-cache.js`. `reconcileTokens(dbModule, {all, resetBaselines})` backs `npm run repair-tokens` — the one-time repair that re-derives totals for every **Claude** session with a transcript on disk (located under `~/.claude/projects/` or via the session's stored `transcript_path`) and zeroes the `baseline_*` columns, which the ordinary high-water fold would otherwise use to preserve a historical over-count. It clears only non-workflow rows, excludes Codex sessions (their usage comes from rollout journals, not Claude transcripts), and refuses to run while a dashboard is up |
 | `server/lib/transcript-cache.js` | Chunked 4 MiB sync byte-stream reader for JSONL transcripts — never materializes the whole file as a JS string, so files larger than V8's max string length (~512 MiB on 64-bit Node 20) parse without aborting Node with `FATAL ERROR: v8::ToLocalChecked Empty MaybeLocal`. Token usage is **reconciled per `message.id`** (last record wins), not summed per record: Claude Code writes one record per content block and each copies the message's `usage`, so the old per-record sum inflated totals 2–4× (issue #293)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -1983,6 +2008,8 @@ DASHBOARD_DB_PATH=./data/dashboard.db  # SQLite database path
 DASHBOARD_SESSION_SYNC_MS=30000    # Continuous project-sync poll interval (ms); 0 disables the poll (watcher stays)
 DASHBOARD_CODEX_HOME=              # Optional Codex home; Settings saves this dashboard-only override and immediately re-arms live watching
 DASHBOARD_CODEX_SYNC_MS=4000       # Codex rollout safety-net poll (ms); 0 disables poll (watcher stays)
+DASHBOARD_HELMCODE_HOME=            # Optional Helm Code data root (~/.helmcode by default); Settings saves this dashboard-only override
+DASHBOARD_HELMCODE_SYNC_MS=4000     # Helm Code state-db safety-net poll (ms); 0 disables poll (watcher stays)
 DASHBOARD_TASK_SUMMARY_TTL_MS=2000 # Serve-stale window (ms) for task-progress summaries of actively-growing transcripts; 0 re-parses on every change
 DASHBOARD_TOKEN_REPAIR=1           # One-time startup repair of pre-reconciliation token totals; 0 skips it
 DASHBOARD_LIVENESS_PROBE=1         # 0 disables the local Claude Code/Codex dead-session liveness reap (use when hooks arrive from another machine)

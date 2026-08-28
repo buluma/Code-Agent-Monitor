@@ -1,11 +1,12 @@
 /**
  * @file provider-filter.js
- * @description Shared SQL filters for the dashboard-wide Claude/Codex provider
- * scope. Provider scope composes with machine source scope; neither replaces it.
+ * @description Shared SQL filters for the dashboard-wide Claude/Codex/Helm Code
+ * provider scope. Provider scope composes with machine source scope; neither
+ * replaces it.
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
-const VALID_PROVIDERS = new Set(["claude", "codex"]);
+const VALID_PROVIDERS = new Set(["claude", "codex", "helmcode"]);
 
 /** Parse `?providers=claude,codex`; absent means every provider. */
 function parseProviders(req) {

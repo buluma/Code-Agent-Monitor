@@ -88,7 +88,7 @@ export function registerSessionTools(context: ToolContext): void {
       sort_desc: z.boolean().optional(),
       sources: z.array(z.string().min(1).max(256)).min(1).max(100).optional(),
       providers: z
-        .array(z.enum(["claude", "codex"]))
+        .array(z.enum(["claude", "codex", "helmcode"]))
         .min(1)
         .max(2)
         .optional(),

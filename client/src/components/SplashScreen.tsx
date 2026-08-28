@@ -64,7 +64,9 @@ import { setProviderScope, type ProviderScope } from "../lib/dataScope";
 
 const SESSION_KEY = "provider-onboarding-shown-v1";
 
-type HookProvider = Exclude<ProviderScope, "both">;
+// Helm Code installs no dashboard hooks in Phase 1, so only Claude/Codex ever
+// appear as hook targets even though the scope selector can show Helm Code.
+type HookProvider = "claude" | "codex";
 
 type HookStatus = {
   providers?: Partial<
@@ -81,7 +83,9 @@ type HookStatus = {
 
 /** Providers whose live dashboard hooks must be ready for a selected scope. */
 export function hookProvidersForScope(provider: ProviderScope): HookProvider[] {
-  return provider === "both" ? ["claude", "codex"] : [provider];
+  if (provider === "both") return ["claude", "codex"];
+  if (provider === "helmcode") return [];
+  return [provider];
 }
 
 /** Selected providers that still need dashboard hooks. Unknown status is missing. */

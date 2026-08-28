@@ -88,7 +88,7 @@ export function registerAgentTools(context: ToolContext): void {
       session_id: z.string().min(1).max(256).optional(),
       sources: z.array(z.string().min(1).max(256)).max(100).optional(),
       providers: z
-        .array(z.enum(["claude", "codex"]))
+        .array(z.enum(["claude", "codex", "helmcode"]))
         .max(2)
         .optional(),
     },

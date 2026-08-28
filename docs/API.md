@@ -168,7 +168,7 @@ optional field.
 | `sort_by`               | string              | `time`  | Ordering dimension: `time`, `duration`, or `price`                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `sort_desc`             | boolean             | `true`  | Use descending order; set to `false` for ascending order                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `sources`               | string              | -       | Comma-separated data-source ids to include (the built-in local history is `local`; remote SSH machines use their `remote_sources.id`). Omit for all sources. Also accepted on `/api/events`, `/api/agents`, `/api/stats`, `/api/analytics`, and `/api/pricing/cost`. See [Remote Data Sources](#remote-data-sources)                                                                                                                                                |
-| `providers`             | string              | -       | Comma-separated product providers: `claude`, `codex`, or both. It composes with `sources` and is accepted by the scoped list, aggregate, facet, per-session detail, cost, and workflow routes. Codex workflow responses include its recorded `response_item` tool calls, token/model totals, and `context_compacted` events; only Claude Code's Workflow-tool run journals are unavailable for Codex.                                                               |
+| `providers`             | string              | -       | Comma-separated product providers: `claude`, `codex`, `helmcode`, or any combination. It composes with `sources` and is accepted by the scoped list, aggregate, facet, per-session detail, cost, and workflow routes. Codex workflow responses include its recorded `response_item` tool calls, token/model totals, and `context_compacted` events; only Claude Code's Workflow-tool run journals are unavailable for Codex.                                        |
 | `include_transient`     | boolean             | `false` | Opt in to local, in-memory Codex startup cards before Codex exposes a stable session ID. On `/api/sessions`, this is honored only on the first page when `status` is absent or `active`; on `/api/agents`, only on the first `status=waiting` page without `session_id`. These cards are prepended without changing durable `total`, pagination, analytics, pricing, workflows, alerts, or history.                                                                 |
 | `include_task_progress` | boolean             | `false` | Attach nullable `todo_summary` values for the latest top-level work item to at most the first 100 returned rows. A new Claude human turn or Codex task that emits no tracker clears older state; a turn/task ending without a final update drops unfinished state. Fully completed history remains available. Each transcript scan reads only the newest 32 MiB and each summary includes at most five preview tasks. Rows after the enrichment cap omit the field. |
 
@@ -385,10 +385,13 @@ include `first_line`, `last_line`, and `has_more` for the next request. Claude
 Code responses include its normal conversation and local command records. Codex
 responses include human turns, legacy `function_call` records, and the primary
 `custom_tool_call` stream (including `exec` input and paired output), so clients
-can render the actual command flow rather than only `wait` calls. Both providers
-also expose persisted PNG/JPEG/GIF/WebP user attachments as `image` content
-blocks; missing or expired files are simply omitted, and Codex's duplicated
-response/event user records are returned as one human turn.
+can render the actual command flow rather than only `wait` calls. Helm Code
+sessions serve the same DTO and cursor pagination from their
+`projection_thread_messages` (human turns plus the assistant output of each
+orchestration activity). All providers also expose persisted PNG/JPEG/GIF/WebP
+user attachments as `image` content blocks; missing or expired files are simply
+omitted, and Codex's duplicated response/event user records are returned as one
+human turn.
 
 #### Read Persisted Transcript Image
 
@@ -1306,12 +1309,14 @@ curl "http://localhost:4820/api/sessions?sources=local,4d1f0e2a-7b9c-4c33-8a21-9
 | `POST`        | `/api/settings/clear-data`    | Delete captured sessions, agents, events, token usage, fired alerts, and webhook delivery history                    |
 | `GET` / `PUT` | `/api/settings/claude-home`   | Read or update the Claude Code transcript/configuration root                                                         |
 | `GET` / `PUT` | `/api/settings/codex-home`    | Read or update the Codex rollout/hooks root; saving re-arms the live watcher and schedules an immediate session scan |
+| `GET` / `PUT` | `/api/settings/helmcode-home` | Read or update the Helm Code data root; saving re-arms the state-db watcher                                          |
 
-Both home updates accept `{ "path": "/absolute/path" }` (a leading `~/` is
+All home updates accept `{ "path": "/absolute/path" }` (a leading `~/` is
 expanded). The resolved path must exist and be a directory; invalid input
 returns `400 INVALID_PATH`. Codex changes are persisted as
-`DASHBOARD_CODEX_HOME` and notify the background synchronizer after the response
-so a large history cannot delay the Settings action.
+`DASHBOARD_CODEX_HOME` and Helm Code changes as `DASHBOARD_HELMCODE_HOME`; both
+notify their background synchronizer after the response so a large history
+cannot delay the Settings action.
 
 `POST /api/settings/import` accepts one export file up to 25 MiB. Multipart
 callers use field `file`; CLI/MCP callers may send an absolute server-side

@@ -194,7 +194,7 @@ CREATE TABLE sessions (
         CHECK (status IN ('active','completed','error','abandoned')),
     cwd TEXT,
     model TEXT,
-    provider TEXT NOT NULL DEFAULT 'claude',                          -- claude | codex
+    provider TEXT NOT NULL DEFAULT 'claude',                          -- claude | codex | helmcode
     started_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
     ended_at TEXT,
     metadata TEXT,
@@ -216,7 +216,7 @@ CREATE TABLE sessions (
 | `status`               | TEXT | NO       | `active`, `completed`, `error`, or `abandoned` (CHECK-constrained). Besides the `SessionEnd` hook, the 15 s watchdog's **liveness reap** also lands `active` → `completed` when no running matching local `claude` or `codex` process has the session's `cwd` (a `SessionEnd` lost while the dashboard was down); gated by `DASHBOARD_LIVENESS_IDLE_SECONDS`, disabled via `DASHBOARD_LIVENESS_PROBE=0`. Sessions with a non-`local` `source` (Remote Data Sources) are always exempt from the local process reap and transcript watchdog. Each remote provider has independent health: sessions stay out of stale sweeps only while their own Claude or Codex mirror is healthy. If that provider reports `error`/`unavailable`, or remains `syncing` longer than `DASHBOARD_STALE_MINUTES`, an active session older than that same window falls back to the ordinary stale sweep (`abandoned`, agents completed) until a fresh mirror can reactivate it |
 | `cwd`                  | TEXT | YES      | Working directory the CLI was launched from                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `model`                | TEXT | YES      | Claude model ID (e.g. `claude-opus-4-7`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `provider`             | TEXT | NO       | Product that produced the session: `claude` (default) or `codex`. Powers the composable `providers` API scope and lets shared token buckets use the correct rate card.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `provider`             | TEXT | NO       | Product that produced the session: `claude` (default), `codex`, or `helmcode`. Powers the composable `providers` API scope and lets shared token buckets use the correct rate card.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `started_at`           | TEXT | NO       | ISO 8601 timestamp                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `ended_at`             | TEXT | YES      | ISO 8601 timestamp on terminal transition                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `metadata`             | TEXT | YES      | JSON blob for extras (turn duration totals, thinking blocks, …)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
@@ -523,6 +523,31 @@ MCP calls, and delegation tools while the separate `codex_ingest_state` cursor
 remains responsible for messages, lifecycle state, and cumulative token deltas.
 Existing rollout history is safely backfilled without replaying token accounting
 or changing historical session freshness.
+
+### helmcode_sync
+
+Durable mirror cursor for each Helm Code thread. It stores the primary-sweep
+sequence watermark (`last_applied_sequence`) and the incremental fingerprint
+`last_turn_row` (the highest `projection_thread_messages.rowid` already turned
+into events), which keeps the sweep idempotent — a re-sweep emits nothing new
+until the thread's orchestration log advances. Rows are deleted when the thread
+is wiped. `last_turn_row` was added later and is backfilled additively so
+pre-existing tables gain it without a rebuild.
+
+### helmcode_messages
+
+Local, read-only mirror of Helm Code's `projection_thread_messages`, keyed by
+`message_id`. `role` (`user`/`assistant`), `text`, `turn_id`, and `seq` feed the
+shared conversation DTO served at `GET /api/sessions/:id/transcript` with the
+same `after`/`before` cursor semantics as the JSONL providers. Rows carry a
+`FOREIGN KEY (thread_id) REFERENCES sessions(id) ON DELETE CASCADE`, so wiping a
+thread session removes its conversation automatically.
+
+### helmcode_activities
+
+Activity-dedupe keys so a partially-failed sweep never duplicates tool/task rows
+into the `events` table (which has no unique constraint): one row per
+orchestration activity id per thread, also cascade-deleted with the session.
 
 ---
 

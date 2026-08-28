@@ -44,6 +44,7 @@ const APP_VERSION = (() => {
 
 const { getSettingsPath, getClaudeHome, setClaudeHome } = require("../lib/claude-home");
 const { getCodexHome, setCodexHome } = require("../lib/codex-home");
+const { getHelmcodeHome, setHelmcodeHome } = require("../lib/helmcode-home");
 const CLAUDE_SETTINGS_PATH = getSettingsPath();
 
 function getDbSize() {
@@ -400,6 +401,31 @@ router.put("/codex-home", (req, res) => {
   try {
     const resolved = setCodexHome(newPath);
     res.json({ ok: true, codex_home: resolved });
+  } catch (err) {
+    res.status(400).json({
+      error: { code: "INVALID_PATH", message: err.message },
+    });
+  }
+});
+
+// GET /api/settings/helmcode-home — get the active Helm Code state directory.
+router.get("/helmcode-home", (_req, res) => {
+  res.json({ helmcode_home: getHelmcodeHome() });
+});
+
+// PUT /api/settings/helmcode-home — repoint the Helm Code state scanner.
+// setHelmcodeHome notifies the live synchronizer, which re-watches the new
+// state directory and sweeps it without blocking this response.
+router.put("/helmcode-home", (req, res) => {
+  const { path: newPath } = req.body;
+  if (!newPath || typeof newPath !== "string") {
+    return res.status(400).json({
+      error: { code: "INVALID_PATH", message: "path is required and must be a string" },
+    });
+  }
+  try {
+    const resolved = setHelmcodeHome(newPath);
+    res.json({ ok: true, helmcode_home: resolved });
   } catch (err) {
     res.status(400).json({
       error: { code: "INVALID_PATH", message: err.message },

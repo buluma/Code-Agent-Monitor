@@ -66,7 +66,7 @@ export function registerSettingsTools(context: ToolContext): void {
     "Install or update the selected Claude Code and Codex hook integrations.",
     {
       providers: z
-        .array(z.enum(["claude", "codex"]))
+        .array(z.enum(["claude", "codex", "helmcode"]))
         .min(1)
         .max(2)
         .refine((providers) => new Set(providers).size === providers.length, {

@@ -1109,6 +1109,7 @@ export function Dashboard() {
         msg.type === "agent_updated" ||
         msg.type === "session_created" ||
         msg.type === "session_updated" ||
+        msg.type === "session_removed" ||
         isRemoteDataRefreshMessage(msg)
       ) {
         scheduleLoad();

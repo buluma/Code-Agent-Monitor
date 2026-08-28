@@ -117,8 +117,15 @@ interface AgentStatusBadgeProps {
    *  hover explanation but suppresses the inline reason chip so the badge
    *  never squeezes the card title. */
   compact?: boolean;
-  /** Product that owns the waiting row; drives Claude/Codex wording in the tooltip. */
-  provider?: "claude" | "codex";
+  /** Product that owns the waiting row; drives provider wording in the tooltip. */
+  provider?: "claude" | "codex" | "helmcode";
+}
+
+/** Human product name for an awaiting-row tooltip. */
+function providerDisplayName(provider?: "claude" | "codex" | "helmcode"): string {
+  if (provider === "codex") return "Codex";
+  if (provider === "helmcode") return "Helm Code";
+  return "Claude";
 }
 
 export function AgentStatusBadge({
@@ -142,7 +149,7 @@ export function AgentStatusBadge({
       raw={
         shownReason
           ? t(AWAITING_REASON_CONFIG[shownReason].descKey, {
-              provider: provider === "codex" ? "Codex" : "Claude",
+              provider: providerDisplayName(provider),
             })
           : undefined
       }
@@ -170,8 +177,8 @@ interface SessionStatusBadgeProps {
    *  hover explanation but suppresses the inline reason chip so the badge
    *  never squeezes the card title. */
   compact?: boolean;
-  /** Product that owns the waiting row; drives Claude/Codex wording in the tooltip. */
-  provider?: "claude" | "codex";
+  /** Product that owns the waiting row; drives provider wording in the tooltip. */
+  provider?: "claude" | "codex" | "helmcode";
 }
 
 export function SessionStatusBadge({
@@ -190,7 +197,7 @@ export function SessionStatusBadge({
       raw={
         shownReason
           ? t(AWAITING_REASON_CONFIG[shownReason].descKey, {
-              provider: provider === "codex" ? "Codex" : "Claude",
+              provider: providerDisplayName(provider),
             })
           : undefined
       }
