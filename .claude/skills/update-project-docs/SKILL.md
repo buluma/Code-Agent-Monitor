@@ -35,7 +35,7 @@ Update docs **in the same change-set (PR/commit) as the code**, before claiming 
 | **API route / response** | `docs/API.md`, `server/README.md` (routes), `ARCHITECTURE.md` (routes row), `server/openapi*.js` (code) |
 | **DB schema** | `docs/DATABASE.md`, `ARCHITECTURE.md` (ERD/schema) |
 | **WebSocket message** | `client/README.md` (Event Types), `server/README.md`, `wiki/index.html` |
-| **MCP tool** | `mcp/README.md`, `docs/MCP.md` |
+| **MCP tool** | `mcp/README.md` (canonical — `docs/MCP.md` is a stub) |
 | **Feature / page / background service** | `README.md` (feature table + data-flow list), `ARCHITECTURE.md` (module table), `index.html` (landing blurb), `wiki/index.html`, `server/README.md` or `client/README.md` |
 | **CLI command / script** | `README.md` commands, `CLAUDE.md` / `AGENTS.md`, `INSTALL.md` / `SETUP.md` |
 
