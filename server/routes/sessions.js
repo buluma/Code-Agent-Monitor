@@ -18,6 +18,7 @@ const { parseSources, sourceColumnClause } = require("../lib/source-filter");
 const { parseProviders, providerColumnClause } = require("../lib/provider-filter");
 const { getCodexProcessSessions } = require("../lib/codex-process-overlay");
 const { extractSessionTaskProgress } = require("../lib/task-progress");
+const { focusTerminalForSession } = require("../lib/terminal-focus");
 const {
   getClaudeHome,
   getProjectsDir,
@@ -509,6 +510,22 @@ router.get("/:id", (req, res) => {
     return { ...w, phases, progress };
   });
   res.json({ session, agents, events, workflows });
+});
+
+/**
+ * POST /:id/focus-terminal — best-effort raise of the OS terminal window
+ * running this session (macOS only; see lib/terminal-focus.js). Always
+ * responds 200 with `{focused: boolean, ...}` — even "no match found" is not
+ * an error condition worth a non-2xx status, since the caller just wants to
+ * know whether to show a toast.
+ */
+router.post("/:id/focus-terminal", async (req, res) => {
+  const session = stmts.getSession.get(req.params.id);
+  if (!session) {
+    return res.status(404).json({ error: { code: "NOT_FOUND", message: "Session not found" } });
+  }
+  const result = await focusTerminalForSession(session);
+  res.json(result);
 });
 
 /**

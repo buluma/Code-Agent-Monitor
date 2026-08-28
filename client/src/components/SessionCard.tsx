@@ -59,9 +59,10 @@
  *
  * ----------------------------------------------------------------------------- */
 
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { FolderOpen, Bot, Clock, Coins, Cpu } from "lucide-react";
+import { FolderOpen, Bot, Clock, Coins, Cpu, TerminalSquare } from "lucide-react";
 import { SessionStatusBadge } from "./StatusBadge";
 import {
   effectiveSessionStatus,
@@ -70,6 +71,7 @@ import {
 } from "../lib/types";
 import type { Session } from "../lib/types";
 import { formatDuration, timeAgo, formatModelName } from "../lib/format";
+import { api } from "../lib/api";
 
 interface SessionCardProps {
   session: Session;
@@ -132,10 +134,27 @@ export function SessionCard({ session, onClick }: SessionCardProps) {
   // what the session is doing.
   const promptPreviewLinesForCard = promptPreviewLines(session.prompt_preview);
   const isTransient = isTransientProcessCard(session.metadata);
+  const [focusState, setFocusState] = useState<"idle" | "focusing" | "focused" | "not_found">(
+    "idle"
+  );
 
   function handleClick() {
     if (onClick) onClick();
     else if (!isTransient) navigate(`/sessions/${session.id}`);
+  }
+
+  async function handleFocusTerminal(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (focusState === "focusing") return;
+    setFocusState("focusing");
+    try {
+      const result = await api.sessions.focusTerminal(session.id);
+      setFocusState(result.focused ? "focused" : "not_found");
+    } catch {
+      setFocusState("not_found");
+    } finally {
+      setTimeout(() => setFocusState("idle"), 2500);
+    }
   }
 
   return (
@@ -163,14 +182,36 @@ export function SessionCard({ session, onClick }: SessionCardProps) {
             </p>
           </div>
         </div>
-        {/* compact: cards are narrow — inline reason chip would squeeze the
-            title, so the reason stays hover-tooltip-only here. */}
-        <SessionStatusBadge
-          status={status}
-          reason={sessionAwaitingReason(session)}
-          provider={session.provider}
-          compact
-        />
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {isActive && !isTransient && (
+            <button
+              type="button"
+              onClick={handleFocusTerminal}
+              disabled={focusState === "focusing"}
+              title={
+                focusState === "not_found"
+                  ? t("session.focusTerminalNotFound")
+                  : focusState === "focused"
+                    ? t("session.focusTerminalFocused")
+                    : t("session.focusTerminal")
+              }
+              aria-label={t("session.focusTerminal")}
+              className="p-1 rounded text-gray-500 hover:text-gray-200 hover:bg-surface-2 disabled:opacity-50 transition-colors"
+            >
+              <TerminalSquare
+                className={`w-3.5 h-3.5 ${focusState === "focused" ? "text-emerald-400" : focusState === "not_found" ? "text-gray-600" : ""}`}
+              />
+            </button>
+          )}
+          {/* compact: cards are narrow — inline reason chip would squeeze the
+              title, so the reason stays hover-tooltip-only here. */}
+          <SessionStatusBadge
+            status={status}
+            reason={sessionAwaitingReason(session)}
+            provider={session.provider}
+            compact
+          />
+        </div>
       </div>
 
       {promptPreviewLinesForCard.length > 0 && (

@@ -771,6 +771,15 @@ export const api = {
         `/sessions/${encodeURIComponent(id)}/transcript${q ? `?${q}` : ""}`
       );
     },
+    /**
+     * POST /api/sessions/{id}/focus-terminal - best-effort raise of the OS
+     * terminal window running this session (macOS only). Always resolves;
+     * `focused: false` means no matching window was found, not an error.
+     */
+    focusTerminal: (id: string) =>
+      request<FocusTerminalResult>(`/sessions/${encodeURIComponent(id)}/focus-terminal`, {
+        method: "POST",
+      }),
   },
 
   // ──────────────────────────────── Agents API ────────────────────────────────
@@ -2057,6 +2066,38 @@ export const api = {
         results: Array<{ id: string; ok: boolean; error?: string }>;
       }>("/remote-sources/sync-all", { method: "POST" }),
   },
+
+  // ──────────────────────────────── Linear API ────────────────────────────────
+  linear: {
+    /** GET /api/linear/config - whether an API key is currently stored. */
+    getConfig: () => request<LinearConfigResult>("/linear/config"),
+    /** PUT /api/linear/config - store an API key. */
+    setConfig: (apiKey: string) =>
+      request<LinearConfigResult>("/linear/config", {
+        method: "PUT",
+        body: JSON.stringify({ apiKey }),
+      }),
+    /** DELETE /api/linear/config - clear the stored API key. */
+    clearConfig: () => request<LinearConfigResult>("/linear/config", { method: "DELETE" }),
+    /** GET /api/linear/sessions/{id}/link - the session's linked issue, if any. */
+    getLink: (sessionId: string) =>
+      request<LinearLinkResult>(`/linear/sessions/${encodeURIComponent(sessionId)}/link`),
+    /**
+     * POST /api/linear/sessions/{id}/link - link a session to a Linear issue,
+     * either by a pasted issue URL or by auto-detecting the identifier from
+     * the session's current git branch name.
+     */
+    link: (sessionId: string, params: { url: string } | { auto: true }) =>
+      request<LinearLinkResult>(`/linear/sessions/${encodeURIComponent(sessionId)}/link`, {
+        method: "POST",
+        body: JSON.stringify(params),
+      }),
+    /** DELETE /api/linear/sessions/{id}/link - unlink. */
+    unlink: (sessionId: string) =>
+      request<{ ok: boolean }>(`/linear/sessions/${encodeURIComponent(sessionId)}/link`, {
+        method: "DELETE",
+      }),
+  },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2879,6 +2920,38 @@ export interface RemoteSourceSyncResult {
   providers?: Partial<Record<RemoteProvider, RemoteProviderSyncDetails>>;
   /** Present when the sync was skipped because one was already running. */
   skipped_reason?: string;
+}
+
+/** Result of POST /api/sessions/{id}/focus-terminal. `focused: false` means no
+ *  matching terminal window was found (or the platform can't be scripted),
+ *  not that the request failed. */
+export interface FocusTerminalResult {
+  focused: boolean;
+  app: "Ghostty" | "iTerm2" | null;
+  reason?: "unsupported_platform" | "no_cwd" | "no_matching_window";
+}
+
+/** Whether a Linear API key is currently stored — the key itself is never
+ *  returned to the client. */
+export interface LinearConfigResult {
+  configured: boolean;
+}
+
+/** A session's linked Linear issue, cached from the last successful lookup. */
+export interface LinearLink {
+  session_id: string;
+  issue_id: string;
+  identifier: string;
+  title: string | null;
+  url: string;
+  state: string | null;
+  source: "url" | "branch";
+  linked_at: string;
+  synced_at: string;
+}
+
+export interface LinearLinkResult {
+  link: LinearLink | null;
 }
 
 /** Result of POST /api/settings/import — restoring a full export bundle

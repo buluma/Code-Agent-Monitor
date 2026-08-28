@@ -495,6 +495,7 @@ it).
 | `PATCH` | `/api/sessions/:id`             | Update session                                                                                                                      |
 | `GET`   | `/api/sessions/:id/transcripts` | List the session's transcript files (main + sub-agents)                                                                             |
 | `GET`   | `/api/sessions/:id/transcript`  | Cursor-paginated message stream for one transcript                                                                                  |
+| `POST`  | `/api/sessions/:id/focus-terminal` | Best-effort, macOS-only: raise the Ghostty/iTerm2 window running this session. Always 200 — `{focused: false}` on no match          |
 | `GET`   | `/api/agents`                   | List agents (`status`, `session_id`, `include_transient`, pagination)                                                               |
 | `GET`   | `/api/agents/:id`               | Agent detail                                                                                                                        |
 | `POST`  | `/api/agents`                   | Create agent (idempotent by `id`)                                                                                                   |
@@ -837,6 +838,27 @@ must already work without a prompt. Set a source up like this:
 | `Permission denied (publickey,password)`             | SSH auth failed in the **dashboard process** (not necessarily your Terminal). Leave **Identity file** blank for Secretive, ssh-agent, or default `~/.ssh` keys — CCAM follows `ssh -G` / your config and does not force Secretive. Start the dashboard from the same shell as `ssh user@host`, or ensure your agent is running. Set **Identity file** only for an explicit on-disk key. |
 | Connected but directory missing                      | Claude Code or Codex may not be installed on the remote, or its `remote_home` / `remote_codex_home` points at the wrong path. On Windows SSH with either CLI in WSL, leave the matching home blank (auto WSL) or set `wsl:~/.claude` / `wsl:~/.codex`. Default native paths are `~/.claude/projects` and `~/.codex/sessions`.                                                           |
 | Sync hangs then errors after ~10 min                 | Bounded by `DASHBOARD_REMOTE_SYNC_TIMEOUT_MS`; usually a network/host issue — verify with **Test** (bounded by `DASHBOARD_REMOTE_TEST_TIMEOUT_MS`).                                                                                                                                                                                                                                     |
+
+### Linear
+
+Read-only ticket linking (`server/routes/linear.js` at `/api/linear`), scoped
+to [Linear](https://linear.app) only — no Jira, no GitHub Issues support.
+
+| Method   | Path                            | Description                                                                                                   |
+| -------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `GET`    | `/api/linear/config`             | `{ configured: boolean }`                                                                                     |
+| `PUT`    | `/api/linear/config`             | Set the API key. Body: `{ apiKey }`                                                                            |
+| `DELETE` | `/api/linear/config`             | Clear the stored API key                                                                                       |
+| `GET`    | `/api/linear/sessions/:id/link`  | The session's linked issue, or `{ link: null }`                                                                |
+| `POST`   | `/api/linear/sessions/:id/link`  | Link by pasted URL (`{ url }`) or by auto-detecting the identifier from the session's git branch (`{ auto: true }`) |
+| `DELETE` | `/api/linear/sessions/:id/link`  | Unlink                                                                                                          |
+
+The API key (`server/lib/linear-config.js`) lives in one JSON file under the
+dashboard's data dir — the same pattern as `vapid-keys.json` — never in SQLite,
+never echoed back by the API, and excluded from DB export/import bundles.
+`server/lib/linear-client.js` does the GraphQL lookup and the URL/branch
+identifier parsing; the resolved issue snapshot (title/state/url) is cached in
+the `linear_links` table. See [docs/DATABASE.md](../docs/DATABASE.md#linear_links).
 
 ### Settings / Ops
 

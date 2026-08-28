@@ -3,13 +3,12 @@
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
-const CACHE_NAME = "wiki-v107";
+const CACHE_NAME = "wiki-v108";
 const PRECACHE = [
   "./",
   "./index.html",
   "./style.css",
-  "./script.js?v=58",
-  "./i18n-content.js?v=88",
+  "./script.js?v=59",
   "./manifest.json",
   "../favicon.svg",
 ];

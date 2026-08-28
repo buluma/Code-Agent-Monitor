@@ -23,7 +23,7 @@ done < <(
        -o -path "$ROOT/monitoring/.data" -o -name "__snapshots__" \) -prune -o \
     -type f \( -name "*.js" -o -name "*.ts" -o -name "*.tsx" -o -name "*.cjs" \
        -o -name "*.mjs" -o -name "*.py" -o -name "*.sh" -o -name "*.css" \) \
-    ! -name "*.min.js" ! -path "$ROOT/wiki/i18n-content.js" ! -path "*/wiki/i18n-content.js" -print
+    ! -name "*.min.js" -print
 )
 
 if [ "$missing" -eq 0 ]; then

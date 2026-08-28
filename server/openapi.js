@@ -108,6 +108,11 @@ function createOpenApiSpec() {
         description:
           "Config for remote SSH machines the dashboard pulls Claude Code history from. No secrets are stored — SSH auth defers to the host's SSH stack (agent, ~/.ssh/config, keys).",
       },
+      {
+        name: "Linear",
+        description:
+          "Read-only Linear ticket linking: API key config and per-session issue links (URL paste or git-branch auto-detect). No Jira or GitHub Issues support.",
+      },
       { name: "Documentation", description: "OpenAPI/Swagger endpoints" },
     ],
     components: {
@@ -666,6 +671,80 @@ function createOpenApiSpec() {
               description:
                 "JSONL line number of the oldest returned message — pass back as `before` to page backwards.",
             },
+          },
+        },
+        FocusTerminalResponse: {
+          type: "object",
+          description:
+            "Result of a best-effort attempt to raise the OS terminal window running a session. macOS only (Terminal.app / iTerm2); every other platform, or no matching window, resolves with focused: false rather than an error.",
+          required: ["focused", "app"],
+          properties: {
+            focused: { type: "boolean" },
+            app: { type: "string", nullable: true, enum: ["Ghostty", "iTerm2", null] },
+            reason: {
+              type: "string",
+              enum: ["unsupported_platform", "no_cwd", "no_matching_window"],
+              description: "Present only when focused is false.",
+            },
+          },
+        },
+        LinearConfigResponse: {
+          type: "object",
+          required: ["configured"],
+          properties: {
+            configured: {
+              type: "boolean",
+              description: "Whether a Linear API key is currently stored.",
+            },
+          },
+        },
+        LinearConfigRequest: {
+          type: "object",
+          required: ["apiKey"],
+          properties: {
+            apiKey: { type: "string", description: "Linear personal API key." },
+          },
+        },
+        LinearLink: {
+          type: "object",
+          description: "A session's linked Linear issue, cached from the last successful lookup.",
+          required: [
+            "session_id",
+            "issue_id",
+            "identifier",
+            "url",
+            "source",
+            "linked_at",
+            "synced_at",
+          ],
+          properties: {
+            session_id: { type: "string" },
+            issue_id: { type: "string", description: "Linear's internal issue UUID." },
+            identifier: { type: "string", example: "ENG-123" },
+            title: { type: "string", nullable: true },
+            url: { type: "string" },
+            state: { type: "string", nullable: true, description: "Linear workflow state name." },
+            source: { type: "string", enum: ["url", "branch"] },
+            linked_at: { type: "string", format: "date-time" },
+            synced_at: { type: "string", format: "date-time" },
+          },
+        },
+        LinearLinkResponse: {
+          type: "object",
+          required: ["link"],
+          properties: {
+            link: {
+              oneOf: [{ $ref: "#/components/schemas/LinearLink" }, { type: "null" }],
+            },
+          },
+        },
+        LinearLinkRequest: {
+          type: "object",
+          description:
+            "Either a pasted Linear issue URL, or auto: true to detect the issue identifier from the session's current git branch name.",
+          properties: {
+            url: { type: "string" },
+            auto: { type: "boolean" },
           },
         },
         SessionStatsResponse: {
@@ -1800,6 +1879,34 @@ function createOpenApiSpec() {
           },
         },
       },
+      "/api/sessions/{id}/focus-terminal": {
+        post: {
+          tags: ["Sessions"],
+          summary: "Raise the terminal window running this session",
+          description:
+            "Best-effort, macOS-only: matches the session's working directory against open Ghostty / iTerm2 windows and brings the matching one to the front. Always returns 200 — a platform without a scriptable terminal, or no matching window, is reported as focused: false rather than an error.",
+          operationId: "focusSessionTerminal",
+          parameters: [{ $ref: "#/components/parameters/SessionIdPath" }],
+          responses: {
+            200: {
+              description: "Focus attempt result",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/FocusTerminalResponse" },
+                },
+              },
+            },
+            404: {
+              description: "Session not found",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+          },
+        },
+      },
       "/api/sessions/{id}/transcripts": {
         get: {
           tags: ["Sessions"],
@@ -2112,6 +2219,157 @@ function createOpenApiSpec() {
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/StatsResponse" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/api/linear/config": {
+        get: {
+          tags: ["Linear"],
+          summary: "Check whether a Linear API key is configured",
+          operationId: "getLinearConfig",
+          responses: {
+            200: {
+              description: "Configuration status",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/LinearConfigResponse" },
+                },
+              },
+            },
+          },
+        },
+        put: {
+          tags: ["Linear"],
+          summary: "Set the Linear API key",
+          operationId: "setLinearConfig",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/LinearConfigRequest" },
+              },
+            },
+          },
+          responses: {
+            200: {
+              description: "Key stored",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/LinearConfigResponse" },
+                },
+              },
+            },
+            400: {
+              description: "Missing apiKey",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+          },
+        },
+        delete: {
+          tags: ["Linear"],
+          summary: "Clear the stored Linear API key",
+          operationId: "clearLinearConfig",
+          responses: {
+            200: {
+              description: "Key cleared",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/LinearConfigResponse" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/api/linear/sessions/{id}/link": {
+        get: {
+          tags: ["Linear"],
+          summary: "Get a session's linked Linear issue",
+          operationId: "getLinearLink",
+          parameters: [{ $ref: "#/components/parameters/SessionIdPath" }],
+          responses: {
+            200: {
+              description: "Linked issue, or null if unlinked",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/LinearLinkResponse" },
+                },
+              },
+            },
+          },
+        },
+        post: {
+          tags: ["Linear"],
+          summary: "Link a session to a Linear issue",
+          description:
+            "Resolves either a pasted issue URL or (with auto: true) the Linear identifier embedded in the session's current git branch name, then caches the resolved title/state/url alongside the session.",
+          operationId: "createLinearLink",
+          parameters: [{ $ref: "#/components/parameters/SessionIdPath" }],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/LinearLinkRequest" },
+              },
+            },
+          },
+          responses: {
+            200: {
+              description: "Link created/updated",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/LinearLinkResponse" },
+                },
+              },
+            },
+            400: {
+              description: "Invalid URL, missing config, or neither url nor auto given",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+            404: {
+              description: "Session not found, or the issue/branch identifier couldn't be resolved",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+            502: {
+              description: "Linear API request failed",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                },
+              },
+            },
+          },
+        },
+        delete: {
+          tags: ["Linear"],
+          summary: "Unlink a session's Linear issue",
+          operationId: "deleteLinearLink",
+          parameters: [{ $ref: "#/components/parameters/SessionIdPath" }],
+          responses: {
+            200: {
+              description: "Unlinked",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["ok"],
+                    properties: { ok: { type: "boolean" } },
+                  },
                 },
               },
             },

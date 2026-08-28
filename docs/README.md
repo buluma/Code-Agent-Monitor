@@ -8,9 +8,8 @@ Comprehensive documentation for the Code Agent Monitor project.
 
 - [Operator Handbook](https://github.com/buluma/Code-Agent-Monitor/wiki) -
   Task-oriented usage, operations, automation, and troubleshooting
-- [Localized Product Wiki](https://buluma.github.io/Code-Agent-Monitor/wiki/) -
-  English, Vietnamese, Chinese, Korean, and Spanish product and architecture
-  tour
+- [Static Product Wiki](https://buluma.github.io/Code-Agent-Monitor/wiki/) -
+  English product and architecture tour
 - [Architecture Overview](../ARCHITECTURE.md) - System design and technical
   reference
 - [I18N Architecture](./I18N.md) - Internationalization architecture and usage

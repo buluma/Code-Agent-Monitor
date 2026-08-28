@@ -6,11 +6,21 @@
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
-import { describe, expect, it } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router";
 import { SessionCard } from "../SessionCard";
 import type { Session } from "../../lib/types";
+
+const focusTerminalMock = vi.fn();
+
+vi.mock("../../lib/api", () => ({
+  api: {
+    sessions: {
+      focusTerminal: (...args: unknown[]) => focusTerminalMock(...args),
+    },
+  },
+}));
 
 function makeSession(overrides: Partial<Session> = {}): Session {
   return {
@@ -34,6 +44,40 @@ function LocationProbe() {
 }
 
 describe("SessionCard", () => {
+  beforeEach(() => {
+    focusTerminalMock.mockReset();
+    focusTerminalMock.mockResolvedValue({ focused: true, app: "Ghostty" });
+  });
+
+  it("shows a terminal-focus button for an active session and calls the API without navigating", async () => {
+    render(
+      <MemoryRouter>
+        <LocationProbe />
+        <SessionCard session={makeSession()} />
+      </MemoryRouter>
+    );
+
+    const button = screen.getByRole("button", { name: /raise terminal window/i });
+    fireEvent.click(button);
+
+    await waitFor(() => expect(focusTerminalMock).toHaveBeenCalledWith(makeSession().id));
+    // Clicking the card's focus button must not trigger the card's own
+    // onClick navigation to the session detail page.
+    expect(screen.getByTestId("location")).toHaveTextContent("/");
+  });
+
+  it("hides the terminal-focus button for a completed session", () => {
+    render(
+      <MemoryRouter>
+        <SessionCard session={makeSession({ status: "completed" })} />
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.queryByRole("button", { name: /raise terminal window/i })
+    ).not.toBeInTheDocument();
+  });
+
   it("keeps a named Codex session title clean without a duplicate provider ID badge", () => {
     render(
       <MemoryRouter>

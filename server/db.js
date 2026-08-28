@@ -1359,6 +1359,29 @@ const CARD_PROMPT_PREVIEW_SQL = `COALESCE(
   )
 )`;
 
+// Linear issue links: at most one Linear issue per session. A cached copy of
+// the issue's title/status/url lives alongside the link so the session detail
+// page renders instantly without a live API round trip; `synced_at` lets
+// callers decide when the cache is stale enough to refresh. No Linear
+// credentials live here — the API key is a single file under the dashboard's
+// data dir (see server/lib/linear-config.js), same pattern as VAPID keys.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS linear_links (
+    session_id TEXT PRIMARY KEY,
+    issue_id TEXT NOT NULL,
+    identifier TEXT NOT NULL,
+    title TEXT,
+    url TEXT NOT NULL,
+    state TEXT,
+    -- how the link was made: pasted a Linear URL, or auto-matched from the
+    -- session's git branch name (see server/lib/linear-client.js).
+    source TEXT NOT NULL DEFAULT 'url' CHECK(source IN ('url','branch')),
+    linked_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    synced_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+  );
+`);
+
 const stmts = {
   getSession: db.prepare("SELECT * FROM sessions WHERE id = ?"),
   listSessions: db.prepare(
@@ -2122,6 +2145,22 @@ const stmts = {
   listAgentsByWorkflow: db.prepare(
     "SELECT * FROM agents WHERE workflow_run_id = ? ORDER BY started_at ASC, id ASC"
   ),
+
+  getLinearLink: db.prepare("SELECT * FROM linear_links WHERE session_id = ?"),
+  upsertLinearLink: db.prepare(
+    `INSERT INTO linear_links (session_id, issue_id, identifier, title, url, state, source, linked_at, synced_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+     ON CONFLICT(session_id) DO UPDATE SET
+       issue_id = excluded.issue_id,
+       identifier = excluded.identifier,
+       title = excluded.title,
+       url = excluded.url,
+       state = excluded.state,
+       source = excluded.source,
+       linked_at = strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+       synced_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')`
+  ),
+  deleteLinearLink: db.prepare("DELETE FROM linear_links WHERE session_id = ?"),
 };
 
 module.exports = {

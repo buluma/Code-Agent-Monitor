@@ -31,6 +31,7 @@ const EXPECTED_API_PATHS = [
   "/api/sessions/{id}",
   "/api/sessions/facets",
   "/api/sessions/{id}/stats",
+  "/api/sessions/{id}/focus-terminal",
   "/api/sessions/{id}/transcripts",
   "/api/sessions/{id}/transcript",
   "/api/sessions/{id}/transcript-image",
@@ -110,6 +111,8 @@ const EXPECTED_API_PATHS = [
   "/api/webhooks/{id}",
   "/api/webhooks/{id}/test",
   "/api/webhooks/{id}/deliveries",
+  "/api/linear/config",
+  "/api/linear/sessions/{id}/link",
   "/api/openapi.json",
   "/api/docs",
   "/api/redoc",
@@ -3120,5 +3123,121 @@ describe("Nested Agent Spawning", () => {
       byName["UW-L3"].id,
       "After unwinding to L3, new spawn should parent to L3"
     );
+  });
+});
+
+describe("Terminal focus API", () => {
+  it("returns 404 for a nonexistent session", async () => {
+    const res = await post("/api/sessions/nonexistent/focus-terminal", {});
+    assert.equal(res.status, 404);
+  });
+
+  it("returns a focus result without erroring for a real session", async () => {
+    const res = await post("/api/sessions/sess-1/focus-terminal", {});
+    assert.equal(res.status, 200);
+    assert.equal(typeof res.body.focused, "boolean");
+  });
+});
+
+describe("Linear API", () => {
+  // linear-config.js persists the API key to a file under the real Claude
+  // home data dir (same pattern as vapid-keys.json), not the test SQLite DB —
+  // save/restore whatever was already there so this suite leaves the
+  // machine's real configuration exactly as it found it.
+  const linearConfig = require("../lib/linear-config");
+  let originalFetch;
+  let preexistingKey;
+
+  before(() => {
+    originalFetch = global.fetch;
+    preexistingKey = linearConfig.getApiKey();
+    linearConfig.clearApiKey();
+  });
+
+  after(() => {
+    global.fetch = originalFetch;
+    if (preexistingKey) linearConfig.setApiKey(preexistingKey);
+    else linearConfig.clearApiKey();
+  });
+
+  it("reports not configured by default", async () => {
+    const res = await fetch("/api/linear/config");
+    assert.equal(res.status, 200);
+    assert.equal(res.body.configured, false);
+  });
+
+  it("rejects setting an empty API key", async () => {
+    const res = await fetch("/api/linear/config", { method: "PUT", body: { apiKey: "" } });
+    assert.equal(res.status, 400);
+  });
+
+  it("stores and reports a configured API key", async () => {
+    const putRes = await fetch("/api/linear/config", {
+      method: "PUT",
+      body: { apiKey: "lin_api_test_key" },
+    });
+    assert.equal(putRes.status, 200);
+    assert.equal(putRes.body.configured, true);
+
+    const getRes = await fetch("/api/linear/config");
+    assert.equal(getRes.body.configured, true);
+  });
+
+  it("returns null for a session with no link", async () => {
+    const res = await fetch("/api/linear/sessions/sess-1/link");
+    assert.equal(res.status, 200);
+    assert.equal(res.body.link, null);
+  });
+
+  it("rejects a non-Linear URL", async () => {
+    const res = await post("/api/linear/sessions/sess-1/link", {
+      url: "https://github.com/acme/repo/issues/1",
+    });
+    assert.equal(res.status, 400);
+  });
+
+  it("links a session to an issue by pasted URL", async () => {
+    global.fetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: {
+          issue: {
+            id: "issue-uuid-1",
+            identifier: "ENG-123",
+            title: "Fix the thing",
+            url: "https://linear.app/acme/issue/ENG-123/fix-the-thing",
+            state: { name: "In Progress" },
+          },
+        },
+      }),
+    });
+
+    const res = await post("/api/linear/sessions/sess-1/link", {
+      url: "https://linear.app/acme/issue/ENG-123/fix-the-thing",
+    });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.link.identifier, "ENG-123");
+    assert.equal(res.body.link.title, "Fix the thing");
+    assert.equal(res.body.link.state, "In Progress");
+    assert.equal(res.body.link.source, "url");
+
+    const getRes = await fetch("/api/linear/sessions/sess-1/link");
+    assert.equal(getRes.body.link.identifier, "ENG-123");
+  });
+
+  it("404s when auto-detection finds no branch identifier", async () => {
+    // sess-1's cwd ("/home/test") is not a git repo in the test environment.
+    const res = await post("/api/linear/sessions/sess-1/link", { auto: true });
+    assert.equal(res.status, 404);
+  });
+
+  it("unlinks a session", async () => {
+    const res = await fetch("/api/linear/sessions/sess-1/link", { method: "DELETE" });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.ok, true);
+
+    const getRes = await fetch("/api/linear/sessions/sess-1/link");
+    assert.equal(getRes.body.link, null);
   });
 });

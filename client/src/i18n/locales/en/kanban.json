@@ -25,7 +25,10 @@
     "subagentSummary_one": "{{count}} subagent",
     "subagentSummary_other": "{{count}} subagents",
     "turnSummary_one": "{{count}} turn",
-    "turnSummary_other": "{{count}} turns"
+    "turnSummary_other": "{{count}} turns",
+    "focusTerminal": "Raise terminal window (macOS)",
+    "focusTerminalFocused": "Terminal window raised",
+    "focusTerminalNotFound": "Couldn't find the terminal window"
   },
   "tooltip": {
     "agent": {

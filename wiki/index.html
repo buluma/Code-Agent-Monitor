@@ -534,26 +534,6 @@
           />
         </div>
 
-        <div class="lang-switch">
-          <button
-            type="button"
-            class="lang-select-trigger"
-            aria-haspopup="listbox"
-            aria-expanded="false"
-            aria-label="Select language"
-          >
-            <span class="lang-select-current">English</span>
-            <span class="lang-select-chevron" aria-hidden="true"></span>
-          </button>
-          <div class="lang-select-menu" role="listbox" aria-label="Language" hidden>
-            <button type="button" class="lang-option active" data-lang="en" role="option" aria-selected="true">English</button>
-            <button type="button" class="lang-option" data-lang="zh" role="option" aria-selected="false">中文</button>
-            <button type="button" class="lang-option" data-lang="vi" role="option" aria-selected="false">Tiếng Việt</button>
-            <button type="button" class="lang-option" data-lang="ko" role="option" aria-selected="false">한국어</button>
-            <button type="button" class="lang-option" data-lang="es" role="option" aria-selected="false">Español</button>
-          </div>
-        </div>
-
         <div class="sidebar-nav">
           <div id="nav-empty" class="nav-empty">No results found</div>
           <div class="nav-section">Getting Started</div>
@@ -674,26 +654,6 @@
           </div>
         </div>
       </nav>
-
-      <div class="lang-switch mobile-language-switch">
-        <button
-          type="button"
-          class="lang-select-trigger"
-          aria-haspopup="listbox"
-          aria-expanded="false"
-          aria-label="Select language"
-        >
-          <span class="lang-select-current">English</span>
-          <span class="lang-select-chevron" aria-hidden="true"></span>
-        </button>
-        <div class="lang-select-menu" role="listbox" aria-label="Language" hidden>
-          <button type="button" class="lang-option active" data-lang="en" role="option" aria-selected="true">English</button>
-          <button type="button" class="lang-option" data-lang="zh" role="option" aria-selected="false">中文</button>
-          <button type="button" class="lang-option" data-lang="vi" role="option" aria-selected="false">Tiếng Việt</button>
-          <button type="button" class="lang-option" data-lang="ko" role="option" aria-selected="false">한국어</button>
-          <button type="button" class="lang-option" data-lang="es" role="option" aria-selected="false">Español</button>
-        </div>
-      </div>
 
       <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ MAIN CONTENT ━━━ -->
       <main class="main-content">
@@ -6941,8 +6901,7 @@ npm run install-hooks</code></pre>
     <!-- Body-content translations — must load before script.js so the
          i18n engine sees window.__WIKI_CONTENT_I18N. Both are deferred, so they
          run in document order. -->
-    <script src="i18n-content.js?v=88" defer></script>
-    <script src="script.js?v=58" defer></script>
+    <script src="script.js?v=59" defer></script>
     <script>
       (function () {
         var carousel = document.getElementById("feature-carousel");

@@ -15,16 +15,12 @@
 
 set -u
 
-# The canonical doc set kept in sync. Translations + HTML + per-area READMEs.
+# The canonical doc set kept in sync. HTML + per-area READMEs.
 DOCS=(
   "README.md"
-  "README-VN.md"
-  "README-CN.md"
-  "README-KO.md"
   "ARCHITECTURE.md"
   "index.html"
   "wiki/index.html"
-  "wiki/i18n-content.js"
   "server/README.md"
   "client/README.md"
   "docs/HOOKS.md"

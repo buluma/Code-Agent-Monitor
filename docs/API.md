@@ -20,6 +20,7 @@ Complete REST API and WebSocket documentation for Code Agent Monitor.
   - [Import History](#import-history)
   - [Notifications](#notifications)
   - [Remote Data Sources](#remote-data-sources)
+  - [Linear](#linear)
 - [WebSocket API](#websocket-api)
 - [Error Handling](#error-handling)
 - [Rate Limiting](#rate-limiting)
@@ -471,6 +472,51 @@ curl http://localhost:4820/api/sessions/sess_abc123/stats
 | ---- | --------------------- |
 | 404  | Session not found     |
 | 500  | Internal server error |
+
+---
+
+#### Focus Terminal
+
+```http
+POST /api/sessions/:id/focus-terminal
+```
+
+Best-effort, macOS-only: raises the OS terminal window running this session
+(Ghostty or iTerm2). There is no pid tracked per session, so it matches by
+working directory — iTerm2 exposes a scriptable `tty` per session, resolved to
+the exact process tree via `lsof`/`ps`; Ghostty has no such AppleScript
+dictionary, so it matches the session's cwd basename against window titles via
+System Events accessibility instead. Always returns `200` — an unsupported
+platform, a session with no `cwd`, or no matching window all resolve
+`{focused: false}` rather than an error.
+
+**Path Parameters:**
+
+| Parameter | Type   | Description |
+| --------- | ------ | ----------- |
+| `id`      | string | Session ID  |
+
+**Example Request:**
+
+```bash
+curl -X POST http://localhost:4820/api/sessions/sess_abc123/focus-terminal
+```
+
+**Example Response:**
+
+```json
+{ "focused": true, "app": "Ghostty" }
+```
+
+```json
+{ "focused": false, "app": null, "reason": "no_matching_window" }
+```
+
+**Error Responses:**
+
+| Code | Description        |
+| ---- | ------------------- |
+| 404  | Session not found   |
 
 ---
 
@@ -1293,6 +1339,58 @@ the distinct `sessions.source` values so the UI can build the filter dropdown.
 
 ```bash
 curl "http://localhost:4820/api/sessions?sources=local,4d1f0e2a-7b9c-4c33-8a21-9e0f7b6d4c11"
+```
+
+---
+
+### Linear
+
+Read-only ticket linking, scoped to [Linear](https://linear.app) only — no
+Jira, no GitHub Issues support. The personal API key lives in one file under
+the dashboard's data dir (never in SQLite); the config endpoints only ever
+return a `configured` boolean, never the key itself.
+
+| Method   | Path                             | Description                                                                                                      |
+| -------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `GET`    | `/api/linear/config`              | `{ "configured": boolean }`                                                                                         |
+| `PUT`    | `/api/linear/config`              | Set the API key. Body: `{ "apiKey": "..." }`. **400** if `apiKey` is missing/empty                                  |
+| `DELETE` | `/api/linear/config`              | Clear the stored API key                                                                                            |
+| `GET`    | `/api/linear/sessions/:id/link`   | `{ "link": {...} \| null }` — the session's linked issue, if any                                                    |
+| `POST`   | `/api/linear/sessions/:id/link`   | Link by pasted URL (`{ "url": "..." }`) or by auto-detecting from the session's git branch (`{ "auto": true }`)     |
+| `DELETE` | `/api/linear/sessions/:id/link`   | Unlink. Returns `{ "ok": true }`                                                                                     |
+
+`GET /api/linear/sessions/:id/link` responses look like:
+
+```json
+{
+  "link": {
+    "session_id": "sess_abc123",
+    "issue_id": "8f4c...",
+    "identifier": "ENG-123",
+    "title": "Fix the thing",
+    "url": "https://linear.app/acme/issue/ENG-123/fix-the-thing",
+    "state": "In Progress",
+    "source": "url",
+    "linked_at": "2026-08-28T00:00:00.000Z",
+    "synced_at": "2026-08-28T00:00:00.000Z"
+  }
+}
+```
+
+`POST /api/linear/sessions/:id/link` with `{ "auto": true }` runs
+`git rev-parse --abbrev-ref HEAD` in the session's `cwd` and extracts an issue
+identifier (e.g. `ENG-123`) from the branch name. **404** if the session is
+unknown, the API key isn't configured, the pasted URL isn't a Linear issue
+link, or (for `auto`) no identifier could be detected from the branch.
+**502** if the Linear API request itself fails (bad key, network error).
+
+```bash
+curl -X PUT http://localhost:4820/api/linear/config -H 'Content-Type: application/json' \
+  -d '{"apiKey": "lin_api_..."}'
+
+curl -X POST http://localhost:4820/api/linear/sessions/sess_abc123/link \
+  -H 'Content-Type: application/json' \
+  -d '{"url": "https://linear.app/acme/issue/ENG-123/fix-the-thing"}'
 ```
 
 ---

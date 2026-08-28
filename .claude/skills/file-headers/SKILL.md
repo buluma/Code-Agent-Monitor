@@ -24,8 +24,7 @@ that is missing the header, add it as part of the same change.
 | -------- | -------- |
 | `*.js`, `*.ts`, `*.tsx`, `*.cjs`, `*.mjs` | anything under `node_modules/`, `dist/`, `build/`, `data/`, `.worktrees/` |
 | `*.py`, `*.sh` | vendored/minified files (`*.min.js`, `wiki/mermaid.min.js`) |
-| `*.css` | generated files (`wiki/i18n-content.js` — carries its own AUTO-GENERATED banner) |
-| | snapshots (`__snapshots__/`), lockfiles, JSON/YAML/Markdown |
+| `*.css` | snapshots (`__snapshots__/`), lockfiles, JSON/YAML/Markdown |
 
 ## Header formats by file type
 

@@ -188,5 +188,10 @@
     }
   },
   "examples": "Examples",
-  "help": "Help"
+  "help": "Help",
+  "commandPalette": {
+    "title": "Jump to",
+    "placeholder": "Search sessions and pages...",
+    "empty": "No matches"
+  }
 }

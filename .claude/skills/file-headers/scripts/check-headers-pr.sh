@@ -66,12 +66,6 @@ is_applicable_file() {
   esac
 
   case "$f" in
-    wiki/i18n-content.js|*/wiki/i18n-content.js)
-      return 1
-      ;;
-  esac
-
-  case "$f" in
     *.js|*.ts|*.tsx|*.cjs|*.mjs|*.py|*.sh|*.css)
       return 0
       ;;

@@ -229,6 +229,7 @@ vi.mock("../../lib/api", async (importOriginal) => {
         }),
         transcripts: r({ transcripts: [] }),
         transcript: r({ messages: [], session_id: "sess-1" }),
+        focusTerminal: r({ focused: false, app: null, reason: "unsupported_platform" }),
       },
       agents: { list: r({ agents: [] }) },
       remoteSources: {
@@ -238,6 +239,14 @@ vi.mock("../../lib/api", async (importOriginal) => {
         remove: r({ ok: true, purged: 0 }),
         test: r({ ok: true, message: "" }),
         sync: r({ ok: true }),
+      },
+      linear: {
+        getConfig: r({ configured: false }),
+        setConfig: r({ configured: true }),
+        clearConfig: r({ configured: false }),
+        getLink: r({ link: null }),
+        link: r({ link: null }),
+        unlink: r({ ok: true }),
       },
       events: {
         list: r({ events: [], total: 0, limit: 50, offset: 0 }),
