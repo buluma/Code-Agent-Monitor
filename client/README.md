@@ -928,6 +928,18 @@ Renders the hook payload for a single event inline below its row. Scalars appear
 as `key: value` pairs; objects and arrays render in a terminal-styled code block
 with a copy button.
 
+#### Connection Status Modal (`components/Sidebar.tsx`)
+
+Click the **Live** / **Disconnected** pill in the sidebar footer to open a
+details panel about the WebSocket transport: the active `ws://` endpoint, how
+long the current socket has been up, total events received, top event types as
+a horizontal bar chart, a 60-second throughput sparkline, and the last 8 events
+as a recent-activity list. Cumulative stats (totals, type breakdown, recent
+list) persist across reloads via `localStorage` under
+`sidebar-connection-stats` (see [Browser storage keys](#browser-storage-keys));
+the rolling sparkline and "connected since" timer are intentionally ephemeral.
+A **Reset** button in the footer clears everything on demand.
+
 ---
 
 ## Utilities
@@ -1037,6 +1049,24 @@ Web Audio is unavailable.
 
 Users control all of this from **Settings → Sound** (master toggle, volume
 slider, per-cue switches, preview button).
+
+**What each cue sounds like:**
+
+| Cue                           | When it fires                                                    | What it sounds like                                                     |
+| ------------------------------ | ------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| `sessionStart`                | A new session appears                                            | Rising perfect fifth (C5 → G5)                                          |
+| `sessionComplete`             | A session finishes responding (`Stop`) or closes (`SessionEnd`)  | Resolving major arpeggio (E5 → G5 → C6)                                 |
+| `sessionError`                | A session enters the `error` state                               | Soft falling minor third on a triangle wave — noticeable, not alarming  |
+| `subagentSpawn`               | A subagent spawns                                                 | Single short pluck                                                      |
+| `notification`                | Claude Code emits a `Notification` event                         | Detuned pair ringing like a small bell                                  |
+| `connected` / `disconnected`  | The dashboard WebSocket returns or drops                         | Two-note lift / drop                                                    |
+| `click`                       | You press a button, link, tab, or switch                         | Barely-audible tick                                                     |
+
+Cues live inside a C-major set so overlapping tails never sound dissonant, and
+every envelope decays exponentially rather than cutting off, which avoids the
+click of a hard stop. By default, session start, session complete, session
+error, Claude Code notifications, and the interaction tick are on; subagent
+spawns and connection changes are off (they are the chattiest).
 
 ### Type Definitions (lib/types.ts)
 
