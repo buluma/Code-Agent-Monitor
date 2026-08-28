@@ -146,6 +146,68 @@ function collectThreadActivities(handle, threadId) {
   );
 }
 
+/**
+ * The thread's most recent `context-window.updated` activity, if any. Helm
+ * Code appends one of these per turn as a cumulative context-window snapshot
+ * (`{usedTokens, totalProcessedTokens, inputTokens, outputTokens, maxTokens}`),
+ * not a per-turn delta — the latest row is the thread's current token total.
+ */
+function latestContextWindowActivity(handle, threadId) {
+  return safeGet(
+    handle,
+    `SELECT payload_json FROM projection_thread_activities
+     WHERE thread_id = ? AND kind = 'context-window.updated'
+     ORDER BY created_at DESC, activity_id DESC LIMIT 1`,
+    threadId
+  );
+}
+
+/**
+ * Best-effort token/cost sync for a thread: reads its latest cumulative
+ * context-window snapshot and the model it was run with, then writes both as
+ * an absolute high-water-mark bucket via `replaceTokenUsage` — the same
+ * primitive Claude's full-transcript re-parse uses, which is exactly right
+ * here since Helm Code's snapshot is cumulative, not a delta. Silently no-ops
+ * when the snapshot lacks a clean input/output split (older Helm Code
+ * versions only recorded `usedTokens`) or no model can be resolved — Task 3
+ * is explicitly best-effort, and an unpriced/untracked bucket is preferable
+ * to a wrong one.
+ */
+function syncThreadTokenUsage(thread, handle) {
+  try {
+    const activity = latestContextWindowActivity(handle, thread.thread_id);
+    if (!activity) return;
+    const payload = JSON.parse(activity.payload_json);
+    const inputTokens = Number(payload?.inputTokens);
+    const outputTokens = Number(payload?.outputTokens);
+    if (!Number.isFinite(inputTokens) || !Number.isFinite(outputTokens)) return;
+
+    const model =
+      parseModelSelection(thread.model_selection_json) ||
+      parseModelSelection(thread.project_default_model_selection_json);
+    if (!model) return;
+
+    stmts.replaceTokenUsage.run(
+      thread.thread_id,
+      model,
+      "standard",
+      "global",
+      "standard",
+      inputTokens,
+      outputTokens,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    );
+  } catch {
+    // Best-effort: a malformed snapshot or write failure must never abort
+    // the thread's message/activity sync that already ran above it.
+  }
+}
+
 function collectThreadTurnsSince(handle, threadId, lastTurnRow) {
   return safeAll(
     handle,
@@ -437,6 +499,7 @@ function reconcileHelmcodeThread(thread, handle, options = {}) {
   const events = [];
 
   syncThreadMessages(thread.thread_id, handle, agent?.id || `helmcode:${thread.thread_id}`, events);
+  syncThreadTokenUsage(thread, handle);
 
   const knownActivities = stmts.listHelmcodeActivityIds
     .all(thread.thread_id)

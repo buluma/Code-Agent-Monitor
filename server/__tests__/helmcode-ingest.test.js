@@ -31,6 +31,7 @@ const {
 const T1 = "00000000-0000-4000-8000-000000000001";
 const T2 = "00000000-0000-4000-8000-000000000002";
 const T3 = "00000000-0000-4000-8000-000000000003";
+const T4 = "00000000-0000-4000-8000-000000000004";
 
 // The state database Helm Code (release builds) owns: `<home>/userdata/state.sqlite`.
 function statePath() {
@@ -325,6 +326,88 @@ describe("Helm Code ingestor", () => {
     // was already surfaced once and must not double-emit.
     assert.equal(eventCount("helmcode_user_message"), 1);
     assert.equal(stmts.listHelmcodeMessages.all(T1).length, 2);
+  });
+
+  it("syncs the thread's latest context-window snapshot as its token bucket, high-water-mark style", () => {
+    const handle = openState();
+    seedThread(handle, {
+      thread_id: T4,
+      title: "Track token sync",
+      workspace_root: "/workspace/tokens",
+      model_selection_json: '{"model":"claude-sonnet-5"}',
+      sequence: 1,
+    });
+    seedActivity(handle, {
+      activity_id: "tok-a1",
+      thread_id: T4,
+      kind: "context-window.updated",
+      created_at: "2026-08-01T12:00:00.000Z",
+      payload_json: JSON.stringify({
+        usedTokens: 1200,
+        inputTokens: 1000,
+        outputTokens: 200,
+        maxTokens: 967000,
+      }),
+    });
+    handle.close();
+
+    syncHelmcodeSessions();
+    let tokens = stmts.getTokensBySession.all(T4);
+    assert.equal(tokens.length, 1);
+    assert.equal(tokens[0].model, "claude-sonnet-5");
+    assert.equal(tokens[0].input_tokens, 1000);
+    assert.equal(tokens[0].output_tokens, 200);
+
+    // A later, larger cumulative snapshot replaces the bucket outright — Helm
+    // Code's payload is a running total, not a delta.
+    const handle2 = openState();
+    handle2
+      .prepare(
+        "INSERT INTO orchestration_events (aggregate_kind, stream_id, sequence) VALUES ('thread', ?, ?)"
+      )
+      .run(T4, 2);
+    seedActivity(handle2, {
+      activity_id: "tok-a2",
+      thread_id: T4,
+      kind: "context-window.updated",
+      created_at: "2026-08-01T12:05:00.000Z",
+      payload_json: JSON.stringify({
+        usedTokens: 4500,
+        inputTokens: 4000,
+        outputTokens: 500,
+        maxTokens: 967000,
+      }),
+    });
+    handle2.close();
+
+    syncHelmcodeSessions();
+    tokens = stmts.getTokensBySession.all(T4);
+    assert.equal(tokens.length, 1);
+    assert.equal(tokens[0].input_tokens, 4000);
+    assert.equal(tokens[0].output_tokens, 500);
+  });
+
+  it("skips the token sync (without crashing the sweep) when the snapshot has no input/output split or no model is known", () => {
+    const noModelThread = "00000000-0000-4000-8000-000000000005";
+    const handle = openState();
+    seedThread(handle, {
+      thread_id: noModelThread,
+      title: "No model selected",
+      workspace_root: "/workspace/no-model",
+      sequence: 1,
+    });
+    seedActivity(handle, {
+      activity_id: "tok-b1",
+      thread_id: noModelThread,
+      kind: "context-window.updated",
+      // Older Helm Code shape: only the cumulative total, no input/output split.
+      payload_json: JSON.stringify({ usedTokens: 500, maxTokens: 967000 }),
+    });
+    handle.close();
+
+    const results = syncHelmcodeSessions();
+    assert.ok(results.find((r) => r.id === noModelThread || r.session?.id === noModelThread));
+    assert.equal(stmts.getTokensBySession.all(noModelThread).length, 0);
   });
 
   it("wipes a thread whose Helm Code row is deleted or archived", () => {
