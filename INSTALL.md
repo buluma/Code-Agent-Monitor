@@ -857,7 +857,9 @@ for seamless, integrated monitoring.
 - **Direct Navigation**: Jump to specific dashboard pages or recent sessions.
 - **Embedded Dashboard**: Full dashboard interface within a native VS Code tab.
 - **Automated Detection**: Automatically finds your dashboard server on ports
-  `5173` or `4820`.
+  `5173` or `4820` (data requests always target `4820` — see the note under
+  [Port 4820 already in use](#port-4820-already-in-use) if you run a custom
+  `DASHBOARD_PORT`).
 
 ### Installation
 
@@ -1147,8 +1149,15 @@ errors:
 - Ensure only one dashboard server instance is running
 - Check for zombie `node server/index.js` processes:
   `ps aux | grep server/index`
-- Delete `data/dashboard.db-wal` and `data/dashboard.db-shm` if the server was
-  killed uncleanly, then restart
+- Stop all dashboard processes, leave `data/dashboard.db-wal` and
+  `data/dashboard.db-shm` in place, then restart the dashboard so SQLite can
+  replay and checkpoint the WAL on its own. **Do not delete those files** —
+  the WAL can hold committed transactions that were never checkpointed into
+  `data/dashboard.db`, and deleting it loses that data.
+- If the lock persists after a clean restart, find the process still holding
+  the database (`lsof data/dashboard.db*` on macOS/Linux) instead of removing
+  files, or run SQLite's own checkpoint/recovery procedure
+  (`sqlite3 data/dashboard.db "PRAGMA wal_checkpoint(TRUNCATE);"`)
 
 ### No sessions appearing after starting Claude Code
 
@@ -1202,14 +1211,17 @@ available.
 DASHBOARD_PORT=4821 npm run dev
 ```
 
-Then update the Vite proxy in `client/vite.config.ts`:
+`client/vite.config.ts` already reads `DASHBOARD_PORT` and points its `/api`
+and `/ws` proxy at it, so no manual edit is needed — both the Express server
+and the Vite dev proxy move together.
 
-```ts
-proxy: {
-  "/api": "http://localhost:4821",
-  "/ws":  { target: "ws://localhost:4821", ws: true }
-}
-```
+> [!NOTE]
+> The VS Code extension's sidebar (`vscode-extension/sidebar.js`) only probes
+> the default ports `4820` and `5173` and always fetches dashboard data from
+> `4820`. If you run the backend on another port via `DASHBOARD_PORT`, the
+> extension may show **Online** (from a healthy Vite dev server on `5173`)
+> while it fails to load stats or sessions. Keep `DASHBOARD_PORT` at `4820`
+> when using the extension, or don't rely on it while testing a custom port.
 
 And make sure Claude Code posts hooks to the new port:
 
