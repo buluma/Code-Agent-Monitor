@@ -94,6 +94,12 @@ vi.mock("../../lib/api", () => ({
       ),
       facets: vi.fn(() => Promise.resolve({ event_types: [], tool_names: [] })),
     },
+    linear: {
+      getConfig: vi.fn(() => Promise.resolve({ configured: false })),
+      getLink: vi.fn(() => Promise.resolve({ link: null })),
+      link: vi.fn(() => Promise.resolve({ link: null })),
+      unlink: vi.fn(() => Promise.resolve({ ok: true })),
+    },
   },
 }));
 

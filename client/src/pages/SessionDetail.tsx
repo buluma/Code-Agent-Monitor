@@ -138,6 +138,7 @@ import type {
   SessionRemovedPayload,
 } from "../lib/types";
 import { WorkflowRunsPanel } from "../components/workflows/WorkflowRunsPanel";
+import { LinearLinkPanel } from "../components/LinearLinkPanel";
 
 type DetailTab = "agents" | "conversation" | "timeline";
 
@@ -668,6 +669,9 @@ export function SessionDetail() {
               <CopyButton text={session.cwd} />
             </div>
           )}
+          <div className="mt-2">
+            <LinearLinkPanel sessionId={session.id} />
+          </div>
         </div>
         <button onClick={load} className="btn-ghost">
           <RefreshCw className="w-4 h-4" />

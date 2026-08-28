@@ -87,6 +87,7 @@ erDiagram
     agents ||--o{ tool_executions : "has many"
     sessions ||--o{ notifications : "has many"
     remote_sources ||--o{ sessions : "tags (source)"
+    sessions ||--o| linear_links : "linked to"
     
     sessions {
         integer id PK "Primary key"
@@ -156,6 +157,18 @@ erDiagram
         text last_sync_counts "JSON blob of last sync counters, or NULL"
         text created_at "ISO8601 timestamp"
         text updated_at "ISO8601 timestamp"
+    }
+
+    linear_links {
+        text session_id PK "FK to sessions.id, ON DELETE CASCADE"
+        text issue_id "Linear's internal issue UUID"
+        text identifier "e.g. ENG-123"
+        text title "Cached from last successful lookup, or NULL"
+        text url "Linear issue URL"
+        text state "Linear workflow state name, or NULL"
+        text source "url | branch"
+        text linked_at "ISO8601 timestamp"
+        text synced_at "ISO8601 timestamp of last successful refresh"
     }
 ```
 
@@ -618,6 +631,46 @@ remote lifecycle and stale-session fallback. Sync/status changes are broadcast
 over the WebSocket as `remote_source.status` and, on success,
 `remote_data.updated` plus per-session `session_created` / `session_updated`.
 See [docs/API.md → Remote Data Sources](./API.md#remote-data-sources).
+
+### linear_links
+
+A session's linked [Linear](https://linear.app) issue, cached from the last
+successful lookup. At most one row per session (`session_id` is the primary
+key). Scoped to Linear only — no Jira, no GitHub Issues. The personal API key
+itself is **not** stored here: it lives in one file under the dashboard's data
+dir (`server/lib/linear-config.js`, same pattern as `vapid-keys.json`).
+
+```sql
+CREATE TABLE linear_links (
+    session_id TEXT PRIMARY KEY,
+    issue_id TEXT NOT NULL,
+    identifier TEXT NOT NULL,
+    title TEXT,
+    url TEXT NOT NULL,
+    state TEXT,
+    source TEXT NOT NULL DEFAULT 'url' CHECK(source IN ('url','branch')),
+    linked_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    synced_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+);
+```
+
+**Columns:**
+
+| Column       | Type | Nullable | Description                                                                            |
+| ------------ | ---- | -------- | ---------------------------------------------------------------------------------------- |
+| `session_id` | TEXT | NO       | Primary key and FK to `sessions.id`, `ON DELETE CASCADE`                                 |
+| `issue_id`   | TEXT | NO       | Linear's internal issue UUID                                                             |
+| `identifier` | TEXT | NO       | Human-readable issue key, e.g. `ENG-123`                                                 |
+| `title`      | TEXT | YES      | Cached issue title from the last successful lookup                                       |
+| `url`        | TEXT | NO       | Linear issue URL                                                                          |
+| `state`      | TEXT | YES      | Linear workflow state name (e.g. "In Progress"), or NULL                                 |
+| `source`     | TEXT | NO       | How the link was made: `url` (pasted issue URL) or `branch` (auto-detected from git branch) |
+| `linked_at`  | TEXT | NO       | ISO 8601 timestamp the link was created/last re-linked                                   |
+| `synced_at`  | TEXT | NO       | ISO 8601 timestamp of the last successful Linear API refresh                             |
+
+Managed through the `/api/linear/*` routes. See
+[docs/API.md → Linear](./API.md#linear).
 
 ---
 

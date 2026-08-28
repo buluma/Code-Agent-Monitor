@@ -75,6 +75,7 @@ import { useTranslation } from "react-i18next";
 import { Sidebar, SIDEBAR_STORAGE_KEY, loadCollapsed } from "./Sidebar";
 import { UpdateNotifier } from "./UpdateNotifier";
 import { Tabby } from "./Tabby/Tabby";
+import { CommandPalette } from "./CommandPalette";
 
 /** Props for {@link Layout}. */
 interface LayoutProps {
@@ -107,6 +108,7 @@ export function Layout({ wsConnected }: LayoutProps) {
       </a>
       <UpdateNotifier />
       <Tabby />
+      <CommandPalette />
       <Sidebar wsConnected={wsConnected} collapsed={collapsed} onToggle={toggle} />
       <main
         id="main-content"

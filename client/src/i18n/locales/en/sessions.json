@@ -83,5 +83,13 @@
       "loadOlder": "↑ Load older messages"
     }
   },
-  "remoteSourceBadgeTitle": "Collected from a remote machine"
+  "remoteSourceBadgeTitle": "Collected from a remote machine",
+  "linear": {
+    "notConfigured": "Linear isn't connected.",
+    "configureLink": "Add an API key in Settings",
+    "pastePlaceholder": "Paste a Linear issue URL",
+    "link": "Link",
+    "unlink": "Unlink",
+    "autoDetect": "Detect from branch"
+  }
 }

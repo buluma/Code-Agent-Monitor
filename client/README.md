@@ -251,6 +251,9 @@ client/
 │   │   ├── SplashScreen.tsx   # First-run provider choice and live-hook setup gate
 │   │   ├── PaginatedLegend.tsx # Bounded responsive legends for Analytics and Workflows
 │   │   ├── RemoteSources.tsx  # Remote Data Sources settings panel (SSH multi-machine collection)
+│   │   ├── CommandPalette.tsx # Cmd+K/Ctrl+K jump-to overlay (nav pages + session search)
+│   │   ├── LinearLinkPanel.tsx # Session Detail: link/unlink a Linear issue
+│   │   ├── LinearSettings.tsx  # Settings panel for the Linear API key
 │   │   ├── TodoProgressIndicator.tsx # Micro donut + portal tooltip beside Sessions status
 │   │   ├── TodoProgressPanel.tsx # Full owner-aware tracker on Session Detail
 │   │   ├── todoProgress.ts       # Shared task status colors/formatters

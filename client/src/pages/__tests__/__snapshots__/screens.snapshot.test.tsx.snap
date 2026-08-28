@@ -6179,6 +6179,43 @@ exports[`screen snapshots > Session detail 1`] = `
             Copy
           </button>
         </div>
+        <div
+          class="mt-2"
+        >
+          <div
+            class="flex items-center gap-2 text-xs text-gray-500"
+          >
+            <svg
+              class="lucide lucide-link w-3.5 h-3.5 flex-shrink-0"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+              />
+              <path
+                d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+              />
+            </svg>
+            <span>
+              Linear isn't connected.
+            </span>
+            <a
+              class="text-accent hover:underline"
+              data-discover="true"
+              href="/settings"
+            >
+              Add an API key in Settings
+            </a>
+          </div>
+        </div>
       </div>
       <button
         class="btn-ghost"
@@ -7485,6 +7522,45 @@ exports[`screen snapshots > Settings 1`] = `
             />
           </svg>
           Remote Data Sources
+        </button>
+        <button
+          class="inline-flex items-center gap-1.5 text-xs whitespace-nowrap px-2.5 py-1.5 rounded-lg border transition-colors flex-shrink-0 border-border text-gray-400 hover:text-gray-200 hover:bg-surface-3"
+          data-settings-section="linear"
+          type="button"
+        >
+          <svg
+            class="lucide lucide-git-branch w-3.5 h-3.5"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <line
+              x1="6"
+              x2="6"
+              y1="3"
+              y2="15"
+            />
+            <circle
+              cx="18"
+              cy="6"
+              r="3"
+            />
+            <circle
+              cx="6"
+              cy="18"
+              r="3"
+            />
+            <path
+              d="M18 9a9 9 0 0 1-9 9"
+            />
+          </svg>
+          Linear
         </button>
         <button
           class="inline-flex items-center gap-1.5 text-xs whitespace-nowrap px-2.5 py-1.5 rounded-lg border transition-colors flex-shrink-0 border-border text-gray-400 hover:text-gray-200 hover:bg-surface-3"
@@ -9711,6 +9787,45 @@ exports[`screen snapshots > Settings 1`] = `
             Add a machine you reach over SSH to pull its Claude Code and Codex usage in.
           </p>
         </div>
+      </div>
+    </section>
+    <section
+      class="scroll-mt-24"
+      id="linear"
+    >
+      <div
+        class="card p-6 space-y-3"
+      >
+        <div>
+          <h3
+            class="text-sm font-medium text-gray-200"
+          >
+            Linear
+          </h3>
+          <p
+            class="text-xs text-gray-500 mt-1"
+          >
+            Link dashboard sessions to Linear issues from Session Detail — paste an issue URL or auto-detect one from the session's git branch. Read-only: nothing is written back to Linear.
+          </p>
+        </div>
+        <form
+          class="flex items-center gap-2"
+        >
+          <input
+            autocomplete="off"
+            class="flex-1 max-w-sm text-xs bg-surface-2 border border-border rounded px-2.5 py-1.5 outline-none focus:border-accent disabled:opacity-50"
+            placeholder="Linear personal API key"
+            type="password"
+            value=""
+          />
+          <button
+            class="btn-primary text-xs px-3 py-1.5 disabled:opacity-50"
+            disabled=""
+            type="submit"
+          >
+            Save
+          </button>
+        </form>
       </div>
     </section>
     <section

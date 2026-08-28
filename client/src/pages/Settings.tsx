@@ -128,6 +128,7 @@ import { subscribeToPush, unsubscribeFromPush } from "../lib/push";
 import { Tip } from "../components/Tip";
 import { ImportHistory } from "../components/ImportHistory";
 import { RemoteSources } from "../components/RemoteSources";
+import { LinearSettings } from "../components/LinearSettings";
 import { Skeleton } from "../components/Skeleton";
 import { AlertsNotifications } from "../components/AlertsNotifications";
 import type { GptModelPricing, ModelPricing, WSMessage } from "../lib/types";
@@ -153,6 +154,7 @@ const SETTINGS_SECTIONS: {
     fallback: "Remote Data Sources",
     Icon: Cloud,
   },
+  { id: "linear", labelKey: "linear.title", fallback: "Linear", Icon: GitBranch },
   { id: "tabby", labelKey: "tabby.title", fallback: "Tabby", Icon: Cat },
   { id: "sound", labelKey: "sound.title", fallback: "Sound", Icon: Volume2 },
   { id: "notifications", labelKey: "notifications.title", Icon: Bell },
@@ -2101,6 +2103,11 @@ export function Settings() {
       {/* ─── REMOTE DATA SOURCES ─── */}
       <section id="remote-sources" className="scroll-mt-24">
         <RemoteSources />
+      </section>
+
+      {/* ─── LINEAR TICKET LINKING ─── */}
+      <section id="linear" className="scroll-mt-24">
+        <LinearSettings />
       </section>
 
       {/* ─── TABBY COMPANION ─── */}

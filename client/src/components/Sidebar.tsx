@@ -91,7 +91,9 @@ function isUpdatePayload(x: unknown): x is UpdateStatusPayload {
   return typeof x === "object" && x !== null && "git_repo" in x && "update_available" in x;
 }
 
-const NAV_KEYS = [
+/** Static primary navigation, reused by the command palette (CommandPalette.tsx)
+ *  so its "jump to page" results stay in sync with the sidebar. */
+export const NAV_KEYS = [
   { to: "/", icon: LayoutDashboard, key: "nav:dashboard" },
   { to: "/kanban", icon: Columns3, key: "nav:agentBoard" },
   { to: "/sessions", icon: FolderOpen, key: "nav:sessions" },
