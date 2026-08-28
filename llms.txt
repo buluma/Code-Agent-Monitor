@@ -19,8 +19,7 @@ Techniques and patterns used:
 ## Core documentation
 
 - [README](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/README.md): Install, features, npm scripts, API summary, deployment overview, troubleshooting.
-- [INSTALL](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/INSTALL.md): Installation paths and prerequisites.
-- [SETUP](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/SETUP.md): First-time project setup.
+- [INSTALL](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/INSTALL.md): Canonical install and setup guide — requirements, first run, hook configuration, environment variables, desktop/VS Code/container/MCP setup, database, scripts reference, troubleshooting. `SETUP.md` is a stub pointing here.
 - [CLAUDE.md](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/CLAUDE.md): Claude Code working guide (repo map, commands, change rules for agents).
 - [AGENTS.md](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/AGENTS.md): Codex / general agent instructions and validation expectations.
 - [ARCHITECTURE.md](https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/ARCHITECTURE.md): High-level system and data-flow architecture.

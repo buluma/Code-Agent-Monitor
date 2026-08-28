@@ -15,8 +15,8 @@ Comprehensive documentation for the Code Agent Monitor project.
   guide
 - [CLI Reference](./CLI.md) - The `ccam` terminal CLI: every command, discovery,
   safety model
-- [Setup Guide](../SETUP.md) - Installation and configuration
-- [Installation](../INSTALL.md) - Detailed installation instructions
+- [Installation & Setup](../INSTALL.md) - Install, first run, configuration,
+  and troubleshooting
 
 ---
 
@@ -28,8 +28,8 @@ catalog below as a reference:
 | Goal                                | Start here                                                                    | Continue with                                        |
 | ----------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------- |
 | Use or troubleshoot CCAM day to day | [Product Wiki](https://buluma.github.io/Code-Agent-Monitor/wiki/)              | the exact references below                            |
-| Run CCAM locally                    | [INSTALL.md](../INSTALL.md)                                      | [SETUP.md](../SETUP.md), then the dashboard                                                               |
-| Integrate with the API or WebSocket | [API.md](./API.md)                                               | [MCP.md](./MCP.md) for an MCP-based integration                                                           |
+| Run CCAM locally                    | [INSTALL.md](../INSTALL.md)                                      | then the dashboard                                                               |
+| Integrate with the API or WebSocket | [API.md](./API.md)                                               | [mcp/README.md](../mcp/README.md) for an MCP-based integration                                                           |
 | Understand captured activity        | [HOOKS.md](./HOOKS.md)                                           | [DATABASE.md](./DATABASE.md) and [ARCHITECTURE.md](../ARCHITECTURE.md)                                    |
 | Operate CCAM in production          | [DEPLOYMENT.md](./DEPLOYMENT.md)                                 | [server/README.md](../server/README.md) and [monitoring/README.md](../monitoring/README.md)               |
 | Extend the UI or localization       | [client/README.md](../client/README.md)                          | [I18N.md](./I18N.md)                                                                                      |
@@ -42,7 +42,7 @@ catalog below as a reference:
 
 ```mermaid
 graph TB
-    Start[Start Here] --> Setup[SETUP.md<br/>Installation & Config]
+    Start[Start Here] --> Setup[INSTALL.md<br/>Installation & Config]
     Start --> Architecture[ARCHITECTURE.md<br/>System Design]
     
     Setup --> Client[Client README<br/>React UI docs]
@@ -51,7 +51,7 @@ graph TB
     Architecture --> API[API.md<br/>REST & WebSocket]
     Architecture --> Database[DATABASE.md<br/>Schema reference]
     Architecture --> Hooks[HOOKS.md<br/>Hook system integration]
-    Architecture --> MCP[MCP.md<br/>MCP server integration]
+    Architecture --> MCP[mcp/README.md<br/>MCP server integration]
     
     Setup --> Deploy[DEPLOYMENT.md<br/>Production deployment]
     
@@ -71,7 +71,7 @@ graph TB
 | [API.md](./API.md)                                   | REST API endpoints (sessions, agents, events, stats, analytics, hooks, pricing, workflows, settings, import history, **cc-config**, **run**), WebSocket protocol (including `run_stream` / `run_status` / `run_input_ack` for the Run page) | Integration developers          |
 | [DATABASE.md](./DATABASE.md)                         | SQLite schema, queries, performance                                                                                                                                                                                                         | Database administrators         |
 | [HOOKS.md](./HOOKS.md)                               | Claude Code hook system integration                                                                                                                                                                                                         | Hook developers                 |
-| [MCP.md](./MCP.md)                                   | MCP server setup and tool reference                                                                                                                                                                                                         | MCP integrators                 |
+| [mcp/README.md](../mcp/README.md)                    | MCP server setup and tool reference                                                                                                                                                                                                         | MCP integrators                 |
 | [DEPLOYMENT.md](./DEPLOYMENT.md)                     | Production deployment strategies                                                                                                                                                                                                            | DevOps engineers                |
 | [I18N.md](./I18N.md)                                 | Language architecture, locale strategy, and rollout checklist                                                                                                                                                                               | Frontend and product teams      |
 | [CLI.md](./CLI.md)                                   | `ccam` command reference — monitoring, browsing, insights, alerts, pricing, import, administration                                                                                                                                          | Terminal users and CI scripting |
@@ -86,7 +86,7 @@ graph TB
 
 ```mermaid
 graph LR
-    A[New to Project] --> B[Read SETUP.md]
+    A[New to Project] --> B[Read INSTALL.md]
     B --> C[Install Dependencies]
     C --> D[Run npm run dev]
     D --> E[Open localhost:5173]
@@ -97,7 +97,7 @@ graph LR
 
 **Quick Start:**
 
-1. Read [SETUP.md](../SETUP.md)
+1. Read [INSTALL.md](../INSTALL.md)
 2. Run `npm run setup`
 3. Run `npm run dev`
 4. Open browser to `http://localhost:5173`
@@ -174,7 +174,7 @@ graph TB
     API --> REST[REST Endpoints]
     API --> WebSocket[WebSocket Events]
     
-    Integration --> MCP[MCP.md]
+    Integration --> MCP[mcp/README.md]
     MCP --> Tools[MCP Tools]
     MCP --> Config[Client Configuration]
     
@@ -184,7 +184,7 @@ graph TB
 **Key Documents:**
 
 - [API.md](./API.md) - Complete API reference
-- [MCP.md](./MCP.md) - MCP server integration
+- [mcp/README.md](../mcp/README.md) - MCP server integration
 - [HOOKS.md](./HOOKS.md) - Custom hook integration
 
 ---
@@ -333,7 +333,7 @@ graph LR
 
 - [Hook System Guide](./HOOKS.md)
 - [Hook Processing](../server/README.md#hook-processing)
-- [Installation](../SETUP.md#install-hooks)
+- [Installation](../INSTALL.md#hook-auto-installation)
 
 ---
 
@@ -520,5 +520,5 @@ This documentation covers:
   formatting, rollout checklist
 - ✅ **Development guides** - Setup, testing, contributing
 
-**Start with:** [SETUP.md](../SETUP.md) for installation, then explore specific
+**Start with:** [INSTALL.md](../INSTALL.md) for installation, then explore specific
 areas based on your role.

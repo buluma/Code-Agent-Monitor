@@ -15,7 +15,7 @@
   - MCP: `npm run mcp:typecheck` + `npm run mcp:build` when MCP changed.
 
 - Documentation
-  - `README.md`, `ARCHITECTURE.md`, `SETUP.md`, `INSTALL.md`, `mcp/README.md` updated as needed.
+  - `README.md`, `ARCHITECTURE.md`, `INSTALL.md`, `mcp/README.md` updated as needed.
   - Commands in docs match `package.json`.
 
 - Delivery
