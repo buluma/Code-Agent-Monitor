@@ -1,7 +1,7 @@
 # Helm Code Integration Spec
 
-Status: **Proposed** — for review before implementation Date: 2026-08-28 Scope
-owner: monitor backend (`server/`), client, MCP, docs
+Status: **Phase 1 Shipped (v3.1.0)** — Phase 2 in progress Date: 2026-08-28
+Scope owner: monitor backend (`server/`), client, MCP, docs
 
 ---
 
@@ -267,6 +267,32 @@ WS message), `docs/API.md`, `docs/DATABASE.md`, `docs/PLUGINS.md` (new
 | **2 — Operational parity**      | launch-from-dashboard spawner (`helmcode` CLI), `/api/import` rescan + history, Remote Sources home, Config Explorer page, cost attribution from `usage-scan-cache.json` (best-effort) | 2–4 PRs                                                                |
 | **3 — Live path**               | WebSocket RPC client for Helm Code's event stream (pairing/auth ceremony via `auth_pairing_links`); genuine real-time instead of 4 s poll                                              | separate PR; needs helmcode API stability check                        |
 
+### Phase 2 sub-features (each its own PR, ordered by dependency)
+
+1. **Config Explorer page** (this PR — `feat/helmcode-config-explorer` →
+   v3.2.0). Read-only diagnostic UI for the Helm Code integration: home path,
+   state DB path, server runtime, env override chain, watch/poll state, last
+   sweep summary, and live projection counts (projects / threads / messages /
+   activities / turns). A non-destructive **Resync now** action re-runs
+   `ingestHelmcodeSnapshot({confirmedLive:true})` and is the only mutation.
+   Mirrors the existing Codex Config Explorer surface
+   (`/api/codex-config/overview` + `ccam config codex overview`); the config
+   lives in SQLite which the dashboard treats as read-only, so there are no
+   file-edit endpoints (parity with the Codex "no overwrite of the redacted
+   preview" rule). Adds `dashboard_get_helmcode_config` to MCP (read-only) and
+   `ccam config helmcode {overview|resync --yes}` to the CLI.
+2. **`/api/import` rescan + history** — re-import Helm Code through the existing
+   Import History flow (Claude/Codex parity); mirrors `routes/sessions.js`
+   import + the Import tab in Settings.
+3. **Remote Sources home** — `RemoteDataSource` flow for Helm Code home (SSH,
+   NFS, S3) mirroring the Claude/Codex remote-source shape.
+4. **Cost attribution** (best-effort) — read Helm Code's `usage-scan-cache.json`
+   and any underlying-driver transcripts to surface token totals; guarded by
+   defensive reads (no fabricated costs).
+5. **Launch-from-dashboard spawner** — `helmcode-run-spawner` that
+   launches/resumes Helm Code threads via the `helmcode` CLI. Most invasive (new
+   destructive capability); kept last behind explicit guardrails.
+
 ---
 
 ## 8. Risks & mitigations
@@ -301,6 +327,15 @@ All open questions raised with the reviewer are resolved; see the
   never flagged.
 - **Config Explorer:** scheduled in Phase 2 (already listed).
 - **MCP enums:** all 14 sites advertise `"helmcode"` in Phase 1.
+
+### Subsequent amendments
+
+- **2026-08-28 — Phase 1 shipped as v3.1.0 (PR #11).** Spec status flipped from
+  _Proposed_ to _Phase 1 Shipped (v3.1.0) — Phase 2 in progress_. Phase 2
+  expanded into five sub-features (§7); the first sub-feature, **Config Explorer
+  page**, is implemented in the next PR (`feat/helmcode-config-explorer` →
+  v3.2.0) and mirrors the existing Codex Config Explorer read-only surface plus
+  a non-destructive Resync trigger.
 
 Subsequent changes to this spec must be appended here with date and rationale
 rather than silently rewritten.

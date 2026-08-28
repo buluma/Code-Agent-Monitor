@@ -1629,6 +1629,20 @@ export const api = {
       }),
   },
 
+  // ──────────────────────────────── Helm Code Config ─────────────────────────
+  /** Read-only Config Explorer surface for the local Helm Code integration.
+   *  The dashboard never writes to Helm Code's own state database; the only
+   *  mutation is `resync`, which re-runs the idempotent ingest pass against
+   *  the dashboard mirror and requires `confirmed: true`. */
+  helmcodeConfig: {
+    overview: () => request<HelmcodeConfigOverview>("/helmcode-config/overview"),
+    resync: () =>
+      request<HelmcodeConfigResyncResult>("/helmcode-config/resync", {
+        method: "POST",
+        body: JSON.stringify({ confirmed: true }),
+      }),
+  },
+
   // ────────────────────────────────── Run API ─────────────────────────────────
   /** Spawn/manage Claude Code processes and interactive Codex app-server
    * threads launched from the dashboard's Run Agent page. */
@@ -2520,6 +2534,45 @@ export interface CodexConfigOverview {
     enabled: boolean;
   }>;
   instructions: Array<{ path: string; name: string; preview: string; mtime: number }>;
+}
+
+// ── Helm Code Config Explorer (read-only + non-destructive Resync) ──────────
+
+/** Read-only snapshot of the Helm Code Config Explorer overview. */
+export interface HelmcodeConfigOverview {
+  home: string;
+  userdata_dir: string;
+  state_db_path: string;
+  state_db: { exists: boolean; size_bytes: number | null; mtime: string | null };
+  server_runtime: {
+    version: number | null;
+    pid: number | null;
+    host: string | null;
+    port: number | null;
+    origin: string | null;
+    started_at: string | null;
+  } | null;
+  env: {
+    DASHBOARD_HELMCODE_HOME: string | null;
+    HELMCODE_HOME: string | null;
+    DASHBOARD_HELMCODE_SYNC_MS: number | null;
+  };
+  sync: { poll_ms: number };
+  projection_counts: {
+    projects: number;
+    threads: number;
+    archived: number;
+    deleted: number;
+    messages: number;
+    activities: number;
+    turns: number;
+  } | null;
+}
+
+/** Response shape of a successful `helmcodeConfig.resync()` call. */
+export interface HelmcodeConfigResyncResult {
+  ok: true;
+  summary: { scanned: number; changed: number; created: number; removed: number };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

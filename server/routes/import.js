@@ -40,6 +40,12 @@ const router = Router();
 const { getClaudeHome, getProjectsDir } = require("../lib/claude-home");
 const { getCodexHome, getCodexSessionsDir } = require("../lib/codex-home");
 const { findCodexTranscripts } = require("../lib/codex-ingest");
+const {
+  getHelmcodeHome,
+  getHelmcodeUserDataDir,
+  getHelmcodeStateDbPath,
+} = require("../lib/helmcode-home");
+const { ingestHelmcodeSnapshot } = require("../lib/helmcode-ingest");
 
 // Upload limits — deliberately generous because transcripts can be large.
 // Configurable at runtime via env for deployments that need tighter bounds.
@@ -128,14 +134,14 @@ function countsSummary(counters) {
 
 function requestedProvider(req) {
   const value = req.body?.provider ?? req.query?.provider ?? "claude";
-  return value === "claude" || value === "codex" ? value : null;
+  return value === "claude" || value === "codex" || value === "helmcode" ? value : null;
 }
 
 function rejectUnsupportedProvider(res) {
   return res.status(400).json({
     error: {
       code: "INVALID_PROVIDER",
-      message: "`provider` must be either `claude` or `codex`",
+      message: "`provider` must be either `claude`, `codex`, or `helmcode`",
     },
   });
 }
@@ -145,6 +151,23 @@ function countCodexHistory(root) {
   return {
     projects: new Set(files.map((file) => path.dirname(file))).size,
     jsonl_files: files.length,
+  };
+}
+
+function countHelmcodeHistory(root) {
+  // Helm Code uses a SQLite database, not JSONL files.
+  // We can check if the state.db exists and report that.
+  const stateDbPath = path.join(root, "state.sqlite");
+  let exists = false;
+  try {
+    exists = fs.existsSync(stateDbPath);
+  } catch {
+    // ignore
+  }
+  return {
+    projects: exists ? 1 : 0,
+    jsonl_files: 0,
+    state_db_exists: exists,
   };
 }
 

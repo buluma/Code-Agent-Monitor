@@ -64,6 +64,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router";
 import { eventBus } from "../lib/eventBus";
 import {
   Boxes,
@@ -105,6 +106,7 @@ import {
 } from "lucide-react";
 import { api } from "../lib/api";
 import { CodexConfigExplorer } from "../components/CodexConfigExplorer";
+import { HelmcodeConfigExplorer } from "../components/HelmcodeConfigExplorer";
 import type {
   CcArtifactType,
   CcBackup,
@@ -244,7 +246,7 @@ type Toast = { kind: "success" | "error"; message: string } | null;
 
 export function CcConfig() {
   const { t } = useTranslation("ccConfig");
-  const [provider, setProvider] = useState<"claude" | "codex">("claude");
+  const [provider, setProvider] = useState<"claude" | "codex" | "helmcode">("claude");
   const [tab, setTab] = useState<TabKey>("overview");
   const [scope, setScope] = useState<CcScope>("all");
   const [data, setData] = useState<PageState>(EMPTY_STATE);
@@ -268,6 +270,16 @@ export function CcConfig() {
     const id = setTimeout(() => setToast(null), 5000);
     return () => clearTimeout(id);
   }, [toast]);
+
+  // Honor a ?provider=claude|codex|helmcode deep link so Settings and the
+  // "Open Config Explorer" link land directly on the right tab.
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const requested = searchParams.get("provider");
+    if (requested === "helmcode" || requested === "codex" || requested === "claude") {
+      setProvider(requested);
+    }
+  }, [searchParams]);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -506,6 +518,8 @@ export function CcConfig() {
 
       {provider === "codex" ? (
         <CodexConfigExplorer />
+      ) : provider === "helmcode" ? (
+        <HelmcodeConfigExplorer />
       ) : (
         <>
           {error && (
@@ -590,8 +604,8 @@ export function CcConfig() {
 // ── Header ────────────────────────────────────────────────────────────
 
 interface HeaderProps {
-  provider: "claude" | "codex";
-  onProviderChange: (provider: "claude" | "codex") => void;
+  provider: "claude" | "codex" | "helmcode";
+  onProviderChange: (provider: "claude" | "codex" | "helmcode") => void;
   loading: boolean;
   lastUpdated: Date | null;
   scope: CcScope;
@@ -683,8 +697,8 @@ function ProviderToggle({
   value,
   onChange,
 }: {
-  value: "claude" | "codex";
-  onChange: (value: "claude" | "codex") => void;
+  value: "claude" | "codex" | "helmcode";
+  onChange: (value: "claude" | "codex" | "helmcode") => void;
 }) {
   const { t } = useTranslation("ccConfig");
   return (
@@ -692,7 +706,7 @@ function ProviderToggle({
       className="inline-flex rounded-full border border-border bg-surface-2 p-0.5"
       aria-label={t("provider.aria", "Configuration provider")}
     >
-      {(["claude", "codex"] as const).map((option) => (
+      {(["claude", "codex", "helmcode"] as const).map((option) => (
         <button
           key={option}
           onClick={() => onChange(option)}

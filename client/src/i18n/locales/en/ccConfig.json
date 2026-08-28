@@ -11,6 +11,10 @@
     "codex": {
       "label": "Codex",
       "subtitle": "Manage your local Codex configuration, models, profiles, MCP servers, skills, hooks, and rules."
+    },
+    "helmcode": {
+      "label": "Helm Code",
+      "subtitle": "Read-only Config Explorer for the local Helm Code integration plus a non-destructive Resync trigger."
     }
   },
   "codex": {
@@ -347,5 +351,47 @@
   "snippet": {
     "copy": "Copy",
     "copied": "Copied"
-  }
+  },
+  "helmcode": {
+    "title": "Helm Code Config Explorer",
+    "subtitle": "Read-only diagnostic view of the local Helm Code integration. The only mutation is a non-destructive Resync.",
+    "refresh": "Refresh",
+    "resync": "Resync now",
+    "resyncSuccess": "Resync complete: scanned {{scanned}}, changed {{changed}}, created {{created}}, removed {{removed}}.",
+    "resyncError": "Resync failed.",
+    "empty": "No data.",
+    "lastSynced": "Last refreshed",
+    "home": "Home",
+    "userdataDir": "Userdata dir",
+    "stateDb": "State DB",
+    "stateDbExists": "State DB present",
+    "stateDbSize": "State DB size",
+    "stateDbMtime": "State DB mtime",
+    "runtimeAbsent": "No server-runtime.json present (Helm Code may be stopped or not yet installed).",
+    "runtimeVersion": "Version",
+    "runtimePid": "PID",
+    "runtimeHost": "Host",
+    "runtimePort": "Port",
+    "runtimeOrigin": "Origin",
+    "runtimeStarted": "Started",
+    "pollMs": "Active poll interval",
+    "sections": {
+      "home": "Home & State DB",
+      "runtime": "Server Runtime",
+      "env": "Env Overrides",
+      "projections": "Projection Counts"
+    },
+    "counts": {
+      "projects": "Projects",
+      "threads": "Live threads",
+      "archived": "Archived",
+      "deleted": "Deleted",
+      "messages": "Messages",
+      "activities": "Activities",
+      "turns": "Turns"
+    },
+    "countsUnavailable": "State DB is missing or unreadable; projection counts are unavailable."
+  },
+  "yes": "Yes",
+  "no": "No"
 }

@@ -610,11 +610,46 @@ function reconcileHelmcodeLiveness() {
   return results;
 }
 
+/**
+ * Read-only projection counts for the Config Explorer overview. Every count
+ * is wrapped in `safeGet` so a drifted projection schema returns `null` for
+ * the missing table instead of throwing — the dashboard must never crash on
+ * an optional Helm Code table.
+ */
+function getHelmcodeProjectionCounts() {
+  return withStateDb((handle) => {
+    const count = (sql) => {
+      const row = safeGet(handle, sql);
+      return Number(row?.c) || 0;
+    };
+    return {
+      projects: count("SELECT COUNT(*) AS c FROM projection_projects WHERE deleted_at IS NULL"),
+      threads: count(
+        "SELECT COUNT(*) AS c FROM projection_threads WHERE deleted_at IS NULL AND archived_at IS NULL"
+      ),
+      archived: count(
+        "SELECT COUNT(*) AS c FROM projection_threads WHERE archived_at IS NOT NULL AND deleted_at IS NULL"
+      ),
+      deleted: count("SELECT COUNT(*) AS c FROM projection_threads WHERE deleted_at IS NOT NULL"),
+      messages: count(
+        "SELECT COUNT(*) AS c FROM projection_thread_messages WHERE is_streaming = 0"
+      ),
+      activities: count("SELECT COUNT(*) AS c FROM projection_thread_activities"),
+      turns: count("SELECT COUNT(*) AS c FROM projection_turns"),
+    };
+  });
+}
+
 module.exports = {
   findHelmcodeThreads,
   syncHelmcodeSessions,
   ingestHelmcodeSnapshot,
   reconcileHelmcodeLiveness,
+  getHelmcodeProjectionCounts,
   mapStatus,
   activityEventType,
+  // Exposed for the Config Explorer / health surfaces. The ingest path
+  // itself never calls these externally.
+  openStateDb,
+  withStateDb,
 };

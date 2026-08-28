@@ -941,6 +941,33 @@ changes so the page refreshes immediately.
 | `DELETE` | `/api/codex-config/file`             | Back up then delete a user-managed profile/hook/rule/skill/instruction; `config.toml` is rejected     |
 | `POST`   | `/api/codex-config/profiles`         | Create a non-overwriting named `<name>.config.toml` overlay for `codex --profile <name>`              |
 
+### Helm Code Config Explorer (`/api/helmcode-config`)
+
+The Agent Config page also includes a **Helm Code configuration workspace** as a
+third read-only tab. The dashboard never writes to Helm Code's own state
+database; configuration discovery is therefore limited to inspecting the
+resolved home, the live `server-runtime.json` descriptor, the env override
+chain, the watcher / poller state, and a snapshot of projection counts
+(projects, live threads, archived, deleted, messages, activities, turns). The
+only mutation is a non-destructive **Resync** that re-runs the idempotent
+`ingestHelmcodeSnapshot` pass against the dashboard's own mirror and is safe to
+repeat. The Resync requires `{"confirmed": true}` so a stray UI event cannot
+trigger a sweep, and broadcasts `helmcode_config_changed` on success. Every
+state-DB read is wrapped in `lib/helmcode-ingest.js` (`openStateDb` /
+`withStateDb` / `getHelmcodeProjectionCounts`); a missing or unreadable state DB
+yields `projection_counts: null` rather than a 5xx, so a never-installed Helm
+Code never crashes the dashboard.
+
+| Method | Path                            | Description                                                                                                                               |
+| ------ | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`  | `/api/helmcode-config/overview` | Resolved home, state DB path + size/mtime, `server-runtime.json` descriptor, env override chain, sync poll cadence, and projection counts |
+| `POST` | `/api/helmcode-config/resync`   | Re-runs the idempotent ingest pass against the dashboard mirror; body must be `{"confirmed": true}`; returns `{ok, summary}`              |
+
+The MCP tool `dashboard_get_helmcode_config` (in
+`mcp/src/tools/domains/settings-tools.ts`) exposes the overview to MCP clients,
+and the CLI commands `ccam config helmcode overview` /
+`ccam config helmcode resync --yes` wrap both routes.
+
 ### Run Agent (`/api/run`)
 
 Provider-aware HTTP surface for spawning and supervising Claude Code processes

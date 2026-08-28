@@ -3033,6 +3033,11 @@ exports[`screen snapshots > Claude Config 1`] = `
                   BETA
                 </span>
               </button>
+              <button
+                class="rounded-full px-2 py-px text-[10px] font-medium transition-colors text-gray-400 hover:text-gray-200"
+              >
+                Helm Code
+              </button>
             </div>
           </div>
           <p

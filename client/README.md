@@ -107,6 +107,14 @@ redacted previews, real installed-plugin cards, and a full local account-model
 catalog that is not truncated by generic file-preview limits. Profiles are
 created as Codex-native `<name>.config.toml` overlays, opened immediately in the
 guarded editor, and expose a one-click copy action for their exact
+`codex --profile <name>` launch command. Its **Helm Code** switch renders
+`HelmcodeConfigExplorer.tsx`, a read-only Config Explorer for the local Helm
+Code integration: the resolved home, the live `server-runtime.json` descriptor,
+the env override chain, the active sync poll cadence, and live projection
+counts. The only mutation is a non-destructive **Resync now** action that
+re-runs the dashboard's own ingest pass; Helm Code itself is never modified. A
+`?provider=claude|codex|helmcode` query parameter deep-links directly to the
+matching tab (Settings → Helm Code uses `?provider=helmcode`).
 `codex --profile <name>` launch command. The explicit editor reads unredacted
 text only for its server allowlist, including `config.toml`, profiles,
 `hooks.json`, user rules, `SKILL.md` files, and Codex/project instructions, so
