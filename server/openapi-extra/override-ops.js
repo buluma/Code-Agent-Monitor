@@ -213,7 +213,7 @@ const RESET_PRICING_EXAMPLE = {
 };
 
 const EXPORT_EXAMPLE = {
-  format: "ccam-export",
+  format: "cam-export",
   version: 2,
   exported_at: "2026-06-26T01:12:44.913Z",
   sessions: [
@@ -1148,7 +1148,7 @@ const paths = {
       tags: ["Settings"],
       summary: "Export all dashboard data as JSON",
       description:
-        'Exports the entire dataset as a single versioned JSON document — all sessions, agents, events, token_usage rows, workflows, dashboard_runs, alert_rules, model_pricing, and gpt_model_pricing — stamped with `format: "ccam-export"`, `version`, and `exported_at`. Served with a `Content-Disposition: attachment` header (filename `agent-monitor-export-YYYY-MM-DD.json`) so browsers download it. Use it to back up before a destructive operation (clear-data / cleanup with purge_days) or to migrate/consolidate data across machines — the bundle is re-importable via POST /api/settings/import. Read-only; nothing is modified.',
+        'Exports the entire dataset as a single versioned JSON document — all sessions, agents, events, token_usage rows, workflows, dashboard_runs, alert_rules, model_pricing, and gpt_model_pricing — stamped with `format: "cam-export"`, `version`, and `exported_at`. Served with a `Content-Disposition: attachment` header (filename `agent-monitor-export-YYYY-MM-DD.json`) so browsers download it. Use it to back up before a destructive operation (clear-data / cleanup with purge_days) or to migrate/consolidate data across machines — the bundle is re-importable via POST /api/settings/import. Read-only; nothing is modified.',
       operationId: "exportData",
       responses: {
         200: {
@@ -1169,7 +1169,7 @@ const paths = {
       tags: ["Settings"],
       summary: "Restore (import) a previously exported data bundle",
       description:
-        'Restores one bundle up to 25 MiB produced by GET /api/settings/export. Supply it either as `multipart/form-data` with a single `file` field (browser upload) or as a JSON body `{ "path": "<absolute path>" }` (the server reads the file from disk — used by the `ccam import-data` CLI, and it also sidesteps the global 1 MB JSON body cap for large bundles). The restore is idempotent and NON-DESTRUCTIVE: it is session-atomic, so a session already present (matched by its UUID) is skipped whole together with its agents/events/token_usage/workflows, and independent config rows (dashboard_runs, alert_rules, model_pricing, gpt_model_pricing) are inserted only when absent. Nothing existing is overwritten — ideal for consolidating several machines into one dashboard. The response reports per-table counts.',
+        'Restores one bundle up to 25 MiB produced by GET /api/settings/export. Supply it either as `multipart/form-data` with a single `file` field (browser upload) or as a JSON body `{ "path": "<absolute path>" }` (the server reads the file from disk — used by the `cam import-data` CLI, and it also sidesteps the global 1 MB JSON body cap for large bundles). The restore is idempotent and NON-DESTRUCTIVE: it is session-atomic, so a session already present (matched by its UUID) is skipped whole together with its agents/events/token_usage/workflows, and independent config rows (dashboard_runs, alert_rules, model_pricing, gpt_model_pricing) are inserted only when absent. Nothing existing is overwritten — ideal for consolidating several machines into one dashboard. The response reports per-table counts.',
       operationId: "importData",
       requestBody: {
         required: true,
@@ -1194,7 +1194,7 @@ const paths = {
                 },
               },
             },
-            example: { path: "/Users/you/ccam-export-2026-06-26.json" },
+            example: { path: "/Users/you/cam-export-2026-06-26.json" },
           },
         },
       },
@@ -1207,7 +1207,7 @@ const paths = {
               example: {
                 ok: true,
                 source: "agent-monitor-export-2026-06-26.json",
-                format: "ccam-export",
+                format: "cam-export",
                 sessions_imported: 42,
                 sessions_skipped: 3,
                 agents: 96,

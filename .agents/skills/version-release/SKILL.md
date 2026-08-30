@@ -5,7 +5,7 @@ description: Choose and apply the correct semantic version bump for this reposit
 
 # Version Release Skill
 
-Apply Semantic Versioning across CCAM:
+Apply Semantic Versioning across CAM:
 
 - **Patch** (`X.Y.Z+1`): backward-compatible fixes, docs-only work, dependency/security maintenance, refactors, or small improvements without a substantial new capability.
 - **Minor** (`X.Y+1.0`): backward-compatible features or meaningfully larger capabilities such as new workflows, pages, integrations, API fields/routes, or major UX surfaces.
@@ -19,7 +19,7 @@ An explicit user-requested version takes precedence over automatic classificatio
 - Explain the chosen bump from the current root version.
 - Update root and desktop package/lockfile versions.
 - Update the OpenAPI version example and regenerate `openapi.yaml`.
-- Update the deployment surface: `docker-compose.yml` image tags (`ccam-dashboard`, `ccam-mcp`), the Helm chart's `version` and `appVersion`, every `deployments/kubernetes/**` version label, image tag, and kustomize `newTag`, and `deployments/scripts/deploy.sh` (both the `--tag` example and the `sed` substitution).
+- Update the deployment surface: `docker-compose.yml` image tags (`cam-dashboard`, `cam-mcp`), the Helm chart's `version` and `appVersion`, every `deployments/kubernetes/**` version label, image tag, and kustomize `newTag`, and `deployments/scripts/deploy.sh` (both the `--tag` example and the `sed` substitution).
 - Update the release shown in `DEPLOYMENT.md`, `docs/DEPLOYMENT.md`, and `CITATION.cff`.
 - Update version-sensitive UI snapshots; the dashboard renders `UI build v<version>`, so regenerate and confirm the diff is only that line.
 - Run `npm run extensions:sync` to regenerate Claude/Codex plugin manifests and both marketplaces.

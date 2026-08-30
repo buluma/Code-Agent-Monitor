@@ -22,8 +22,8 @@ function envFlag(name) {
 /**
  * True when this process is running inside a container (Docker, Podman, or a
  * Kubernetes pod). Detected via the Docker/Podman marker files, the OCI/systemd
- * `container` env var, and a Linux cgroup heuristic. `CCAM_FORCE_CONTAINER=1`
- * forces a positive result and `CCAM_FORCE_HOST=1` forces a negative result
+ * `container` env var, and a Linux cgroup heuristic. `CAM_FORCE_CONTAINER=1`
+ * forces a positive result and `CAM_FORCE_HOST=1` forces a negative result
  * (used by tests / to override misfiring detection).
  *
  * Why this matters (GitHub #193): the hook command written into
@@ -37,8 +37,8 @@ function envFlag(name) {
  * @returns {boolean}
  */
 function isInsideContainer() {
-  if (envFlag("CCAM_FORCE_CONTAINER")) return true;
-  if (envFlag("CCAM_FORCE_HOST")) return false;
+  if (envFlag("CAM_FORCE_CONTAINER")) return true;
+  if (envFlag("CAM_FORCE_HOST")) return false;
   try {
     if (fs.existsSync("/.dockerenv")) return true; // Docker
     if (fs.existsSync("/run/.containerenv")) return true; // Podman
@@ -79,7 +79,7 @@ function containerRefusalMessage() {
     "  publishes — so a host-installed hook reaches the containerized dashboard.",
     "",
     "  If you genuinely run Claude Code inside this same container, override with:",
-    "        CCAM_ALLOW_CONTAINER_HOOKS=1 npm run install-hooks",
+    "        CAM_ALLOW_CONTAINER_HOOKS=1 npm run install-hooks",
   ].join("\n");
 }
 
@@ -142,7 +142,7 @@ function installHooks(silent = false) {
   // Host-only guard (issue #193): never write a container-internal handler path
   // into a (potentially bind-mounted) host settings file. Honors an explicit
   // opt-out for the rare case of running Claude Code inside this same container.
-  if (isInsideContainer() && !envFlag("CCAM_ALLOW_CONTAINER_HOOKS")) {
+  if (isInsideContainer() && !envFlag("CAM_ALLOW_CONTAINER_HOOKS")) {
     if (!silent) console.error(containerRefusalMessage());
     return false;
   }

@@ -154,7 +154,7 @@ alerts:
       service: agent-monitor
 
   - name: "Dashboard Replica Contract Violated"
-    description: "CCAM must run exactly one dashboard replica while SQLite is the persistence backend"
+    description: "CAM must run exactly one dashboard replica while SQLite is the persistence backend"
     severity: warning
     type: metric
     condition:

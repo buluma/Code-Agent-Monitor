@@ -24,29 +24,29 @@ const AUTHOR = {
 };
 
 const CATEGORY_BY_PLUGIN = {
-  "ccam-analytics": "Productivity",
-  "ccam-config": "Developer Tools",
-  "ccam-cost-guard": "Productivity",
-  "ccam-dashboard": "Developer Tools",
-  "ccam-devtools": "Developer Tools",
-  "ccam-insights": "Productivity",
-  "ccam-integrations": "Developer Tools",
-  "ccam-platform": "Developer Tools",
-  "ccam-productivity": "Productivity",
-  "ccam-quality": "Developer Tools",
-  "ccam-reports": "Productivity",
-  "ccam-runner": "Productivity",
-  "ccam-sessions": "Developer Tools",
-  "ccam-workflows": "Productivity",
+  "cam-analytics": "Productivity",
+  "cam-config": "Developer Tools",
+  "cam-cost-guard": "Productivity",
+  "cam-dashboard": "Developer Tools",
+  "cam-devtools": "Developer Tools",
+  "cam-insights": "Productivity",
+  "cam-integrations": "Developer Tools",
+  "cam-platform": "Developer Tools",
+  "cam-productivity": "Productivity",
+  "cam-quality": "Developer Tools",
+  "cam-reports": "Productivity",
+  "cam-runner": "Productivity",
+  "cam-sessions": "Developer Tools",
+  "cam-workflows": "Productivity",
 };
 
 const WRITE_CAPABLE = new Set([
-  "ccam-config",
-  "ccam-cost-guard",
-  "ccam-integrations",
-  "ccam-platform",
-  "ccam-runner",
-  "ccam-sessions",
+  "cam-config",
+  "cam-cost-guard",
+  "cam-integrations",
+  "cam-platform",
+  "cam-runner",
+  "cam-sessions",
 ]);
 
 function readJson(file) {
@@ -119,9 +119,9 @@ function listDirs(directory) {
 
 function titleCase(value) {
   return value
-    .replace(/^ccam-/, "CCAM ")
+    .replace(/^cam-/, "CAM ")
     .split(/[-_ ]+/)
-    .map((word) => (word === "ccam" ? "CCAM" : `${word[0]?.toUpperCase() || ""}${word.slice(1)}`))
+    .map((word) => (word === "cam" ? "CAM" : `${word[0]?.toUpperCase() || ""}${word.slice(1)}`))
     .join(" ");
 }
 
@@ -171,7 +171,7 @@ function writeSkillMetadata(skillDir, name, description) {
     "interface:",
     `  display_name: ${yamlQuote(titleCase(name))}`,
     `  short_description: ${yamlQuote(summary)}`,
-    `  default_prompt: ${yamlQuote(`Use $${name} to inspect CCAM data and complete this workflow safely.`)}`,
+    `  default_prompt: ${yamlQuote(`Use $${name} to inspect CAM data and complete this workflow safely.`)}`,
     "policy:",
     `  allow_implicit_invocation: ${allowImplicitInvocation}`,
     "",
@@ -221,10 +221,10 @@ function codexManifest(name, claudeManifest, pluginRoot) {
     developerName: AUTHOR.name,
     category,
     capabilities:
-      WRITE_CAPABLE.has(name) || name === "ccam-dashboard" ? ["Read", "Write"] : ["Read"],
+      WRITE_CAPABLE.has(name) || name === "cam-dashboard" ? ["Read", "Write"] : ["Read"],
     websiteURL: REPOSITORY,
     defaultPrompt: [
-      `Use ${titleCase(name)} to inspect the local CCAM dashboard.`,
+      `Use ${titleCase(name)} to inspect the local CAM dashboard.`,
       `Use ${titleCase(name)} to analyze recent agent activity.`,
     ],
     brandColor: "#6366F1",
@@ -296,7 +296,7 @@ async function sync() {
       name,
       source: `./plugins/${name}`,
       description: claudeManifest.description,
-      tags: original?.tags || claudeManifest.keywords?.slice(0, 6) || ["ccam"],
+      tags: original?.tags || claudeManifest.keywords?.slice(0, 6) || ["cam"],
     });
     codexEntries.push({
       name,
@@ -308,7 +308,7 @@ async function sync() {
 
   await writeJson(CLAUDE_MARKETPLACE, {
     name: originalMarketplace.name,
-    description: `Official Claude Code plugin marketplace for CCAM with ${totals.plugins} plugins, ${totals.skills} skills, ${totals.agents} agents, ${totals.commands} commands, and comprehensive local dashboard operations.`,
+    description: `Official Claude Code plugin marketplace for CAM with ${totals.plugins} plugins, ${totals.skills} skills, ${totals.agents} agents, ${totals.commands} commands, and comprehensive local dashboard operations.`,
     owner: originalMarketplace.owner,
     plugins: claudeEntries,
   });

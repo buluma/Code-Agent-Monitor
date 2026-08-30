@@ -10,7 +10,7 @@
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-const STORAGE_KEY = "ccam-data-scope";
+const STORAGE_KEY = "cam-data-scope";
 
 // Fresh module instance (resets the module-level `current`) with localStorage
 // pre-seeded, so we can test load-from-storage behavior deterministically.

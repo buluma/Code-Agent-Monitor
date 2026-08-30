@@ -10,7 +10,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-codex-transcript-"));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "cam-codex-transcript-"));
 process.env.DASHBOARD_DB_PATH = path.join(TMP, "dashboard.db");
 
 const { db } = require("../db");

@@ -1,0 +1,29 @@
+{
+  "name": "cam-sessions",
+  "version": "3.3.0",
+  "description": "Search, inspect, replay, and manage Claude Code sessions tracked by the Agent Monitor dashboard — find sessions by project, model, status, or date; reconstruct event timelines; walk transcripts turn-by-turn; roll up activity per working directory; and identify stale or empty sessions before cleanup.",
+  "author": {
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
+  },
+  "homepage": "https://github.com/buluma/Code-Agent-Monitor",
+  "repository": "https://github.com/buluma/Code-Agent-Monitor",
+  "license": "MIT",
+  "keywords": ["sessions", "search", "transcript", "replay", "timeline", "cleanup", "claude-code"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "CAM Sessions",
+    "shortDescription": "Search, inspect, replay, and manage Claude Code sessions tracked by the Agent Monitor...",
+    "longDescription": "Search, inspect, replay, and manage Claude Code sessions tracked by the Agent Monitor dashboard — find sessions by project, model, status, or date; reconstruct event timelines; walk transcripts turn-by-turn; roll up activity per working directory; and identify stale or empty sessions before cleanup.",
+    "developerName": "Michael Buluma",
+    "category": "Developer Tools",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",
+    "defaultPrompt": [
+      "Use CAM Sessions to inspect the local CAM dashboard.",
+      "Use CAM Sessions to analyze recent agent activity."
+    ],
+    "brandColor": "#6366F1"
+  }
+}

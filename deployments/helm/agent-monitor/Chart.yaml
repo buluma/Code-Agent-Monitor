@@ -1,6 +1,6 @@
 apiVersion: v2
 name: agent-monitor
-description: Production-safe single-writer CCAM deployment for Claude Code and Codex monitoring
+description: Production-safe single-writer CAM deployment for Claude Code and Codex monitoring
 type: application
 version: 3.3.0
 appVersion: "3.3.0"

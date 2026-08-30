@@ -1,0 +1,29 @@
+{
+  "name": "cam-reports",
+  "version": "3.3.0",
+  "description": "Generate stakeholder-ready CAM reports from local session, cost, reliability, and workflow data with explicit scope, evidence, and export-friendly Markdown.",
+  "author": {
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
+  },
+  "homepage": "https://github.com/buluma/Code-Agent-Monitor",
+  "repository": "https://github.com/buluma/Code-Agent-Monitor",
+  "license": "MIT",
+  "keywords": ["reports", "executive-summary", "cost", "reliability", "workflows", "cam"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "CAM Reports",
+    "shortDescription": "Generate stakeholder-ready CAM reports from local session, cost, reliability, and workflow...",
+    "longDescription": "Generate stakeholder-ready CAM reports from local session, cost, reliability, and workflow data with explicit scope, evidence, and export-friendly Markdown.",
+    "developerName": "Michael Buluma",
+    "category": "Productivity",
+    "capabilities": ["Read"],
+    "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",
+    "defaultPrompt": [
+      "Use CAM Reports to inspect the local CAM dashboard.",
+      "Use CAM Reports to analyze recent agent activity."
+    ],
+    "brandColor": "#6366F1"
+  }
+}

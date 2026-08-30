@@ -41,8 +41,8 @@ describe("monitoring paths", () => {
 
   it("normalizes Windows paths for Grafana YAML", () => {
     assert.equal(
-      toGrafanaPath("C:\\ccam\\monitoring\\grafana\\dashboards"),
-      "C:/ccam/monitoring/grafana/dashboards"
+      toGrafanaPath("C:\\cam\\monitoring\\grafana\\dashboards"),
+      "C:/cam/monitoring/grafana/dashboards"
     );
   });
 

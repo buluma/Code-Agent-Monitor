@@ -16,7 +16,7 @@ const ROOT = path.resolve(__dirname, "..", "..");
 const VALIDATOR = path.join(ROOT, "deployments", "scripts", "validate-deployment.sh");
 
 function runAuditScenario(fakeNpmBody, retryBaseSeconds = "0") {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-audit-gate-"));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cam-audit-gate-"));
   const fakeNpm = path.join(tmp, "npm");
   const fakeSleep = path.join(tmp, "sleep");
   const attempts = path.join(tmp, "attempts");
@@ -52,7 +52,7 @@ printf '%s\n' "$1" >>${JSON.stringify(delays)}
     env: {
       ...process.env,
       PATH: `${tmp}:${process.env.PATH}`,
-      CCAM_AUDIT_RETRY_BASE_SECONDS: retryBaseSeconds,
+      CAM_AUDIT_RETRY_BASE_SECONDS: retryBaseSeconds,
     },
     encoding: "utf8",
     timeout: 15_000,

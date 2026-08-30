@@ -1,6 +1,6 @@
-# CCAM MCP Server Reference
+# CAM MCP Server Reference
 
-The Code Agent Monitor (CCAM) MCP server exposes the local dashboard's complete
+The Code Agent Monitor (CAM) MCP server exposes the local dashboard's complete
 supported action surface as **97 typed tools**. The same canonical catalog is
 used by stdio, Streamable HTTP, legacy SSE, and the interactive REPL, so tool
 names, schemas, and policy guards cannot drift between transports.
@@ -9,14 +9,14 @@ names, schemas, and policy guards cannot drift between transports.
 
 ```mermaid
 flowchart LR
-    H["Claude Code / Codex / MCP host"] -->|stdio or HTTP| M["CCAM MCP server"]
-    R["Operator"] -->|ccam mcp repl| M
-    M -->|loopback HTTP| A["CCAM /api/*"]
+    H["Claude Code / Codex / MCP host"] -->|stdio or HTTP| M["CAM MCP server"]
+    R["Operator"] -->|cam mcp repl| M
+    M -->|loopback HTTP| A["CAM /api/*"]
     A --> D[(SQLite)]
 ```
 
 The MCP server does not read the dashboard database directly. Every tool calls
-the same Express routes used by the web app and `ccam` CLI. This keeps
+the same Express routes used by the web app and `cam` CLI. This keeps
 validation, redaction, WebSocket broadcasts, backups, and provider-specific
 behavior in one backend.
 
@@ -26,7 +26,7 @@ behavior in one backend.
 npm run setup
 npm run mcp:typecheck
 npm run test:mcp
-ccam mcp stdio
+cam mcp stdio
 ```
 
 `npm run setup` installs and builds the MCP package. The direct npm launchers
@@ -42,9 +42,9 @@ npm run mcp:start:repl
 
 | Mode                  | Command          | Endpoint or stream                                               |
 | --------------------- | ---------------- | ---------------------------------------------------------------- |
-| stdio                 | `ccam mcp stdio` | MCP JSON-RPC on stdin/stdout                                     |
-| Streamable HTTP + SSE | `ccam mcp http`  | `/mcp`, `/sse`, `/messages`, `/health` on port `8819` by default |
-| REPL                  | `ccam mcp repl`  | Direct validated tool invocation with domain filtering           |
+| stdio                 | `cam mcp stdio` | MCP JSON-RPC on stdin/stdout                                     |
+| Streamable HTTP + SSE | `cam mcp http`  | `/mcp`, `/sse`, `/messages`, `/health` on port `8819` by default |
+| REPL                  | `cam mcp repl`  | Direct validated tool invocation with domain filtering           |
 
 ### Choosing a transport
 
@@ -65,7 +65,7 @@ npm run mcp:start:repl
 A stdio server is owned by the host that launched it, and the MCP SDK's stdio
 transport only reacts to stdin `data`/`error` events. When a host exits without
 sending `SIGTERM`/`SIGINT` first, stdin simply goes quiet and the server would
-otherwise linger forever with nothing to talk to. CCAM therefore watches two
+otherwise linger forever with nothing to talk to. CAM therefore watches two
 independent conditions — stdin closing, and the process being re-parented — and
 shuts the server down the moment either fires:
 
@@ -271,7 +271,7 @@ Deleting a source retains imported data by default. Purging requires
 Enable controlled writes with:
 
 ```bash
-MCP_DASHBOARD_ALLOW_MUTATIONS=true ccam mcp stdio
+MCP_DASHBOARD_ALLOW_MUTATIONS=true cam mcp stdio
 ```
 
 Full data clearing additionally requires:
@@ -279,7 +279,7 @@ Full data clearing additionally requires:
 ```bash
 MCP_DASHBOARD_ALLOW_MUTATIONS=true \
 MCP_DASHBOARD_ALLOW_DESTRUCTIVE=true \
-ccam mcp stdio
+cam mcp stdio
 ```
 
 The call must also pass `confirmation_token = "CLEAR_ALL_DATA"`.
@@ -322,16 +322,16 @@ Claude and Codex plugins use the stable launcher:
 ```json
 {
   "mcpServers": {
-    "ccam-dashboard": {
-      "command": "ccam",
+    "cam-dashboard": {
+      "command": "cam",
       "args": ["mcp", "stdio"]
     }
   }
 }
 ```
 
-This avoids plugin-cache-relative paths. Run `npm run setup` in the CCAM
-checkout first so `ccam` is linked and `mcp/build/index.js` exists.
+This avoids plugin-cache-relative paths. Run `npm run setup` in the CAM
+checkout first so `cam` is linked and `mcp/build/index.js` exists.
 
 ## Validation
 
@@ -347,7 +347,7 @@ confirmations, and schema validation in direct REPL invocation.
 
 ## Troubleshooting
 
-- Dashboard unreachable: run `ccam status`, then `ccam start` or `npm run dev`.
+- Dashboard unreachable: run `cam status`, then `cam start` or `npm run dev`.
 - Auth failure: set `MCP_DASHBOARD_API_TOKEN` or its `DASHBOARD_API_TOKEN`
   fallback to the same value as `DASHBOARD_TOKEN`.
 - MCP HTTP `401`: set `MCP_HTTP_AUTH_TOKEN` or `_FILE`, then send
@@ -360,7 +360,7 @@ confirmations, and schema validation in direct REPL invocation.
   and backup exports at or below 25 MiB.
 - Mutation denied: set `MCP_DASHBOARD_ALLOW_MUTATIONS=true` for that MCP
   process.
-- Plugin MCP launch fails: run `npm run setup`, then verify `ccam mcp repl`.
+- Plugin MCP launch fails: run `npm run setup`, then verify `cam mcp repl`.
 - HTTP clients cannot connect: verify `/health`, bind host, firewall, and the
   exact `/mcp` endpoint.
 - Streamable HTTP requests fail with

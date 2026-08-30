@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "cam-dashboard": {
+      "command": "cam",
+      "args": ["mcp", "stdio"]
+    }
+  }
+}

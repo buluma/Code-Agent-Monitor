@@ -90,7 +90,7 @@ ingestion). Requests that fail the check get `401` with error code
 `EUNAUTHORIZED`.
 
 `GET /api/settings/info` includes `server.version` (the running dashboard
-release). Pair with `ccam version` or the Settings About panel to confirm client
+release). Pair with `cam version` or the Settings About panel to confirm client
 and server builds match after deploy.
 
 ```mermaid
@@ -770,16 +770,16 @@ Response `Content-Type: text/plain; version=0.0.4; charset=utf-8`.
 
 | Metric                               | Type    | Labels                                               | Meaning                                          |
 | ------------------------------------ | ------- | ---------------------------------------------------- | ------------------------------------------------ |
-| `ccam_up`                            | gauge   | —                                                    | `1` when the API served the scrape               |
-| `ccam_build_info`                    | gauge   | `version`                                            | Always `1`; dashboard version rides on the label |
-| `ccam_process_uptime_seconds`        | gauge   | —                                                    | Server process uptime                            |
-| `ccam_process_resident_memory_bytes` | gauge   | —                                                    | Server process RSS                               |
-| `ccam_sessions`                      | gauge   | `status` (`active`/`completed`/`error`/`abandoned`)  | Sessions by status                               |
-| `ccam_agents`                        | gauge   | `status` (`working`/`waiting`/`completed`/`error`)   | Agents by status                                 |
-| `ccam_events_total`                  | counter | —                                                    | Total events recorded                            |
-| `ccam_websocket_clients`             | gauge   | —                                                    | Connected realtime clients                       |
-| `ccam_remote_sources`                | gauge   | `enabled` (`true`/`false`)                           | Configured Remote Data Sources                   |
-| `ccam_tokens_total`                  | counter | `kind` (`input`/`output`/`cache_read`/`cache_write`) | Cumulative token usage                           |
+| `cam_up`                            | gauge   | —                                                    | `1` when the API served the scrape               |
+| `cam_build_info`                    | gauge   | `version`                                            | Always `1`; dashboard version rides on the label |
+| `cam_process_uptime_seconds`        | gauge   | —                                                    | Server process uptime                            |
+| `cam_process_resident_memory_bytes` | gauge   | —                                                    | Server process RSS                               |
+| `cam_sessions`                      | gauge   | `status` (`active`/`completed`/`error`/`abandoned`)  | Sessions by status                               |
+| `cam_agents`                        | gauge   | `status` (`working`/`waiting`/`completed`/`error`)   | Agents by status                                 |
+| `cam_events_total`                  | counter | —                                                    | Total events recorded                            |
+| `cam_websocket_clients`             | gauge   | —                                                    | Connected realtime clients                       |
+| `cam_remote_sources`                | gauge   | `enabled` (`true`/`false`)                           | Configured Remote Data Sources                   |
+| `cam_tokens_total`                  | counter | `kind` (`input`/`output`/`cache_read`/`cache_write`) | Cumulative token usage                           |
 
 Status series are always emitted (even at `0`) so a series never disappears from
 the exposition. The endpoint is mounted under `/api`, so it sits behind the same
@@ -795,7 +795,7 @@ Example scrape config (start the server with
 
 ```yaml
 scrape_configs:
-  - job_name: ccam
+  - job_name: cam
     metrics_path: /api/metrics
     static_configs:
       - targets: ["host.docker.internal:4820"]
@@ -804,7 +804,7 @@ scrape_configs:
 ```
 
 A ready-to-run Prometheus + Grafana stack (four auto-provisioned dashboards;
-default home **CCAM — Overview**) lives in
+default home **CAM — Overview**) lives in
 [`monitoring/`](../monitoring/README.md). **npm path (no Docker):**
 `npm run monitoring:install` then `npm run monitoring:up` (binaries are pulled
 via the monitoring package's `postinstall` — there is no official
@@ -1221,7 +1221,7 @@ POST /api/remote-sources
 
 > **Cursor (informational):** Sessions imported from `~/.claude` include
 > **Cursor** agent usage on that machine too — Cursor happens to use the same
-> paths as Claude Code. CCAM does not tag which app created a session.
+> paths as Claude Code. CAM does not tag which app created a session.
 
 Returns `{ "source": RemoteSource }` with HTTP **201**.
 

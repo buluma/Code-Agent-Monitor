@@ -22,5 +22,5 @@ resources:
   - networkpolicy.yaml
 
 images:
-  - name: ccam-dashboard
+  - name: cam-dashboard
     newTag: 3.3.0

@@ -113,7 +113,7 @@ export interface DataScope {
   provider?: ProviderScope;
 }
 
-const STORAGE_KEY = "ccam-data-scope";
+const STORAGE_KEY = "cam-data-scope";
 const DEFAULT_SCOPE: DataScope = { mode: "all", selected: [] };
 
 function load(): DataScope {

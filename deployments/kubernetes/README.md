@@ -1,6 +1,6 @@
 # Kubernetes deployment
 
-The Kustomize stack deploys one CCAM dashboard writer with a retained
+The Kustomize stack deploys one CAM dashboard writer with a retained
 ReadWriteOnce PVC and `strategy.type: Recreate`. This is the supported SQLite
 production topology.
 
@@ -34,7 +34,7 @@ Use External Secrets Operator or the cloud's secret controller in production.
 | `components/volume-snapshot` | Manual CSI VolumeSnapshot template |
 
 Create a local Kustomization that references the base and desired components.
-MCP is available only from namespaces labeled `ccam.dev/mcp-client=true`.
+MCP is available only from namespaces labeled `cam.dev/mcp-client=true`.
 
 ## Security
 

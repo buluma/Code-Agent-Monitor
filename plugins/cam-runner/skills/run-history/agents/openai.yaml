@@ -1,0 +1,6 @@
+interface:
+  display_name: "Run History"
+  short_description: "Inspect CAM dashboard-run history and relate live run..."
+  default_prompt: "Use $run-history to inspect CAM data and complete this workflow safely."
+policy:
+  allow_implicit_invocation: false

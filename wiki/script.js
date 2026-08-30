@@ -156,7 +156,7 @@ mermaid.initialize({
   // Single floating tooltip appended to <body> so it's not clipped by
   // the sidebar's overflow:hidden.
   const tip = document.createElement("div");
-  tip.className = "ccam-side-tip";
+  tip.className = "cam-side-tip";
   tip.setAttribute("role", "tooltip");
   document.body.appendChild(tip);
 

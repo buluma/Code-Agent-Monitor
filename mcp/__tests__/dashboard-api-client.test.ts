@@ -77,7 +77,7 @@ describe("DashboardApiClient", () => {
   });
 
   it("rejects multipart uploads above the cumulative size cap before fetch", async () => {
-    const directory = await mkdtemp(path.join(os.tmpdir(), "ccam-mcp-upload-"));
+    const directory = await mkdtemp(path.join(os.tmpdir(), "cam-mcp-upload-"));
     const first = path.join(directory, "first.jsonl");
     const second = path.join(directory, "second.jsonl");
     await writeFile(first, Buffer.alloc(50 * 1024 * 1024));

@@ -13,7 +13,7 @@ const path = require("path");
 
 // Isolated so calculateHelmcodeCost's rate lookup never reads a real machine's
 // ~/.helmcode/userdata/usage-model-rates.json (the default when unset).
-const HELMCODE_TMP = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-pricing-helmcode-"));
+const HELMCODE_TMP = fs.mkdtempSync(path.join(os.tmpdir(), "cam-pricing-helmcode-"));
 process.env.DASHBOARD_HELMCODE_HOME = HELMCODE_TMP;
 after(() => fs.rmSync(HELMCODE_TMP, { recursive: true, force: true }));
 

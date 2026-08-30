@@ -17,7 +17,7 @@ const path = require("node:path");
 const Database = require("better-sqlite3");
 const express = require("express");
 
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-helmcode-config-"));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "cam-helmcode-config-"));
 process.env.DASHBOARD_DB_PATH = path.join(TMP, "dashboard.db");
 process.env.DASHBOARD_HELMCODE_HOME = path.join(TMP, "helmcode");
 delete process.env.DASHBOARD_LEGACY_DB_PATH;
@@ -238,7 +238,7 @@ describe("Helm Code Config Explorer route", () => {
   describe("with no state database (Helm Code never ran on this machine)", () => {
     it("GET /overview still returns 200 with projection_counts: null and state_db.exists: false", async () => {
       // Switch the home to an empty directory and rebind the env.
-      const emptyHome = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-helmcode-empty-"));
+      const emptyHome = fs.mkdtempSync(path.join(os.tmpdir(), "cam-helmcode-empty-"));
       const saved = process.env.DASHBOARD_HELMCODE_HOME;
       process.env.DASHBOARD_HELMCODE_HOME = emptyHome;
       try {

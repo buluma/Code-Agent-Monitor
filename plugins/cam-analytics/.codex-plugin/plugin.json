@@ -1,0 +1,36 @@
+{
+  "name": "cam-analytics",
+  "version": "3.3.0",
+  "description": "Deep analytics and monitoring for Claude Code sessions — cost tracking, token usage breakdowns, usage trends, and productivity scoring powered by Agent Monitor.",
+  "author": {
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
+  },
+  "homepage": "https://github.com/buluma/Code-Agent-Monitor",
+  "repository": "https://github.com/buluma/Code-Agent-Monitor",
+  "license": "MIT",
+  "keywords": [
+    "analytics",
+    "monitoring",
+    "cost-tracking",
+    "token-usage",
+    "productivity",
+    "claude-code"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "CAM Analytics",
+    "shortDescription": "Deep analytics and monitoring for Claude Code sessions — cost tracking, token usage...",
+    "longDescription": "Deep analytics and monitoring for Claude Code sessions — cost tracking, token usage breakdowns, usage trends, and productivity scoring powered by Agent Monitor.",
+    "developerName": "Michael Buluma",
+    "category": "Productivity",
+    "capabilities": ["Read"],
+    "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",
+    "defaultPrompt": [
+      "Use CAM Analytics to inspect the local CAM dashboard.",
+      "Use CAM Analytics to analyze recent agent activity."
+    ],
+    "brandColor": "#6366F1"
+  }
+}

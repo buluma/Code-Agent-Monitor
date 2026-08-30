@@ -64,7 +64,7 @@ The host hook handler POSTs to `http://localhost:4820`, which this container
 forwards — so a host-installed hook reaches the containerized dashboard.
 
 > Escape hatch: if you genuinely run Claude Code _inside_ this same container,
-> set `CCAM_ALLOW_CONTAINER_HOOKS=1` before `npm run install-hooks`.
+> set `CAM_ALLOW_CONTAINER_HOOKS=1` before `npm run install-hooks`.
 
 ## Not supported in the container
 

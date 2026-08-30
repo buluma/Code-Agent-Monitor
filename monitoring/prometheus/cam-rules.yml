@@ -1,0 +1,21 @@
+# Recording rules derived from live CAM scrapes — no synthetic data.
+# Pre-aggregates common queries so Prometheus Graph/Explore autocomplete
+# surfaces useful series immediately after the cam target comes up.
+groups:
+  - name: cam_recording
+    interval: 15s
+    rules:
+      - record: cam:sessions:total
+        expr: sum(cam_sessions)
+      - record: cam:sessions:active
+        expr: cam_sessions{status="active"}
+      - record: cam:sessions:completed
+        expr: cam_sessions{status="completed"}
+      - record: cam:agents:working
+        expr: cam_agents{status="working"}
+      - record: cam:events:rate5m
+        expr: rate(cam_events_total[5m])
+      - record: cam:tokens:rate5m
+        expr: sum by (kind) (rate(cam_tokens_total[5m]))
+      - record: cam:tokens:total
+        expr: sum(cam_tokens_total)

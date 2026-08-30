@@ -79,7 +79,7 @@ import { log } from "./logger";
 // `-c` command (e.g. a `.zshrc` `neofetch` call); scanning for this sentinel
 // pair — rather than trusting the last line of stdout — makes extraction
 // robust to whatever the user's shell profile prints.
-const DELIM = "__CCAM_SHELL_PATH__";
+const DELIM = "__CAM_SHELL_PATH__";
 
 /**
  * Run the user's login+interactive shell and capture its `PATH`. Returns null

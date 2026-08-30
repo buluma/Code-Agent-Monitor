@@ -95,7 +95,7 @@ async function main() {
   await ensureBinaries();
   assertNotRunning();
 
-  console.log("Starting CCAM monitoring stack…");
+  console.log("Starting CAM monitoring stack…");
   console.log(`  Prometheus config: ${PROMETHEUS_CONFIG}`);
   console.log(`  Grafana home:      ${grafanaHome()}`);
 
@@ -108,12 +108,12 @@ async function main() {
     console.log(
       `Prometheus  http://localhost:9090  (pid ${promPid})${promOk ? "" : "  [still starting]"}`
     );
-    console.log(`  CCAM console:    ${PROMETHEUS_CONSOLES_URL}`);
+    console.log(`  CAM console:    ${PROMETHEUS_CONSOLES_URL}`);
     console.log(
       `Grafana     http://localhost:3000  (pid ${grafPid})  ${grafanaLoginLabel()}${grafOk ? "" : "  [still starting]"}`
     );
     console.log(
-      "CCAM dashboards auto-provisioned (Overview, Sessions & Agents, Tokens & Events, Platform Health)."
+      "CAM dashboards auto-provisioned (Overview, Sessions & Agents, Tokens & Events, Platform Health)."
     );
     console.log("Stop with: npm run monitoring:down");
     if (!promOk || !grafOk) {
@@ -131,7 +131,7 @@ async function main() {
   );
   writePid(PROMETHEUS_PID, promPid);
   console.log(`Prometheus running at http://localhost:9090 (pid ${promPid})`);
-  console.log(`  CCAM console: ${PROMETHEUS_CONSOLES_URL}`);
+  console.log(`  CAM console: ${PROMETHEUS_CONSOLES_URL}`);
   console.log(
     `Grafana starting at http://localhost:3000 (${grafanaLoginLabel()}) — Ctrl+C stops both`
   );

@@ -11,7 +11,7 @@ variable "kube_context" {
 }
 
 variable "namespace" {
-  description = "Namespace for CCAM."
+  description = "Namespace for CAM."
   type        = string
   default     = "agent-monitor"
 }
@@ -23,7 +23,7 @@ variable "release_name" {
 }
 
 variable "chart_path" {
-  description = "Path to the bundled CCAM Helm chart."
+  description = "Path to the bundled CAM Helm chart."
   type        = string
   default     = "../helm/agent-monitor"
 }
@@ -93,7 +93,7 @@ variable "storage_size" {
 }
 
 variable "allowed_hosts" {
-  description = "Comma-separated public and internal hostnames accepted by CCAM's Host guard."
+  description = "Comma-separated public and internal hostnames accepted by CAM's Host guard."
   type        = string
 }
 

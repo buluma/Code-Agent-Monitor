@@ -15,5 +15,5 @@ patches:
       name: agent-monitor
 
 images:
-  - name: ccam-mcp
+  - name: cam-mcp
     newTag: 3.3.0

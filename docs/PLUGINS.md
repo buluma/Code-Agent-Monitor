@@ -1,6 +1,6 @@
-# CCAM Skills and Plugin Marketplace
+# CAM Skills and Plugin Marketplace
 
-CCAM ships one source tree that supports three distribution paths:
+CAM ships one source tree that supports three distribution paths:
 
 - **Claude Code plugins** through `.claude-plugin/marketplace.json`
 - **Codex plugins** through `.agents/plugins/marketplace.json` and each plugin's
@@ -33,7 +33,7 @@ CLI command, and switch only after removing the previous installation.
 
 ```bash
 claude plugin marketplace add buluma/Code-Agent-Monitor
-claude plugin install ccam-platform@claude-code-agent-monitor-plugins
+claude plugin install cam-platform@claude-code-agent-monitor-plugins
 ```
 
 List the marketplace and install any plugin shown in the catalog:
@@ -48,7 +48,7 @@ claude plugin validate . --strict
 ```bash
 codex plugin marketplace add buluma/Code-Agent-Monitor
 codex plugin list --marketplace claude-code-agent-monitor-plugins --available --json
-codex plugin add ccam-platform@claude-code-agent-monitor-plugins
+codex plugin add cam-platform@claude-code-agent-monitor-plugins
 ```
 
 Codex reads `.agents/plugins/marketplace.json`. Every entry points to the same
@@ -124,20 +124,20 @@ real installs. This change does not publish or submit anything externally.
 
 | Plugin              | Focus                                           | Bundled skills                                                                                                |
 | ------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `ccam-analytics`    | tokens, costs, cache, model mix, trends         | `cache-efficiency`, `cost-breakdown`, `model-mix`, `productivity-score`, `session-report`, `usage-trends`     |
-| `ccam-config`       | Claude config and memory governance             | `config-audit`, `hook-inventory`, `mcp-audit`, `memory-review`, `skill-inventory`                             |
-| `ccam-cost-guard`   | budgets, forecasts, cost alerts                 | `budget-set`, `cost-alert`, `daily-budget-check`, `model-savings`, `spend-forecast`                           |
-| `ccam-dashboard`    | dashboard status and MCP connector              | `dashboard-status`, `endpoint-probe`, `live-watch`, `quick-stats`                                             |
-| `ccam-devtools`     | diagnostics, export, transcripts                | `data-export`, `event-trace`, `health-check`, `hook-diagnostics`, `session-debug`, `transcript-grep`          |
-| `ccam-insights`     | anomalies, patterns, regressions                | `anomaly-alert`, `benchmark`, `optimization-suggest`, `pattern-detect`, `regression-watch`, `session-compare` |
-| `ccam-integrations` | alerts, webhooks, remote collection             | `alert-management`, `remote-collection`, `webhook-management`                                                 |
-| `ccam-platform`     | Claude/Codex config, hooks, import, backup, MCP | `config-explorer`, `history-portability`, `hook-setup`, `mcp-server`                                          |
-| `ccam-productivity` | standups and reviews                            | `daily-standup`, `monthly-review`, `sprint-summary`, `time-of-day`, `weekly-report`, `workflow-optimizer`     |
-| `ccam-quality`      | errors, SLOs, hook reliability                  | `api-error-report`, `error-scan`, `hook-failure-audit`, `regression-alert`, `slo-check`                       |
-| `ccam-reports`      | executive, cost, reliability, workflow reports  | `cost-report`, `executive-report`, `reliability-report`, `workflow-report`                                    |
-| `ccam-runner`       | monitored Claude Code/Codex launch and history  | `run-agent`, `run-history`                                                                                    |
-| `ccam-sessions`     | session search, timeline, replay, cleanup       | `cwd-rollup`, `session-cleanup`, `session-search`, `session-timeline`, `transcript-replay`                    |
-| `ccam-workflows`    | orchestration and fleet intelligence            | `concurrency-report`, `dag-map`, `delegation-audit`, `error-propagation`, `fleet-runs`                        |
+| `cam-analytics`    | tokens, costs, cache, model mix, trends         | `cache-efficiency`, `cost-breakdown`, `model-mix`, `productivity-score`, `session-report`, `usage-trends`     |
+| `cam-config`       | Claude config and memory governance             | `config-audit`, `hook-inventory`, `mcp-audit`, `memory-review`, `skill-inventory`                             |
+| `cam-cost-guard`   | budgets, forecasts, cost alerts                 | `budget-set`, `cost-alert`, `daily-budget-check`, `model-savings`, `spend-forecast`                           |
+| `cam-dashboard`    | dashboard status and MCP connector              | `dashboard-status`, `endpoint-probe`, `live-watch`, `quick-stats`                                             |
+| `cam-devtools`     | diagnostics, export, transcripts                | `data-export`, `event-trace`, `health-check`, `hook-diagnostics`, `session-debug`, `transcript-grep`          |
+| `cam-insights`     | anomalies, patterns, regressions                | `anomaly-alert`, `benchmark`, `optimization-suggest`, `pattern-detect`, `regression-watch`, `session-compare` |
+| `cam-integrations` | alerts, webhooks, remote collection             | `alert-management`, `remote-collection`, `webhook-management`                                                 |
+| `cam-platform`     | Claude/Codex config, hooks, import, backup, MCP | `config-explorer`, `history-portability`, `hook-setup`, `mcp-server`                                          |
+| `cam-productivity` | standups and reviews                            | `daily-standup`, `monthly-review`, `sprint-summary`, `time-of-day`, `weekly-report`, `workflow-optimizer`     |
+| `cam-quality`      | errors, SLOs, hook reliability                  | `api-error-report`, `error-scan`, `hook-failure-audit`, `regression-alert`, `slo-check`                       |
+| `cam-reports`      | executive, cost, reliability, workflow reports  | `cost-report`, `executive-report`, `reliability-report`, `workflow-report`                                    |
+| `cam-runner`       | monitored Claude Code/Codex launch and history  | `run-agent`, `run-history`                                                                                    |
+| `cam-sessions`     | session search, timeline, replay, cleanup       | `cwd-rollup`, `session-cleanup`, `session-search`, `session-timeline`, `transcript-replay`                    |
+| `cam-workflows`    | orchestration and fleet intelligence            | `concurrency-report`, `dag-map`, `delegation-audit`, `error-propagation`, `fleet-runs`                        |
 
 ## Provider Event Types
 
@@ -157,23 +157,23 @@ distinguish them from Claude hook traffic and scope by provider.
 
 ## MCP-enabled plugins
 
-`ccam-dashboard` and `ccam-platform` include:
+`cam-dashboard` and `cam-platform` include:
 
 ```json
 {
   "mcpServers": {
-    "ccam-dashboard": {
-      "command": "ccam",
+    "cam-dashboard": {
+      "command": "cam",
       "args": ["mcp", "stdio"]
     }
   }
 }
 ```
 
-The stable `ccam mcp stdio` launcher resolves the MCP build from the linked CCAM
+The stable `cam mcp stdio` launcher resolves the MCP build from the linked CAM
 checkout. This avoids plugin-cache-relative paths, which break after
 installation. Run `npm run setup` first. It now installs and builds MCP before
-linking `ccam`.
+linking `cam`.
 
 ## Source layout
 
@@ -227,7 +227,7 @@ For a clean Codex installation test:
 ```bash
 tmp="$(mktemp -d)"
 CODEX_HOME="$tmp" codex plugin marketplace add "$PWD" --json
-CODEX_HOME="$tmp" codex plugin add ccam-platform@claude-code-agent-monitor-plugins --json
+CODEX_HOME="$tmp" codex plugin add cam-platform@claude-code-agent-monitor-plugins --json
 CODEX_HOME="$tmp" codex plugin list --json
 rm -rf "$tmp"
 ```

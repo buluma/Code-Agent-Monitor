@@ -139,7 +139,7 @@ function extractToken(req) {
 }
 
 function extractHookToken(req) {
-  const hookHeader = req.headers["x-ccam-hook-token"];
+  const hookHeader = req.headers["x-cam-hook-token"];
   if (typeof hookHeader === "string" && hookHeader) return hookHeader;
   return extractToken(req);
 }

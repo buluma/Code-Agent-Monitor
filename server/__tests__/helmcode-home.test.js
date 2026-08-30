@@ -11,7 +11,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-helmcode-home-"));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "cam-helmcode-home-"));
 process.env.DASHBOARD_ENV_PATH = path.join(TMP, "config", ".env");
 process.env.HELMCODE_HOME = path.join(TMP, "env-helmcode");
 

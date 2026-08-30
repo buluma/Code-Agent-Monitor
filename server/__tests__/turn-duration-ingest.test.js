@@ -11,7 +11,7 @@ const http = require("http");
 const os = require("os");
 const path = require("path");
 
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-turn-duration-"));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "cam-turn-duration-"));
 process.env.DASHBOARD_DB_PATH = path.join(TMP, "dashboard.db");
 process.env.CLAUDE_HOME = path.join(TMP, "claude");
 process.env.DASHBOARD_DATA_DIR = path.join(TMP, "data");

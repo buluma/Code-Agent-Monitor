@@ -1,10 +1,10 @@
-# Prometheus scrape config for the CCAM dashboard's /api/metrics endpoint.
+# Prometheus scrape config for the CAM dashboard's /api/metrics endpoint.
 #
-# CCAM normally runs on the HOST (a plain `npm start` on port 4820), so from
+# CAM normally runs on the HOST (a plain `npm start` on port 4820), so from
 # inside the Prometheus container it is reached via host.docker.internal. If the
 # dashboard runs elsewhere or on a different port, edit the `targets` below.
 #
-# IMPORTANT: the CCAM server's DNS-rebinding guard rejects any Host header that
+# IMPORTANT: the CAM server's DNS-rebinding guard rejects any Host header that
 # is not loopback, so a container scrape gets 403 EBADHOST until you start the
 # server allowing this Host:
 #     DASHBOARD_ALLOWED_HOSTS=host.docker.internal npm start
@@ -15,13 +15,13 @@ global:
   scrape_timeout: 10s
 
 rule_files:
-  - ccam-rules.yml
+  - cam-rules.yml
 
 scrape_configs:
-  - job_name: ccam
+  - job_name: cam
     metrics_path: /api/metrics
     static_configs:
       - targets: ["host.docker.internal:4820"]
     authorization:
       type: Bearer
-      credentials_file: /run/ccam-secrets/dashboard-token
+      credentials_file: /run/cam-secrets/dashboard-token

@@ -1,10 +1,10 @@
-# CCAM Helm values. The bundled SQLite backend is a single-writer database.
+# CAM Helm values. The bundled SQLite backend is a single-writer database.
 # The chart intentionally rejects replicaCount != 1 and autoscaling.enabled=true.
 replicaCount: 1
 
 image:
   registry: ""
-  repository: ccam-dashboard
+  repository: cam-dashboard
   tag: ""
   digest: ""
   pullPolicy: IfNotPresent
@@ -159,7 +159,7 @@ networkPolicy:
   enabled: true
   ingressNamespaceSelector:
     matchLabels:
-      ccam.dev/dashboard-client: "true"
+      cam.dev/dashboard-client: "true"
   additionalIngressRules: []
   additionalEgressRules: []
 
@@ -167,7 +167,7 @@ mcp:
   enabled: false
   image:
     registry: ""
-    repository: ccam-mcp
+    repository: cam-mcp
     tag: ""
     digest: ""
     pullPolicy: IfNotPresent
@@ -177,7 +177,7 @@ mcp:
     annotations: {}
   allowedNamespaceSelector:
     matchLabels:
-      ccam.dev/mcp-client: "true"
+      cam.dev/mcp-client: "true"
   allowMutations: false
   allowDestructive: false
   logLevel: info

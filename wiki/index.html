@@ -173,7 +173,7 @@
         width: auto;
         font-size: 13px;
       }
-      .ccam-side-tip {
+      .cam-side-tip {
         position: fixed;
         top: 0;
         left: 0;
@@ -196,11 +196,11 @@
         transition: opacity 0.15s ease, transform 0.15s ease;
         z-index: 10000;
       }
-      .ccam-side-tip.visible {
+      .cam-side-tip.visible {
         opacity: 1;
         transform: translateX(0);
       }
-      .ccam-side-tip::before {
+      .cam-side-tip::before {
         content: "";
         position: absolute;
         left: -6px;
@@ -542,7 +542,7 @@
           <a href="#quickstart" class="nav-link"><span class="nav-icon">◈</span>Quick Start</a>
           <a href="#configuration" class="nav-link"><span class="nav-icon">◈</span>Configuration</a>
           <a href="#scripts" class="nav-link"><span class="nav-icon">◈</span>Scripts Reference</a>
-          <a href="#cli" class="nav-link"><span class="nav-icon">◈</span>ccam CLI</a>
+          <a href="#cli" class="nav-link"><span class="nav-icon">◈</span>cam CLI</a>
 
           <div class="nav-section">Architecture</div>
           <a href="#arch-overview" class="nav-link"
@@ -737,7 +737,7 @@
                 <span class="tech-badge badge-grafana">4 Grafana dashboards</span>
                 <span class="tech-badge badge-ws">Remote data sources</span>
                 <span class="tech-badge badge-openapi">SSH tunnel federation</span>
-                <span class="tech-badge badge-ts">ccam CLI</span>
+                <span class="tech-badge badge-ts">cam CLI</span>
                 <span class="tech-badge badge-react">Data scope (local/all/selected)</span>
                 <span class="tech-badge badge-express">Import history</span>
                 <span class="tech-badge badge-github">File-header PR CI</span>
@@ -811,7 +811,7 @@
                 <span class="tech-badge badge-grafana">4 Grafana dashboards</span>
                 <span class="tech-badge badge-ws">Remote data sources</span>
                 <span class="tech-badge badge-openapi">SSH tunnel federation</span>
-                <span class="tech-badge badge-ts">ccam CLI</span>
+                <span class="tech-badge badge-ts">cam CLI</span>
                 <span class="tech-badge badge-react">Data scope (local/all/selected)</span>
                 <span class="tech-badge badge-express">Import history</span>
                 <span class="tech-badge badge-github">File-header PR CI</span>
@@ -976,7 +976,7 @@ The provider filter adds a <strong>Helm Code</strong> scope that mirrors session
                   <div class="feature-icon ic-cyan">🍎</div>
                   <h3 id="feat-desktop-app">Desktop App (macOS)</h3>
                   <p>
-                    Electron packages CCAM as a macOS <code>.dmg</code>. The app embeds the
+                    Electron packages CAM as a macOS <code>.dmg</code>. The app embeds the
                     Express server in-process and renders the React client in a native window,
                     with tray controls, application menus, login startup, and a single-instance
                     lock. Closing the window leaves the local server running, and first boot
@@ -1269,9 +1269,9 @@ The provider filter adds a <strong>Helm Code</strong> scope that mirrors session
                 </div>
                 <div class="feature-card">
                   <div class="feature-icon ic-cyan">⌨️</div>
-                  <h3 id="feat-ccam-cli">ccam CLI</h3>
+                  <h3 id="feat-cam-cli">cam CLI</h3>
                   <p>
-                    The whole dashboard as terminal commands — <code>ccam stats</code>,
+                    The whole dashboard as terminal commands — <code>cam stats</code>,
                     <code>kanban</code>, <code>tail</code>, <code>session &lt;id&gt;</code>,
                     <code>analytics</code>, <code>alerts</code>, <code>pricing</code>,
                     <code>import</code>, <code>doctor</code>, <code>export</code> and more.
@@ -1494,16 +1494,16 @@ The provider filter adds a <strong>Helm Code</strong> scope that mirrors session
               <div class="screenshot-caption"><span class="caption-icon">📗</span> <span><strong>API Docs · ReDoc</strong> — a self-hosted, read-optimized rendering of the full OpenAPI 3.0 spec at <code>/api/redoc</code>, served entirely offline with no CDN. Complements the interactive Swagger UI at <code>/api/docs</code>; every backend route is documented with parameters, schemas, and examples</span></div>
             </div>
             <div class="screenshot-card" id="ss-grafana">
-              <img src="../images/grafana.png" alt="Grafana CCAM — Overview dashboard" width="100%" loading="lazy" decoding="async" />
-              <div class="screenshot-caption"><span class="caption-icon">📊</span> <span><strong>Observability · Grafana</strong> — default home dashboard <em>CCAM — Overview</em> (four boards auto-provisioned): live fleet snapshot, database totals, breakdown charts, and rates from <code>/api/metrics</code> scrapes. The npm-only local helper uses <code>admin</code> / <code>admin</code>; container stacks read the admin password from <code>deployments/secrets/grafana-admin-password</code>.</span></div>
+              <img src="../images/grafana.png" alt="Grafana CAM — Overview dashboard" width="100%" loading="lazy" decoding="async" />
+              <div class="screenshot-caption"><span class="caption-icon">📊</span> <span><strong>Observability · Grafana</strong> — default home dashboard <em>CAM — Overview</em> (four boards auto-provisioned): live fleet snapshot, database totals, breakdown charts, and rates from <code>/api/metrics</code> scrapes. The npm-only local helper uses <code>admin</code> / <code>admin</code>; container stacks read the admin password from <code>deployments/secrets/grafana-admin-password</code>.</span></div>
             </div>
             <div class="screenshot-card" id="ss-prometheus-console">
-              <img src="../images/prometheus-console.png" alt="Prometheus CCAM console" width="100%" loading="lazy" decoding="async" />
+              <img src="../images/prometheus-console.png" alt="Prometheus CAM console" width="100%" loading="lazy" decoding="async" />
               <div class="screenshot-caption"><span class="caption-icon">🔥</span> <span><strong>Observability · Prometheus console</strong> — pre-built landing page at <code>/consoles/index.html</code> with live metric cards, session/token tables, and drill-down links into the Graph UI (Prometheus 3.x compatible — queries the HTTP API directly)</span></div>
             </div>
             <div class="screenshot-card" id="ss-prometheus-query">
-              <img src="../images/prometheus-query.png" alt="Prometheus Graph with CCAM PromQL" width="100%" loading="lazy" decoding="async" />
-              <div class="screenshot-caption"><span class="caption-icon">📈</span> <span><strong>Observability · Prometheus Graph</strong> — run PromQL against scraped CCAM series (e.g. <code>sum(ccam_sessions)</code>, <code>ccam_events_total</code>, <code>rate(ccam_tokens_total[5m])</code>) with starter expressions from the CCAM console and recording rules in <code>monitoring/prometheus/ccam-rules.yml</code></span></div>
+              <img src="../images/prometheus-query.png" alt="Prometheus Graph with CAM PromQL" width="100%" loading="lazy" decoding="async" />
+              <div class="screenshot-caption"><span class="caption-icon">📈</span> <span><strong>Observability · Prometheus Graph</strong> — run PromQL against scraped CAM series (e.g. <code>sum(cam_sessions)</code>, <code>cam_events_total</code>, <code>rate(cam_tokens_total[5m])</code>) with starter expressions from the CAM console and recording rules in <code>monitoring/prometheus/cam-rules.yml</code></span></div>
             </div>
           </div>
 
@@ -1746,7 +1746,7 @@ docker run -d --name agent-monitor \
                 container is up, then restart Claude Code. The installer refuses to run inside a
                 container (issue #193) so it never writes a container-internal handler path into a
                 bind-mounted host <code>~/.claude</code>; override with
-                <code>CCAM_ALLOW_CONTAINER_HOOKS=1</code> only if Claude Code itself runs in the
+                <code>CAM_ALLOW_CONTAINER_HOOKS=1</code> only if Claude Code itself runs in the
                 container.
               </p>
             </div>
@@ -1917,7 +1917,7 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
                   <td>Writable dotenv path used when Settings persists Claude or Codex home overrides</td>
                 </tr>
                 <tr>
-                  <td><code>CCAM_DASHBOARD_URL</code></td>
+                  <td><code>CAM_DASHBOARD_URL</code></td>
                   <td>local discovery</td>
                   <td>Optional remote hook destination; non-loopback URLs require HTTPS and a hook token</td>
                 </tr>
@@ -2224,10 +2224,10 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
 
         <section id="cli">
           <div class="section-label">◈ Reference</div>
-          <h2>ccam CLI</h2>
+          <h2>cam CLI</h2>
           <p>
             The full dashboard feature surface is also available from any terminal through the
-            dependency-free <code>ccam</code> CLI (<code>bin/ccam.js</code>). It is linked
+            dependency-free <code>cam</code> CLI (<code>bin/cam.js</code>). It is linked
             automatically by <code>npm run setup</code> (via a fail-soft <code>npm link</code>),
             discovers the running server through the same
             <code>~/.claude/.agent-dashboard.json</code> registry the hook handler uses
@@ -2239,9 +2239,9 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
             <code>grep</code> pipelines, or CI.
           </p>
           <p>
-            For a live monitoring session, <code>ccam repl</code> (aliases
+            For a live monitoring session, <code>cam repl</code> (aliases
             <code>shell</code> / <code>i</code>) opens an interactive shell where you type
-            commands without the <code>ccam</code> prefix — with a CCAM welcome banner,
+            commands without the <code>cam</code> prefix — with a CAM welcome banner,
             tab-completion, persisted arrow-key history, a live server-status prompt
             (<code>●</code> up / <code>○</code> offline), a grouped <code>help</code> /
             <code>help &lt;cmd&gt;</code> menu, and a <code>watch [secs] &lt;cmd&gt;</code>
@@ -2265,7 +2265,7 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
                   <td><code>status</code> · <code>start</code> · <code>repl</code></td>
                   <td>
                     Up/down indicator, a background server start that waits for health, and the
-                    interactive <code>ccam repl</code> shell — tab-completion, persisted history, a
+                    interactive <code>cam repl</code> shell — tab-completion, persisted history, a
                     live server-status prompt, and a <code>watch</code> auto-refresh
                   </td>
                 </tr>
@@ -2294,7 +2294,7 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
                     which can be scoped to a single session with <code>--session</code>,
                     surfaces server-tool surcharges (web search / code execution), warns about
                     models with usage but no matching pricing rule (priced at $0, excluded from
-                    the total), and points to <code>ccam pricing set</code>
+                    the total), and points to <code>cam pricing set</code>
                   </td>
                 </tr>
                 <tr>
@@ -2345,8 +2345,8 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
           </div>
 
               <p>
-                The CLI also manages the server itself: <code>ccam status</code> shows an
-                up/down indicator and <code>ccam start</code> boots a detached production
+                The CLI also manages the server itself: <code>cam status</code> shows an
+                up/down indicator and <code>cam start</code> boots a detached production
                 server. When the server is down, read-only commands fall back to reading
                 <code>data/dashboard.db</code> directly under an explicit offline banner,
                 while live or server-computed commands refuse with the specific reason.
@@ -3267,7 +3267,7 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
               <span class="method method-get">GET</span>
               <span class="route-path">/api/metrics</span>
               <span class="route-desc"
-                >Live counters in Prometheus text-exposition format (v0.0.4): sessions and agents by status, total events, cumulative tokens by kind, connected WebSocket clients, configured remote sources, process uptime and RSS, and build version — so CCAM can be scraped into Prometheus / Grafana. Read-only, and — being under <code>/api</code> — behind the DNS-rebinding Host-header guard and the optional <code>DASHBOARD_TOKEN</code>: a non-loopback scraper (e.g. Prometheus in Docker via <code>host.docker.internal</code>) must be allowlisted with <code>DASHBOARD_ALLOWED_HOSTS</code> or the scrape returns <code>403 EBADHOST</code>, and must send the token when one is set. A ready-to-run Prometheus + Grafana stack with a pre-provisioned "CCAM — Overview" dashboard lives in <code>monitoring/</code> (<code>cd monitoring && docker compose up -d</code>; Grafana on port 3000).</span
+                >Live counters in Prometheus text-exposition format (v0.0.4): sessions and agents by status, total events, cumulative tokens by kind, connected WebSocket clients, configured remote sources, process uptime and RSS, and build version — so CAM can be scraped into Prometheus / Grafana. Read-only, and — being under <code>/api</code> — behind the DNS-rebinding Host-header guard and the optional <code>DASHBOARD_TOKEN</code>: a non-loopback scraper (e.g. Prometheus in Docker via <code>host.docker.internal</code>) must be allowlisted with <code>DASHBOARD_ALLOWED_HOSTS</code> or the scrape returns <code>403 EBADHOST</code>, and must send the token when one is set. A ready-to-run Prometheus + Grafana stack with a pre-provisioned "CAM — Overview" dashboard lives in <code>monitoring/</code> (<code>cd monitoring && docker compose up -d</code>; Grafana on port 3000).</span
               >
             </div>
           </div>
@@ -3604,7 +3604,7 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
             <code>SessionStart</code> hook, native live-thread row, or rollout then creates the
             durable session and main-agent rows without copying the temporary card into history.
             If the user selects an existing thread in Codex's Resume picker, that exact Codex PID
-            opens the resumed rollout or writer lock immediately. CCAM uses that signal to switch
+            opens the resumed rollout or writer lock immediately. CAM uses that signal to switch
             from the temporary card to the durable resumed session before the first new message.
           </p>
           <p>
@@ -3832,7 +3832,7 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
                 </tr>
                 <tr>
                   <td>Concurrent upload temp-dir collisions</td>
-                  <td>Per-request temp dir on <code>req._ccamUploadDir</code>; created in multer <code>destination</code>, reclaimed in <code>finally</code></td>
+                  <td>Per-request temp dir on <code>req._camUploadDir</code>; created in multer <code>destination</code>, reclaimed in <code>finally</code></td>
                 </tr>
                 <tr>
                   <td>Arbitrary absolute path on <code>scan-path</code></td>
@@ -3858,17 +3858,17 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
               </thead>
               <tbody>
                 <tr>
-                  <td><code>CCAM_IMPORT_MAX_BYTES</code></td>
+                  <td><code>CAM_IMPORT_MAX_BYTES</code></td>
                   <td>1 GB</td>
                   <td>Maximum size per uploaded file on <code>/api/import/upload</code></td>
                 </tr>
                 <tr>
-                  <td><code>CCAM_IMPORT_MAX_FILES</code></td>
+                  <td><code>CAM_IMPORT_MAX_FILES</code></td>
                   <td>2000</td>
                   <td>Maximum files per upload request</td>
                 </tr>
                 <tr>
-                  <td><code>CCAM_IMPORT_MAX_EXTRACT_BYTES</code></td>
+                  <td><code>CAM_IMPORT_MAX_EXTRACT_BYTES</code></td>
                   <td>4 GB</td>
                   <td>Ceiling on total uncompressed bytes from any single archive (zip-bomb defense)</td>
                 </tr>
@@ -3892,7 +3892,7 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
     "source": "upload",
     "processed": 184,
     "total": 512,
-    "current": "/tmp/ccam-import-work-xyz/project/&lt;uuid&gt;.jsonl",
+    "current": "/tmp/cam-import-work-xyz/project/&lt;uuid&gt;.jsonl",
     "counters": { "imported": 120, "backfilled": 40, "skipped": 20, "errors": 4 }
   }
 }</code></pre>
@@ -4070,7 +4070,7 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
           <h3>CLI</h3>
           <p>
             The same operations are available from the terminal via
-            <code>ccam remote-sources</code>, with subcommands <code>list</code>,
+            <code>cam remote-sources</code>, with subcommands <code>list</code>,
             <code>add</code>, <code>test &lt;id&gt;</code>, <code>sync [id]</code> (all sources
             when no id is given), and <code>rm &lt;id&gt; [--purge]</code> to remove a source
             and optionally drop the sessions it imported.
@@ -4270,7 +4270,7 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
                 </tr>
                 <tr>
                   <td><code>server/routes/import.js</code></td>
-                  <td>Express router for Import History. Four endpoints: <code>GET /api/import/guide</code> (OS-aware instructions + default-dir stats), <code>POST /api/import/rescan</code> (default <code>~/.claude/projects</code>), <code>POST /api/import/scan-path</code> (arbitrary absolute dir with <code>~</code> expansion), <code>POST /api/import/upload</code> (multer multipart). Each request uses a per-request temp dir reclaimed in <code>finally</code>. Progress broadcast as throttled <code>import.progress</code> WebSocket messages. Limits tunable via <code>CCAM_IMPORT_MAX_BYTES</code>, <code>CCAM_IMPORT_MAX_FILES</code>, <code>CCAM_IMPORT_MAX_EXTRACT_BYTES</code></td>
+                  <td>Express router for Import History. Four endpoints: <code>GET /api/import/guide</code> (OS-aware instructions + default-dir stats), <code>POST /api/import/rescan</code> (default <code>~/.claude/projects</code>), <code>POST /api/import/scan-path</code> (arbitrary absolute dir with <code>~</code> expansion), <code>POST /api/import/upload</code> (multer multipart). Each request uses a per-request temp dir reclaimed in <code>finally</code>. Progress broadcast as throttled <code>import.progress</code> WebSocket messages. Limits tunable via <code>CAM_IMPORT_MAX_BYTES</code>, <code>CAM_IMPORT_MAX_FILES</code>, <code>CAM_IMPORT_MAX_EXTRACT_BYTES</code></td>
                 </tr>
                 <tr>
                   <td><code>server/lib/archive.js</code></td>
@@ -4309,20 +4309,20 @@ codex plugin marketplace add buluma/Code-Agent-Monitor
 npx skills add buluma/Code-Agent-Monitor --list
 
 # Install individual plugins
-claude plugin install ccam-analytics@claude-code-agent-monitor-plugins
-claude plugin install ccam-cost-guard@claude-code-agent-monitor-plugins
-claude plugin install ccam-productivity@claude-code-agent-monitor-plugins
-claude plugin install ccam-devtools@claude-code-agent-monitor-plugins
-claude plugin install ccam-insights@claude-code-agent-monitor-plugins
-claude plugin install ccam-sessions@claude-code-agent-monitor-plugins
-claude plugin install ccam-workflows@claude-code-agent-monitor-plugins
-claude plugin install ccam-quality@claude-code-agent-monitor-plugins
-claude plugin install ccam-config@claude-code-agent-monitor-plugins
-claude plugin install ccam-dashboard@claude-code-agent-monitor-plugins
-claude plugin install ccam-runner@claude-code-agent-monitor-plugins
-claude plugin install ccam-integrations@claude-code-agent-monitor-plugins
-claude plugin install ccam-platform@claude-code-agent-monitor-plugins
-claude plugin install ccam-reports@claude-code-agent-monitor-plugins</code></pre>
+claude plugin install cam-analytics@claude-code-agent-monitor-plugins
+claude plugin install cam-cost-guard@claude-code-agent-monitor-plugins
+claude plugin install cam-productivity@claude-code-agent-monitor-plugins
+claude plugin install cam-devtools@claude-code-agent-monitor-plugins
+claude plugin install cam-insights@claude-code-agent-monitor-plugins
+claude plugin install cam-sessions@claude-code-agent-monitor-plugins
+claude plugin install cam-workflows@claude-code-agent-monitor-plugins
+claude plugin install cam-quality@claude-code-agent-monitor-plugins
+claude plugin install cam-config@claude-code-agent-monitor-plugins
+claude plugin install cam-dashboard@claude-code-agent-monitor-plugins
+claude plugin install cam-runner@claude-code-agent-monitor-plugins
+claude plugin install cam-integrations@claude-code-agent-monitor-plugins
+claude plugin install cam-platform@claude-code-agent-monitor-plugins
+claude plugin install cam-reports@claude-code-agent-monitor-plugins</code></pre>
 
           <h3>Available Plugins</h3>
           <div class="table-wrap">
@@ -4338,98 +4338,98 @@ claude plugin install ccam-reports@claude-code-agent-monitor-plugins</code></pre
               </thead>
               <tbody>
                 <tr>
-                  <td><strong>ccam-analytics</strong></td>
+                  <td><strong>cam-analytics</strong></td>
                   <td>session-report, cost-breakdown, usage-trends, productivity-score</td>
                   <td>analytics-advisor</td>
-                  <td><code>ccam-stats</code></td>
+                  <td><code>cam-stats</code></td>
                   <td>Token usage (4 types + baselines), cost via pricing engine, daily trends, productivity scoring</td>
                 </tr>
                 <tr>
-                  <td><strong>ccam-cost-guard</strong></td>
+                  <td><strong>cam-cost-guard</strong></td>
                   <td>budget-set, spend-forecast, cost-alert, model-savings, daily-budget-check</td>
                   <td>budget-sentinel</td>
                   <td>—</td>
                   <td>Budget guardrails: set budgets, forecast week/month-end spend, cost-threshold alerts, model-routing savings (fail-safe Stop hook)</td>
                 </tr>
                 <tr>
-                  <td><strong>ccam-productivity</strong></td>
+                  <td><strong>cam-productivity</strong></td>
                   <td>daily-standup, weekly-report, sprint-summary, workflow-optimizer</td>
                   <td>productivity-coach</td>
                   <td>—</td>
                   <td>Standup reports, sprint tracking, workflow optimization via 11 workflow intelligence datasets</td>
                 </tr>
                 <tr>
-                  <td><strong>ccam-devtools</strong></td>
+                  <td><strong>cam-devtools</strong></td>
                   <td>session-debug, hook-diagnostics, data-export, health-check</td>
                   <td>issue-triager</td>
-                  <td><code>ccam-doctor</code>, <code>ccam-export</code></td>
+                  <td><code>cam-doctor</code>, <code>cam-export</code></td>
                   <td>Session debugging, hook diagnostics, data export (JSON/CSV), system health</td>
                 </tr>
                 <tr>
-                  <td><strong>ccam-insights</strong></td>
+                  <td><strong>cam-insights</strong></td>
                   <td>pattern-detect, anomaly-alert, optimization-suggest, session-compare</td>
                   <td>insights-advisor</td>
                   <td>—</td>
                   <td>Pattern detection via tool flow transitions, anomaly alerting, optimization, session comparison</td>
                 </tr>
                 <tr>
-                  <td><strong>ccam-sessions</strong></td>
+                  <td><strong>cam-sessions</strong></td>
                   <td>session-search, session-timeline, transcript-replay, cwd-rollup, session-cleanup</td>
                   <td>session-investigator</td>
                   <td>—</td>
                   <td>Session forensics: search, timeline, transcript replay, per-cwd rollup, cleanup</td>
                 </tr>
                 <tr>
-                  <td><strong>ccam-workflows</strong></td>
+                  <td><strong>cam-workflows</strong></td>
                   <td>dag-map, delegation-audit, concurrency-report, error-propagation, fleet-runs</td>
                   <td>orchestration-analyst</td>
                   <td>—</td>
                   <td>Multi-agent orchestration &amp; fleet intelligence: DAG map, delegation audit, concurrency, error propagation, fleet runs (11-dataset workflow intelligence API)</td>
                 </tr>
                 <tr>
-                  <td><strong>ccam-quality</strong></td>
+                  <td><strong>cam-quality</strong></td>
                   <td>error-scan, api-error-report, hook-failure-audit, slo-check, regression-alert</td>
                   <td>reliability-engineer</td>
                   <td>—</td>
                   <td>Reliability &amp; SLOs: error scan, API-error report, hook-failure audit, SLO check, regression alert</td>
                 </tr>
                 <tr>
-                  <td><strong>ccam-config</strong></td>
+                  <td><strong>cam-config</strong></td>
                   <td>config-audit, memory-review, skill-inventory, mcp-audit, hook-inventory</td>
                   <td>config-auditor</td>
                   <td>—</td>
                   <td>Claude Code config &amp; memory governance: config audit, memory review, skill/MCP/hook inventory (via the Config Explorer API)</td>
                 </tr>
                 <tr>
-                  <td><strong>ccam-dashboard</strong></td>
+                  <td><strong>cam-dashboard</strong></td>
                   <td>dashboard-status, quick-stats</td>
                   <td>—</td>
                   <td>—</td>
                   <td>Dashboard connector with MCP integration and one-line metric summaries</td>
                 </tr>
                 <tr>
-                  <td><strong>ccam-runner</strong></td>
+                  <td><strong>cam-runner</strong></td>
                   <td>run-agent, run-history</td>
                   <td>run-operator</td>
                   <td>—</td>
                   <td>Safe monitored Claude Code/Codex launch, follow-up, stop, resume, and run history</td>
                 </tr>
                 <tr>
-                  <td><strong>ccam-integrations</strong></td>
+                  <td><strong>cam-integrations</strong></td>
                   <td>alert-management, webhook-management, remote-collection</td>
                   <td>integration-operator</td>
                   <td>—</td>
                   <td>Alert rules, webhook providers, push notifications, and SSH remote collection</td>
                 </tr>
                 <tr>
-                  <td><strong>ccam-platform</strong></td>
+                  <td><strong>cam-platform</strong></td>
                   <td>config-explorer, history-portability, hook-setup, mcp-server</td>
                   <td>platform-admin</td>
                   <td>—</td>
                   <td>Claude/Codex config, hooks, provider imports, backup restore, updates, and MCP operations</td>
                 </tr>
                 <tr>
-                  <td><strong>ccam-reports</strong></td>
+                  <td><strong>cam-reports</strong></td>
                   <td>executive-report, cost-report, reliability-report, workflow-report</td>
                   <td>report-analyst</td>
                   <td>—</td>
@@ -4442,41 +4442,41 @@ claude plugin install ccam-reports@claude-code-agent-monitor-plugins</code></pre
           <h3>Skill Usage Examples</h3>
           <div class="code-header"><span class="code-lang">claude code</span></div>
           <pre><code># Analytics — session report with per-model token breakdown + cost
-/ccam-analytics:session-report latest
+/cam-analytics:session-report latest
 
 # Analytics — cost breakdown with cache efficiency analysis
-/ccam-analytics:cost-breakdown this week
+/cam-analytics:cost-breakdown this week
 
 # Productivity — daily standup grouped by project
-/ccam-productivity:daily-standup today
+/cam-productivity:daily-standup today
 
 # Productivity — workflow optimization using workflow intelligence API
-/ccam-productivity:workflow-optimizer analyze
+/cam-productivity:workflow-optimizer analyze
 
 # DevTools — debug a session's full event chain
-/ccam-devtools:session-debug errors
+/cam-devtools:session-debug errors
 
 # Insights — detect tool flow patterns and anti-patterns
-/ccam-insights:pattern-detect tools
+/cam-insights:pattern-detect tools
 
 # Dashboard — one-line metrics summary
-/ccam-dashboard:quick-stats</code></pre>
+/cam-dashboard:quick-stats</code></pre>
 
           <h3>CLI Tools</h3>
           <div class="code-header"><span class="code-lang">bash</span></div>
           <pre><code># Quick terminal dashboard
-ccam-stats                  # Sessions, costs (per-model), tokens (with baselines)
-ccam-stats --cost           # Cost summary with matched pricing rules
-ccam-stats --tokens         # Token usage including compaction baselines
-ccam-stats --json           # Raw JSON output
+cam-stats                  # Sessions, costs (per-model), tokens (with baselines)
+cam-stats --cost           # Cost summary with matched pricing rules
+cam-stats --tokens         # Token usage including compaction baselines
+cam-stats --json           # Raw JSON output
 
 # System diagnostics
-ccam-doctor                 # Full diagnostic: API, endpoints, database, hooks, freshness
-ccam-doctor --quick         # Basic connectivity check
+cam-doctor                 # Full diagnostic: API, endpoints, database, hooks, freshness
+cam-doctor --quick         # Basic connectivity check
 
 # Data export
-ccam-export sessions --format csv --limit 500
-ccam-export all --output backup.json</code></pre>
+cam-export sessions --format csv --limit 500
+cam-export all --output backup.json</code></pre>
 
           <h3>Plugin Architecture</h3>
           <p>
@@ -4485,7 +4485,7 @@ ccam-export all --output backup.json</code></pre>
             <code>.agents/plugins/marketplace.json</code>. Each plugin directory contains:
           </p>
           <div class="code-header"><span class="code-lang">text</span></div>
-          <pre><code>plugins/ccam-{name}/
+          <pre><code>plugins/cam-{name}/
 ├── .claude-plugin/plugin.json    # Plugin manifest (name, version, description)
 ├── .codex-plugin/plugin.json     # Codex plugin manifest and interface metadata
 ├── skills/{skill-name}/SKILL.md  # Shared skill instructions
@@ -4494,7 +4494,7 @@ ccam-export all --output backup.json</code></pre>
 ├── agents/{agent-name}.md        # Agent definitions (model, tools, instructions)
 ├── hooks/hooks.json              # Event hooks (fail-safe, non-blocking)
 ├── bin/{cli-tool}                # CLI scripts (added to PATH)
-├── .mcp.json                     # Optional stable ccam mcp stdio launcher
+├── .mcp.json                     # Optional stable cam mcp stdio launcher
 └── settings.json                 # Plugin settings (dashboard plugin)</code></pre>
 
           <h3>Data Model Reference</h3>
@@ -5736,7 +5736,7 @@ xattr -cr "/Applications/Claude Code Monitor.app"</code></pre>
           </p>
 
           <p>
-            The same status is available from any terminal: <code>ccam update-check</code> asks
+            The same status is available from any terminal: <code>cam update-check</code> asks
             the server for the branch- and fork-aware comparison, prints the behind-by count and
             the copy-paste update command, and triggers the <code>update_status</code> WebSocket
             broadcast so any open dashboard tab refreshes at the same time.
@@ -5911,21 +5911,21 @@ xattr -cr "/Applications/Claude Code Monitor.app"</code></pre>
 
           <div class="screenshot-gallery">
             <div class="screenshot-card">
-              <img src="../images/grafana.png" alt="Grafana CCAM — Overview dashboard with live fleet metrics" width="100%" loading="lazy" decoding="async" />
-              <div class="screenshot-caption"><span class="caption-icon">📊</span> <span><strong>Grafana · CCAM — Overview</strong> — default home dashboard after login on port 3000: fleet snapshot, database totals, breakdown charts, and rates from live <code>/api/metrics</code> scrapes — no sample or synthetic data. The npm-only local helper uses <code>admin</code> / <code>admin</code>; container stacks use <code>deployments/secrets/grafana-admin-password</code>.</span></div>
+              <img src="../images/grafana.png" alt="Grafana CAM — Overview dashboard with live fleet metrics" width="100%" loading="lazy" decoding="async" />
+              <div class="screenshot-caption"><span class="caption-icon">📊</span> <span><strong>Grafana · CAM — Overview</strong> — default home dashboard after login on port 3000: fleet snapshot, database totals, breakdown charts, and rates from live <code>/api/metrics</code> scrapes — no sample or synthetic data. The npm-only local helper uses <code>admin</code> / <code>admin</code>; container stacks use <code>deployments/secrets/grafana-admin-password</code>.</span></div>
             </div>
             <div class="screenshot-card">
-              <img src="../images/prometheus-console.png" alt="Prometheus CCAM console landing page" width="100%" loading="lazy" decoding="async" />
-              <div class="screenshot-caption"><span class="caption-icon">🔥</span> <span><strong>Prometheus · CCAM console</strong> — static HTML at <code>/consoles/index.html</code> (Prometheus 3.x compatible): live metric cards, session/token tables, and one-click Graph drill-down links that query the Prometheus HTTP API directly</span></div>
+              <img src="../images/prometheus-console.png" alt="Prometheus CAM console landing page" width="100%" loading="lazy" decoding="async" />
+              <div class="screenshot-caption"><span class="caption-icon">🔥</span> <span><strong>Prometheus · CAM console</strong> — static HTML at <code>/consoles/index.html</code> (Prometheus 3.x compatible): live metric cards, session/token tables, and one-click Graph drill-down links that query the Prometheus HTTP API directly</span></div>
             </div>
             <div class="screenshot-card">
-              <img src="../images/prometheus-query.png" alt="Prometheus Graph UI running CCAM PromQL" width="100%" loading="lazy" decoding="async" />
-              <div class="screenshot-caption"><span class="caption-icon">📈</span> <span><strong>Prometheus · Graph</strong> — ad-hoc PromQL against scraped CCAM series; starter expressions ship in the CCAM console and <code>monitoring/README.md</code>, with derived rates in <code>monitoring/prometheus/ccam-rules.yml</code></span></div>
+              <img src="../images/prometheus-query.png" alt="Prometheus Graph UI running CAM PromQL" width="100%" loading="lazy" decoding="async" />
+              <div class="screenshot-caption"><span class="caption-icon">📈</span> <span><strong>Prometheus · Graph</strong> — ad-hoc PromQL against scraped CAM series; starter expressions ship in the CAM console and <code>monitoring/README.md</code>, with derived rates in <code>monitoring/prometheus/cam-rules.yml</code></span></div>
             </div>
           </div>
 
           <p>
-            CCAM exposes a read-only <strong>Prometheus text-exposition</strong> endpoint at
+            CAM exposes a read-only <strong>Prometheus text-exposition</strong> endpoint at
             <code>GET /api/metrics</code> — sessions and agents by status, cumulative events and
             tokens, connected WebSocket clients, configured remote sources, process uptime/RSS, and
             build version — so the same dashboard you use for Claude Code monitoring can be scraped
@@ -5938,12 +5938,12 @@ xattr -cr "/Applications/Claude Code Monitor.app"</code></pre>
             <strong>Quick start (npm):</strong> run the dashboard on loopback, then
             <code>npm run monitoring:install</code> once and <code>npm run monitoring:up</code>.
             Open Grafana at <code>http://localhost:3000</code> and Prometheus at
-            <code>http://localhost:9090</code>. The pre-built CCAM console is at
+            <code>http://localhost:9090</code>. The pre-built CAM console is at
             <code>http://localhost:9090/consoles/index.html</code> (also reachable from the
             Prometheus UI under <strong>Consoles</strong>). For an all-Docker path use
             <code>npm run monitoring:docker:up</code> or <code>npm run docker:full:up</code> for
             dashboard + Prometheus + Grafana together. Verify with
-            <code>npm run monitoring:verify</code> — the <code>ccam</code> scrape target should read
+            <code>npm run monitoring:verify</code> — the <code>cam</code> scrape target should read
             <strong>UP</strong>.
           </p>
 
@@ -5952,10 +5952,10 @@ xattr -cr "/Applications/Claude Code Monitor.app"</code></pre>
               <div class="feature-icon ic-amber">📊</div>
               <h3>Four Grafana boards</h3>
               <p>
-                <strong>CCAM — Overview</strong> (default home),
-                <strong>CCAM — Sessions &amp; Agents</strong>,
-                <strong>CCAM — Tokens &amp; Events</strong>, and
-                <strong>CCAM — Platform</strong> — all provisioned from
+                <strong>CAM — Overview</strong> (default home),
+                <strong>CAM — Sessions &amp; Agents</strong>,
+                <strong>CAM — Tokens &amp; Events</strong>, and
+                <strong>CAM — Platform</strong> — all provisioned from
                 <code>monitoring/grafana/dashboards/</code> with PromQL against your live scrape.
                 The npm-only local helper uses <code>admin</code> / <code>admin</code> via
                 <code>monitoring/grafana.defaults.env</code>. Container stacks read the password
@@ -5966,7 +5966,7 @@ xattr -cr "/Applications/Claude Code Monitor.app"</code></pre>
               <div class="feature-icon ic-rose">🔥</div>
               <h3>Prometheus console</h3>
               <p>
-                Prometheus 3.x dropped the legacy console template libraries, so CCAM ships a
+                Prometheus 3.x dropped the legacy console template libraries, so CAM ships a
                 <strong>static HTML console</strong> at
                 <code>monitoring/prometheus/consoles/index.html</code> that fetches
                 <code>/api/v1/query</code> directly — live cards, session tables, and Graph links
@@ -5977,9 +5977,9 @@ xattr -cr "/Applications/Claude Code Monitor.app"</code></pre>
               <div class="feature-icon ic-cyan">📈</div>
               <h3>Recording rules</h3>
               <p>
-                <code>monitoring/prometheus/ccam-rules.yml</code> derives convenient rates and
-                aggregates from raw <code>ccam_*</code> series (e.g.
-                <code>rate(ccam_tokens_total[5m])</code>) so Grafana panels and ad-hoc Graph queries
+                <code>monitoring/prometheus/cam-rules.yml</code> derives convenient rates and
+                aggregates from raw <code>cam_*</code> series (e.g.
+                <code>rate(cam_tokens_total[5m])</code>) so Grafana panels and ad-hoc Graph queries
                 stay fast without hand-rolling every expression.
               </p>
             </div>
@@ -6464,7 +6464,7 @@ npm run docker:full:up</code></pre>
               <strong>One SQLite writer</strong>
               <p>
                 Run exactly one dashboard container per data volume. Install hooks on the host.
-                Remote hook destinations must use HTTPS plus <code>CCAM_HOOK_TOKEN</code>.
+                Remote hook destinations must use HTTPS plus <code>CAM_HOOK_TOKEN</code>.
               </p>
             </div>
           </div>
@@ -6802,7 +6802,7 @@ npm run install-hooks</code></pre>
                 <tr>
                   <td><strong>React 19</strong></td>
                   <td>
-                    Current supported client runtime with strong TypeScript support. CCAM remains a
+                    Current supported client runtime with strong TypeScript support. CAM remains a
                     client-rendered SPA and does not enable Server Components or RSC.
                   </td>
                 </tr>
@@ -6901,7 +6901,7 @@ npm run install-hooks</code></pre>
     <!-- Body-content translations — must load before script.js so the
          i18n engine sees window.__WIKI_CONTENT_I18N. Both are deferred, so they
          run in document order. -->
-    <script src="script.js?v=59" defer></script>
+    <script src="script.js?v=60" defer></script>
     <script>
       (function () {
         var carousel = document.getElementById("feature-carousel");

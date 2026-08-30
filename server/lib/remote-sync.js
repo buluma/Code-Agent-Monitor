@@ -2,7 +2,7 @@
  * @file remote-sync.js
  * @description Pull Claude Code and Codex session history from remote machines
  * over SSH so one dashboard can monitor usage collected elsewhere (e.g. a dev
- * box or cloud VM the user drives over SSH while running CCAM on their laptop).
+ * box or cloud VM the user drives over SSH while running CAM on their laptop).
  *
  * Design (see repo issue "Live remote/multi-machine data collection"):
  *   1. Authentication ALWAYS defers to the host's own SSH stack — ~/.ssh/config,
@@ -466,7 +466,7 @@ function connectionProbeCommands(source, provider = "claude") {
 
   if (isWslRemoteHome(home)) {
     const history = wslHistoryPathFromHome(home.slice(4), provider);
-    probes.push(`wsl.exe -e sh -c 'test -d ${history} && echo CCAM_OK || echo CCAM_NO_DIR'`);
+    probes.push(`wsl.exe -e sh -c 'test -d ${history} && echo CAM_OK || echo CAM_NO_DIR'`);
     return probes;
   }
 
@@ -474,20 +474,20 @@ function connectionProbeCommands(source, provider = "claude") {
 
   if (/^\/\//.test(home)) {
     const winPath = remoteHistory.replace(/\//g, "\\");
-    probes.push(`cmd /c "if exist ${winPath} (echo CCAM_OK) else (echo CCAM_NO_DIR)"`);
+    probes.push(`cmd /c "if exist ${winPath} (echo CAM_OK) else (echo CAM_NO_DIR)"`);
     probes.push(
-      `powershell.exe -NoProfile -Command "if (Test-Path -LiteralPath '${remoteHistory}') { 'CCAM_OK' } else { 'CCAM_NO_DIR' }"`
+      `powershell.exe -NoProfile -Command "if (Test-Path -LiteralPath '${remoteHistory}') { 'CAM_OK' } else { 'CAM_NO_DIR' }"`
     );
     return probes;
   }
 
   if (/^[A-Za-z]:\//.test(home)) {
     const winPath = remoteHistory.replace(/\//g, "\\");
-    probes.push(`cmd /c "if exist ${winPath} (echo CCAM_OK) else (echo CCAM_NO_DIR)"`);
+    probes.push(`cmd /c "if exist ${winPath} (echo CAM_OK) else (echo CAM_NO_DIR)"`);
     return probes;
   }
 
-  const shProbe = `sh -c 'test -d ${remoteHistory} && echo CCAM_OK || echo CCAM_NO_DIR'`;
+  const shProbe = `sh -c 'test -d ${remoteHistory} && echo CAM_OK || echo CAM_NO_DIR'`;
   probes.push(shProbe);
 
   if (home.startsWith("~")) {
@@ -497,11 +497,11 @@ function connectionProbeCommands(source, provider = "claude") {
       ? `${tail}\\${history}`
       : `.${provider === "codex" ? "codex" : "claude"}\\${history}`;
     probes.push(
-      `powershell.exe -NoProfile -Command "if (Test-Path -LiteralPath (Join-Path $env:USERPROFILE '${rel}')) { 'CCAM_OK' } else { 'CCAM_NO_DIR' }"`
+      `powershell.exe -NoProfile -Command "if (Test-Path -LiteralPath (Join-Path $env:USERPROFILE '${rel}')) { 'CAM_OK' } else { 'CAM_NO_DIR' }"`
     );
     // Agent CLIs on Windows often keep their state inside WSL while SSH lands
     // in Windows. Probe the provider's matching history directory there too.
-    probes.push(`wsl.exe -e sh -c 'test -d ${remoteHistory} && echo CCAM_OK || echo CCAM_NO_DIR'`);
+    probes.push(`wsl.exe -e sh -c 'test -d ${remoteHistory} && echo CAM_OK || echo CAM_NO_DIR'`);
   }
   return probes;
 }
@@ -521,10 +521,10 @@ async function wslPathExists(source, wslHome, timeoutMs, provider = "claude") {
   const history = wslHistoryPathFromHome(wslHome, provider);
   const { code, stdout } = await runSsh(
     source,
-    `wsl.exe -e sh -c 'test -d ${history} && echo CCAM_OK || echo CCAM_NO_DIR'`,
+    `wsl.exe -e sh -c 'test -d ${history} && echo CAM_OK || echo CAM_NO_DIR'`,
     timeoutMs
   );
-  return code === 0 && stripAnsi(stdout).includes("CCAM_OK");
+  return code === 0 && stripAnsi(stdout).includes("CAM_OK");
 }
 
 function shouldTryWslFallback(source, err, provider = "claude") {
@@ -936,14 +936,14 @@ async function testProviderConnection(source, provider) {
   for (const remoteCmd of probes) {
     const { code, stdout, stderr } = await runSsh(source, remoteCmd, TEST_TIMEOUT_MS);
     const out = stripAnsi(stdout);
-    if (out.includes("CCAM_OK")) {
+    if (out.includes("CAM_OK")) {
       return {
         status: "ok",
         message: connectionSuccessMessage(source, remoteCmd, provider),
         path: remoteHistory,
       };
     }
-    if (out.includes("CCAM_NO_DIR")) {
+    if (out.includes("CAM_NO_DIR")) {
       // A default home can be checked through several remote shells: POSIX,
       // PowerShell, and WSL. A missing path in the first shell is not decisive
       // (for example, Windows SSH often reaches a WSL-hosted CLI), so let each
@@ -974,9 +974,9 @@ async function testConnection(source) {
   const remoteCodexSessions = remoteCodexSessionsPath(source);
 
   try {
-    const auth = await runSsh(source, "echo CCAM_AUTH", TEST_TIMEOUT_MS);
+    const auth = await runSsh(source, "echo CAM_AUTH", TEST_TIMEOUT_MS);
     const authOut = stripAnsi(auth.stdout);
-    if (auth.code !== 0 || !authOut.includes("CCAM_AUTH")) {
+    if (auth.code !== 0 || !authOut.includes("CAM_AUTH")) {
       const msg = stripAnsi(auth.stderr.trim() || `ssh exited with code ${auth.code}`).slice(
         0,
         500

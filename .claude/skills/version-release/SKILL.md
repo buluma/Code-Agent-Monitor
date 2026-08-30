@@ -14,21 +14,21 @@ Use Semantic Versioning as the repository-wide release rule:
 When a change fits more than one category, use the highest applicable bump. When uncertain between adjacent categories, prefer the higher bump or ask the user before releasing. Never infer the bump from commit count, diff size, or elapsed time alone.
 When the user explicitly requests a concrete version, that instruction overrides automatic classification. State the override and synchronize the requested version exactly.
 
-## CCAM release workflow
+## CAM release workflow
 
 1. Read the current root `package.json` version and summarize why the change is patch, minor, or major.
 2. Update the root `package.json` and root lockfile.
 3. Mirror the shipping version in `desktop/package.json` and `desktop/package-lock.json`.
 4. Update the OpenAPI version example in `server/openapi.js`, then run `npm run openapi:yaml`.
-5. Update the deployment surface, which carries the release in many places: `docker-compose.yml` (`ccam-dashboard` and `ccam-mcp` image tags), `deployments/helm/agent-monitor/Chart.yaml` (`version` **and** `appVersion`), every `deployments/kubernetes/**` manifest (`app.kubernetes.io/version` labels, `image:` tags, kustomize `newTag`), and `deployments/scripts/deploy.sh` (the `--tag` example and the `sed` image substitution).
-6. Update the version shown in `DEPLOYMENT.md` and `docs/DEPLOYMENT.md` (the `ccam-dashboard:<version>` substitution example) and in `CITATION.cff` (`version:`).
+5. Update the deployment surface, which carries the release in many places: `docker-compose.yml` (`cam-dashboard` and `cam-mcp` image tags), `deployments/helm/agent-monitor/Chart.yaml` (`version` **and** `appVersion`), every `deployments/kubernetes/**` manifest (`app.kubernetes.io/version` labels, `image:` tags, kustomize `newTag`), and `deployments/scripts/deploy.sh` (the `--tag` example and the `sed` image substitution).
+6. Update the version shown in `DEPLOYMENT.md` and `docs/DEPLOYMENT.md` (the `cam-dashboard:<version>` substitution example) and in `CITATION.cff` (`version:`).
 7. Update version-sensitive UI snapshots when the rendered release string changes (the dashboard renders `UI build v<version>`; regenerate with `cd client && npx vitest run -u` and confirm the diff is only the version line).
 8. Run `npm run extensions:sync` so every Claude/Codex plugin manifest and marketplace stays on the root release.
 9. Update release/version documentation only where the concrete version is intentionally shown.
 10. Create or reuse the open GitHub milestone named exactly `v<version>` for the new root version. Query all milestones before creating one. If an exact-title milestone already exists and is closed, stop and verify whether that version has already shipped instead of creating a duplicate.
 11. Identify the current open pull request containing the bump and assign it to that milestone. Read `closingIssuesReferences` from the PR and assign every linked closing issue to the same milestone. If the branch has no PR yet, create/reuse the milestone now and treat PR/issue assignment as an incomplete release step until the PR exists.
 12. Verify the milestone on the PR and every linked issue with fresh GitHub reads. Do not infer completion from a successful edit command alone.
-13. Run `npm run extensions:validate`, relevant tests/builds, and `ccam version` or `node bin/ccam.js version`.
+13. Run `npm run extensions:validate`, relevant tests/builds, and `cam version` or `node bin/cam.js version`.
 14. Confirm only independently shipped packages remain on their own versions; do not bump `client`, `mcp`, `monitoring`, or VS Code extension packages unless those products are also being released.
 
 ## The authoritative surface list

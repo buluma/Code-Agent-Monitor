@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
         - name: mcp-sidecar
-          image: ccam-mcp:3.3.0
+          image: cam-mcp:3.3.0
           imagePullPolicy: IfNotPresent
 
           ports:
@@ -26,9 +26,9 @@ spec:
             - name: MCP_HTTP_PORT
               value: "8819"
             - name: MCP_HTTP_AUTH_TOKEN_FILE
-              value: "/run/ccam-secrets/mcp-token"
+              value: "/run/cam-secrets/mcp-token"
             - name: MCP_DASHBOARD_API_TOKEN_FILE
-              value: "/run/ccam-secrets/dashboard-token"
+              value: "/run/cam-secrets/dashboard-token"
             - name: MCP_DASHBOARD_ALLOW_MUTATIONS
               value: "false"
             - name: MCP_DASHBOARD_ALLOW_DESTRUCTIVE
@@ -90,5 +90,5 @@ spec:
             - name: tmp
               mountPath: /tmp
             - name: secrets
-              mountPath: /run/ccam-secrets
+              mountPath: /run/cam-secrets
               readOnly: true

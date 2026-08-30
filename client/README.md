@@ -1000,7 +1000,7 @@ no central store — each feature owns its own key — so this is the inventory:
 | `agent-dashboard-tabby-enabled`      | local       | `components/Tabby/prefs.ts`     | Whether the Tabby companion is shown                                              |
 | `agent-dashboard-tabby-muted`        | local       | `components/Tabby/prefs.ts`     | Whether Tabby's speech bubbles are muted                                          |
 | `agent-dashboard-tabby-pos`          | local       | `components/Tabby/prefs.ts`     | Tabby's docked edge and vertical offset, as a viewport fraction                   |
-| `ccam-data-scope`                    | local       | `lib/dataScope.ts`              | App-wide data scope — selected remote sources and providers                       |
+| `cam-data-scope`                    | local       | `lib/dataScope.ts`              | App-wide data scope — selected remote sources and providers                       |
 | `sidebar-collapsed`                  | local       | `components/Sidebar.tsx`        | Sidebar collapsed state                                                           |
 | `sidebar-connection-stats`           | local       | `components/Sidebar.tsx`        | Cumulative WebSocket stats for the connection modal                               |
 | `provider-onboarding-shown-v1`       | **session** | `components/SplashScreen.tsx`   | Splash shown once per browser session, not once ever                              |

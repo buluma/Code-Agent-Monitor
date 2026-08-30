@@ -1,0 +1,30 @@
+{
+  "name": "cam-dashboard",
+  "version": "3.3.0",
+  "description": "Direct MCP integration with the Code Agent Monitor dashboard — real-time session data access, quick stats, and dashboard health monitoring via Model Context Protocol.",
+  "author": {
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
+  },
+  "homepage": "https://github.com/buluma/Code-Agent-Monitor",
+  "repository": "https://github.com/buluma/Code-Agent-Monitor",
+  "license": "MIT",
+  "keywords": ["dashboard", "mcp", "connector", "real-time", "monitoring", "claude-code"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "CAM Dashboard",
+    "shortDescription": "Direct MCP integration with the Code Agent Monitor dashboard — real-time session data...",
+    "longDescription": "Direct MCP integration with the Code Agent Monitor dashboard — real-time session data access, quick stats, and dashboard health monitoring via Model Context Protocol.",
+    "developerName": "Michael Buluma",
+    "category": "Developer Tools",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",
+    "defaultPrompt": [
+      "Use CAM Dashboard to inspect the local CAM dashboard.",
+      "Use CAM Dashboard to analyze recent agent activity."
+    ],
+    "brandColor": "#6366F1"
+  }
+}

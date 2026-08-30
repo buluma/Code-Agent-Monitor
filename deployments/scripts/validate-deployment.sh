@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# validate-deployment.sh — static release gate for CCAM container and cloud
+# validate-deployment.sh — static release gate for CAM container and cloud
 # deployment assets. It enforces the single-writer SQLite topology and validates
 # Docker, Compose, Nginx, Helm, Kustomize, dependency, and header contracts.
 # @author Michael Buluma <1452922+buluma@users.noreply.github.com>
@@ -19,7 +19,7 @@ audit_production_dependencies() {
   shift
   local attempt=1
   local max_attempts=3
-  local retry_base_seconds="${CCAM_AUDIT_RETRY_BASE_SECONDS:-2}"
+  local retry_base_seconds="${CAM_AUDIT_RETRY_BASE_SECONDS:-2}"
   local output errors status vulnerabilities stdout_file stderr_file
 
   if [[ ! "$retry_base_seconds" =~ ^[0-9]+$ ]]; then
@@ -113,10 +113,10 @@ assert_no_unsafe_assets() {
 validate_docker() {
   need docker
   log "Dockerfile static checks"
-  docker build --check --target runtime -t ccam-dashboard:check "${PROJECT_ROOT}" >/dev/null
-  docker build --check --target agent-runtime -t ccam-dashboard-agent:check "${PROJECT_ROOT}" >/dev/null
+  docker build --check --target runtime -t cam-dashboard:check "${PROJECT_ROOT}" >/dev/null
+  docker build --check --target agent-runtime -t cam-dashboard-agent:check "${PROJECT_ROOT}" >/dev/null
   docker build --check -f "${PROJECT_ROOT}/mcp/Dockerfile" --target runtime \
-    -t ccam-mcp:check "${PROJECT_ROOT}" >/dev/null
+    -t cam-mcp:check "${PROJECT_ROOT}" >/dev/null
 
   log "Compose rendering"
   docker compose -f "${PROJECT_ROOT}/docker-compose.yml" config >/dev/null
@@ -136,7 +136,7 @@ validate_docker() {
     -v "${PROJECT_ROOT}/deployments/nginx/snippets/hooks-blocked.conf:/etc/nginx/snippets/hooks-policy.conf:ro" \
     -v "${PROJECT_ROOT}/deployments/nginx/snippets/mcp-blocked.conf:/etc/nginx/snippets/mcp-policy.conf:ro" \
     --entrypoint /bin/sh nginxinc/nginx-unprivileged:1.30.0-alpine@sha256:808f7846d21a9c94cf53833e8807a00a33fd0b65cc47fb05b79efe366c2d201f -c \
-    'resolver=$(awk '\''/^nameserver[[:space:]]+/ {print $2; exit}'\'' /etc/resolv.conf); sed "s/__CCAM_DNS_RESOLVER__/${resolver}/g" /etc/nginx/nginx.conf.template >/tmp/nginx.conf; nginx -t -c /tmp/nginx.conf' \
+    'resolver=$(awk '\''/^nameserver[[:space:]]+/ {print $2; exit}'\'' /etc/resolv.conf); sed "s/__CAM_DNS_RESOLVER__/${resolver}/g" /etc/nginx/nginx.conf.template >/tmp/nginx.conf; nginx -t -c /tmp/nginx.conf' \
     >/dev/null
 }
 
@@ -147,7 +147,7 @@ validate_helm() {
   for values in values.yaml values-dev.yaml values-staging.yaml values-production.yaml; do
     local output
     output="$(mktemp)"
-    helm template ccam "${CHART_DIR}" -f "${CHART_DIR}/${values}" \
+    helm template cam "${CHART_DIR}" -f "${CHART_DIR}/${values}" \
       --namespace agent-monitor >"$output"
     assert_single_writer "$output"
     rm -f "$output"
@@ -224,7 +224,7 @@ validate_terraform() {
   docker run --rm \
     --user "$(id -u):$(id -g)" \
     --env HOME=/tmp \
-    --env TF_DATA_DIR=/tmp/ccam-terraform-data \
+    --env TF_DATA_DIR=/tmp/cam-terraform-data \
     -v "${PROJECT_ROOT}:/workspace" \
     -w /workspace/deployments/terraform \
     --entrypoint /bin/sh \

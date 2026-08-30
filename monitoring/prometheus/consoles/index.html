@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CCAM — Prometheus Console</title>
+  <title>CAM — Prometheus Console</title>
   <style>
     :root {
       color-scheme: light dark;
@@ -84,14 +84,14 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>CCAM — Code Agent Monitor</h1>
+    <h1>CAM — Code Agent Monitor</h1>
     <p class="sub">
       Live metrics from <code>GET /api/metrics</code> via Prometheus — your SQLite
       database on each scrape. No synthetic data.
     </p>
 
     <div id="warn" class="banner" role="alert">
-      <strong>No <code>ccam</code> scrape target yet.</strong>
+      <strong>No <code>cam</code> scrape target yet.</strong>
       Start the dashboard (<code>npm start</code> on port 4820), wait ~15s, then
       <a href="">refresh</a>.
     </div>
@@ -115,7 +115,7 @@
 
     <p class="footer">
       Grafana:
-      <a href="http://localhost:3000/d/ccam-overview/ccam-overview" target="_blank" rel="noopener">Overview</a>
+      <a href="http://localhost:3000/d/cam-overview/cam-overview" target="_blank" rel="noopener">Overview</a>
       &middot;
       <a href="http://localhost:3000/dashboards" target="_blank" rel="noopener">All dashboards</a>
       &middot;
@@ -127,14 +127,14 @@
 
   <script>
     const STARTERS = [
-      ["sum(ccam_sessions)", "Total sessions"],
-      ["ccam_sessions{status=\"completed\"}", "Completed sessions"],
-      ["ccam_events_total", "Cumulative events"],
-      ["sum(ccam_tokens_total)", "All tokens"],
-      ["rate(ccam_events_total[5m])", "Event throughput (/s)"],
-      ["sum(rate(ccam_tokens_total[5m]))", "Token throughput (/s)"],
-      ["ccam:sessions:total", "Recording rule — total sessions"],
-      ["ccam_websocket_clients", "WebSocket clients"],
+      ["sum(cam_sessions)", "Total sessions"],
+      ["cam_sessions{status=\"completed\"}", "Completed sessions"],
+      ["cam_events_total", "Cumulative events"],
+      ["sum(cam_tokens_total)", "All tokens"],
+      ["rate(cam_events_total[5m])", "Event throughput (/s)"],
+      ["sum(rate(cam_tokens_total[5m]))", "Token throughput (/s)"],
+      ["cam:sessions:total", "Recording rule — total sessions"],
+      ["cam_websocket_clients", "WebSocket clients"],
     ];
 
     function graphUrl(expr) {
@@ -230,16 +230,16 @@
           sessionVec,
           tokenVec,
         ] = await Promise.all([
-          promql('up{job="ccam"}'),
-          promql("ccam_up"),
-          promql("sum(ccam_sessions)"),
-          promql('ccam_sessions{status="active"}'),
-          promql("ccam_events_total"),
-          promql("sum(ccam_tokens_total)"),
-          promql('ccam_agents{status="working"}'),
-          promql("ccam_process_resident_memory_bytes"),
-          promql("ccam_sessions"),
-          promql("ccam_tokens_total"),
+          promql('up{job="cam"}'),
+          promql("cam_up"),
+          promql("sum(cam_sessions)"),
+          promql('cam_sessions{status="active"}'),
+          promql("cam_events_total"),
+          promql("sum(cam_tokens_total)"),
+          promql('cam_agents{status="working"}'),
+          promql("cam_process_resident_memory_bytes"),
+          promql("cam_sessions"),
+          promql("cam_tokens_total"),
         ]);
 
         const scrapeVal = scalar(scrapeUp);
@@ -248,21 +248,21 @@
         const upCls = (v) => (v === "1" ? "ok" : "bad");
         const upText = (v) => (v === "1" ? "UP" : v == null ? "—" : "DOWN");
 
-        cards.appendChild(card("Scrape", upText(scrapeVal), { cls: upCls(scrapeVal), expr: 'up{job="ccam"}' }));
-        cards.appendChild(card("API", upText(scalar(apiUp)), { cls: upCls(scalar(apiUp)), expr: "ccam_up" }));
-        cards.appendChild(card("Total sessions", humanize(scalar(totalSessions)), { expr: "sum(ccam_sessions)" }));
-        cards.appendChild(card("Active sessions", humanize(scalar(activeSessions)), { expr: 'ccam_sessions{status="active"}' }));
-        cards.appendChild(card("Total events", humanize(scalar(totalEvents)), { expr: "ccam_events_total" }));
-        cards.appendChild(card("All tokens", humanize(scalar(allTokens)), { expr: "sum(ccam_tokens_total)" }));
-        cards.appendChild(card("Working agents", humanize(scalar(workingAgents)), { expr: 'ccam_agents{status="working"}' }));
-        cards.appendChild(card("Memory (RSS)", bytes(scalar(rss)), { expr: "ccam_process_resident_memory_bytes" }));
+        cards.appendChild(card("Scrape", upText(scrapeVal), { cls: upCls(scrapeVal), expr: 'up{job="cam"}' }));
+        cards.appendChild(card("API", upText(scalar(apiUp)), { cls: upCls(scalar(apiUp)), expr: "cam_up" }));
+        cards.appendChild(card("Total sessions", humanize(scalar(totalSessions)), { expr: "sum(cam_sessions)" }));
+        cards.appendChild(card("Active sessions", humanize(scalar(activeSessions)), { expr: 'cam_sessions{status="active"}' }));
+        cards.appendChild(card("Total events", humanize(scalar(totalEvents)), { expr: "cam_events_total" }));
+        cards.appendChild(card("All tokens", humanize(scalar(allTokens)), { expr: "sum(cam_tokens_total)" }));
+        cards.appendChild(card("Working agents", humanize(scalar(workingAgents)), { expr: 'cam_agents{status="working"}' }));
+        cards.appendChild(card("Memory (RSS)", bytes(scalar(rss)), { expr: "cam_process_resident_memory_bytes" }));
 
         tableRows(
           sessionsBody,
           sessionVec.map((s) => ({
             label: s.metric.status || "?",
             value: humanize(s.value[1]),
-            expr: 'ccam_sessions{status="' + (s.metric.status || "") + '"}',
+            expr: 'cam_sessions{status="' + (s.metric.status || "") + '"}',
           })),
           "No session series yet."
         );
@@ -272,7 +272,7 @@
           tokenVec.map((s) => ({
             label: s.metric.kind || "?",
             value: humanize(s.value[1]),
-            expr: 'ccam_tokens_total{kind="' + (s.metric.kind || "") + '"}',
+            expr: 'cam_tokens_total{kind="' + (s.metric.kind || "") + '"}',
           })),
           "No token series yet."
         );

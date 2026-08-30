@@ -14,7 +14,7 @@ const os = require("os");
 const path = require("path");
 const Database = require("better-sqlite3");
 
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-helmcode-ingest-"));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "cam-helmcode-ingest-"));
 process.env.DASHBOARD_DB_PATH = path.join(TMP, "dashboard.db");
 process.env.DASHBOARD_HELMCODE_HOME = path.join(TMP, "helmcode");
 delete process.env.DASHBOARD_LEGACY_DB_PATH;

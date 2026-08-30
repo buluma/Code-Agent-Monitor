@@ -81,7 +81,7 @@ async function main() {
   const tmpDir = path.join(DATA_ROOT, "downloads");
   await fs.promises.mkdir(tmpDir, { recursive: true });
 
-  console.log("Downloading CCAM monitoring binaries (one-time setup)…");
+  console.log("Downloading CAM monitoring binaries (one-time setup)…");
   await installPrometheus(tmpDir);
   await installGrafana(tmpDir);
   await fs.promises.rm(tmpDir, { recursive: true, force: true });

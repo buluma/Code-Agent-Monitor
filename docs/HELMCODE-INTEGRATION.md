@@ -152,7 +152,7 @@ as the codex fingerprint path.
 
 ### Thread → Session
 
-| CCAM field                  | Source                                                                                                                                                                               |
+| CAM field                  | Source                                                                                                                                                                               |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `id`                        | `projection_threads.thread_id`                                                                                                                                                       |
 | `name`                      | thread `title` (which Helm Code regenerates), else `New session - <ts>`                                                                                                              |
@@ -164,14 +164,14 @@ as the codex fingerprint path.
 | `metadata`                  | JSON: helmcode-specific extras (`turn_count`, `pending_approval_count`, `interaction_mode`, `runtime_mode`, underlying `provider_name`, `provider_session_id`, pinned/snoozed flags) |
 
 **Lifecycle (wipe):** when `projection_threads.deleted_at` or `archived_at` is
-set, the sweep **deletes the CCAM session row** (and its messages/events cascade
+set, the sweep **deletes the CAM session row** (and its messages/events cascade
 per the dashboard's existing cleanup path) and removes the `helmcode_sync`
 cursor row. Wiped threads do not reappear unless the thread is un-archived in
 Helm Code and its rows are re-ingested as a new cursor baseline.
 
 ### Messages → `messages` rows
 
-`projection_thread_messages` → CCAM `messages` (1:1, `message_id` keyed by
+`projection_thread_messages` → CAM `messages` (1:1, `message_id` keyed by
 helmcode `message_id`), skipping `is_streaming` rows that never settle.
 
 ### Activities → `events` rows
@@ -186,7 +186,7 @@ input/output for `tool.*`) feeds `data`/`summary`, mirroring
 
 ### Turns → turn bookkeeping
 
-`projection_turns` → CCAM's existing turn/checkpoint fields (where present) for
+`projection_turns` → CAM's existing turn/checkpoint fields (where present) for
 duration and lifecycle analytics.
 
 ### Costs
@@ -302,11 +302,11 @@ WS message), `docs/API.md`, `docs/DATABASE.md`, `docs/PLUGINS.md` (new
    activities / turns). A non-destructive **Resync now** action re-runs
    `ingestHelmcodeSnapshot({confirmedLive:true})` and is the only mutation.
    Mirrors the existing Codex Config Explorer surface
-   (`/api/codex-config/overview` + `ccam config codex overview`); the config
+   (`/api/codex-config/overview` + `cam config codex overview`); the config
    lives in SQLite which the dashboard treats as read-only, so there are no
    file-edit endpoints (parity with the Codex "no overwrite of the redacted
    preview" rule). Adds `dashboard_get_helmcode_config` to MCP (read-only) and
-   `ccam config helmcode {overview|resync --yes}` to the CLI.
+   `cam config helmcode {overview|resync --yes}` to the CLI.
 2. **`/api/import` rescan + history** — **implemented.** `routes/import.js` and
    `helmcode-ingest.js` accept `helmcode` as an import provider alongside
    `claude`/`codex` (Claude/Codex parity via the existing Import History flow).

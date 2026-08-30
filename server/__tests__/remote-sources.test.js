@@ -222,7 +222,7 @@ describe("remote-sync command builders", () => {
   });
 
   it("connectionSuccessMessage reflects explicit vs auto-detected WSL", () => {
-    const wslProbe = "wsl.exe -e sh -c 'test -d ~/.claude/projects && echo CCAM_OK'";
+    const wslProbe = "wsl.exe -e sh -c 'test -d ~/.claude/projects && echo CAM_OK'";
     assert.match(
       remoteSync.connectionSuccessMessage({ remote_home: "wsl:~/.claude" }, wslProbe),
       /wsl:~\/\.claude/
@@ -236,7 +236,7 @@ describe("remote-sync command builders", () => {
       /auto-detected/i
     );
     assert.match(
-      remoteSync.connectionSuccessMessage({ remote_home: null }, "sh -c 'echo CCAM_OK'"),
+      remoteSync.connectionSuccessMessage({ remote_home: null }, "sh -c 'echo CAM_OK'"),
       /Remote Claude Code history found/
     );
   });
@@ -279,7 +279,7 @@ describe("remote-sync command builders", () => {
   it("uses sh probe for POSIX absolute remote homes", () => {
     const probes = remoteSync.connectionProbeCommands({ remote_home: "/opt/cc" });
     assert.deepEqual(probes, [
-      "sh -c 'test -d /opt/cc/projects && echo CCAM_OK || echo CCAM_NO_DIR'",
+      "sh -c 'test -d /opt/cc/projects && echo CAM_OK || echo CAM_NO_DIR'",
     ]);
   });
   it("accepts Windows-style remote_home with forward slashes", () => {
@@ -370,7 +370,7 @@ describe("remote-sync command builders", () => {
     );
   });
   it("identifies top-level session ids in a mirrored tree (skips subagents)", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-staged-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cam-staged-"));
     const proj = path.join(dir, "-Users-x-proj");
     fs.mkdirSync(path.join(proj, "sess-1", "subagents"), { recursive: true });
     fs.writeFileSync(path.join(proj, "sess-1.jsonl"), "{}\n");
@@ -382,7 +382,7 @@ describe("remote-sync command builders", () => {
   });
 
   it("identifies native Codex rollout ids in a mirrored staging tree", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-codex-staged-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cam-codex-staged-"));
     const id = "019fbb99-bd87-7c80-afec-ee65e2ebbe1c";
     const rollout = path.join(
       dir,
@@ -403,7 +403,7 @@ describe("remote Codex staging import", () => {
   it("uses the Codex ingestor, tags the source, and honors mirrored native titles", async () => {
     const sourceId = "src_remote_codex_import";
     const sessionId = "019fbb99-bd87-7c80-afec-ee65e2ebbe1c";
-    const stage = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-remote-codex-import-"));
+    const stage = fs.mkdtempSync(path.join(os.tmpdir(), "cam-remote-codex-import-"));
     const rollout = path.join(
       stage,
       "sessions",
@@ -797,7 +797,7 @@ describe("reconcileRemoteSessionStatus", () => {
   let stageRoot;
 
   before(() => {
-    stageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-recon-"));
+    stageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cam-recon-"));
   });
   after(() => {
     try {
