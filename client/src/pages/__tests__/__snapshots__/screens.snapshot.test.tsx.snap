@@ -7986,14 +7986,14 @@ exports[`screen snapshots > Settings 1`] = `
                 <span
                   class="text-sm font-medium text-gray-200"
                 >
-                  Both
+                  All
                 </span>
               </span>
             </span>
             <span
               class="mt-1 block text-xs leading-relaxed text-gray-500"
             >
-              Combine Claude Code and Codex data.
+              Combine Claude Code, Codex, and Helm Code data.
             </span>
           </button>
         </div>

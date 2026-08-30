@@ -125,11 +125,11 @@
     "claude": "Claude Code",
     "codex": "Codex",
     "helmcode": "Helm Code",
-    "both": "Both",
+    "both": "All",
     "claudeDescription": "Show only Claude Code data.",
     "codexDescription": "Show only Codex data.",
     "helmcodeDescription": "Show only Helm Code sessions and activity.",
-    "bothDescription": "Combine Claude Code and Codex data.",
+    "bothDescription": "Combine Claude Code, Codex, and Helm Code data.",
     "beta": "Beta"
   },
   "hooks": {

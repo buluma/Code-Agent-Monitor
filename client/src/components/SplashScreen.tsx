@@ -160,6 +160,13 @@ export function SplashScreen() {
 
   const continueFromProviderChoice = async () => {
     if (hookCheckInFlightRef.current) return;
+    // A scope needing no hooks (Helm Code) has nothing to check or install -
+    // skip the network round-trip entirely so a failed request never opens an
+    // empty hook gate for a provider that was never going to appear in it.
+    if (selectedHookProviders.length === 0) {
+      finishOnboarding();
+      return;
+    }
     hookCheckInFlightRef.current = true;
     setHookStatus(null);
     setInstallOutput([]);
@@ -276,6 +283,7 @@ export function SplashScreen() {
               [
                 ["claude", "Claude Code", "provider.claude"],
                 ["codex", "Codex", "provider.codex"],
+                ["helmcode", "Helm Code", "provider.helmcode"],
                 ["both", t("provider.both.label"), "provider.both"],
               ] as const
             ).map(([value, label, key]) => (
@@ -702,7 +710,7 @@ const SPLASH_CSS = `
 }
 .splash-provider-title { margin: 0; color: #e9e9f3; font-size: 0.9rem; font-weight: 650; }
 .splash-provider-subtitle { margin: 0.35rem 0 0; color: #8b8ba2; font-size: 0.75rem; }
-.splash-provider-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.55rem; margin-top: 0.85rem; }
+.splash-provider-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.55rem; margin-top: 0.85rem; }
 .splash-provider-card {
   min-height: 5.25rem; padding: 0.7rem; text-align: left; color: #9d9db4;
   border: 1px solid rgba(129, 140, 248, 0.2); border-radius: 0.75rem;
@@ -792,6 +800,7 @@ const SPLASH_CSS = `
 @keyframes splashSpin { to { transform: rotate(360deg); } }
 
 @media (max-width: 38rem) {
+  .splash-provider-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .splash-hook-gate-backdrop { align-items: end; padding: 0.75rem; }
   .splash-hook-gate { max-height: calc(100dvh - 1.5rem); overflow-y: auto; }
   .splash-hook-gate-header, .splash-hook-gate-body { padding-left: 1rem; padding-right: 1rem; }
