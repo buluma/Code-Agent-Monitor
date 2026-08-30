@@ -486,32 +486,31 @@ it).
 
 ### Core Endpoints
 
-| Method  | Path                            | Description                                                                                                                         |
-| ------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `GET`   | `/api/health`                   | Server health check (`status`, `version`, `timestamp`)                                                                              |
-| `GET`   | `/api/sessions`                 | List sessions (`status`, repeatable `cwd`, `sort_by`, `sort_desc`, `include_transient`, `include_task_progress`, `limit`, `offset`) |
-| `GET`   | `/api/sessions/:id`             | Session detail (includes `agents` + `events`)                                                                                       |
-| `POST`  | `/api/sessions`                 | Create session (idempotent by `id`)                                                                                                 |
-| `PATCH` | `/api/sessions/:id`             | Update session                                                                                                                      |
-| `GET`   | `/api/sessions/:id/transcripts` | List the session's transcript files (main + sub-agents)                                                                             |
-| `GET`   | `/api/sessions/:id/transcript`  | Cursor-paginated message stream for one transcript                                                                                  |
+| Method  | Path                               | Description                                                                                                                         |
+| ------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`   | `/api/health`                      | Server health check (`status`, `version`, `timestamp`)                                                                              |
+| `GET`   | `/api/sessions`                    | List sessions (`status`, repeatable `cwd`, `sort_by`, `sort_desc`, `include_transient`, `include_task_progress`, `limit`, `offset`) |
+| `GET`   | `/api/sessions/:id`                | Session detail (includes `agents` + `events`)                                                                                       |
+| `POST`  | `/api/sessions`                    | Create session (idempotent by `id`)                                                                                                 |
+| `PATCH` | `/api/sessions/:id`                | Update session                                                                                                                      |
+| `GET`   | `/api/sessions/:id/transcripts`    | List the session's transcript files (main + sub-agents)                                                                             |
+| `GET`   | `/api/sessions/:id/transcript`     | Cursor-paginated message stream for one transcript                                                                                  |
 | `POST`  | `/api/sessions/:id/focus-terminal` | Best-effort, macOS-only: raise the Ghostty/iTerm2 window running this session. Always 200 — `{focused: false}` on no match          |
-| `GET`   | `/api/agents`                   | List agents (`status`, `session_id`, `include_transient`, pagination)                                                               |
-| `GET`   | `/api/agents/:id`               | Agent detail                                                                                                                        |
-| `POST`  | `/api/agents`                   | Create agent (idempotent by `id`)                                                                                                   |
-| `PATCH` | `/api/agents/:id`               | Update agent                                                                                                                        |
-| `GET`   | `/api/events`                   | List events (`session_id`, `limit`, `offset`)                                                                                       |
-| `GET`   | `/api/stats`                    | Dashboard aggregate counters                                                                                                        |
-| `GET`   | `/api/analytics`                | Analytics aggregates for charts/trends                                                                                              |
-| `GET`   | `/api/metrics`                  | Prometheus / OpenMetrics exposition (text; v0.0.4)                                                                                  |
+| `GET`   | `/api/agents`                      | List agents (`status`, `session_id`, `include_transient`, pagination)                                                               |
+| `GET`   | `/api/agents/:id`                  | Agent detail                                                                                                                        |
+| `POST`  | `/api/agents`                      | Create agent (idempotent by `id`)                                                                                                   |
+| `PATCH` | `/api/agents/:id`                  | Update agent                                                                                                                        |
+| `GET`   | `/api/events`                      | List events (`session_id`, `limit`, `offset`)                                                                                       |
+| `GET`   | `/api/stats`                       | Dashboard aggregate counters                                                                                                        |
+| `GET`   | `/api/analytics`                   | Analytics aggregates for charts/trends                                                                                              |
+| `GET`   | `/api/metrics`                     | Prometheus / OpenMetrics exposition (text; v0.0.4)                                                                                  |
 
 **Prometheus metrics (`GET /api/metrics`).** Exposes the dashboard's live
 counters — `cam_sessions`/`cam_agents` by status, `cam_events_total`,
 `cam_tokens_total` by kind, `cam_websocket_clients`, `cam_remote_sources` by
-enabled state,
-`cam_process_uptime_seconds`/`cam_process_resident_memory_bytes`, and
-`cam_build_info{version}` — in the Prometheus v0.0.4 text-exposition format for
-scraping into Prometheus / Grafana (`server/routes/metrics.js`). Values come
+enabled state, `cam_process_uptime_seconds`/`cam_process_resident_memory_bytes`,
+and `cam_build_info{version}` — in the Prometheus v0.0.4 text-exposition format
+for scraping into Prometheus / Grafana (`server/routes/metrics.js`). Values come
 from the same `server/db.js` prepared statements the REST API uses, so they
 match the UI; status series are enumerated so a gauge never drops out of the
 exposition at zero. The route is read-only and, being under `/api`, sits behind
@@ -693,9 +692,9 @@ historical turns.
 
 ### Hook Ingestion
 
-| Method | Path               | Description                                                                      |
-| ------ | ------------------ | -------------------------------------------------------------------------------- |
-| `POST` | `/api/hooks/event` | Ingest one Claude Code hook event envelope                                       |
+| Method | Path               | Description                                                                                                                       |
+| ------ | ------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| `POST` | `/api/hooks/event` | Ingest one Claude Code hook event envelope                                                                                        |
 | `POST` | `/api/hooks/codex` | Acknowledge a Codex lifecycle notification and asynchronously ingest its rollout (or, for a rollout-less run, the payload itself) |
 
 Helm Code installs no hooks; its sessions arrive through the state-db sweep
@@ -787,8 +786,8 @@ history tree. A successful sync also emits `remote_data.updated`
 `{ sourceId, source, label?, counters?, providers?, last_sync_at? }` so open UI
 pages refetch sessions, costs, and analytics immediately. Enabled sources are
 also pulled automatically by the background sync poller (`startRemoteSourceSync`
-in `server/index.js`) — see [Continuous Project Sync](#continuous-project-sync)
-and the environment table.
+in `server/lib/remote-source-sync.js`) — see
+[Remote Data Source Sync](#remote-data-source-sync) and the environment table.
 
 #### Setup & troubleshooting
 
@@ -829,36 +828,37 @@ must already work without a prompt. Set a source up like this:
 5. **Add the source** (Settings → Remote Data Sources, or
    `cam remote-sources add`), click **Test**, then **Sync**.
 
-| Symptom (surfaced in `last_error` / the Test result) | Cause & fix                                                                                                                                                                                                                                                                                                                                                                             |
-| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Host key verification failed`                       | The host isn't in `known_hosts`. `ssh user@host` once to accept its key.                                                                                                                                                                                                                                                                                                                |
-| `Permission denied (publickey)`                      | No usable key for non-interactive auth. `ssh-add` your key, set `IdentityFile` in `~/.ssh/config`, or set the source's `identity_file`.                                                                                                                                                                                                                                                 |
-| `… does not exist on the remote`                     | The Test result identifies Claude Code or Codex. Set that provider's optional **Remote Claude home** / **Remote Codex home** field (defaults `~/.claude` / `~/.codex`).                                                                                                                                                                                                                 |
-| `scp` / `ssh` not recognized (Windows)               | Install the **OpenSSH Client** optional feature, restart the dashboard, or confirm `C:\Windows\System32\OpenSSH\scp.exe` exists.                                                                                                                                                                                                                                                        |
+| Symptom (surfaced in `last_error` / the Test result) | Cause & fix                                                                                                                                                                                                                                                                                                                                                                            |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Host key verification failed`                       | The host isn't in `known_hosts`. `ssh user@host` once to accept its key.                                                                                                                                                                                                                                                                                                               |
+| `Permission denied (publickey)`                      | No usable key for non-interactive auth. `ssh-add` your key, set `IdentityFile` in `~/.ssh/config`, or set the source's `identity_file`.                                                                                                                                                                                                                                                |
+| `… does not exist on the remote`                     | The Test result identifies Claude Code or Codex. Set that provider's optional **Remote Claude home** / **Remote Codex home** field (defaults `~/.claude` / `~/.codex`).                                                                                                                                                                                                                |
+| `scp` / `ssh` not recognized (Windows)               | Install the **OpenSSH Client** optional feature, restart the dashboard, or confirm `C:\Windows\System32\OpenSSH\scp.exe` exists.                                                                                                                                                                                                                                                       |
 | `Permission denied (publickey,password)`             | SSH auth failed in the **dashboard process** (not necessarily your Terminal). Leave **Identity file** blank for Secretive, ssh-agent, or default `~/.ssh` keys — CAM follows `ssh -G` / your config and does not force Secretive. Start the dashboard from the same shell as `ssh user@host`, or ensure your agent is running. Set **Identity file** only for an explicit on-disk key. |
-| Connected but directory missing                      | Claude Code or Codex may not be installed on the remote, or its `remote_home` / `remote_codex_home` points at the wrong path. On Windows SSH with either CLI in WSL, leave the matching home blank (auto WSL) or set `wsl:~/.claude` / `wsl:~/.codex`. Default native paths are `~/.claude/projects` and `~/.codex/sessions`.                                                           |
-| Sync hangs then errors after ~10 min                 | Bounded by `DASHBOARD_REMOTE_SYNC_TIMEOUT_MS`; usually a network/host issue — verify with **Test** (bounded by `DASHBOARD_REMOTE_TEST_TIMEOUT_MS`).                                                                                                                                                                                                                                     |
+| Connected but directory missing                      | Claude Code or Codex may not be installed on the remote, or its `remote_home` / `remote_codex_home` points at the wrong path. On Windows SSH with either CLI in WSL, leave the matching home blank (auto WSL) or set `wsl:~/.claude` / `wsl:~/.codex`. Default native paths are `~/.claude/projects` and `~/.codex/sessions`.                                                          |
+| Sync hangs then errors after ~10 min                 | Bounded by `DASHBOARD_REMOTE_SYNC_TIMEOUT_MS`; usually a network/host issue — verify with **Test** (bounded by `DASHBOARD_REMOTE_TEST_TIMEOUT_MS`).                                                                                                                                                                                                                                    |
 
 ### Linear
 
-Read-only ticket linking (`server/routes/linear.js` at `/api/linear`), scoped
-to [Linear](https://linear.app) only — no Jira, no GitHub Issues support.
+Read-only ticket linking (`server/routes/linear.js` at `/api/linear`), scoped to
+[Linear](https://linear.app) only — no Jira, no GitHub Issues support.
 
-| Method   | Path                            | Description                                                                                                   |
-| -------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `GET`    | `/api/linear/config`             | `{ configured: boolean }`                                                                                     |
-| `PUT`    | `/api/linear/config`             | Set the API key. Body: `{ apiKey }`                                                                            |
-| `DELETE` | `/api/linear/config`             | Clear the stored API key                                                                                       |
-| `GET`    | `/api/linear/sessions/:id/link`  | The session's linked issue, or `{ link: null }`                                                                |
-| `POST`   | `/api/linear/sessions/:id/link`  | Link by pasted URL (`{ url }`) or by auto-detecting the identifier from the session's git branch (`{ auto: true }`) |
-| `DELETE` | `/api/linear/sessions/:id/link`  | Unlink                                                                                                          |
+| Method   | Path                            | Description                                                                                                         |
+| -------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `GET`    | `/api/linear/config`            | `{ configured: boolean }`                                                                                           |
+| `PUT`    | `/api/linear/config`            | Set the API key. Body: `{ apiKey }`                                                                                 |
+| `DELETE` | `/api/linear/config`            | Clear the stored API key                                                                                            |
+| `GET`    | `/api/linear/sessions/:id/link` | The session's linked issue, or `{ link: null }`                                                                     |
+| `POST`   | `/api/linear/sessions/:id/link` | Link by pasted URL (`{ url }`) or by auto-detecting the identifier from the session's git branch (`{ auto: true }`) |
+| `DELETE` | `/api/linear/sessions/:id/link` | Unlink                                                                                                              |
 
 The API key (`server/lib/linear-config.js`) lives in one JSON file under the
 dashboard's data dir — the same pattern as `vapid-keys.json` — never in SQLite,
 never echoed back by the API, and excluded from DB export/import bundles.
 `server/lib/linear-client.js` does the GraphQL lookup and the URL/branch
 identifier parsing; the resolved issue snapshot (title/state/url) is cached in
-the `linear_links` table. See [docs/DATABASE.md](../docs/DATABASE.md#linear_links).
+the `linear_links` table. See
+[docs/DATABASE.md](../docs/DATABASE.md#linear_links).
 
 ### Settings / Ops
 
@@ -1099,10 +1099,10 @@ candidate.
 
 **Environment variables**
 
-| Variable                        | Default      | Purpose                                                                                                                                                      |
-| ------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Variable                       | Default      | Purpose                                                                                                                                                      |
+| ------------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `CAM_IMPORT_MAX_BYTES`         | `1073741824` | Maximum size per uploaded file                                                                                                                               |
-| `DASHBOARD_TOKEN_REPAIR`        | `1`          | One-time automatic repair of token totals inflated before usage was reconciled per `message.id`; `0` skips it (repair manually with `npm run repair-tokens`) |
+| `DASHBOARD_TOKEN_REPAIR`       | `1`          | One-time automatic repair of token totals inflated before usage was reconciled per `message.id`; `0` skips it (repair manually with `npm run repair-tokens`) |
 | `CAM_IMPORT_MAX_FILES`         | `2000`       | Maximum files per upload request                                                                                                                             |
 | `CAM_IMPORT_MAX_EXTRACT_BYTES` | `4294967296` | Total uncompressed bytes allowed per archive (zip-bomb guard)                                                                                                |
 
@@ -1566,12 +1566,13 @@ for user input).
 The startup auto-import of `~/.claude/projects` is **one-time** (marker-gated
 via `.legacy-import.done`), so a project folder created _after_ first launch —
 whose sessions never flow through hooks (e.g. host-only hooks disabled) — would
-stay invisible until a manual rescan. `startSessionSync` (in `server/index.js`,
-wired into `startBackgroundServices`) closes that gap. It calls the exported
-`syncDefaultProjects(dbModule, { mtimeCache })` from `scripts/import-history.js`
-via three triggers that share **one** `mtimeCache` and a **single coalesced
-sweep** (a `running`/`queued` guard serializes overlapping triggers so at most
-one sweep runs at a time, with at most one more queued):
+stay invisible until a manual rescan. `startSessionSync` (in
+`server/lib/session-sync.js`, wired into `startBackgroundServices`) closes that
+gap. It calls the exported `syncDefaultProjects(dbModule, { mtimeCache })` from
+`scripts/import-history.js` via three triggers that share **one** `mtimeCache`
+and a **single coalesced sweep** (a `running`/`queued` guard serializes
+overlapping triggers so at most one sweep runs at a time, with at most one more
+queued):
 
 1. **Immediate sweep** at startup — surfaces anything the one-time backfill
    missed, right away instead of after the first interval.
@@ -1618,7 +1619,7 @@ re-queued so a transient error retries instead of waiting for the file to grow.
 
 ### Remote Data Source Sync
 
-`startRemoteSourceSync` (in `server/index.js`, wired into
+`startRemoteSourceSync` (in `server/lib/remote-source-sync.js`, wired into
 `startBackgroundServices`) pulls history from every **enabled**
 [Remote Data Source](#remote-data-sources) on an interval. A cheap guard first
 checks whether any enabled source exists, so the poller does no SSH work at all
@@ -1988,8 +1989,8 @@ test("POST /api/hooks/event ingests hook payload", async () => {
 ## Terminal Access (`cam` CLI)
 
 Everything this server exposes over JSON REST is reachable from the
-dependency-free `cam` CLI (`bin/cam.js`, linked by `npm run setup`).
-High-level commands cover monitoring, data browsing, workflows/cost, Run Agent,
+dependency-free `cam` CLI (`bin/cam.js`, linked by `npm run setup`). High-level
+commands cover monitoring, data browsing, workflows/cost, Run Agent,
 alerts/rules/webhooks, Claude and GPT pricing, provider-aware imports, remote
 sources, Claude/Codex config, hooks, backup restore, and administration.
 `cam api <METHOD> /api/path` provides future-proof low-level coverage with
