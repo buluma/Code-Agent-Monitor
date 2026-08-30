@@ -5,7 +5,7 @@ name: cam
 # or run two active containers against the same data volume.
 services:
   agent-monitor:
-    image: ${CAM_IMAGE:-cam-dashboard:3.3.0}
+    image: ${CAM_IMAGE:-cam-dashboard:4.0.0}
     build:
       context: .
       dockerfile: Dockerfile
@@ -62,7 +62,7 @@ services:
   # Compose network and publishes MCP on host loopback only.
   mcp:
     profiles: ["mcp"]
-    image: ${CAM_MCP_IMAGE:-cam-mcp:3.3.0}
+    image: ${CAM_MCP_IMAGE:-cam-mcp:4.0.0}
     build:
       context: .
       dockerfile: mcp/Dockerfile

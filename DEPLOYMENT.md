@@ -193,7 +193,7 @@ Render and replace the local image name with an immutable registry reference:
 REGISTRY="ghcr.io/$(gh repo view --json owner -q .owner.login)"
 IMAGE_TAG="$(git rev-parse --short HEAD)"
 kubectl kustomize deployments/kubernetes/overlays/production \
-  | sed "s|cam-dashboard:3.3.0|${REGISTRY}/claude-code-agent-monitor:${IMAGE_TAG}|g" \
+  | sed "s|cam-dashboard:4.0.0|${REGISTRY}/claude-code-agent-monitor:${IMAGE_TAG}|g" \
   | kubectl apply --server-side --field-manager=cam-deployer -f -
 ```
 

@@ -1,6 +1,6 @@
 {
   "name": "code-agent-monitor-desktop",
-  "version": "3.3.0",
+  "version": "4.0.0",
   "private": true,
   "description": "Native macOS desktop shell for Code Agent Monitor.",
   "author": "Michael Buluma <1452922+buluma@users.noreply.github.com>",

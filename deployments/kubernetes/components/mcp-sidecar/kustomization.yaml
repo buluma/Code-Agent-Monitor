@@ -16,4 +16,4 @@ patches:
 
 images:
   - name: cam-mcp
-    newTag: 3.3.0
+    newTag: 4.0.0

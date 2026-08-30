@@ -1,6 +1,6 @@
 {
   "name": "cam-integrations",
-  "version": "3.3.0",
+  "version": "4.0.0",
   "description": "Manage CAM alert rules, universal webhook providers, browser push notifications, and SSH Remote Data Sources with explicit mutation and external-send confirmation.",
   "author": {
     "name": "Michael Buluma",

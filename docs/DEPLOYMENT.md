@@ -8,6 +8,6 @@ Example Kustomize image substitution from that guide:
 
 ```bash
 kubectl kustomize deployments/kubernetes/overlays/production \
-  | sed "s|cam-dashboard:3.3.0|${REGISTRY}/claude-code-agent-monitor:${IMAGE_TAG}|g" \
+  | sed "s|cam-dashboard:4.0.0|${REGISTRY}/claude-code-agent-monitor:${IMAGE_TAG}|g" \
   | kubectl apply --server-side --field-manager=cam-deployer -f -
 ```

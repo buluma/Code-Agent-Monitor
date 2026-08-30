@@ -415,7 +415,7 @@ flowchart TD
   so it reliably raises a backgrounded/minimized window.
 - **About panel** — `app.setAboutPanelOptions()` in `main.ts` customizes the
   native About panel so its "Version X (Y)" line shows the build date instead
-  of duplicating the semver, e.g. "Version 3.3.0 (Built August 28, 2026)" —
+  of duplicating the semver, e.g. "Version 4.0.0 (Built August 28, 2026)" —
   useful for support/bug reports when a user is on an older DMG. The date
   comes from `src/build-info.ts`, a git-ignored file `scripts/prebuild.js`
   regenerates on every `npm run build` (Electron main-process code compiles
