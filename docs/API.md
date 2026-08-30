@@ -1140,7 +1140,7 @@ destination. List and mutation responses mask URLs and redact secrets.
 ### Remote Data Sources
 
 The `/api/remote-sources/*` namespace configures **remote SSH machines** the
-dashboard pulls Claude Code, Codex, or both histories from, so one dashboard can
+dashboard pulls Claude Code, Codex, Helm Code, or all histories from, so one dashboard can
 consolidate sessions from several machines. Each provider is mirrored and
 imported independently; a source succeeds when either provider is present. Codex
 additionally mirrors its lightweight `session_index.jsonl` so native renamed
