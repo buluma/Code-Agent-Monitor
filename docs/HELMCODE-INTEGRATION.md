@@ -1,7 +1,6 @@
 # Helm Code Integration Spec
 
-Status: **Phase 1 Shipped (v3.1.0), Phase 2 partially shipped (v3.2.0)** — Remote Sources home and the launch-from-dashboard spawner skipped (not used) Date: 2026-08-28
-Scope owner: monitor backend (`server/`), client, MCP, docs
+Status: **Phase 1 Shipped (v3.1.0), Phase 2 partially shipped (v3.2.0)** — Remote Sources home and the launch-from-dashboard spawner skipped (not used) Date: 2026-08-28 Scope owner: monitor backend (`server/`), client, MCP, docs
 
 ---
 
@@ -104,7 +103,7 @@ and `<home>/dev/` for dev builds (see `server-runtime.json` / `environment-id`).
 │  lib/helmcode-ingest.js   → cursor over orchestration_events,  │
 │                             reconcile projections into        │
 │                             sessions/events/messages/turns     │
-│  index.js                 → startHelmcodeSync(broadcast):      │
+│  lib/helmcode-sync.js     → startHelmcodeSync(broadcast):      │
 │                               fs.watch on state.sqlite/-wal    │
 │                               (NOT -shm) + 4 s safety poll     │
 └──────────────────────────┬───────────────────────────────────┘
@@ -116,9 +115,9 @@ and `<home>/dev/` for dev builds (see `server-runtime.json` / `environment-id`).
 
 ### Real-time strategy (Phase 1)
 
-Mirror the proven Codex pattern in `server/index.js`
-(`codexHomeChangeTriggersSweep`, index.js:660–678), **including its `-shm`
-exclusion lesson**:
+Mirror the proven Codex pattern in `server/lib/codex-session-sync.js`
+(`codexHomeChangeTriggersSweep`, moved there from server/index.js), **including
+its `-shm` exclusion lesson**:
 
 - `fs.watch` the user-data dir; trigger on `state.sqlite` and `state.sqlite-wal`
   only. Never on `-shm` — SQLite touches the wal-index on every WAL-mode reader
@@ -152,7 +151,7 @@ as the codex fingerprint path.
 
 ### Thread → Session
 
-| CAM field                  | Source                                                                                                                                                                               |
+| CAM field                   | Source                                                                                                                                                                               |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `id`                        | `projection_threads.thread_id`                                                                                                                                                       |
 | `name`                      | thread `title` (which Helm Code regenerates), else `New session - <ts>`                                                                                                              |
@@ -196,20 +195,22 @@ event types (verified). The dashboard must not fabricate costs; display Helm
 Code sessions without token totals.
 
 **Phase 2 (implemented).** `state.sqlite` still has no token table, but each
-thread's `projection_thread_activities` carries periodic `context-window.updated`
-activities — a cumulative snapshot (`{inputTokens, outputTokens, usedTokens,
-totalProcessedTokens, maxTokens}`), not a per-turn delta. `helmcode-ingest.js`
-(`syncThreadTokenUsage`) reads the thread's latest such snapshot each sweep,
-resolves the thread's model (`model_selection_json`, falling back to the
-project's `default_model_selection_json`), and writes both as one absolute
-`token_usage` bucket via the existing `replaceTokenUsage` high-water-mark
-statement — correct for a cumulative snapshot the same way it already is for a
-full Claude transcript re-parse. A snapshot without a clean input/output split
-(older Helm Code builds only recorded `usedTokens`) or an unresolved model is
-skipped for that sweep rather than guessed.
+thread's `projection_thread_activities` carries periodic
+`context-window.updated` activities — a cumulative snapshot
+(`{inputTokens, outputTokens, usedTokens,
+totalProcessedTokens, maxTokens}`),
+not a per-turn delta. `helmcode-ingest.js` (`syncThreadTokenUsage`) reads the
+thread's latest such snapshot each sweep, resolves the thread's model
+(`model_selection_json`, falling back to the project's
+`default_model_selection_json`), and writes both as one absolute `token_usage`
+bucket via the existing `replaceTokenUsage` high-water-mark statement — correct
+for a cumulative snapshot the same way it already is for a full Claude
+transcript re-parse. A snapshot without a clean input/output split (older Helm
+Code builds only recorded `usedTokens`) or an unresolved model is skipped for
+that sweep rather than guessed.
 
-Costing uses `usage-scan-cache.json`'s sibling file, `usage-model-rates.json`
-— Helm Code's own bundled litellm rate table — read directly by
+Costing uses `usage-scan-cache.json`'s sibling file, `usage-model-rates.json` —
+Helm Code's own bundled litellm rate table — read directly by
 `server/lib/helmcode-pricing.js` rather than duplicated into the dashboard's
 curated `model_pricing`/`gpt_model_pricing` tables, since Helm Code can run any
 model any provider it wraps supports. `calculateProviderCost`
@@ -227,11 +228,11 @@ doesn't expose that breakdown, so this stays best-effort by design.
 
 ### New server modules
 
-| File                            | Contents                                                                                                                                                                                                                                                                 |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `server/lib/helmcode-home.js`   | `getHelmcodeHome()` (`DASHBOARD_HELMCODE_HOME` → `HELMCODE_HOME` → `~/.helmcode`), `getHelmcodeStateDbPath()`, `getHelmcodeServerRuntime()` (read `server-runtime.json`), `onHelmcodeHomeChanged(listener)`, `setHelmcodeHome()` (settings persistence)                  |
-| `server/lib/helmcode-ingest.js` | `findHelmcodeThreads()`, `applyHelmcodeEvents()` (cursor), `syncHelmcodeSessions()` (projection reconcile), `ingestHelmcodeSnapshot()` (one-shot import), `reconcileHelmcodeLiveness()`, `syncThreadTokenUsage()` (Phase 2: latest `context-window.updated` snapshot → `replaceTokenUsage`); returns `{changed, created, session, agent, events}` shaped like `codex-ingest` |
-| `server/lib/helmcode-pricing.js` | Phase 2: `loadHelmcodeModelRates()` (mtime-cached read of `usage-model-rates.json`), `resolveHelmcodeModelRate()` (strips known region/provider routing prefixes), `calculateHelmcodeCost()` (same return shape as `calculateGptCost`) |
+| File                             | Contents                                                                                                                                                                                                                                                                                                                                                                     |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server/lib/helmcode-home.js`    | `getHelmcodeHome()` (`DASHBOARD_HELMCODE_HOME` → `HELMCODE_HOME` → `~/.helmcode`), `getHelmcodeStateDbPath()`, `getHelmcodeServerRuntime()` (read `server-runtime.json`), `onHelmcodeHomeChanged(listener)`, `setHelmcodeHome()` (settings persistence)                                                                                                                      |
+| `server/lib/helmcode-ingest.js`  | `findHelmcodeThreads()`, `applyHelmcodeEvents()` (cursor), `syncHelmcodeSessions()` (projection reconcile), `ingestHelmcodeSnapshot()` (one-shot import), `reconcileHelmcodeLiveness()`, `syncThreadTokenUsage()` (Phase 2: latest `context-window.updated` snapshot → `replaceTokenUsage`); returns `{changed, created, session, agent, events}` shaped like `codex-ingest` |
+| `server/lib/helmcode-pricing.js` | Phase 2: `loadHelmcodeModelRates()` (mtime-cached read of `usage-model-rates.json`), `resolveHelmcodeModelRate()` (strips known region/provider routing prefixes), `calculateHelmcodeCost()` (same return shape as `calculateGptCost`)                                                                                                                                       |
 
 ### Modified server files
 
@@ -241,7 +242,7 @@ doesn't expose that breakdown, so this stays best-effort by design.
 | `server/lib/provider-filter.js`         | `VALID_PROVIDERS = ["claude","codex","helmcode"]`                                                                                                                                                                                                |
 | `server/routes/sessions.js`             | provider-aware card summary CASE + `includesCodex`-type helpers for `helmcode`; session-detail branch (`routeProviderContent(session)` → helmcode renderer mirroring `codexMessageContent`); distinctProviders already dynamic (sessions.js:454) |
 | `server/routes/settings.js`             | Helm Code home override read/write                                                                                                                                                                                                               |
-| `server/index.js`                       | `startHelmcodeSync(broadcast)` (watch + 4 s poll + wipe-triggered rescan); home-change watcher re-arm; include `helmcode` in any exhaustive provider enumerations                                                                                |
+| `server/lib/helmcode-sync.js`           | `startHelmcodeSync(broadcast)` (watch + 4 s poll + wipe-triggered rescan); home-change watcher re-arm; include `helmcode` in any exhaustive provider enumerations                                                                                |
 | `server/websocket.js`                   | new `session_removed` broadcast type (`{id, provider}`) used by the helmcode sweep wipe path                                                                                                                                                     |
 | `server/openapi.js` / `openapi-extra/*` | provider param enums/descriptions gain `"helmcode"`                                                                                                                                                                                              |
 | `server/routes/hooks.js`                | **No change** — Helm Code has no hook surface; document this explicitly                                                                                                                                                                          |
@@ -287,11 +288,11 @@ WS message), `docs/API.md`, `docs/DATABASE.md`, `docs/PLUGINS.md` (new
 
 ## 7. Phasing
 
-| Phase                           | Contents                                                                                                                                                                               | Rough effort                                                           |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| **1 — MVP (read-only monitor)** | `helmcode-home` + `helmcode-ingest` (poll + watcher), DB migration, provider filter, session routes/renderer, MCP provider enums, UI selector + labels, tests, full doc set            | 1 focused PR (mirror of the original codex port), `minor` version bump |
+| Phase                           | Contents                                                                                                                                                                                         | Rough effort                                                           |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| **1 — MVP (read-only monitor)** | `helmcode-home` + `helmcode-ingest` (poll + watcher), DB migration, provider filter, session routes/renderer, MCP provider enums, UI selector + labels, tests, full doc set                      | 1 focused PR (mirror of the original codex port), `minor` version bump |
 | **2 — Operational parity**      | Config Explorer page, `/api/import` rescan + history, cost attribution from `usage-model-rates.json` (best-effort); Remote Sources home and the launch-from-dashboard spawner skipped (not used) | 2–4 PRs                                                                |
-| **3 — Live path**               | WebSocket RPC client for Helm Code's event stream (pairing/auth ceremony via `auth_pairing_links`); genuine real-time instead of 4 s poll                                              | separate PR; needs helmcode API stability check                        |
+| **3 — Live path**               | WebSocket RPC client for Helm Code's event stream (pairing/auth ceremony via `auth_pairing_links`); genuine real-time instead of 4 s poll                                                        | separate PR; needs helmcode API stability check                        |
 
 ### Phase 2 sub-features (each its own PR, ordered by dependency)
 
@@ -314,11 +315,11 @@ WS message), `docs/API.md`, `docs/DATABASE.md`, `docs/PLUGINS.md` (new
    for Helm Code home (SSH, NFS, S3) mirroring the Claude/Codex remote-source
    shape. Not planned: this deployment runs Helm Code locally only.
 4. **Cost attribution** (best-effort) — **implemented.** Reads Helm Code's own
-   `usage-model-rates.json` (not `usage-scan-cache.json`, which turned out to
-   be a cross-provider transcript scan keyed by file path, not by thread — see
-   §5 Costs) to surface best-effort token totals and cost; guarded by
-   defensive reads throughout (no fabricated costs, no crashed sweep on a
-   malformed snapshot or missing rate file).
+   `usage-model-rates.json` (not `usage-scan-cache.json`, which turned out to be
+   a cross-provider transcript scan keyed by file path, not by thread — see §5
+   Costs) to surface best-effort token totals and cost; guarded by defensive
+   reads throughout (no fabricated costs, no crashed sweep on a malformed
+   snapshot or missing rate file).
 5. ~~**Launch-from-dashboard spawner**~~ (skipped — not used) —
    `helmcode-run-spawner` that launches/resumes Helm Code threads via the
    `helmcode` CLI. Most invasive (new destructive capability); not planned.
@@ -327,9 +328,10 @@ WS message), `docs/API.md`, `docs/DATABASE.md`, `docs/PLUGINS.md` (new
 
 ## 8. Risks & mitigations
 
-1. **`-shm` trigger loop** — the exact bug fixed at index.js:660. Mitigation:
-   never trigger on `state.sqlite-shm`; include the exclusion in a regression
-   test.
+1. **`-shm` trigger loop** — the exact bug fixed at
+   `codexHomeChangeTriggersSweep` (now in `server/lib/codex-session-sync.js`).
+   Mitigation: never trigger on `state.sqlite-shm`; include the exclusion in a
+   regression test.
 2. **Poll CPU tax on a 268 MB DB** — Mitigation: read-only _targeted_ queries
    keyed by cursor/`thread_id`; never a full-table scan per sweep; fingerprint
    gate before touching the DB; `npm run test:server` perf guard if one exists.
@@ -369,8 +371,8 @@ All open questions raised with the reviewer are resolved; see the
 - **2026-08-28 — Phase 2 partially shipped as v3.2.0 (PR #12).** Config Explorer
   page, `/api/import` rescan + history, and best-effort cost attribution (§5
   Costs, §7 sub-features 1/2/4) are implemented. Remote Sources home and the
-  launch-from-dashboard spawner (sub-features 3/5) are explicitly skipped —
-  this deployment runs Helm Code locally and doesn't need either. Also fixed:
+  launch-from-dashboard spawner (sub-features 3/5) are explicitly skipped — this
+  deployment runs Helm Code locally and doesn't need either. Also fixed:
   `dashboard_get_helmcode_config` was falling into the MCP REPL's `"other"`
   domain bucket instead of `"config"` (`mcp/src/transports/repl.ts`).
 
