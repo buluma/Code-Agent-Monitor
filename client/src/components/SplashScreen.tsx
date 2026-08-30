@@ -800,6 +800,7 @@ const SPLASH_CSS = `
 @keyframes splashSpin { to { transform: rotate(360deg); } }
 
 @media (max-width: 38rem) {
+  .splash-provider-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .splash-hook-gate-backdrop { align-items: end; padding: 0.75rem; }
   .splash-hook-gate { max-height: calc(100dvh - 1.5rem); overflow-y: auto; }
   .splash-hook-gate-header, .splash-hook-gate-body { padding-left: 1rem; padding-right: 1rem; }
