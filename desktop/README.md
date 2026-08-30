@@ -210,7 +210,7 @@ port, boots the server, and returns a `ServerHandle`.
 
 ```mermaid
 flowchart TD
-    start["startEmbeddedServer()"] --> forced{"CCAM_DESKTOP_BIND_PORT set?"}
+    start["startEmbeddedServer()"] --> forced{"CAM_DESKTOP_BIND_PORT set?"}
     forced -->|yes| bind["bind exactly that port<br/>(no adoption, no fallback)"]
     forced -->|no| adopt{"healthy server<br/>already on :4820?"}
     adopt -->|yes| reuse["adopt it<br/>ownedByUs = false"]
@@ -708,7 +708,7 @@ sequenceDiagram
     participant S as embedded server
 
     T->>T: pick a unique high port
-    T->>E: spawn with CCAM_DESKTOP_BIND_PORT=<port>
+    T->>E: spawn with CAM_DESKTOP_BIND_PORT=<port>
     E->>S: startEmbeddedServer() — bind exactly <port>
     loop until healthy or 60s
         T->>S: GET /api/health
@@ -718,7 +718,7 @@ sequenceDiagram
     T->>E: SIGTERM
 ```
 
-`CCAM_DESKTOP_BIND_PORT` forces the server onto an exact port (no adoption, no
+`CAM_DESKTOP_BIND_PORT` forces the server onto an exact port (no adoption, no
 fallback) so the test can be certain it probed _this_ process and not an
 unrelated server on `:4820`.
 
@@ -728,9 +728,9 @@ unrelated server on `:4820`.
 
 | Variable                                                     | Used by                   | Effect                                                                                                                                                                                             |
 | ------------------------------------------------------------ | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CCAM_DESKTOP_BIND_PORT`                                     | `server-host.ts`          | Bind exactly this port — disables adoption and fallback. Used by the smoke test.                                                                                                                   |
-| `CCAM_DESKTOP_NO_ADOPT`                                      | `server-host.ts`          | `=1` → never adopt an existing `:4820` server; always start our own.                                                                                                                               |
-| `CCAM_DESKTOP_VERBOSE`                                       | `logger.ts`               | Mirror `info`/`warn` log lines to stdout (errors always go to stderr).                                                                                                                             |
+| `CAM_DESKTOP_BIND_PORT`                                     | `server-host.ts`          | Bind exactly this port — disables adoption and fallback. Used by the smoke test.                                                                                                                   |
+| `CAM_DESKTOP_NO_ADOPT`                                      | `server-host.ts`          | `=1` → never adopt an existing `:4820` server; always start our own.                                                                                                                               |
+| `CAM_DESKTOP_VERBOSE`                                       | `logger.ts`               | Mirror `info`/`warn` log lines to stdout (errors always go to stderr).                                                                                                                             |
 | `DASHBOARD_DATA_DIR`                                         | `server-host.ts` → server | Set automatically to `app.getPath('userData')/data` so the SQLite database and VAPID keys live in the per-user Application Support directory, never inside the (possibly read-only) `.app` bundle. |
 | `CSC_IDENTITY_AUTO_DISCOVERY`                                | electron-builder          | Set to `false` by the `package` script — forces ad-hoc signing.                                                                                                                                    |
 | `CSC_LINK` / `CSC_KEY_PASSWORD`                              | electron-builder          | Explicit Developer ID `.p12` for real signing.                                                                                                                                                     |

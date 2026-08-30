@@ -196,7 +196,7 @@ function formatPagerDuty(alert, config) {
   return {
     routing_key: config.routing_key,
     event_action: "trigger",
-    dedup_key: `ccam:${alert.rule_id || "test"}:${alert.session_id || ""}`,
+    dedup_key: `cam:${alert.rule_id || "test"}:${alert.session_id || ""}`,
     payload: {
       summary: truncate(`${alert.rule_name}: ${alert.message}`, 1024),
       source: alert.session_id || "claude-code-agent-monitor",
@@ -219,7 +219,7 @@ function formatPagerDuty(alert, config) {
 function formatOpsgenie(alert) {
   return {
     message: truncate(`${alert.rule_name}: ${alert.message}`, 130),
-    alias: `ccam:${alert.rule_id || "test"}:${alert.session_id || ""}`,
+    alias: `cam:${alert.rule_id || "test"}:${alert.session_id || ""}`,
     description: truncate(alert.message, 15000),
     source: "claude-code-agent-monitor",
     tags: ["claude-code", alert.rule_type].filter(Boolean),
@@ -238,7 +238,7 @@ function formatOpsgenie(alert) {
 function formatSplunkOnCall(alert, config) {
   return {
     message_type: config.severity || "WARNING",
-    entity_id: `ccam:${alert.rule_id || "test"}:${alert.session_id || ""}`,
+    entity_id: `cam:${alert.rule_id || "test"}:${alert.session_id || ""}`,
     entity_display_name: truncate(alert.rule_name, 256),
     state_message: truncate(
       `${alert.message}\n\ntype: ${alert.rule_type}${alert.session_id ? `\nsession: ${alert.session_id}` : ""}`,

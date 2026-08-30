@@ -1,7 +1,7 @@
 /**
  * @file stdio-smoke.mjs
  * @description End-to-end MCP stdio smoke test. It connects a real MCP client
- * to the built CCAM server, verifies the complete tool catalog, and calls the
+ * to the built CAM server, verifies the complete tool catalog, and calls the
  * dashboard health tool through an optionally authenticated local API.
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
@@ -18,8 +18,8 @@ const dashboardPort = process.env.DASHBOARD_PORT;
 assert.ok(dashboardPort, "DASHBOARD_PORT is required");
 
 const transport = new StdioClientTransport({
-  command: process.env.CCAM_MCP_COMMAND || process.execPath,
-  args: process.env.CCAM_MCP_COMMAND
+  command: process.env.CAM_MCP_COMMAND || process.execPath,
+  args: process.env.CAM_MCP_COMMAND
     ? ["mcp", "stdio"]
     : [path.join(packageRoot, "build", "index.js")],
   cwd: path.resolve(packageRoot, ".."),
@@ -30,7 +30,7 @@ const transport = new StdioClientTransport({
   },
   stderr: "pipe",
 });
-const client = new Client({ name: "ccam-stdio-smoke", version: "1.0.0" });
+const client = new Client({ name: "cam-stdio-smoke", version: "1.0.0" });
 
 try {
   await client.connect(transport);

@@ -2145,7 +2145,7 @@ async function reconcileTokens(dbModule, options = {}) {
     // then fall back to the transcript path persisted on the session row. The
     // scan alone misses every Claude session whose transcript lives outside
     // the default tree — e.g. one imported from a custom directory via
-    // `ccam import path`, or a non-default CLAUDE_HOME — which would silently
+    // `cam import path`, or a non-default CLAUDE_HOME — which would silently
     // leave those sessions un-repaired despite having a transcript on disk.
     let jsonlPath = sessionPaths.get(sessionId);
     if (!jsonlPath && storedPath && storedPath.endsWith(".jsonl")) {

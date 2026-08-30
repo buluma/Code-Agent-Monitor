@@ -11,7 +11,7 @@ const http = require("node:http");
 const os = require("node:os");
 const path = require("node:path");
 
-const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-task-progress-api-"));
+const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "cam-task-progress-api-"));
 const TEST_DB = path.join(ROOT, "test.db");
 process.env.DASHBOARD_DB_PATH = TEST_DB;
 process.env.DASHBOARD_REMOTE_SYNC_MS = "0";

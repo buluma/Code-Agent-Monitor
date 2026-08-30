@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/component: server
     app.kubernetes.io/managed-by: kustomize
 spec:
-  # CCAM uses one SQLite database. Run exactly one active dashboard writer per
+  # CAM uses one SQLite database. Run exactly one active dashboard writer per
   # PVC. Recreate ensures upgrades never overlap old and new writers.
   replicas: 1
   revisionHistoryLimit: 5
@@ -44,7 +44,7 @@ spec:
 
       containers:
         - name: agent-monitor
-          image: ccam-dashboard:3.3.0
+          image: cam-dashboard:3.3.0
           imagePullPolicy: IfNotPresent
 
           ports:
@@ -61,9 +61,9 @@ spec:
                 fieldRef:
                   fieldPath: status.podIP
             - name: DASHBOARD_TOKEN_FILE
-              value: /run/ccam-secrets/dashboard-token
+              value: /run/cam-secrets/dashboard-token
             - name: DASHBOARD_HOOK_TOKEN_FILE
-              value: /run/ccam-secrets/hook-token
+              value: /run/cam-secrets/hook-token
 
           resources:
             requests:
@@ -123,7 +123,7 @@ spec:
             - name: data
               mountPath: /app/data
             - name: secrets
-              mountPath: /run/ccam-secrets
+              mountPath: /run/cam-secrets
               readOnly: true
             - name: tmp
               mountPath: /tmp

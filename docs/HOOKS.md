@@ -186,13 +186,13 @@ Hook handlers use localhost discovery by default. To forward live Claude Code or
 Codex events to a remote dashboard, configure the host that runs the agent:
 
 ```bash
-export CCAM_DASHBOARD_URL=https://agent-monitor.example.com
-export CCAM_HOOK_TOKEN_FILE=/secure/path/hook-token
+export CAM_DASHBOARD_URL=https://agent-monitor.example.com
+export CAM_HOOK_TOKEN_FILE=/secure/path/hook-token
 ```
 
-Non-loopback `CCAM_DASHBOARD_URL` values must use HTTPS and must provide
-`CCAM_HOOK_TOKEN` or `CCAM_HOOK_TOKEN_FILE`. The handler sends the credential as
-`x-ccam-hook-token`; the dashboard verifies it against `DASHBOARD_HOOK_TOKEN` or
+Non-loopback `CAM_DASHBOARD_URL` values must use HTTPS and must provide
+`CAM_HOOK_TOKEN` or `CAM_HOOK_TOKEN_FILE`. The handler sends the credential as
+`x-cam-hook-token`; the dashboard verifies it against `DASHBOARD_HOOK_TOKEN` or
 `DASHBOARD_HOOK_TOKEN_FILE` with constant-time token matching. The hook remains
 fail-safe and non-blocking: invalid configuration, connection failures,
 timeouts, or authentication failures never block Claude Code or Codex.
@@ -208,7 +208,7 @@ Use a hook token separate from the browser/dashboard token.
 > break every host hook with `MODULE_NOT_FOUND`. The host handler POSTs to
 > `http://localhost:4820`, which a containerized dashboard already publishes.
 > (Escape hatch for running Claude Code _inside_ the same container:
-> `CCAM_ALLOW_CONTAINER_HOOKS=1 npm run install-hooks`.)
+> `CAM_ALLOW_CONTAINER_HOOKS=1 npm run install-hooks`.)
 
 For Codex, the installer writes only this dashboard's lifecycle entries to
 `~/.codex/hooks.json`. Each entry runs `scripts/codex-hook-handler.js`, which
@@ -374,8 +374,8 @@ Before relying on hooks for production monitoring:
 - Start one short test session and verify that it creates activity in the
   dashboard before assuming historical import or remote sync is covering live
   events.
-- For a remote dashboard, configure `CCAM_DASHBOARD_URL` and a file-backed
-  `CCAM_HOOK_TOKEN_FILE`; do not put the hook token directly in a shared shell
+- For a remote dashboard, configure `CAM_DASHBOARD_URL` and a file-backed
+  `CAM_HOOK_TOKEN_FILE`; do not put the hook token directly in a shared shell
   history or checked-in configuration.
 - Keep hook failures non-blocking. If delivery cannot be established, fix the
   dashboard connection rather than replacing the fail-safe hook behavior.
@@ -701,7 +701,7 @@ Triggered when a Claude Code session ends.
 ```mermaid
 flowchart LR
   STDIN["Hook JSON on stdin"] --> WRAP["Add hook_type"]
-  WRAP --> TARGET{"CCAM_DASHBOARD_URL set?"}
+  WRAP --> TARGET{"CAM_DASHBOARD_URL set?"}
   TARGET -->|No| LOCAL["Discover local dashboard ports"]
   TARGET -->|Yes| VALIDATE["Require HTTP(S); remote requires HTTPS + hook token"]
   LOCAL --> SEND["Fire-and-forget POST"]
@@ -713,9 +713,9 @@ flowchart LR
 The real handlers are intentionally small. `scripts/hook-handler.js` and
 `scripts/codex-hook-handler.js` parse stdin and delegate delivery to
 `scripts/hook-transport.js`. Local mode fans out to one live dashboard per
-unique SQLite data directory. Remote mode uses `CCAM_DASHBOARD_URL`, requires
-HTTPS outside loopback, reads `CCAM_HOOK_TOKEN` or `CCAM_HOOK_TOKEN_FILE`, and
-sends `x-ccam-hook-token`. Requests resolve when the body is flushed, not when
+unique SQLite data directory. Remote mode uses `CAM_DASHBOARD_URL`, requires
+HTTPS outside loopback, reads `CAM_HOOK_TOKEN` or `CAM_HOOK_TOKEN_FILE`, and
+sends `x-cam-hook-token`. Requests resolve when the body is flushed, not when
 the dashboard replies, so a slow or unavailable server never delays the agent
 CLI. Parse errors are wrapped as raw input, and all network/configuration errors
 fail silently with exit code 0.

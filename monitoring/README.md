@@ -1,4 +1,4 @@
-# CCAM monitoring stack (Prometheus + Grafana)
+# CAM monitoring stack (Prometheus + Grafana)
 
 ![Prometheus](https://img.shields.io/badge/Prometheus-3.13-E6522C?style=flat-square&logo=prometheus&logoColor=white)
 ![Grafana](https://img.shields.io/badge/Grafana-13.1-F46800?style=flat-square&logo=grafana&logoColor=white)
@@ -8,7 +8,7 @@
 A turnkey [Prometheus](https://prometheus.io/) + [Grafana](https://grafana.com/)
 stack that scrapes the dashboard's [`GET /api/metrics`](../docs/API.md#metrics)
 endpoint and renders **four auto-provisioned Grafana dashboards** (default home:
-**CCAM — Overview**). Use it to watch live
+**CAM — Overview**). Use it to watch live
 sessions, agent states, event throughput, and token burn from the same
 observability stack as the rest of your infra.
 
@@ -27,7 +27,7 @@ runs `postinstall` in this folder and pulls official release binaries into
 | Windows | `x64` |
 
 Node.js 22.22+ is the only prerequisite. Node 24 LTS is recommended. On Windows, run the npm commands from
-PowerShell or Command Prompt in the repo root (same as the rest of CCAM).
+PowerShell or Command Prompt in the repo root (same as the rest of CAM).
 
 ## Grafana login
 
@@ -42,8 +42,8 @@ The admin account is **auto-created on first start** — no manual signup:
 The npm-only local stack uses the development credential in
 [`grafana.defaults.env`](./grafana.defaults.env). Container stacks read the
 password from `deployments/secrets/grafana-admin-password`; they never use the
-development default. **CCAM — Overview** is the default
-home dashboard (`GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_UID=ccam-overview`) with
+development default. **CAM — Overview** is the default
+home dashboard (`GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_UID=cam-overview`) with
 PromQL queries against your live `/api/metrics` scrape — no sample or synthetic
 data. The Prometheus datasource is pre-provisioned, so you land straight in the
 UI after login.
@@ -61,12 +61,12 @@ monitoring/
 │   ├── prometheus-native.yml              # scrape config for npm-managed stack
 │   ├── prometheus.yml                     # scrape config for Docker stack
 │   ├── prometheus-docker.yml              # all-Docker stack (docker-compose.full.yml)
-│   ├── ccam-rules.yml                     # recording rules (derived from live scrapes)
-│   └── consoles/index.html                # Prometheus CCAM console (pre-built graphs)
+│   ├── cam-rules.yml                     # recording rules (derived from live scrapes)
+│   └── consoles/index.html                # Prometheus CAM console (pre-built graphs)
 ├── grafana/
 │   ├── provisioning/…                     # Docker datasource + dashboard provider
 │   ├── provisioning-native/…              # npm-managed datasource template
-│   └── dashboards/                        # ccam-overview + 3 focused boards
+│   └── dashboards/                        # cam-overview + 3 focused boards
 └── docker-compose.yml                     # optional Docker path
 ```
 
@@ -97,11 +97,11 @@ monitoring/
 
 4. **Open Grafana** at <http://localhost:3000> (the npm-only local login is
    `admin` / `admin`). The
-   **CCAM — Overview** dashboard is already there — no import step. For
-   Prometheus, open the pre-built **CCAM console** at
+   **CAM — Overview** dashboard is already there — no import step. For
+   Prometheus, open the pre-built **CAM console** at
    <http://localhost:9090/consoles/index.html> (live graphs + tables), or
    <http://localhost:9090> → **Consoles** → `index.html` (`Status → Targets`:
-   `ccam` should be **UP**).
+   `cam` should be **UP**).
 
 Stop with `npm run monitoring:down`. For a foreground session with logs on the
 terminal, use `npm run monitoring:start` instead (Ctrl+C stops both).
@@ -186,35 +186,35 @@ Four dashboards are auto-provisioned from `grafana/dashboards/` — all query li
 
 | Dashboard | UID | Focus |
 | --- | --- | --- |
-| **CCAM — Overview** | `ccam-overview` | Default home — fleet snapshot, totals, breakdowns, rates |
-| **CCAM — Sessions & Agents** | `ccam-sessions-agents` | Session lifecycle, agent states, WebSocket clients |
-| **CCAM — Tokens & Events** | `ccam-tokens-events` | Cumulative tokens/events, throughput rates, cache efficiency |
-| **CCAM — Platform Health** | `ccam-platform` | Scrape/API uptime, process memory, remote sources, build info |
+| **CAM — Overview** | `cam-overview` | Default home — fleet snapshot, totals, breakdowns, rates |
+| **CAM — Sessions & Agents** | `cam-sessions-agents` | Session lifecycle, agent states, WebSocket clients |
+| **CAM — Tokens & Events** | `cam-tokens-events` | Cumulative tokens/events, throughput rates, cache efficiency |
+| **CAM — Platform Health** | `cam-platform` | Scrape/API uptime, process memory, remote sources, build info |
 
 Each board links to the others in the header. After `monitoring:up`, open
 http://localhost:3000/dashboards or land on **Overview** as the home dashboard.
 
 ## What's on the Overview dashboard
 
-The bundled **CCAM — Overview** board uses only metrics from your database.
+The bundled **CAM — Overview** board uses only metrics from your database.
 **Cumulative stat panels** (total sessions, events, tokens) show substantial
 numbers on the first scrape; **rate panels** need a few minutes of scrape
 history before lines appear.
 
 | Section | Example queries |
 | --- | --- |
-| Live fleet | `ccam_sessions{status="active"}`, `ccam_agents{status="working"}`, `ccam_websocket_clients`, `sum(ccam_sessions)` |
-| Database totals | `ccam_sessions{status="completed"}`, `ccam_events_total`, `ccam_tokens_total`, `sum(ccam_tokens_total)` |
-| Breakdown | `ccam_sessions` (pie), `ccam_tokens_total` (bar gauge) |
-| Over time | `ccam_sessions`, `ccam_events_total`, `ccam_tokens_total` |
-| Rates | `rate(ccam_events_total[5m])`, `rate(ccam_tokens_total[5m])` |
-| Process | `ccam_process_uptime_seconds`, `ccam_process_resident_memory_bytes`, `ccam_build_info` |
+| Live fleet | `cam_sessions{status="active"}`, `cam_agents{status="working"}`, `cam_websocket_clients`, `sum(cam_sessions)` |
+| Database totals | `cam_sessions{status="completed"}`, `cam_events_total`, `cam_tokens_total`, `sum(cam_tokens_total)` |
+| Breakdown | `cam_sessions` (pie), `cam_tokens_total` (bar gauge) |
+| Over time | `cam_sessions`, `cam_events_total`, `cam_tokens_total` |
+| Rates | `rate(cam_events_total[5m])`, `rate(cam_tokens_total[5m])` |
+| Process | `cam_process_uptime_seconds`, `cam_process_resident_memory_bytes`, `cam_build_info` |
 
 See [`docs/API.md` → Metrics](../docs/API.md#metrics) for the full metric list.
 
 ## Prometheus quick start
 
-**Open the CCAM console first** — static HTML that queries Prometheus directly
+**Open the CAM console first** — static HTML that queries Prometheus directly
 (Prometheus 3.x compatible; no deprecated console template libraries):
 
 **http://localhost:9090/consoles/index.html**
@@ -223,7 +223,7 @@ Also reachable from the Prometheus UI menu: **Consoles → index.html**.
 
 The console runs real PromQL against your scraped metrics: session totals,
 cumulative events/tokens, working agents, and drill-down links into the Graph UI.
-If the page warns about a missing scrape target, start CCAM on port 4820 and
+If the page warns about a missing scrape target, start CAM on port 4820 and
 wait ~15s for the first poll.
 
 ### Graph tab bookmarks
@@ -233,17 +233,17 @@ the **Graph** tab (all read live scraped data — never seeded):
 
 | Query | What it shows |
 | --- | --- |
-| `sum(ccam_sessions)` | Total sessions across all statuses |
-| `ccam_events_total` | Cumulative hook events in the database |
-| `sum(ccam_tokens_total)` | All token kinds combined |
-| `ccam:sessions:total` | Same as above via [recording rule](./prometheus/ccam-rules.yml) |
-| `ccam:events:rate5m` | Events per second (5m window) |
+| `sum(cam_sessions)` | Total sessions across all statuses |
+| `cam_events_total` | Cumulative hook events in the database |
+| `sum(cam_tokens_total)` | All token kinds combined |
+| `cam:sessions:total` | Same as above via [recording rule](./prometheus/cam-rules.yml) |
+| `cam:events:rate5m` | Events per second (5m window) |
 
 Pre-filled graph links (bookmark these):
 
-- [Total sessions](http://localhost:9090/graph?g0.expr=sum(ccam_sessions)&g0.tab=0)
-- [Total events](http://localhost:9090/graph?g0.expr=ccam_events_total&g0.tab=0)
-- [Token totals by kind](http://localhost:9090/graph?g0.expr=ccam_tokens_total&g0.tab=0)
+- [Total sessions](http://localhost:9090/graph?g0.expr=sum(cam_sessions)&g0.tab=0)
+- [Total events](http://localhost:9090/graph?g0.expr=cam_events_total&g0.tab=0)
+- [Token totals by kind](http://localhost:9090/graph?g0.expr=cam_tokens_total&g0.tab=0)
 
 ## Configuration
 

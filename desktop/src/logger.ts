@@ -79,8 +79,8 @@ function ensureStream(): fs.WriteStream {
  * Format one log line (ISO timestamp + level + space-joined parts) and fan it
  * out to the log file and, conditionally, to the process streams:
  *   - `error` always echoes to `stderr`, so a crash is visible even without
- *     `CCAM_DESKTOP_VERBOSE` (e.g. when Electron is launched from a terminal).
- *   - `info`/`warn` only echo to `stdout` when `CCAM_DESKTOP_VERBOSE` is set,
+ *     `CAM_DESKTOP_VERBOSE` (e.g. when Electron is launched from a terminal).
+ *   - `info`/`warn` only echo to `stdout` when `CAM_DESKTOP_VERBOSE` is set,
  *     keeping a normal launch quiet.
  * The file write is wrapped in try/catch — a logging failure (e.g. a full
  * disk) must never take down the app.
@@ -96,7 +96,7 @@ function write(level: "info" | "warn" | "error", parts: unknown[]): void {
   }
   if (level === "error") {
     process.stderr.write(line);
-  } else if (process.env.CCAM_DESKTOP_VERBOSE) {
+  } else if (process.env.CAM_DESKTOP_VERBOSE) {
     process.stdout.write(line);
   }
 }

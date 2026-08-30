@@ -35,7 +35,7 @@ Kubernetes/Terraform, Prometheus/Grafana, and more) is in
 - [Quick Start](#quick-start)
 - [How It Works](#how-it-works)
 - [Configuration](#configuration)
-- [`ccam` CLI](#ccam-cli)
+- [`cam` CLI](#cam-cli)
 - [npm Scripts](#npm-scripts)
 - [Agent Extensions](#agent-extensions)
 - [MCP Integration](#mcp-integration)
@@ -126,10 +126,10 @@ Alerts/Webhooks, and Remote Data Sources, is in the
 Full detail for every row below is in
 [ARCHITECTURE.md → Feature Reference](./ARCHITECTURE.md#feature-reference).
 
-> **Cursor sessions too (informational):** CCAM ingests whatever agent
+> **Cursor sessions too (informational):** CAM ingests whatever agent
 > transcripts land under `~/.claude` — on this machine and on synced remotes.
 > **Cursor** usage counts the same way: Cursor happens to store its agent
-> sessions in those paths alongside Claude Code. CCAM does not distinguish which
+> sessions in those paths alongside Claude Code. CAM does not distinguish which
 > app wrote a file.
 
 | Feature | Description |
@@ -240,7 +240,7 @@ npm run build && npm start
 
 ```bash
 npm run mcp:install && npm run mcp:build
-ccam mcp stdio                 # stable launcher used by bundled plugins
+cam mcp stdio                 # stable launcher used by bundled plugins
 ```
 
 See [mcp/README.md](./mcp/README.md) for host configuration, transports, and
@@ -286,14 +286,14 @@ Full environment variable reference — ports, import limits, MCP, tokens, watch
 
 The server periodically `git fetch`es `origin` and surfaces a modal with the exact upgrade command when you're behind — it never pulls or restarts itself.
 
-## `ccam` CLI
+## `cam` CLI
 
-The dashboard's full feature surface is also available from any terminal via the dependency-free **`ccam`** CLI (`bin/ccam.js`), linked automatically by `npm run setup`.
+The dashboard's full feature surface is also available from any terminal via the dependency-free **`cam`** CLI (`bin/cam.js`), linked automatically by `npm run setup`.
 
 ```bash
-ccam status          # is the dashboard running?
-ccam stats           # totals, today's events, status distributions
-ccam tail            # live event feed in the terminal
+cam status          # is the dashboard running?
+cam stats           # totals, today's events, status distributions
+cam tail            # live event feed in the terminal
 ```
 
 Full command reference, discovery, and safety model: [docs/CLI.md](docs/CLI.md).
@@ -314,7 +314,7 @@ A local MCP server at `mcp/` with **97 typed tools** across 16 domain modules, e
 
 ```bash
 npm run mcp:install && npm run mcp:build
-ccam mcp stdio              # stable launcher used by bundled plugins
+cam mcp stdio              # stable launcher used by bundled plugins
 ```
 
 Architecture, tool catalog, safety model, transports, and configuration: [mcp/README.md](./mcp/README.md) — the canonical MCP doc.
@@ -413,16 +413,16 @@ Full schema, ERD, and query reference: [docs/DATABASE.md](docs/DATABASE.md).
 
 ## Plugin Marketplace
 
-CCAM ships **14 plugins** (66 plugin skills, 18 subagents, 34 commands) from one shared source tree, installable for Claude Code, Codex, or via the skills.sh-compatible `skills` CLI.
+CAM ships **14 plugins** (66 plugin skills, 18 subagents, 34 commands) from one shared source tree, installable for Claude Code, Codex, or via the skills.sh-compatible `skills` CLI.
 
 ```bash
 # Claude Code
 claude plugin marketplace add buluma/Code-Agent-Monitor
-claude plugin install ccam-platform@claude-code-agent-monitor-plugins
+claude plugin install cam-platform@claude-code-agent-monitor-plugins
 
 # Codex
 codex plugin marketplace add buluma/Code-Agent-Monitor
-codex plugin add ccam-platform@claude-code-agent-monitor-plugins
+codex plugin add cam-platform@claude-code-agent-monitor-plugins
 ```
 
 The skills.sh-compatible `skills` CLI discovers **76 total repository skills** (the 66 plugin skills plus repository-maintenance skills). Full catalog, `skills` CLI usage, and per-plugin breakdown: [docs/PLUGINS.md](docs/PLUGINS.md).

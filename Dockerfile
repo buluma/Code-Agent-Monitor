@@ -1,4 +1,4 @@
-# Multi-stage OCI image for the complete CCAM dashboard runtime. It builds the
+# Multi-stage OCI image for the complete CAM dashboard runtime. It builds the
 # React client, installs production server dependencies, includes Git and
 # OpenSSH for update checks and Remote Data Sources, and runs the application
 # as a non-root user with explicit writable data and configuration paths.

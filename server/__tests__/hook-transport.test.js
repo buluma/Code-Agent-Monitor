@@ -11,7 +11,7 @@ const os = require("node:os");
 const path = require("node:path");
 const transport = require("../../scripts/hook-transport");
 
-const ENV_KEYS = ["CCAM_DASHBOARD_URL", "CCAM_HOOK_TOKEN", "CCAM_HOOK_TOKEN_FILE"];
+const ENV_KEYS = ["CAM_DASHBOARD_URL", "CAM_HOOK_TOKEN", "CAM_HOOK_TOKEN_FILE"];
 
 afterEach(() => {
   for (const key of ENV_KEYS) delete process.env[key];
@@ -24,15 +24,15 @@ describe("hook transport target validation", () => {
   });
 
   it("requires HTTPS for non-loopback remote dashboards", () => {
-    process.env.CCAM_DASHBOARD_URL = "http://dashboard.example.com";
+    process.env.CAM_DASHBOARD_URL = "http://dashboard.example.com";
     assert.throws(() => transport.remoteDashboardUrl(), /must use HTTPS/);
-    process.env.CCAM_DASHBOARD_URL = "https://dashboard.example.com";
+    process.env.CAM_DASHBOARD_URL = "https://dashboard.example.com";
     assert.equal(transport.remoteDashboardUrl().hostname, "dashboard.example.com");
     assert.throws(
       () => transport.buildTargets(() => [4820], "/api/hooks/event"),
-      /require CCAM_HOOK_TOKEN/
+      /require CAM_HOOK_TOKEN/
     );
-    process.env.CCAM_HOOK_TOKEN = "hook-secret";
+    process.env.CAM_HOOK_TOKEN = "hook-secret";
     assert.equal(
       String(transport.buildTargets(() => [4820], "/api/hooks/event")[0]),
       "https://dashboard.example.com/api/hooks/event"
@@ -40,11 +40,11 @@ describe("hook transport target validation", () => {
   });
 
   it("loads a hook token from a mounted secret file", () => {
-    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-hook-token-"));
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cam-hook-token-"));
     try {
       const tokenPath = path.join(directory, "token");
       fs.writeFileSync(tokenPath, "hook-file-secret\n");
-      process.env.CCAM_HOOK_TOKEN_FILE = tokenPath;
+      process.env.CAM_HOOK_TOKEN_FILE = tokenPath;
       assert.equal(transport.readHookToken(), "hook-file-secret");
     } finally {
       fs.rmSync(directory, { recursive: true, force: true });

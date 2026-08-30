@@ -10,7 +10,7 @@ resources:
   - ../../base
 
 images:
-  - name: ccam-dashboard
+  - name: cam-dashboard
     newTag: 3.3.0
 
 patches:

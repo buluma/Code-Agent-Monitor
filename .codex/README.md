@@ -39,7 +39,7 @@ This directory contains all project-scoped Codex extensions:
 ```bash
 codex plugin marketplace add buluma/Code-Agent-Monitor
 codex plugin list --marketplace claude-code-agent-monitor-plugins --available --json
-codex plugin add ccam-platform@claude-code-agent-monitor-plugins
+codex plugin add cam-platform@claude-code-agent-monitor-plugins
 ```
 
 The marketplace contains 14 plugins and 66 bundled skills. The same plugin

@@ -32,7 +32,7 @@ npm run setup
 ```
 
 This installs all server and client dependencies, plus the VS Code extension,
-and links the `ccam` CLI.
+and links the `cam` CLI.
 
 A plain root install already covers server **and** client — a `postinstall` hook
 installs the client dependencies automatically, so this alone is enough to build
@@ -43,8 +43,8 @@ npm install
 ```
 
 `npm run setup` additionally installs the VS Code extension, installs and builds
-the MCP package, and links the `ccam` CLI. The bundled Claude/Codex plugins use
-`ccam mcp stdio`, so the MCP build is part of normal setup. If you install with
+the MCP package, and links the `cam` CLI. The bundled Claude/Codex plugins use
+`cam mcp stdio`, so the MCP build is part of normal setup. If you install with
 `--ignore-scripts`, the `postinstall` hook is skipped. Run
 `cd client && npm install` manually in that case.
 
@@ -300,7 +300,7 @@ npm run install-hooks
 > bind-mounted host `~/.claude`; the containerized server logs the same guidance
 > instead of silently writing a bad path. If you genuinely run Claude Code
 > inside the same container, override with
-> `CCAM_ALLOW_CONTAINER_HOOKS=1 npm run install-hooks`.
+> `CAM_ALLOW_CONTAINER_HOOKS=1 npm run install-hooks`.
 
 > [!NOTE]
 > Prefer a ready-made dev environment? This repo ships an **optional** Dev
@@ -318,9 +318,9 @@ npm run install-hooks
 | `CLAUDE_DASHBOARD_PORT`           | `4820`                   | Port the hook handler uses when posting events to the dashboard                                                                                                   |
 | `DASHBOARD_DB_PATH`               | `data/dashboard.db`      | Path to the SQLite database file                                                                                                                                  |
 | `NODE_ENV`                        | `development`            | Set to `production` to serve built client                                                                                                                         |
-| `CCAM_IMPORT_MAX_BYTES`           | `1073741824` (1 GB)      | Maximum size per uploaded file on `/api/import/upload`                                                                                                            |
-| `CCAM_IMPORT_MAX_FILES`           | `2000`                   | Maximum number of files per upload request                                                                                                                       |
-| `CCAM_IMPORT_MAX_EXTRACT_BYTES`   | `4294967296` (4 GB)      | Maximum uncompressed bytes any single archive is allowed to expand to (zip-bomb defense)                                                                          |
+| `CAM_IMPORT_MAX_BYTES`           | `1073741824` (1 GB)      | Maximum size per uploaded file on `/api/import/upload`                                                                                                            |
+| `CAM_IMPORT_MAX_FILES`           | `2000`                   | Maximum number of files per upload request                                                                                                                       |
+| `CAM_IMPORT_MAX_EXTRACT_BYTES`   | `4294967296` (4 GB)      | Maximum uncompressed bytes any single archive is allowed to expand to (zip-bomb defense)                                                                          |
 | `MCP_DASHBOARD_BASE_URL`          | `http://127.0.0.1:4820`  | Base URL used by the local MCP server to call dashboard APIs                                                                                                      |
 | `MCP_DASHBOARD_ALLOW_MUTATIONS`   | `false`                  | Enables mutating MCP tools                                                                                                                                        |
 | `MCP_DASHBOARD_ALLOW_DESTRUCTIVE` | `false`                  | Enables destructive MCP tools (in addition to mutations)                                                                                                          |
@@ -332,8 +332,8 @@ npm run install-hooks
 | `DASHBOARD_TOKEN_FILE`            | unset                    | File-backed dashboard API/WebSocket token                                                                                                                         |
 | `DASHBOARD_HOOK_TOKEN` / `_FILE`  | unset                    | Dedicated credential for remote hook ingestion                                                                                                                    |
 | `DASHBOARD_ENV_PATH`              | repo `.env`               | Writable dotenv path for persisted Settings overrides                                                                                                             |
-| `CCAM_DASHBOARD_URL`              | localhost discovery      | Remote hook destination; non-loopback requires HTTPS and hook auth                                                                                                |
-| `CCAM_HOOK_TOKEN` / `_FILE`       | unset                    | Credential sent by Claude/Codex hook handlers                                                                                                                     |
+| `CAM_DASHBOARD_URL`              | localhost discovery      | Remote hook destination; non-loopback requires HTTPS and hook auth                                                                                                |
+| `CAM_HOOK_TOKEN` / `_FILE`       | unset                    | Credential sent by Claude/Codex hook handlers                                                                                                                     |
 
 Example with a custom port:
 
@@ -514,8 +514,8 @@ folder given to **Scan a folder**:
 Archive extraction is hardened against path traversal and archive bombs. The
 defaults are generous for real-world transcripts but tight enough to stop
 obvious attacks — see [Environment variables](#environment-variables) above for
-`CCAM_IMPORT_MAX_BYTES`, `CCAM_IMPORT_MAX_FILES`, and
-`CCAM_IMPORT_MAX_EXTRACT_BYTES`.
+`CAM_IMPORT_MAX_BYTES`, `CAM_IMPORT_MAX_FILES`, and
+`CAM_IMPORT_MAX_EXTRACT_BYTES`.
 
 ### CLI alternative
 
@@ -555,7 +555,7 @@ Scope, precisely:
 - A session's transcript is found by scanning `~/.claude/projects/` for the
   default `<proj>/<sid>.jsonl` layout, then by the `transcript_path` stored on
   the session row — so a session imported from a custom directory via
-  `ccam import path` is covered too.
+  `cam import path` is covered too.
 - Only **non-workflow** rows are rewritten. Workflow rows
   (`service_tier = 'workflow'`) come from run journals, not transcripts, and
   are preserved.
@@ -627,7 +627,7 @@ From the project root, after `git clone`. electron-builder packages for the
 **host OS**, so build the macOS DMG on a Mac. The common prelude is the same:
 
 ```bash
-npm run setup                # install root + client + vscode-extension + MCP deps, build MCP, link ccam
+npm run setup                # install root + client + vscode-extension + MCP deps, build MCP, link cam
 npm run build                # build the React client (the SPA the window loads)
 npm run desktop:install      # install Electron + electron-builder into desktop/
 
@@ -755,7 +755,7 @@ so it writes to a per-user log file:
 ~/Library/Logs/Claude Code Monitor/desktop.log     # macOS
 ```
 
-Open it from the tray menu → **Show Logs**. Set `CCAM_DESKTOP_VERBOSE=1` to also
+Open it from the tray menu → **Show Logs**. Set `CAM_DESKTOP_VERBOSE=1` to also
 mirror `info`/`warn` lines to stdout when running via `npm run desktop:dev`.
 
 **Lifecycle reminder.** Closing the dashboard window only **hides** it — the
@@ -923,7 +923,7 @@ Container behavior:
 
 > [!IMPORTANT]
 > Install hooks on the host. For remote cloud hooks, use
-> `CCAM_DASHBOARD_URL=https://...` and `CCAM_HOOK_TOKEN`; non-loopback targets
+> `CAM_DASHBOARD_URL=https://...` and `CAM_HOOK_TOKEN`; non-loopback targets
 > require HTTPS. See [`DEPLOYMENT.md`](DEPLOYMENT.md) for Run Agent containers,
 > remote hooks, Kubernetes, Terraform, backup, restore, and rollback.
 
@@ -998,7 +998,7 @@ npm run seed
 
 | Script              | Command                     | Description                                                                                                                                                                                                                    |
 | --------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `setup`             | `npm run setup`             | Install root, client, VS Code extension, and MCP dependencies, build MCP, and link `ccam`                                                                                                                                      |
+| `setup`             | `npm run setup`             | Install root, client, VS Code extension, and MCP dependencies, build MCP, and link `cam`                                                                                                                                      |
 | `dev`               | `npm run dev`               | Start server + client in development mode                                                                                                                                                                                      |
 | `start`             | `npm start`                 | Start server in production mode                                                                                                                                                                                                |
 | `build`             | `npm run build`             | Build the React client to `client/dist/`                                                                                                                                                                                       |
@@ -1040,7 +1040,7 @@ Commonly used targets:
 
 | Make target           | Equivalent npm command       | Description                                          |
 | ------------------------ | ------------------------------- | ------------------------------------------------------- |
-| `make setup`          | `npm run setup`              | Install all dependencies, build MCP, and link `ccam` |
+| `make setup`          | `npm run setup`              | Install all dependencies, build MCP, and link `cam` |
 | `make dev`            | `npm run dev`                | Start server + client in watch mode                  |
 | `make build`          | `npm run build`              | Build the React client for production                |
 | `make start`          | `npm start`                   | Start the production server                          |

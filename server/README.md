@@ -506,11 +506,11 @@ it).
 | `GET`   | `/api/metrics`                  | Prometheus / OpenMetrics exposition (text; v0.0.4)                                                                                  |
 
 **Prometheus metrics (`GET /api/metrics`).** Exposes the dashboard's live
-counters — `ccam_sessions`/`ccam_agents` by status, `ccam_events_total`,
-`ccam_tokens_total` by kind, `ccam_websocket_clients`, `ccam_remote_sources` by
+counters — `cam_sessions`/`cam_agents` by status, `cam_events_total`,
+`cam_tokens_total` by kind, `cam_websocket_clients`, `cam_remote_sources` by
 enabled state,
-`ccam_process_uptime_seconds`/`ccam_process_resident_memory_bytes`, and
-`ccam_build_info{version}` — in the Prometheus v0.0.4 text-exposition format for
+`cam_process_uptime_seconds`/`cam_process_resident_memory_bytes`, and
+`cam_build_info{version}` — in the Prometheus v0.0.4 text-exposition format for
 scraping into Prometheus / Grafana (`server/routes/metrics.js`). Values come
 from the same `server/db.js` prepared statements the REST API uses, so they
 match the UI; status series are enumerated so a gauge never drops out of the
@@ -520,7 +520,7 @@ guard: a non-loopback scraper (e.g. Prometheus in Docker via
 `host.docker.internal`) must be allowlisted with `DASHBOARD_ALLOWED_HOSTS` or it
 gets `403 EBADHOST`, and must send the token when one is set. A ready-to-run
 Prometheus + Grafana stack with four auto-provisioned dashboards (default home
-**CCAM — Overview**) lives in [`monitoring/`](../monitoring/README.md).
+**CAM — Overview**) lives in [`monitoring/`](../monitoring/README.md).
 
 **Data scope (`?sources=` and `?providers=`).** `GET /api/sessions`,
 `/api/events`, `/api/agents`, `/api/stats`, `/api/analytics`, `/api/workflows`,
@@ -627,7 +627,7 @@ for the Dashboard and Kanban views. That card never enters SQLite, history,
 analytics, pricing, workflows, alerts, or completion notifications. The probe
 also inspects open rollout files and thread-writer locks for each exact Codex
 PID. When the user selects an existing thread in Codex's Resume picker, the
-resumed rollout or lock is opened before any new message is appended, so CCAM
+resumed rollout or lock is opened before any new message is appended, so CAM
 immediately reactivates the durable session as Waiting and removes the transient
 startup card. Unknown lock IDs remain transient until normal hooks, live-thread
 state, or rollout ingestion create a durable row. Once a stable id exists, the
@@ -768,7 +768,7 @@ command runs via `execFile`/`spawn` argument arrays (never a shell string) and
 
 > **Cursor on remotes (informational):** The same note applies on synced
 > machines — if Cursor on a remote host writes to `~/.claude`, those sessions
-> are imported too. CCAM reads the paths, not the app name.
+> are imported too. CAM reads the paths, not the app name.
 
 | Method   | Path                           | Description                                                                 |
 | -------- | ------------------------------ | --------------------------------------------------------------------------- |
@@ -809,16 +809,16 @@ must already work without a prompt. Set a source up like this:
    feature on Windows). **Nothing else is installed on the remote.**
 4. **Cross-platform notes:**
    - **macOS auth (Secretive, 1Password, ssh-agent, or file keys):** leave
-     **Identity file** blank unless you need a specific key path. CCAM mirrors
+     **Identity file** blank unless you need a specific key path. CAM mirrors
      your shell: `ssh -G` supplies `IdentityAgent` when your `~/.ssh/config`
      does; otherwise it uses `SSH_AUTH_SOCK` (including `launchctl getenv` when
      the dashboard is GUI-launched) or plain `~/.ssh` keys. Secretive is used
      only when your SSH config points at it — never forced.
-   - **Windows dashboard:** OpenSSH Client optional feature; CCAM prefers
+   - **Windows dashboard:** OpenSSH Client optional feature; CAM prefers
      `ssh`/`scp` on `PATH`, then falls back to `System32\OpenSSH\`.
    - **Windows remote:** default homes check the Windows profile **and** WSL
      (`~/.claude` / `~/.codex` inside the default distro). If either CLI runs
-     only in WSL, leave that home blank — CCAM auto-detects WSL and pulls via
+     only in WSL, leave that home blank — CAM auto-detects WSL and pulls via
      `wsl.exe` + `tar`, or set `wsl:~/.claude` / `wsl:~/.codex` explicitly.
      Native Windows installs can use `C:/Users/you/.claude` /
      `C:/Users/you/.codex`; UNC paths also work when `scp` can read them.
@@ -827,7 +827,7 @@ must already work without a prompt. Set a source up like this:
      `/home/ubuntu/.codex`) also work. Prefer SSH directly into WSL/Linux rather
      than Windows→WSL when possible.
 5. **Add the source** (Settings → Remote Data Sources, or
-   `ccam remote-sources add`), click **Test**, then **Sync**.
+   `cam remote-sources add`), click **Test**, then **Sync**.
 
 | Symptom (surfaced in `last_error` / the Test result) | Cause & fix                                                                                                                                                                                                                                                                                                                                                                             |
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -835,7 +835,7 @@ must already work without a prompt. Set a source up like this:
 | `Permission denied (publickey)`                      | No usable key for non-interactive auth. `ssh-add` your key, set `IdentityFile` in `~/.ssh/config`, or set the source's `identity_file`.                                                                                                                                                                                                                                                 |
 | `… does not exist on the remote`                     | The Test result identifies Claude Code or Codex. Set that provider's optional **Remote Claude home** / **Remote Codex home** field (defaults `~/.claude` / `~/.codex`).                                                                                                                                                                                                                 |
 | `scp` / `ssh` not recognized (Windows)               | Install the **OpenSSH Client** optional feature, restart the dashboard, or confirm `C:\Windows\System32\OpenSSH\scp.exe` exists.                                                                                                                                                                                                                                                        |
-| `Permission denied (publickey,password)`             | SSH auth failed in the **dashboard process** (not necessarily your Terminal). Leave **Identity file** blank for Secretive, ssh-agent, or default `~/.ssh` keys — CCAM follows `ssh -G` / your config and does not force Secretive. Start the dashboard from the same shell as `ssh user@host`, or ensure your agent is running. Set **Identity file** only for an explicit on-disk key. |
+| `Permission denied (publickey,password)`             | SSH auth failed in the **dashboard process** (not necessarily your Terminal). Leave **Identity file** blank for Secretive, ssh-agent, or default `~/.ssh` keys — CAM follows `ssh -G` / your config and does not force Secretive. Start the dashboard from the same shell as `ssh user@host`, or ensure your agent is running. Set **Identity file** only for an explicit on-disk key. |
 | Connected but directory missing                      | Claude Code or Codex may not be installed on the remote, or its `remote_home` / `remote_codex_home` points at the wrong path. On Windows SSH with either CLI in WSL, leave the matching home blank (auto WSL) or set `wsl:~/.claude` / `wsl:~/.codex`. Default native paths are `~/.claude/projects` and `~/.codex/sessions`.                                                           |
 | Sync hangs then errors after ~10 min                 | Bounded by `DASHBOARD_REMOTE_SYNC_TIMEOUT_MS`; usually a network/host issue — verify with **Test** (bounded by `DASHBOARD_REMOTE_TEST_TIMEOUT_MS`).                                                                                                                                                                                                                                     |
 
@@ -987,8 +987,8 @@ Code never crashes the dashboard.
 
 The MCP tool `dashboard_get_helmcode_config` (in
 `mcp/src/tools/domains/settings-tools.ts`) exposes the overview to MCP clients,
-and the CLI commands `ccam config helmcode overview` /
-`ccam config helmcode resync --yes` wrap both routes.
+and the CLI commands `cam config helmcode overview` /
+`cam config helmcode resync --yes` wrap both routes.
 
 ### Run Agent (`/api/run`)
 
@@ -1087,7 +1087,7 @@ sequenceDiagram
     I->>DB: importSession in one tx
     I->>WS: import.progress{phase:parse, complete}
     R-->>UI: 200 {imported, backfilled, skipped,<br/>errors, rejected_files}
-    R->>A: rmTempDir(workDir + req._ccamUploadDir)
+    R->>A: rmTempDir(workDir + req._camUploadDir)
 ```
 
 **Supported source layouts.** Both canonical Claude Code JSONL layouts are
@@ -1101,10 +1101,10 @@ candidate.
 
 | Variable                        | Default      | Purpose                                                                                                                                                      |
 | ------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CCAM_IMPORT_MAX_BYTES`         | `1073741824` | Maximum size per uploaded file                                                                                                                               |
+| `CAM_IMPORT_MAX_BYTES`         | `1073741824` | Maximum size per uploaded file                                                                                                                               |
 | `DASHBOARD_TOKEN_REPAIR`        | `1`          | One-time automatic repair of token totals inflated before usage was reconciled per `message.id`; `0` skips it (repair manually with `npm run repair-tokens`) |
-| `CCAM_IMPORT_MAX_FILES`         | `2000`       | Maximum files per upload request                                                                                                                             |
-| `CCAM_IMPORT_MAX_EXTRACT_BYTES` | `4294967296` | Total uncompressed bytes allowed per archive (zip-bomb guard)                                                                                                |
+| `CAM_IMPORT_MAX_FILES`         | `2000`       | Maximum files per upload request                                                                                                                             |
+| `CAM_IMPORT_MAX_EXTRACT_BYTES` | `4294967296` | Total uncompressed bytes allowed per archive (zip-bomb guard)                                                                                                |
 
 **WebSocket event schema.** Progress is broadcast on `/ws` with type
 `import.progress`. Messages are throttled at ~150 ms; the terminal `complete`
@@ -1120,7 +1120,7 @@ and `error` frames are always delivered.
     "source": "upload",
     "processed": 184,
     "total": 512,
-    "current": "/tmp/ccam-import-work-xyz/project/<uuid>.jsonl",
+    "current": "/tmp/cam-import-work-xyz/project/<uuid>.jsonl",
     "counters": {
       "imported": 120,
       "backfilled": 40,
@@ -1985,18 +1985,18 @@ test("POST /api/hooks/event ingests hook payload", async () => {
 
 ---
 
-## Terminal Access (`ccam` CLI)
+## Terminal Access (`cam` CLI)
 
 Everything this server exposes over JSON REST is reachable from the
-dependency-free `ccam` CLI (`bin/ccam.js`, linked by `npm run setup`).
+dependency-free `cam` CLI (`bin/cam.js`, linked by `npm run setup`).
 High-level commands cover monitoring, data browsing, workflows/cost, Run Agent,
 alerts/rules/webhooks, Claude and GPT pricing, provider-aware imports, remote
 sources, Claude/Codex config, hooks, backup restore, and administration.
-`ccam api <METHOD> /api/path` provides future-proof low-level coverage with
+`cam api <METHOD> /api/path` provides future-proof low-level coverage with
 `--yes` on writes and exact confirmation tokens for destructive actions.
-Multipart history upload is available through `ccam import upload`. It resolves
+Multipart history upload is available through `cam import upload`. It resolves
 the live server through the same `~/.claude/.agent-dashboard.json` registry as
-the hook handler and supports `DASHBOARD_API_TOKEN` / `CCAM_API_TOKEN` when the
+the hook handler and supports `DASHBOARD_API_TOKEN` / `CAM_API_TOKEN` when the
 API is protected. See [docs/CLI.md](../docs/CLI.md).
 
 ## Deployment

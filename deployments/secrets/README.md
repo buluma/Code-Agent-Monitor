@@ -1,6 +1,6 @@
 # Runtime secrets
 
-This directory is mounted read-only at `/run/ccam-secrets` by the Compose stack.
+This directory is mounted read-only at `/run/cam-secrets` by the Compose stack.
 Secret files are intentionally ignored by Git.
 
 - `dashboard-token`: long random token for dashboard REST and WebSocket access.
@@ -8,7 +8,7 @@ Secret files are intentionally ignored by Git.
 - `mcp-token`: bearer token for the optional MCP HTTP and SSE transport.
 - `grafana-admin-password`: Grafana administrator password for the full stack.
 
-Create both before exposing CCAM outside host loopback:
+Create both before exposing CAM outside host loopback:
 
 ```bash
 umask 077
@@ -22,12 +22,12 @@ Keep the default blocked Nginx hook policy for local host hooks. To accept remot
 hooks over HTTPS, set:
 
 ```bash
-CCAM_NGINX_HOOK_POLICY=./deployments/nginx/snippets/hooks-proxy.conf
+CAM_NGINX_HOOK_POLICY=./deployments/nginx/snippets/hooks-proxy.conf
 ```
 
-Remote hook clients then set `CCAM_DASHBOARD_URL=https://your-host` and supply
-the same hook token through `CCAM_HOOK_TOKEN` or `CCAM_HOOK_TOKEN_FILE`.
+Remote hook clients then set `CAM_DASHBOARD_URL=https://your-host` and supply
+the same hook token through `CAM_HOOK_TOKEN` or `CAM_HOOK_TOKEN_FILE`.
 
 MCP remains blocked at Nginx by default. To expose it behind TLS, set
-`CCAM_NGINX_MCP_POLICY=./deployments/nginx/snippets/mcp-proxy.conf` and configure
+`CAM_NGINX_MCP_POLICY=./deployments/nginx/snippets/mcp-proxy.conf` and configure
 clients with the `mcp-token` value as a bearer token.

@@ -34,7 +34,7 @@
 
 "use strict";
 
-const EXPORT_FORMAT = "ccam-export";
+const EXPORT_FORMAT = "cam-export";
 // v2 adds the independent GPT/Codex rate card while keeping v1 imports valid.
 const EXPORT_VERSION = 2;
 

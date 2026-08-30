@@ -1577,8 +1577,8 @@ function createOpenApiSpec() {
             format: {
               type: "string",
               description:
-                'Bundle format marker (always "ccam-export" for exports from this version).',
-              example: "ccam-export",
+                'Bundle format marker (always "cam-export" for exports from this version).',
+              example: "cam-export",
             },
             version: { type: "integer", description: "Bundle schema version.", example: 2 },
             exported_at: { type: "string", format: "date-time" },
@@ -2396,12 +2396,12 @@ function createOpenApiSpec() {
                 "text/plain": {
                   schema: { type: "string" },
                   example:
-                    "# HELP ccam_up 1 when the dashboard API is serving this scrape.\n" +
-                    "# TYPE ccam_up gauge\n" +
-                    "ccam_up 1\n" +
-                    "# HELP ccam_sessions Number of sessions by lifecycle status.\n" +
-                    "# TYPE ccam_sessions gauge\n" +
-                    'ccam_sessions{status="active"} 3\n',
+                    "# HELP cam_up 1 when the dashboard API is serving this scrape.\n" +
+                    "# TYPE cam_up gauge\n" +
+                    "cam_up 1\n" +
+                    "# HELP cam_sessions Number of sessions by lifecycle status.\n" +
+                    "# TYPE cam_sessions gauge\n" +
+                    'cam_sessions{status="active"} 3\n',
                 },
               },
             },

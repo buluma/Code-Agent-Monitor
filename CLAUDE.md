@@ -8,7 +8,7 @@
 ## Repo map
 - `server/`: Express API, hook ingestion, SQLite access, websocket broadcast (includes optional git upstream checks and `routes/updates.js`, plus `lib/workflow-ingest.js` which ingests on-disk Workflow-tool run journals — fleets emit no hooks).
 - `client/`: React + Vite UI.
-- `scripts/`: hook installer/handler, import, seed, cleanup utilities. (Update detection lives server-side in `server/lib/update-check.js`; dashboard never restarts itself — users run printed command, surfaced in UI and by `ccam update-check`.)
+- `scripts/`: hook installer/handler, import, seed, cleanup utilities. (Update detection lives server-side in `server/lib/update-check.js`; dashboard never restarts itself — users run printed command, surfaced in UI and by `cam update-check`.)
 - `mcp/`: local MCP server exposing dashboard ops as tools.
 
 ## Non-negotiable engineering rules
@@ -30,7 +30,7 @@
 - MCP install/build/start: `npm run mcp:install`, `npm run mcp:build`, `npm run mcp:start`
 - MCP typecheck: `npm run mcp:typecheck`
 - Token repair: `npm run repair-tokens` — one-time re-derivation of token totals inflated before usage reconciled per `message.id` (dashboard also runs this auto once per database; `DASHBOARD_TOKEN_REPAIR=0` opts out)
-- CLI (after setup): `ccam <command>` — terminal access to full dashboard surface (`bin/ccam.js`; `ccam help` lists commands)
+- CLI (after setup): `cam <command>` — terminal access to full dashboard surface (`bin/cam.js`; `cam help` lists commands)
 
 ## Testing and verification policy
 - `npm run verify` runs whole local gate in one command (header audit, format check, client typecheck, server tests, client tests) — fastest way to confirm change-set before opening PR. Includes `tsc -b` since Vitest transpiles without typechecking — test file can pass locally, still break production build.

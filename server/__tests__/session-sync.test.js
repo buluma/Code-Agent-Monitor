@@ -17,7 +17,7 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 
-const TMP_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-sync-home-"));
+const TMP_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "cam-sync-home-"));
 process.env.CLAUDE_HOME = TMP_HOME;
 process.env.DASHBOARD_DB_PATH = path.join(TMP_HOME, "dashboard.db");
 process.env.DASHBOARD_DATA_DIR = path.join(TMP_HOME, "data");

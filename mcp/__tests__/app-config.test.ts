@@ -205,7 +205,7 @@ describe("loadConfig", () => {
   });
 
   it("loads the dashboard bearer token from a mounted secret file", () => {
-    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-mcp-token-"));
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cam-mcp-token-"));
     const tokenPath = path.join(directory, "dashboard-token");
     try {
       fs.writeFileSync(tokenPath, "file-token\n");
@@ -217,7 +217,7 @@ describe("loadConfig", () => {
   });
 
   it("loads the MCP HTTP bearer token from a mounted secret file", () => {
-    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-mcp-http-token-"));
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cam-mcp-http-token-"));
     const tokenPath = path.join(directory, "mcp-token");
     try {
       fs.writeFileSync(tokenPath, "mcp-file-token\n");

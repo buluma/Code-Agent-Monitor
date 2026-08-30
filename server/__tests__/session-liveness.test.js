@@ -224,13 +224,13 @@ describe("probeLiveCwds — probe availability", () => {
     assert.equal(r.cwds.size, 0);
   });
 
-  it("is disabled inside a container (CCAM_FORCE_CONTAINER)", () => {
+  it("is disabled inside a container (CAM_FORCE_CONTAINER)", () => {
     delete process.env.DASHBOARD_LIVENESS_PROBE;
-    process.env.CCAM_FORCE_CONTAINER = "1";
+    process.env.CAM_FORCE_CONTAINER = "1";
     try {
       assert.equal(realProbe().available, false);
     } finally {
-      delete process.env.CCAM_FORCE_CONTAINER;
+      delete process.env.CAM_FORCE_CONTAINER;
       process.env.DASHBOARD_LIVENESS_PROBE = "0";
     }
   });

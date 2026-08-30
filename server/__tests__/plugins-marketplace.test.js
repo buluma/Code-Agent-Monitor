@@ -40,12 +40,12 @@ const COUNTED_DOCS = [
   },
 ];
 const WRITE_CAPABLE = new Set([
-  "ccam-config",
-  "ccam-cost-guard",
-  "ccam-integrations",
-  "ccam-platform",
-  "ccam-runner",
-  "ccam-sessions",
+  "cam-config",
+  "cam-cost-guard",
+  "cam-integrations",
+  "cam-platform",
+  "cam-runner",
+  "cam-sessions",
 ]);
 
 function readJson(p) {
@@ -209,7 +209,7 @@ describe("plugin marketplace", () => {
         if (manifest.interface.shortDescription.endsWith("...")) {
           assert.match(manifest.interface.shortDescription, /\S\.\.\.$/);
         }
-        if (dir === "ccam-dashboard" || WRITE_CAPABLE.has(dir)) {
+        if (dir === "cam-dashboard" || WRITE_CAPABLE.has(dir)) {
           assert.deepEqual(manifest.interface.capabilities, ["Read", "Write"]);
         }
       });

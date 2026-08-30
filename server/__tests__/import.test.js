@@ -106,7 +106,7 @@ function fixtureLines(sessionId, cwd, model, inputTok, outputTok) {
 }
 
 function writeFixtureDir() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-fixture-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cam-fixture-"));
   const projDir = path.join(root, "-Users-demo-project");
   fs.mkdirSync(projDir, { recursive: true });
   fs.writeFileSync(
@@ -127,7 +127,7 @@ function writeFixtureDir() {
 const CODEX_SESSION = "019a4ba6-a2b6-75f0-b186-bddd23ae4f2f";
 
 function writeCodexFixtureDir() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-codex-import-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cam-codex-import-"));
   const rollout = path.join(
     root,
     "sessions",
@@ -254,14 +254,14 @@ describe("POST /api/import/scan-path validation", () => {
 
   it("rejects non-existent paths", async () => {
     const res = await post("/api/import/scan-path", {
-      path: "/definitely/does/not/exist/ccam-" + Date.now(),
+      path: "/definitely/does/not/exist/cam-" + Date.now(),
     });
     assert.equal(res.status, 400);
     assert.equal(res.body.error.code, "PATH_NOT_FOUND");
   });
 
   it("rejects files (not directories)", async () => {
-    const tmp = path.join(os.tmpdir(), `ccam-not-dir-${Date.now()}.txt`);
+    const tmp = path.join(os.tmpdir(), `cam-not-dir-${Date.now()}.txt`);
     fs.writeFileSync(tmp, "hello");
     try {
       const res = await post("/api/import/scan-path", { path: tmp });
@@ -323,7 +323,7 @@ describe("POST /api/import/scan-path happy path", () => {
   it("imports Codex rollouts with tokens, tools, durable transcript access, and native titles", async () => {
     const root = writeCodexFixtureDir();
     const priorDataDir = process.env.DASHBOARD_DATA_DIR;
-    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-codex-import-data-"));
+    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "cam-codex-import-data-"));
     process.env.DASHBOARD_DATA_DIR = dataDir;
     try {
       const res = await post("/api/import/scan-path", { path: root, provider: "codex" });
@@ -388,14 +388,14 @@ describe("POST /api/import/scan-path happy path", () => {
 
 describe("archive helpers", () => {
   it("isPathInside rejects traversal", () => {
-    const root = path.resolve("/tmp/ccam-root");
-    assert.equal(archive.isPathInside(root, "/tmp/ccam-root/ok.jsonl"), true);
+    const root = path.resolve("/tmp/cam-root");
+    assert.equal(archive.isPathInside(root, "/tmp/cam-root/ok.jsonl"), true);
     assert.equal(archive.isPathInside(root, "/tmp/other/bad.jsonl"), false);
-    assert.equal(archive.isPathInside(root, "/tmp/ccam-root/../escape"), false);
+    assert.equal(archive.isPathInside(root, "/tmp/cam-root/../escape"), false);
   });
 
   it("safeJoin rejects absolute and traversal entries", () => {
-    const root = path.resolve("/tmp/ccam-root");
+    const root = path.resolve("/tmp/cam-root");
     assert.equal(archive.safeJoin(root, "/etc/passwd"), path.join(root, "etc/passwd"));
     assert.equal(archive.safeJoin(root, "../escape.txt"), null);
     assert.equal(archive.safeJoin(root, "deep/../../escape"), null);
@@ -414,7 +414,7 @@ describe("archive helpers", () => {
   });
 
   it("extractGzSingle decompresses plain gz", async () => {
-    const dest = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-gz-"));
+    const dest = fs.mkdtempSync(path.join(os.tmpdir(), "cam-gz-"));
     const src = path.join(dest, "sample.jsonl.gz");
     fs.writeFileSync(src, zlib.gzipSync(Buffer.from('{"ok":true}\n')));
     try {
@@ -429,7 +429,7 @@ describe("archive helpers", () => {
 
 describe("importFromDirectory directly", () => {
   it("reports progress and never throws on empty dirs", async () => {
-    const empty = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-empty-"));
+    const empty = fs.mkdtempSync(path.join(os.tmpdir(), "cam-empty-"));
     try {
       const events = [];
       const counters = await importHistory.importFromDirectory({ db, stmts }, empty, {
@@ -445,7 +445,7 @@ describe("importFromDirectory directly", () => {
   it("matches the legacy importer's token totals on the same fixtures", async () => {
     // Clean any tokens from prior tests for a fresh comparison.
     const freshSession = "cccccccc-3333-4333-8333-cccccccccccc";
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-fresh-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "cam-fresh-"));
     const projDir = path.join(root, "-Users-demo-fresh");
     fs.mkdirSync(projDir, { recursive: true });
     fs.writeFileSync(
@@ -473,9 +473,9 @@ describe("importFromDirectory directly", () => {
     // (default 30 days). Import must snapshot the transcript into the
     // dashboard's own data dir so the conversation survives that deletion.
     const prevDataDir = process.env.DASHBOARD_DATA_DIR;
-    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-data-"));
+    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "cam-data-"));
     process.env.DASHBOARD_DATA_DIR = dataDir;
-    const src = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-src-"));
+    const src = fs.mkdtempSync(path.join(os.tmpdir(), "cam-src-"));
     const sessionId = "dddddddd-4444-4444-8444-dddddddddddd";
     fs.writeFileSync(
       path.join(src, `${sessionId}.jsonl`),
@@ -524,7 +524,7 @@ describe("POST /api/import/rescan", () => {
 describe("tar path-traversal hardening", () => {
   it("extractTar rejects entries with ../ segments", async () => {
     const tar = require("tar");
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-tar-bad-"));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cam-tar-bad-"));
     const stageDir = path.join(tmp, "stage");
     const targetDir = path.join(tmp, "target");
     fs.mkdirSync(stageDir, { recursive: true });
@@ -563,12 +563,12 @@ describe("tar path-traversal hardening", () => {
 
 describe("extraction size cap", () => {
   it("extractGzSingle aborts past MAX_EXTRACT_BYTES", async () => {
-    const prev = process.env.CCAM_IMPORT_MAX_EXTRACT_BYTES;
-    process.env.CCAM_IMPORT_MAX_EXTRACT_BYTES = "128";
+    const prev = process.env.CAM_IMPORT_MAX_EXTRACT_BYTES;
+    process.env.CAM_IMPORT_MAX_EXTRACT_BYTES = "128";
     // Re-require to pick up the lowered limit for this one check.
     delete require.cache[require.resolve("../lib/archive")];
     const localArchive = require("../lib/archive");
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-bomb-"));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cam-bomb-"));
     const gzPath = path.join(tmp, "bomb.jsonl.gz");
     // 2 KB of zeros compresses to a few bytes — decompressing blows past 128 B.
     fs.writeFileSync(gzPath, zlib.gzipSync(Buffer.alloc(2048, 0)));
@@ -579,8 +579,8 @@ describe("extraction size cap", () => {
       );
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
-      if (prev === undefined) delete process.env.CCAM_IMPORT_MAX_EXTRACT_BYTES;
-      else process.env.CCAM_IMPORT_MAX_EXTRACT_BYTES = prev;
+      if (prev === undefined) delete process.env.CAM_IMPORT_MAX_EXTRACT_BYTES;
+      else process.env.CAM_IMPORT_MAX_EXTRACT_BYTES = prev;
       // Restore the module with production limits for subsequent tests.
       delete require.cache[require.resolve("../lib/archive")];
       require("../lib/archive");
@@ -592,7 +592,7 @@ describe("orphan subagent inference", () => {
   it("attaches subagent via Layout 2: <proj>/subagents/<sessionId>/agent.jsonl", async () => {
     const orphanSession = "dddddddd-4444-4444-8444-dddddddddddd";
     // Seed a parent session first.
-    const seedRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-orphan-seed-"));
+    const seedRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cam-orphan-seed-"));
     const seedProj = path.join(seedRoot, "project");
     fs.mkdirSync(seedProj, { recursive: true });
     fs.writeFileSync(
@@ -605,7 +605,7 @@ describe("orphan subagent inference", () => {
     assert.ok(stmts.getSession.get(orphanSession), "parent session must exist before orphan pass");
 
     // Now create an "orphan" subagent tree in the non-standard layout.
-    const orphanRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-orphan-"));
+    const orphanRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cam-orphan-"));
     const orphanLayoutDir = path.join(orphanRoot, "project", "subagents", orphanSession);
     fs.mkdirSync(orphanLayoutDir, { recursive: true });
     const subAgentId = "agent-xyz";
@@ -647,8 +647,8 @@ describe("concurrent scan-path requests", () => {
   it("two concurrent imports of different folders both succeed without clobbering", async () => {
     const sessA = "eeeeeeee-5555-4555-8555-eeeeeeeeeeee";
     const sessB = "ffffffff-6666-4666-8666-ffffffffffff";
-    const rootA = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-concurrent-a-"));
-    const rootB = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-concurrent-b-"));
+    const rootA = fs.mkdtempSync(path.join(os.tmpdir(), "cam-concurrent-a-"));
+    const rootB = fs.mkdtempSync(path.join(os.tmpdir(), "cam-concurrent-b-"));
     fs.mkdirSync(path.join(rootA, "-Users-demo-a"), { recursive: true });
     fs.mkdirSync(path.join(rootB, "-Users-demo-b"), { recursive: true });
     fs.writeFileSync(

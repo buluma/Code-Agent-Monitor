@@ -1,5 +1,5 @@
 /**
- * @file Shared paths and version pins for the CCAM monitoring stack.
+ * @file Shared paths and version pins for the CAM monitoring stack.
  * Binaries are downloaded into monitoring/.bin/ by ensure-binaries.js so the
  * stack runs with plain npm on macOS, Linux, and Windows — no Homebrew, apt,
  * or global installs required.
@@ -129,7 +129,7 @@ function grafanaAdminEnv() {
     GF_SECURITY_ADMIN_USER: GRAFANA_ADMIN_USER,
     GF_SECURITY_ADMIN_PASSWORD: GRAFANA_ADMIN_PASSWORD,
     GF_USERS_ALLOW_SIGN_UP: "false",
-    GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_UID: "ccam-overview",
+    GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_UID: "cam-overview",
   };
 }
 

@@ -101,7 +101,7 @@ validate_input() {
   # Decompress if needed
   if [[ "$INPUT_FILE" == *.gz ]]; then
     info "Decompressing gzipped backup..."
-    TEMP_RESTORE_FILE="$(mktemp "${TMPDIR:-/tmp}/ccam-restore.XXXXXX.db")"
+    TEMP_RESTORE_FILE="$(mktemp "${TMPDIR:-/tmp}/cam-restore.XXXXXX.db")"
     gzip -dc "${INPUT_FILE}" > "${TEMP_RESTORE_FILE}" || fatal "Failed to decompress ${INPUT_FILE}"
     restore_file="${TEMP_RESTORE_FILE}"
   fi

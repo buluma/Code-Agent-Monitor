@@ -1,6 +1,6 @@
 # Terraform deployment
 
-This module deploys CCAM to an existing conformant Kubernetes cluster through
+This module deploys CAM to an existing conformant Kubernetes cluster through
 the validated Helm chart. It works with EKS, GKE, AKS, OKE, or self-managed
 Kubernetes because cloud infrastructure and identity are supplied by the
 cluster, CSI driver, ingress or Gateway implementation, and secret controller.
@@ -37,6 +37,6 @@ state.
 ## Safety
 
 The module and Helm schema both reject more than one replica and reject HPA.
-CCAM uses SQLite and supports one active dashboard writer per persistent volume.
+CAM uses SQLite and supports one active dashboard writer per persistent volume.
 Upgrades use Helm atomic Recreate rollouts. Back up with
 `deployments/scripts/db-backup.sh` before production changes.

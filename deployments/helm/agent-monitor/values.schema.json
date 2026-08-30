@@ -6,7 +6,7 @@
     "replicaCount": {
       "type": "integer",
       "const": 1,
-      "description": "CCAM's SQLite backend requires exactly one active dashboard writer."
+      "description": "CAM's SQLite backend requires exactly one active dashboard writer."
     },
     "autoscaling": {
       "type": "object",

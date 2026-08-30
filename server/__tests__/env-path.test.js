@@ -10,7 +10,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
-const directory = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-env-path-"));
+const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cam-env-path-"));
 const envPath = path.join(directory, "config", ".env");
 process.env.DASHBOARD_ENV_PATH = envPath;
 

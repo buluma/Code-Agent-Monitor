@@ -1,0 +1,37 @@
+{
+  "name": "cam-quality",
+  "version": "3.3.0",
+  "description": "Reliability and error monitoring for Claude Code sessions — surfaces APIError events, hook delivery failures, tool-failure ratios (PreToolUse/PostToolUse gaps), and SLO tracking with error-budget reporting, all derived from the Code Agent Monitor event stream at http://localhost:4820.",
+  "author": {
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
+  },
+  "homepage": "https://github.com/buluma/Code-Agent-Monitor",
+  "repository": "https://github.com/buluma/Code-Agent-Monitor",
+  "license": "MIT",
+  "keywords": [
+    "reliability",
+    "errors",
+    "slo",
+    "quality",
+    "monitoring",
+    "error-budget",
+    "claude-code"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "CAM Quality",
+    "shortDescription": "Reliability and error monitoring for Claude Code sessions — surfaces APIError events, hook...",
+    "longDescription": "Reliability and error monitoring for Claude Code sessions — surfaces APIError events, hook delivery failures, tool-failure ratios (PreToolUse/PostToolUse gaps), and SLO tracking with error-budget reporting, all derived from the Code Agent Monitor event stream at http://localhost:4820.",
+    "developerName": "Michael Buluma",
+    "category": "Developer Tools",
+    "capabilities": ["Read"],
+    "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",
+    "defaultPrompt": [
+      "Use CAM Quality to inspect the local CAM dashboard.",
+      "Use CAM Quality to analyze recent agent activity."
+    ],
+    "brandColor": "#6366F1"
+  }
+}

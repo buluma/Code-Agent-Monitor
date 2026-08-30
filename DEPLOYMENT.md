@@ -1,12 +1,12 @@
 # Deployment
 
-CCAM supports three production paths:
+CAM supports three production paths:
 
 1. **Docker or Podman Compose on one Linux host** for the complete dashboard, MCP, Nginx, Prometheus, and Grafana stack.
 2. **Helm or Kustomize on any conformant Kubernetes cluster**, including EKS, GKE, AKS, OKE, and self-managed clusters.
 3. **Terraform against an existing Kubernetes cluster**, using the same validated Helm chart.
 
-The persistence contract is the same everywhere: **one active dashboard writer per SQLite volume**. CCAM does not support HPA, active-active replicas, blue-green, or canary deployments while SQLite is the database. Nginx, Prometheus, Grafana, and MCP can run around the dashboard, but the dashboard itself remains one Recreate-managed writer.
+The persistence contract is the same everywhere: **one active dashboard writer per SQLite volume**. CAM does not support HPA, active-active replicas, blue-green, or canary deployments while SQLite is the database. Nginx, Prometheus, Grafana, and MCP can run around the dashboard, but the dashboard itself remains one Recreate-managed writer.
 
 ## Production topology
 
@@ -14,7 +14,7 @@ The persistence contract is the same everywhere: **one active dashboard writer p
 flowchart LR
   USER[Browser] --> TLS[Cloud load balancer or TLS terminator]
   TLS --> EDGE[Nginx, Ingress, or Gateway API]
-  EDGE --> APP[CCAM dashboard, exactly 1 replica]
+  EDGE --> APP[CAM dashboard, exactly 1 replica]
   APP --> PVC[(ReadWriteOnce volume, dashboard.db)]
   MCP[MCP HTTP service] --> APP
   PROM[Prometheus] -->|Bearer-authenticated /api/metrics| APP
@@ -24,7 +24,7 @@ flowchart LR
 
 ### Why one writer
 
-SQLite coordinates concurrent operations inside one process well, but CCAM is not designed for multiple independent application processes writing the same database file over a shared filesystem. The supplied chart schema rejects `replicaCount != 1` and `autoscaling.enabled=true`. Kustomize uses `replicas: 1` plus `strategy.type: Recreate`. Upgrades intentionally have a brief application interruption while the old pod exits and the new pod acquires the volume.
+SQLite coordinates concurrent operations inside one process well, but CAM is not designed for multiple independent application processes writing the same database file over a shared filesystem. The supplied chart schema rejects `replicaCount != 1` and `autoscaling.enabled=true`. Kustomize uses `replicas: 1` plus `strategy.type: Recreate`. Upgrades intentionally have a brief application interruption while the old pod exits and the new pod acquires the volume.
 
 Availability comes from:
 
@@ -59,7 +59,7 @@ Production deployments use three independent tokens:
 
 The complete Compose stack also needs `grafana-admin-password`.
 
-CCAM consumes these as `DASHBOARD_TOKEN_FILE`,
+CAM consumes these as `DASHBOARD_TOKEN_FILE`,
 `DASHBOARD_HOOK_TOKEN_FILE`, `MCP_DASHBOARD_API_TOKEN_FILE`, and
 `MCP_HTTP_AUTH_TOKEN_FILE` inside containers and pods.
 
@@ -111,16 +111,16 @@ Nginx proxies the UI, authenticated REST API, and WebSocket. It returns `404` fo
 To expose authenticated remote hooks behind TLS:
 
 ```bash
-CCAM_NGINX_HOOK_POLICY=./deployments/nginx/snippets/hooks-proxy.conf \
-CCAM_EDGE_BIND=0.0.0.0 \
+CAM_NGINX_HOOK_POLICY=./deployments/nginx/snippets/hooks-proxy.conf \
+CAM_EDGE_BIND=0.0.0.0 \
 npm run docker:full:up
 ```
 
 Configure the client host:
 
 ```bash
-export CCAM_DASHBOARD_URL=https://agent-monitor.example.com
-export CCAM_HOOK_TOKEN_FILE=/secure/path/hook-token
+export CAM_DASHBOARD_URL=https://agent-monitor.example.com
+export CAM_HOOK_TOKEN_FILE=/secure/path/hook-token
 ```
 
 Non-loopback hook URLs must use HTTPS and a hook token. The hook handler remains fail-safe and non-blocking.
@@ -128,7 +128,7 @@ Non-loopback hook URLs must use HTTPS and a hook token. The hook handler remains
 To expose MCP through the same TLS edge, also set:
 
 ```bash
-CCAM_NGINX_MCP_POLICY=./deployments/nginx/snippets/mcp-proxy.conf
+CAM_NGINX_MCP_POLICY=./deployments/nginx/snippets/mcp-proxy.conf
 ```
 
 MCP clients send `Authorization: Bearer <mcp-token>` or `x-mcp-token`. `/health` stays unauthenticated for probes.
@@ -138,9 +138,9 @@ MCP clients send `Authorization: Bearer <mcp-token>` or `x-mcp-token`. `/health`
 The default `runtime` target supports monitoring, imports, updates, SSH sources, configuration, and MCP. To run Claude Code or Codex inside the container, build the opt-in target:
 
 ```bash
-CCAM_DOCKER_TARGET=agent-runtime \
-CCAM_AGENT_HOME_MODE=rw \
-CCAM_WORKSPACE_MODE=rw \
+CAM_DOCKER_TARGET=agent-runtime \
+CAM_AGENT_HOME_MODE=rw \
+CAM_WORKSPACE_MODE=rw \
 docker compose up -d --build
 ```
 
@@ -193,8 +193,8 @@ Render and replace the local image name with an immutable registry reference:
 REGISTRY="ghcr.io/$(gh repo view --json owner -q .owner.login)"
 IMAGE_TAG="$(git rev-parse --short HEAD)"
 kubectl kustomize deployments/kubernetes/overlays/production \
-  | sed "s|ccam-dashboard:3.3.0|${REGISTRY}/claude-code-agent-monitor:${IMAGE_TAG}|g" \
-  | kubectl apply --server-side --field-manager=ccam-deployer -f -
+  | sed "s|cam-dashboard:3.3.0|${REGISTRY}/claude-code-agent-monitor:${IMAGE_TAG}|g" \
+  | kubectl apply --server-side --field-manager=cam-deployer -f -
 ```
 
 Optional components:
@@ -206,7 +206,7 @@ Optional components:
 
 ### Network policy labels
 
-The Helm chart allows same-namespace dashboard access. Cross-namespace dashboard clients need `ccam.dev/dashboard-client=true` on their namespace. Exposed MCP clients need `ccam.dev/mcp-client=true`. MCP is not exposed outside the pod unless `mcp.exposeService=true`.
+The Helm chart allows same-namespace dashboard access. Cross-namespace dashboard clients need `cam.dev/dashboard-client=true` on their namespace. Exposed MCP clients need `cam.dev/mcp-client=true`. MCP is not exposed outside the pod unless `mcp.exposeService=true`.
 
 ## Terraform
 
@@ -249,7 +249,7 @@ test -n "${BACKUP_FILE}"
   --input "${BACKUP_FILE}"
 ```
 
-The script verifies the checksum and SQLite integrity, creates a mandatory pre-restore backup, scales the Deployment to zero, mounts the PVC in a restricted helper pod using the current CCAM image, replaces the database, removes WAL/SHM files, verifies integrity again, restores one replica, and runs health checks. If the script exits early after scale-down, an exit trap attempts to restore the writer.
+The script verifies the checksum and SQLite integrity, creates a mandatory pre-restore backup, scales the Deployment to zero, mounts the PVC in a restricted helper pod using the current CAM image, replaces the database, removes WAL/SHM files, verifies integrity again, restores one replica, and runs health checks. If the script exits early after scale-down, an exit trap attempts to restore the writer.
 
 ## Deploy and rollback
 

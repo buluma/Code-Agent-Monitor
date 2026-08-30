@@ -116,13 +116,13 @@ describe("hook-handler non-blocking delivery", () => {
         port,
         payload: { session_id: "hh-remote", stop_reason: "end_turn" },
         env: {
-          CCAM_DASHBOARD_URL: `http://127.0.0.1:${port}`,
-          CCAM_HOOK_TOKEN: "hook-secret",
+          CAM_DASHBOARD_URL: `http://127.0.0.1:${port}`,
+          CAM_HOOK_TOKEN: "hook-secret",
         },
       });
       assert.equal(code, 0);
       await new Promise((resolve) => setTimeout(resolve, 100));
-      assert.equal(receivedHeaders[0]["x-ccam-hook-token"], "hook-secret");
+      assert.equal(receivedHeaders[0]["x-cam-hook-token"], "hook-secret");
     } finally {
       server.close();
     }

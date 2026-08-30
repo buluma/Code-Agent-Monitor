@@ -1,0 +1,29 @@
+{
+  "name": "cam-cost-guard",
+  "version": "3.3.0",
+  "description": "Budget tracking, spend forecasting, and cost-threshold alerts for Claude Code usage via the Agent Monitor pricing engine. Watches spend against a target budget, projects month-end cost from the daily trend, surfaces the priciest sessions, estimates savings from cheaper-model routing, and wires up cost alert rules — all backed by the dashboard at http://localhost:4820.",
+  "author": {
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
+  },
+  "homepage": "https://github.com/buluma/Code-Agent-Monitor",
+  "repository": "https://github.com/buluma/Code-Agent-Monitor",
+  "license": "MIT",
+  "keywords": ["budget", "cost", "forecast", "alerts", "spend", "pricing", "claude-code"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "CAM Cost Guard",
+    "shortDescription": "Budget tracking, spend forecasting, and cost-threshold alerts for Claude Code usage via the...",
+    "longDescription": "Budget tracking, spend forecasting, and cost-threshold alerts for Claude Code usage via the Agent Monitor pricing engine. Watches spend against a target budget, projects month-end cost from the daily trend, surfaces the priciest sessions, estimates savings from cheaper-model routing, and wires up cost alert rules — all backed by the dashboard at http://localhost:4820.",
+    "developerName": "Michael Buluma",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",
+    "defaultPrompt": [
+      "Use CAM Cost Guard to inspect the local CAM dashboard.",
+      "Use CAM Cost Guard to analyze recent agent activity."
+    ],
+    "brandColor": "#6366F1"
+  }
+}

@@ -1,11 +1,11 @@
 # Deployment infrastructure
 
-This directory contains the supported production deployment surface for CCAM.
+This directory contains the supported production deployment surface for CAM.
 The complete operator guide is [`../DEPLOYMENT.md`](../DEPLOYMENT.md).
 
 ## Supported topology
 
-CCAM uses SQLite and supports **one active dashboard writer per persistent
+CAM uses SQLite and supports **one active dashboard writer per persistent
 volume**. The deployment assets enforce one replica and a Recreate strategy.
 HPA, active-active replicas, blue-green, and canary deployments are intentionally
 not shipped while SQLite remains the persistence backend.

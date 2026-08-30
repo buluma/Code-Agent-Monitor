@@ -466,17 +466,17 @@ async function waitForHealthy(port: number, timeoutMs = HEALTH_TIMEOUT_MS): Prom
  * the BrowserWindow and to shut down cleanly on quit.
  *
  * Two environment overrides exist primarily for testing:
- *   - `CCAM_DESKTOP_BIND_PORT`: bind exactly this port (no adoption, no fallback).
+ *   - `CAM_DESKTOP_BIND_PORT`: bind exactly this port (no adoption, no fallback).
  *     Used by the smoke test to verify the spawned process actually started a
  *     server rather than finding an unrelated one.
- *   - `CCAM_DESKTOP_NO_ADOPT=1`: skip the "is there already a healthy server
+ *   - `CAM_DESKTOP_NO_ADOPT=1`: skip the "is there already a healthy server
  *     on 4820?" check and always start our own.
  */
 export async function startEmbeddedServer(): Promise<ServerHandle> {
-  const forcedPort = process.env.CCAM_DESKTOP_BIND_PORT
-    ? parseInt(process.env.CCAM_DESKTOP_BIND_PORT, 10)
+  const forcedPort = process.env.CAM_DESKTOP_BIND_PORT
+    ? parseInt(process.env.CAM_DESKTOP_BIND_PORT, 10)
     : null;
-  const noAdopt = process.env.CCAM_DESKTOP_NO_ADOPT === "1" || forcedPort !== null;
+  const noAdopt = process.env.CAM_DESKTOP_NO_ADOPT === "1" || forcedPort !== null;
 
   if (!noAdopt) {
     // Adopt an already-running healthy server (e.g. user has `npm start` open).

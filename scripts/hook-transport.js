@@ -12,9 +12,9 @@ const https = require("node:https");
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "::1", "[::1]"]);
 
 function readHookToken() {
-  const direct = process.env.CCAM_HOOK_TOKEN;
+  const direct = process.env.CAM_HOOK_TOKEN;
   if (typeof direct === "string" && direct.trim()) return direct.trim();
-  const tokenPath = process.env.CCAM_HOOK_TOKEN_FILE;
+  const tokenPath = process.env.CAM_HOOK_TOKEN_FILE;
   if (typeof tokenPath !== "string" || !tokenPath.trim()) return null;
   try {
     return fs.readFileSync(tokenPath.trim(), "utf8").trim() || null;
@@ -24,14 +24,14 @@ function readHookToken() {
 }
 
 function remoteDashboardUrl() {
-  const raw = process.env.CCAM_DASHBOARD_URL;
+  const raw = process.env.CAM_DASHBOARD_URL;
   if (typeof raw !== "string" || !raw.trim()) return null;
   const url = new URL(raw.trim());
   if (url.protocol !== "http:" && url.protocol !== "https:") {
-    throw new Error("CCAM_DASHBOARD_URL must use http or https");
+    throw new Error("CAM_DASHBOARD_URL must use http or https");
   }
   if (url.protocol === "http:" && !LOOPBACK_HOSTS.has(url.hostname)) {
-    throw new Error("Remote CCAM_DASHBOARD_URL values must use HTTPS");
+    throw new Error("Remote CAM_DASHBOARD_URL values must use HTTPS");
   }
   return url;
 }
@@ -40,7 +40,7 @@ function buildTargets(resolvePorts, endpointPath) {
   const remote = remoteDashboardUrl();
   if (remote) {
     if (!LOOPBACK_HOSTS.has(remote.hostname) && !readHookToken()) {
-      throw new Error("Remote CCAM_DASHBOARD_URL values require CCAM_HOOK_TOKEN");
+      throw new Error("Remote CAM_DASHBOARD_URL values require CAM_HOOK_TOKEN");
     }
     const target = new URL(remote.toString());
     target.pathname = endpointPath;
@@ -65,7 +65,7 @@ function sendHook(resolvePorts, endpointPath, payload) {
     "Content-Type": "application/json",
     "Content-Length": Buffer.byteLength(body),
   };
-  if (token) headers["x-ccam-hook-token"] = token;
+  if (token) headers["x-cam-hook-token"] = token;
 
   return Promise.all(
     targets.map(

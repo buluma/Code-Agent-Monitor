@@ -1,0 +1,29 @@
+{
+  "name": "cam-integrations",
+  "version": "3.3.0",
+  "description": "Manage CAM alert rules, universal webhook providers, browser push notifications, and SSH Remote Data Sources with explicit mutation and external-send confirmation.",
+  "author": {
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
+  },
+  "homepage": "https://github.com/buluma/Code-Agent-Monitor",
+  "repository": "https://github.com/buluma/Code-Agent-Monitor",
+  "license": "MIT",
+  "keywords": ["alerts", "webhooks", "push", "remote-sources", "ssh", "integrations"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "CAM Integrations",
+    "shortDescription": "Manage CAM alert rules, universal webhook providers, browser push notifications, and SSH...",
+    "longDescription": "Manage CAM alert rules, universal webhook providers, browser push notifications, and SSH Remote Data Sources with explicit mutation and external-send confirmation.",
+    "developerName": "Michael Buluma",
+    "category": "Developer Tools",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",
+    "defaultPrompt": [
+      "Use CAM Integrations to inspect the local CAM dashboard.",
+      "Use CAM Integrations to analyze recent agent activity."
+    ],
+    "brandColor": "#6366F1"
+  }
+}

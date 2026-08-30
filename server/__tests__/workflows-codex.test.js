@@ -11,7 +11,7 @@ const http = require("http");
 const os = require("os");
 const path = require("path");
 
-const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-workflows-codex-"));
+const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "cam-workflows-codex-"));
 process.env.DASHBOARD_DB_PATH = path.join(ROOT, "dashboard.db");
 process.env.DASHBOARD_CODEX_HOME = path.join(ROOT, "codex");
 

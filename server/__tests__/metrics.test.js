@@ -89,22 +89,22 @@ describe("GET /api/metrics", () => {
 
     // Core families present with HELP + TYPE headers.
     for (const name of [
-      "ccam_up",
-      "ccam_build_info",
-      "ccam_process_uptime_seconds",
-      "ccam_process_resident_memory_bytes",
-      "ccam_sessions",
-      "ccam_agents",
-      "ccam_events_total",
-      "ccam_websocket_clients",
-      "ccam_remote_sources",
-      "ccam_tokens_total",
+      "cam_up",
+      "cam_build_info",
+      "cam_process_uptime_seconds",
+      "cam_process_resident_memory_bytes",
+      "cam_sessions",
+      "cam_agents",
+      "cam_events_total",
+      "cam_websocket_clients",
+      "cam_remote_sources",
+      "cam_tokens_total",
     ]) {
       assert.ok(res.body.includes(`# HELP ${name} `), `HELP for ${name}`);
       assert.ok(res.body.includes(`# TYPE ${name} `), `TYPE for ${name}`);
     }
 
-    assert.equal(sampleValue(res.body, "ccam_up"), 1);
+    assert.equal(sampleValue(res.body, "cam_up"), 1);
     // No sample line may carry a NaN/undefined value.
     for (const line of res.body.split("\n")) {
       if (!line || line.startsWith("#")) continue;
@@ -117,29 +117,29 @@ describe("GET /api/metrics", () => {
     const res = await request("GET", "/api/metrics");
     for (const status of ["active", "completed", "error", "abandoned"]) {
       assert.notEqual(
-        sampleValue(res.body, "ccam_sessions", `status="${status}"`),
+        sampleValue(res.body, "cam_sessions", `status="${status}"`),
         null,
-        `ccam_sessions status=${status} present`
+        `cam_sessions status=${status} present`
       );
     }
     for (const status of ["working", "waiting", "completed", "error"]) {
       assert.notEqual(
-        sampleValue(res.body, "ccam_agents", `status="${status}"`),
+        sampleValue(res.body, "cam_agents", `status="${status}"`),
         null,
-        `ccam_agents status=${status} present`
+        `cam_agents status=${status} present`
       );
     }
   });
 
   it("reflects real data seeded through the hook API", async () => {
-    const before = sampleValue(await scrapeText(), "ccam_sessions", 'status="active"') || 0;
+    const before = sampleValue(await scrapeText(), "cam_sessions", 'status="active"') || 0;
 
     await request("POST", "/api/hooks/event", {
       hook_type: "SessionStart",
       data: { session_id: "metrics-sess-1", cwd: "/tmp/metrics" },
     });
 
-    const after = sampleValue(await scrapeText(), "ccam_sessions", 'status="active"');
+    const after = sampleValue(await scrapeText(), "cam_sessions", 'status="active"');
     assert.equal(after, before + 1, "a new active session bumps the gauge by 1");
   });
 

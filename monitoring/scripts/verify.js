@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * @file Verifies the CCAM dashboard and optional Prometheus/Grafana stack are up.
+ * @file Verifies the CAM dashboard and optional Prometheus/Grafana stack are up.
  * Used after `monitoring:up` or `monitoring:docker:up` to confirm scrape health.
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 const { GRAFANA_ADMIN_USER, GRAFANA_ADMIN_PASSWORD } = require("./paths");
 
-const DASHBOARD_URL = process.env.CCAM_DASHBOARD_URL || "http://127.0.0.1:4820";
-const PROMETHEUS_URL = process.env.CCAM_PROMETHEUS_URL || "http://127.0.0.1:9090";
-const GRAFANA_URL = process.env.CCAM_GRAFANA_URL || "http://127.0.0.1:3000";
+const DASHBOARD_URL = process.env.CAM_DASHBOARD_URL || "http://127.0.0.1:4820";
+const PROMETHEUS_URL = process.env.CAM_PROMETHEUS_URL || "http://127.0.0.1:9090";
+const GRAFANA_URL = process.env.CAM_GRAFANA_URL || "http://127.0.0.1:3000";
 const JSON_MODE = process.argv.includes("--json");
 
 async function checkDashboardHealth() {
@@ -44,26 +44,26 @@ async function checkPrometheusTarget(attempts = 12, intervalMs = 2500) {
     if (i < attempts - 1) await new Promise((r) => setTimeout(r, intervalMs));
     if (i === attempts - 1) return result;
   }
-  return { name: "Prometheus ccam target", ok: false, detail: "timeout" };
+  return { name: "Prometheus cam target", ok: false, detail: "timeout" };
 }
 
 async function checkPrometheusTargetOnce() {
   try {
     const res = await fetch(`${PROMETHEUS_URL}/api/v1/targets`);
-    if (!res.ok) return { name: "Prometheus ccam target", ok: false, detail: `HTTP ${res.status}` };
+    if (!res.ok) return { name: "Prometheus cam target", ok: false, detail: `HTTP ${res.status}` };
     const body = await res.json();
-    const target = body?.data?.activeTargets?.find((t) => t.labels?.job === "ccam");
-    if (!target) return { name: "Prometheus ccam target", ok: false, detail: "job not found" };
+    const target = body?.data?.activeTargets?.find((t) => t.labels?.job === "cam");
+    if (!target) return { name: "Prometheus cam target", ok: false, detail: "job not found" };
     if (target.health !== "up") {
       return {
-        name: "Prometheus ccam target",
+        name: "Prometheus cam target",
         ok: false,
         detail: target.lastError || `health=${target.health}`,
       };
     }
-    return { name: "Prometheus ccam target", ok: true, detail: target.scrapeUrl };
+    return { name: "Prometheus cam target", ok: true, detail: target.scrapeUrl };
   } catch (err) {
-    return { name: "Prometheus ccam target", ok: false, detail: err.message };
+    return { name: "Prometheus cam target", ok: false, detail: err.message };
   }
 }
 
@@ -97,8 +97,8 @@ function grafanaLoginDetail() {
 async function checkPrometheusMetrics() {
   try {
     const queries = [
-      { name: "Prometheus ccam_up", q: "ccam_up" },
-      { name: "Prometheus total sessions", q: "sum(ccam_sessions)" },
+      { name: "Prometheus cam_up", q: "cam_up" },
+      { name: "Prometheus total sessions", q: "sum(cam_sessions)" },
     ];
     const results = [];
     for (const { name, q } of queries) {
@@ -112,7 +112,7 @@ async function checkPrometheusMetrics() {
       const body = await res.json();
       const series = body?.data?.result;
       if (!Array.isArray(series) || series.length === 0) {
-        results.push({ name, ok: false, detail: "no series (is CCAM scraping?)" });
+        results.push({ name, ok: false, detail: "no series (is CAM scraping?)" });
         continue;
       }
       const sample = series[0]?.value?.[1];
@@ -120,7 +120,7 @@ async function checkPrometheusMetrics() {
     }
     return results;
   } catch (err) {
-    return [{ name: "Prometheus ccam metrics", ok: false, detail: err.message }];
+    return [{ name: "Prometheus cam metrics", ok: false, detail: err.message }];
   }
 }
 
@@ -128,15 +128,15 @@ async function checkPrometheusConsole() {
   try {
     const res = await fetch(`${PROMETHEUS_URL}/consoles/index.html`);
     if (!res.ok) {
-      return { name: "Prometheus CCAM console", ok: false, detail: `HTTP ${res.status}` };
+      return { name: "Prometheus CAM console", ok: false, detail: `HTTP ${res.status}` };
     }
     const html = await res.text();
-    if (!html.includes("CCAM")) {
-      return { name: "Prometheus CCAM console", ok: false, detail: "unexpected page body" };
+    if (!html.includes("CAM")) {
+      return { name: "Prometheus CAM console", ok: false, detail: "unexpected page body" };
     }
-    return { name: "Prometheus CCAM console", ok: true, detail: "/consoles/index.html" };
+    return { name: "Prometheus CAM console", ok: true, detail: "/consoles/index.html" };
   } catch (err) {
-    return { name: "Prometheus CCAM console", ok: false, detail: err.message };
+    return { name: "Prometheus CAM console", ok: false, detail: err.message };
   }
 }
 

@@ -1,4 +1,4 @@
-# Prometheus scrape config for a NATIVE (non-Docker) CCAM + monitoring stack.
+# Prometheus scrape config for a NATIVE (non-Docker) CAM + monitoring stack.
 #
 # Use this when Prometheus runs directly on the host (Homebrew, apt, a release
 # tarball, etc.) and the dashboard is a plain `npm start` on loopback :4820.
@@ -12,10 +12,10 @@ global:
   scrape_timeout: 10s
 
 rule_files:
-  - ccam-rules.yml
+  - cam-rules.yml
 
 scrape_configs:
-  - job_name: ccam
+  - job_name: cam
     metrics_path: /api/metrics
     static_configs:
       - targets: ["127.0.0.1:4820"]

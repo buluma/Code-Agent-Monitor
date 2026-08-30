@@ -15,7 +15,7 @@ const { extractSessionTaskProgress, clearTaskProgressCache } = require("../lib/t
 const roots = [];
 
 function tempRoot() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-task-progress-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cam-task-progress-"));
   roots.push(root);
   return root;
 }

@@ -12,7 +12,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-helmcode-pricing-"));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "cam-helmcode-pricing-"));
 process.env.DASHBOARD_HELMCODE_HOME = TMP;
 
 const {

@@ -1,0 +1,29 @@
+{
+  "name": "cam-productivity",
+  "version": "3.3.0",
+  "description": "Productivity workflows for Claude Code — daily standups, weekly reports, sprint summaries, and intelligent workflow optimization powered by Agent Monitor session data.",
+  "author": {
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
+  },
+  "homepage": "https://github.com/buluma/Code-Agent-Monitor",
+  "repository": "https://github.com/buluma/Code-Agent-Monitor",
+  "license": "MIT",
+  "keywords": ["productivity", "standup", "reports", "sprint", "workflow", "claude-code"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "CAM Productivity",
+    "shortDescription": "Productivity workflows for Claude Code — daily standups, weekly reports, sprint summaries,...",
+    "longDescription": "Productivity workflows for Claude Code — daily standups, weekly reports, sprint summaries, and intelligent workflow optimization powered by Agent Monitor session data.",
+    "developerName": "Michael Buluma",
+    "category": "Productivity",
+    "capabilities": ["Read"],
+    "websiteURL": "https://github.com/buluma/Code-Agent-Monitor",
+    "defaultPrompt": [
+      "Use CAM Productivity to inspect the local CAM dashboard.",
+      "Use CAM Productivity to analyze recent agent activity."
+    ],
+    "brandColor": "#6366F1"
+  }
+}

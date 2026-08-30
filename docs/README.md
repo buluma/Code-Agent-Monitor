@@ -14,7 +14,7 @@ canonical source for its topic — this page does not repeat their content.
   reference
 - [Installation & Setup](../INSTALL.md) - Install, first run, configuration,
   and troubleshooting
-- [CLI Reference](./CLI.md) - The `ccam` terminal CLI: every command, discovery,
+- [CLI Reference](./CLI.md) - The `cam` terminal CLI: every command, discovery,
   safety model
 
 ---
@@ -26,11 +26,11 @@ catalog below as a reference:
 
 | Goal                                 | Start here                                                         | Continue with                                                                                 |
 | ------------------------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Use or troubleshoot CCAM day to day  | [Product Wiki](https://buluma.github.io/Code-Agent-Monitor/wiki/)  | the exact references below                                                                     |
-| Run CCAM locally                     | [INSTALL.md](../INSTALL.md)                                       | then the dashboard                                                                              |
+| Use or troubleshoot CAM day to day  | [Product Wiki](https://buluma.github.io/Code-Agent-Monitor/wiki/)  | the exact references below                                                                     |
+| Run CAM locally                     | [INSTALL.md](../INSTALL.md)                                       | then the dashboard                                                                              |
 | Integrate with the API or WebSocket  | [API.md](./API.md)                                                | [mcp/README.md](../mcp/README.md) for an MCP-based integration                                 |
 | Understand captured activity         | [HOOKS.md](./HOOKS.md)                                             | [DATABASE.md](./DATABASE.md) and [ARCHITECTURE.md](../ARCHITECTURE.md)                          |
-| Operate CCAM in production           | [DEPLOYMENT.md](../DEPLOYMENT.md)                                  | [server/README.md](../server/README.md) and [monitoring/README.md](../monitoring/README.md)    |
+| Operate CAM in production           | [DEPLOYMENT.md](../DEPLOYMENT.md)                                  | [server/README.md](../server/README.md) and [monitoring/README.md](../monitoring/README.md)    |
 | Extend the UI                        | [client/README.md](../client/README.md)                           | [I18N.md](./I18N.md)                                                                            |
 
 ---
@@ -49,7 +49,7 @@ catalog below as a reference:
 | [mcp/README.md](../mcp/README.md)                     | MCP server setup and tool reference                                                                                                                                                                                                         | MCP integrators                  |
 | [DEPLOYMENT.md](../DEPLOYMENT.md)                      | Production deployment: Docker/Podman, Kubernetes (Helm/Kustomize), Terraform, backup/restore, rollback                                                                                                                                      | DevOps engineers                 |
 | [I18N.md](./I18N.md)                                  | Language architecture, locale strategy, and rollout checklist                                                                                                                                                                               | Frontend and product teams       |
-| [CLI.md](./CLI.md)                                    | `ccam` command reference — monitoring, browsing, insights, alerts, pricing, import, administration                                                                                                                                          | Terminal users and CI scripting  |
+| [CLI.md](./CLI.md)                                    | `cam` command reference — monitoring, browsing, insights, alerts, pricing, import, administration                                                                                                                                          | Terminal users and CI scripting  |
 | [HELMCODE-INTEGRATION.md](./HELMCODE-INTEGRATION.md)  | Spec for supporting Helm Code as a third monitored provider (ingest from `~/.helmcode/userdata/state.sqlite`) — a design/plan doc, not operator docs                                                                                        | Backend developers, reviewers    |
 | [monitoring/README.md](../monitoring/README.md)       | Prometheus + Grafana stack (`npm run monitoring:up` or Docker)                                                                                                                                                                              | DevOps / observability           |
 

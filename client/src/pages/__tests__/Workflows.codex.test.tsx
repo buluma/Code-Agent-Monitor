@@ -88,7 +88,7 @@ async function settle() {
 
 afterEach(() => {
   setScope({ mode: "all", selected: [], provider: "claude" });
-  localStorage.removeItem("ccam-data-scope");
+  localStorage.removeItem("cam-data-scope");
 });
 
 describe("Workflows — Codex scope", () => {

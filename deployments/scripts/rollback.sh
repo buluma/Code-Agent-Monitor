@@ -100,8 +100,8 @@ discover_resources() {
   SERVICE_NAME=$(kubectl get service -n "${NAMESPACE}" \
     -l "app.kubernetes.io/name=${APP_NAME}" \
     -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
-  [[ -n "$DEPLOYMENT_NAME" ]] || fatal "No CCAM Deployment found in ${NAMESPACE}"
-  [[ -n "$SERVICE_NAME" ]] || fatal "No CCAM Service found in ${NAMESPACE}"
+  [[ -n "$DEPLOYMENT_NAME" ]] || fatal "No CAM Deployment found in ${NAMESPACE}"
+  [[ -n "$SERVICE_NAME" ]] || fatal "No CAM Service found in ${NAMESPACE}"
 }
 
 backup_current() {

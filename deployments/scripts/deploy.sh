@@ -299,8 +299,8 @@ deploy_kustomize() {
 
   local rendered
   rendered="$(mktemp)"
-  kubectl kustomize "${overlay_dir}" | sed "s|ccam-dashboard:3.3.0|${FULL_IMAGE}|g" > "${rendered}"
-  if ! kubectl apply -f "${rendered}" --server-side --field-manager=ccam-deployer; then
+  kubectl kustomize "${overlay_dir}" | sed "s|cam-dashboard:3.3.0|${FULL_IMAGE}|g" > "${rendered}"
+  if ! kubectl apply -f "${rendered}" --server-side --field-manager=cam-deployer; then
     rm -f "${rendered}"
     err "Kustomize deployment failed!"
     warn "Run: kubectl rollout undo deployment/${APP_NAME} -n ${NAMESPACE}"
@@ -337,8 +337,8 @@ run_health_check() {
   service_name=$(kubectl get service -n "${NAMESPACE}" \
     -l "app.kubernetes.io/name=${APP_NAME}" \
     -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
-  [[ -n "$deployment_name" ]] || fatal "No CCAM Deployment found in ${NAMESPACE}"
-  [[ -n "$service_name" ]] || fatal "No CCAM Service found in ${NAMESPACE}"
+  [[ -n "$deployment_name" ]] || fatal "No CAM Deployment found in ${NAMESPACE}"
+  [[ -n "$service_name" ]] || fatal "No CAM Service found in ${NAMESPACE}"
 
   # Determine health check URL
   local health_url=""

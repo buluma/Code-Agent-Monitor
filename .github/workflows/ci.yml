@@ -334,7 +334,7 @@ jobs:
           file: ./Dockerfile
           target: runtime
           load: true
-          tags: ccam-dashboard:ci
+          tags: cam-dashboard:ci
           cache-from: type=gha,scope=app
           cache-to: type=gha,mode=max,scope=app
 
@@ -345,7 +345,7 @@ jobs:
           file: ./mcp/Dockerfile
           target: runtime
           load: true
-          tags: ccam-mcp:ci
+          tags: cam-mcp:ci
           cache-from: type=gha,scope=mcp
           cache-to: type=gha,mode=max,scope=mcp
 

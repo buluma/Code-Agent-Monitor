@@ -30,5 +30,5 @@ patches:
         NODE_ENV: production
 
 images:
-  - name: ccam-dashboard
+  - name: cam-dashboard
     newTag: 3.3.0
