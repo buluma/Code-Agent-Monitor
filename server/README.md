@@ -1951,6 +1951,22 @@ npm run test:server
 node --test --test-reporter=spec server/__tests__/*.test.js
 ```
 
+### Type Checking
+
+The server is plain CommonJS JS — no `.ts` build step — but individual files can
+opt into gradual type-checking via a `// @ts-check` pragma at the top plus JSDoc
+annotations, checked by `server/tsconfig.json` (`allowJs`, `checkJs: false`
+project-wide so only pragma'd files are diagnosed). Currently
+`server/routes/hooks.js` and `server/routes/sessions.js`.
+
+```bash
+npm run typecheck:server
+```
+
+Add the pragma to a file only once its JSDoc actually makes it pass — an
+un-annotated file that opts in just adds noisy errors without catching
+anything.
+
 ### Example Test
 
 ```javascript
