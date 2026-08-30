@@ -191,4 +191,29 @@ describe("SplashScreen", () => {
       "We could not check your current hook setup"
     );
   });
+
+  it("skips setup for Helm Code without checking hook status, since it needs none", async () => {
+    const user = userEvent.setup();
+
+    render(<SplashScreen />);
+    await user.click(screen.getByRole("radio", { name: /^helm code/i }));
+    await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
+
+    expect(info).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(sessionStorage.getItem("provider-onboarding-shown-v1")).toBe("1");
+  });
+
+  it("skips setup for Helm Code even when the hook status check would fail", async () => {
+    const user = userEvent.setup();
+    info.mockRejectedValue(new Error("offline"));
+
+    render(<SplashScreen />);
+    await user.click(screen.getByRole("radio", { name: /^helm code/i }));
+    await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
+
+    expect(info).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(sessionStorage.getItem("provider-onboarding-shown-v1")).toBe("1");
+  });
 });

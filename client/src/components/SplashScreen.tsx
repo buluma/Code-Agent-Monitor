@@ -160,6 +160,13 @@ export function SplashScreen() {
 
   const continueFromProviderChoice = async () => {
     if (hookCheckInFlightRef.current) return;
+    // A scope needing no hooks (Helm Code) has nothing to check or install -
+    // skip the network round-trip entirely so a failed request never opens an
+    // empty hook gate for a provider that was never going to appear in it.
+    if (selectedHookProviders.length === 0) {
+      finishOnboarding();
+      return;
+    }
     hookCheckInFlightRef.current = true;
     setHookStatus(null);
     setInstallOutput([]);

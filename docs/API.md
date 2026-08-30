@@ -1139,16 +1139,7 @@ destination. List and mutation responses mask URLs and redact secrets.
 
 ### Remote Data Sources
 
-The `/api/remote-sources/*` namespace configures **remote SSH machines** the
-dashboard pulls Claude Code, Codex, Helm Code, or all histories from, so one dashboard can
-consolidate sessions from several machines. Each provider is mirrored and
-imported independently; a source succeeds when either provider is present. Codex
-additionally mirrors its lightweight `session_index.jsonl` so native renamed
-titles survive import. **No secrets are stored** — SSH authentication defers
-entirely to the host's SSH stack (ssh-agent, `~/.ssh/config`, key files). Every
-imported session is tagged with the source's id in the `sessions.source` column
-(the built-in local history uses the id `local`), which powers the `sources`
-filter below.
+The `/api/remote-sources/*` namespace configures **remote SSH machines** the dashboard pulls Claude Code, Codex, Helm Code, or all histories from, so one dashboard can consolidate sessions from several machines. Each provider is mirrored and imported independently; a source succeeds when either provider is present. Codex additionally mirrors its lightweight `session_index.jsonl` so native renamed titles survive import. **No secrets are stored** — SSH authentication defers entirely to the host's SSH stack (ssh-agent, `~/.ssh/config`, key files). Every imported session is tagged with the source's id in the `sessions.source` column (the built-in local history uses the id `local`), which powers the `sources` filter below.
 
 **RemoteSource shape:**
 

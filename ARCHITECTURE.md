@@ -603,22 +603,7 @@ graph TD
 
 ### Splash & loading UX
 
-- **`SplashScreen.tsx`** — rendered by `App.tsx` as a fixed full-screen overlay
-  alongside the router. Shows once per browser session (`sessionStorage` gate,
-  read synchronously so a repeat mount never flashes). Time-aware greeting +
-  tagline/subtexts (`splash` i18n namespace, English only) + an
-  animated node-graph brand mark on a dark backdrop (radial glow, drifting
-  constellation, grain). It collects the global provider scope and checks
-  readiness only for the providers that scope requires: Claude-only needs Claude
-  hooks, Codex-only needs Codex hooks, Helm Code needs none (it has no
-  Claude-Code-style hooks in Phase 1), and All needs Claude + Codex. Fully ready
-  selections persist the scope and reveal the dashboard immediately. Otherwise
-  the live-monitoring gate lists and installs only missing selected providers
-  through `POST /api/settings/install-hooks`; status-check failures fail soft
-  into manual setup for the complete selected scope. The backdrop is **opaque
-  from the first paint** (no entrance fade on the root) so the app rendered
-  behind it never flashes through; only the inner content cascades in. Honors
-  `prefers-reduced-motion`. CSS-only keyframes, no added dependencies.
+- **`SplashScreen.tsx`** — rendered by `App.tsx` as a fixed full-screen overlay alongside the router. Shows once per browser session (`sessionStorage` gate, read synchronously so a repeat mount never flashes). Time-aware greeting + tagline/subtexts (`splash` i18n namespace, English only) + an animated node-graph brand mark on a dark backdrop (radial glow, drifting constellation, grain). It collects the global provider scope and checks readiness only for the providers that scope requires: Claude-only needs Claude hooks, Codex-only needs Codex hooks, Helm Code needs none (it has no Claude-Code-style hooks in Phase 1), and All needs Claude + Codex. Fully ready selections persist the scope and reveal the dashboard immediately. Otherwise the live-monitoring gate lists and installs only missing selected providers through `POST /api/settings/install-hooks`; status-check failures fail soft into manual setup for the complete selected scope. The backdrop is **opaque from the first paint** (no entrance fade on the root) so the app rendered behind it never flashes through; only the inner content cascades in. Honors `prefers-reduced-motion`. CSS-only keyframes, no added dependencies.
 - **Loading skeletons** — the shared `Skeleton` primitive
   (`components/Skeleton.tsx`) uses Tailwind `animate-pulse`. `Analytics.tsx` now
   renders a pulsing `AnalyticsChartsSkeleton` for the whole chart region while
