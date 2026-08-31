@@ -1,6 +1,6 @@
 {
   "name": "cam-devtools",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Developer tools for Code Agent Monitor — session debugging, hook diagnostics, data export, and system health checks for maintaining a healthy monitoring setup.",
   "author": {
     "name": "Michael Buluma",

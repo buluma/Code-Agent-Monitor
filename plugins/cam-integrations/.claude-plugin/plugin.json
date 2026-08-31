@@ -1,7 +1,7 @@
 {
   "name": "cam-integrations",
   "description": "Manage CAM alert rules, universal webhook providers, browser push notifications, and SSH Remote Data Sources with explicit mutation and external-send confirmation.",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "author": { "name": "Michael Buluma", "url": "https://github.com/buluma" },
   "homepage": "https://github.com/buluma/Code-Agent-Monitor",
   "repository": "https://github.com/buluma/Code-Agent-Monitor",
