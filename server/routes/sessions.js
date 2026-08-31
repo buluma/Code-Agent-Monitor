@@ -6,6 +6,7 @@
  * broadcasts live changes.
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
+// @ts-check
 
 const { Router } = require("express");
 const fs = require("fs");
@@ -676,6 +677,7 @@ router.get("/:id/transcripts", async (req, res) => {
     });
   }
 
+  /** @type {Array<{id: string, name: string, type: string, has_transcript: boolean, db_agent_id: any, subagent_type?: string|null, _timestamp?: string|null, _sortTime?: number}>} */
   const result = [];
 
   // Query database agent list for db_agent_id association
@@ -970,6 +972,14 @@ async function jsonlEntryAtLine(jsonlPath, targetLine) {
  * Keeping images as their own block lets the client render the real persisted
  * attachment instead of an "[Image #]" placeholder in the user prompt.
  */
+/**
+ * @typedef {{type: string, text?: string, src?: string, alt?: string, name?: string, id?: string|null, input?: any, output?: any, is_error?: boolean}} CodexContentBlock
+ */
+/**
+ * @typedef {{type: string, sender: string, timestamp: string|null, content: CodexContentBlock[], line: number, _codexUserKind?: string}} CodexMessage
+ */
+
+/** @returns {CodexContentBlock[]} */
 function codexMessageContent(content) {
   if (typeof content === "string") {
     const text = stripTranscriptImageMarkup(content);
@@ -1025,7 +1035,10 @@ function codexToolOutput(output) {
   return truncate(JSON.stringify(output || ""), 10240);
 }
 
-/** Translate Codex rollout records into the shared conversation DTO. */
+/**
+ * Translate Codex rollout records into the shared conversation DTO.
+ * @returns {CodexMessage|null}
+ */
 function parseCodexMessage(entry, line) {
   if (entry.type === "event_msg" && entry.payload?.type === "user_message") {
     const text =

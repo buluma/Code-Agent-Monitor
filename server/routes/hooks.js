@@ -5,6 +5,7 @@
  * blocking either CLI.
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
+// @ts-check
 
 const { Router } = require("express");
 const { v4: uuidv4 } = require("uuid");
