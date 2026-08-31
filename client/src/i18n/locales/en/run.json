@@ -94,6 +94,7 @@
   },
   "hint": {
     "shortcut": "Cmd+Enter / Ctrl+Enter to send",
+    "slashAndFileHint": "/ for slash commands · @ for file references",
     "permissionWarning": "bypassPermissions allows ALL tool invocations without confirming. Only use for trusted prompts.",
     "headlessExplain": "Headless mode is best for scripted tasks where you know exactly what you want. The session can't ask follow-up questions and will hang on permission prompts unless you stay in acceptEdits."
   },
@@ -130,6 +131,7 @@
     "attached": "Attached to existing run",
     "started": "Started {{when}}",
     "viewActive": "Dashboard runs",
+    "viewActive_one": "{{count}} dashboard run",
     "viewActive_other": "{{count}} dashboard runs",
     "scopeNote": "Only shows runs you started from this dashboard.",
     "allSessionsLink": "See all Claude Code sessions →",
