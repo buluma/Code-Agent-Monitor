@@ -1950,6 +1950,17 @@ npm run test:server
 node --test --test-reporter=spec server/__tests__/*.test.js
 ```
 
+### Coverage
+
+Report-only (SHA-169) — no fail threshold, no codecov/coveralls. CI runs it on
+every push (`npm run verify` does not, to keep the fast local gate fast) and
+uploads the HTML report as a build artifact.
+
+```bash
+npm run test:coverage:server   # c8, reports under coverage/
+npm run test:coverage:client   # Vitest's built-in v8 provider, under client/coverage/
+```
+
 ### Type Checking
 
 The server is plain CommonJS JS — no `.ts` build step — but individual files can
