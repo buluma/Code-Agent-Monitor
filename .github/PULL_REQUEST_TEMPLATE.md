@@ -41,7 +41,7 @@ they all agree.
 - [ ] I have signed the [CLA](https://github.com/buluma/Code-Agent-Monitor/blob/master/CLA.md) (the `🖋️ CLA Assistant` bot will prompt me on my first PR)
 - [ ] My code follows the project's coding standards
 - [ ] I have added/updated tests that prove my fix or feature works
-- [ ] The full local gate passes (`npm run verify` — headers, formatting, client typecheck, server tests, client tests)
+- [ ] The full local gate passes (`npm run verify` — headers, formatting, client typecheck, server typecheck, lint, server tests, client tests)
 - [ ] Every source file I added or changed carries the authorship header (`npm run check:headers`)
 - [ ] Snapshot changes were reviewed rather than blindly regenerated
 - [ ] I have updated documentation where necessary

@@ -13,7 +13,6 @@ WebSocket updates.
 ![Swagger](https://img.shields.io/badge/Swagger-3.0-85EA2D?style=flat-square&logo=swagger&logoColor=white)
 ![better--sqlite3](https://img.shields.io/badge/better--sqlite3-11.7-003B57?style=flat-square&logo=sqlite&logoColor=white)
 ![Autoprefixer](https://img.shields.io/badge/Autoprefixer-10.4-DD3735?style=flat-square&logo=autoprefixer&logoColor=white)
-![ESLint](https://img.shields.io/badge/ESLint-8.44-4B32C3?style=flat-square&logo=eslint&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-20.10-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Podman](https://img.shields.io/badge/Podman-4.0-CC342D?style=flat-square&logo=podman&logoColor=white)
 ![Prometheus](https://img.shields.io/badge/Prometheus-3.13-E6522C?style=flat-square&logo=prometheus&logoColor=white)
@@ -1966,6 +1965,23 @@ npm run typecheck:server
 Add the pragma to a file only once its JSDoc actually makes it pass — an
 un-annotated file that opts in just adds noisy errors without catching
 anything.
+
+### Linting
+
+`eslint.config.js` at the repo root covers `server/`, `scripts/`, and
+root-level JS with ESLint 9's flat config (`@eslint/js` recommended +
+`no-unused-vars`, everything downgraded to a **warning** — no rule fails the
+build). `no-console` is off for `server/` and `scripts/`, both Node ops
+processes that legitimately log (hook install, token repair, shutdown).
+`client/`, `mcp/`, and `desktop/` are out of scope — they have their own
+TypeScript build pipelines.
+
+```bash
+npm run lint
+```
+
+Existing violations are left as warnings on purpose (see SHA-168) — ratchet
+them file-by-file in follow-ups, don't batch-fix.
 
 ### Example Test
 

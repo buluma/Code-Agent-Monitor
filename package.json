@@ -95,7 +95,8 @@
     "check:headers": "bash .claude/skills/file-headers/scripts/check-headers.sh",
     "typecheck:client": "npm --prefix client run typecheck",
     "typecheck:server": "tsc -p server/tsconfig.json",
-    "verify": "npm run check:headers && npm run format:check && npm run typecheck:client && npm run typecheck:server && npm run test:server && npm run test:client",
+    "lint": "eslint .",
+    "verify": "npm run check:headers && npm run format:check && npm run typecheck:client && npm run typecheck:server && npm run lint && npm run test:server && npm run test:client",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "openapi:yaml": "node scripts/generate-openapi-yaml.js",
@@ -134,8 +135,11 @@
     "js-yaml": "4.3.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@types/node": "^22.20.1",
     "concurrently": "^9.1.2",
+    "eslint": "^9.39.5",
+    "globals": "^17.11.0",
     "js-yaml": "4.3.1",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3"
