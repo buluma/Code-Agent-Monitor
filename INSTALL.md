@@ -1027,6 +1027,7 @@ npm run seed
 | `test:client`       | `npm run test:client`       | Run client unit tests only                                                                                                                                                                                                     |
 | `format`            | `npm run format`             | Format all files with Prettier                                                                                                                                                                                                 |
 | `format:check`      | `npm run format:check`      | Check formatting without writing                                                                                                                                                                                               |
+| `lint`              | `npm run lint`              | Lint `server/`, `scripts/`, and root JS with ESLint 9 (flat config, warn-only — no rule is set to error; client/mcp/desktop use their own tooling)                                                                            |
 
 ### Makefile targets
 

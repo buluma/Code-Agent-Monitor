@@ -24,7 +24,8 @@
 - Setup: `npm run setup`
 - Dev: `npm run dev`
 - Prod build/start: `npm run build` then `npm start`
-- Full local gate (headers + format + client typecheck + server typecheck + server + client tests): `npm run verify`
+- Full local gate (headers + format + client typecheck + server typecheck + lint + server + client tests): `npm run verify`
+- Lint (warn-only, `server/`+`scripts/`+root JS only — client/mcp/desktop have their own tooling): `npm run lint`
 - Server tests: `npm run test:server`
 - Client tests: `npm run test:client`
 - MCP install/build/start: `npm run mcp:install`, `npm run mcp:build`, `npm run mcp:start`
@@ -33,7 +34,7 @@
 - CLI (after setup): `cam <command>` — terminal access to full dashboard surface (`bin/cam.js`; `cam help` lists commands)
 
 ## Testing and verification policy
-- `npm run verify` runs whole local gate in one command (header audit, format check, client typecheck, server typecheck, server tests, client tests) — fastest way to confirm change-set before opening PR. Includes `tsc -b` since Vitest transpiles without typechecking — test file can pass locally, still break production build.
+- `npm run verify` runs whole local gate in one command (header audit, format check, client typecheck, server typecheck, lint, server tests, client tests) — fastest way to confirm change-set before opening PR. Includes `tsc -b` since Vitest transpiles without typechecking — test file can pass locally, still break production build.
 - Server typecheck (`npm run typecheck:server`, `tsc -p server/tsconfig.json`): gradual JS type-checking via `// @ts-check` file pragmas, not project-wide `checkJs`. Only files with the pragma get checked (currently `server/routes/hooks.js` and `server/routes/sessions.js`); a file a require pulls in in the program for inference but stays undiagnosed unless it also carries the pragma. Add the pragma to a file only alongside enough JSDoc to make it pass — don't add it speculatively.
 - Backend changes: run `npm run test:server` before finishing.
 - Frontend changes: run `npm run test:client` when relevant. Includes per-screen render snapshots (`client/src/pages/__tests__/screens.snapshot.test.tsx`). If UI change intentional, review snapshot diff, regenerate baselines with `cd client && npx vitest run -u`; never blindly update snapshots to make tests pass.

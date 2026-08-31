@@ -54,7 +54,6 @@ function showNativeNotificationIfElectron(title, body) {
   try {
     // `require("electron")` only resolves inside the Electron runtime; in a
     // plain `node server/index.js` host it throws and we fall through.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { Notification: ElectronNotification } = require("electron");
     if (!ElectronNotification) return false;
     if (
