@@ -35,5 +35,15 @@ export default defineConfig({
     setupFiles: ["./src/test-setup.ts"],
     include: ["src/**/*.test.{ts,tsx}", "tests/**/*.test.ts"],
     css: false,
+    // Reports only (SHA-169) — no thresholds. `text` for local runs, `html`
+    // for a browsable report, `json-summary` for tooling to read the numbers
+    // later without re-running coverage.
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "json-summary"],
+      reportsDirectory: "./coverage",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/**/*.test.{ts,tsx}", "src/test-setup.ts"],
+    },
   },
 });

@@ -92,6 +92,8 @@
     "test:server": "node --test server/__tests__/*.test.js",
     "test:client": "cd client && npm test",
     "test:mcp": "npm --prefix mcp run test",
+    "test:coverage:server": "c8 node --test server/__tests__/*.test.js",
+    "test:coverage:client": "cd client && npm run test:coverage",
     "check:headers": "bash .claude/skills/file-headers/scripts/check-headers.sh",
     "typecheck:client": "npm --prefix client run typecheck",
     "typecheck:server": "tsc -p server/tsconfig.json",
@@ -137,6 +139,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "@types/node": "^22.20.1",
+    "c8": "^12.0.0",
     "concurrently": "^9.1.2",
     "eslint": "^9.39.5",
     "globals": "^17.11.0",

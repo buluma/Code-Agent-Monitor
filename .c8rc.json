@@ -1,0 +1,8 @@
+{
+  "reporter": ["text", "html", "json-summary"],
+  "reports-dir": "./coverage",
+  "include": ["server/**/*.js", "scripts/**/*.js"],
+  "exclude": ["server/__tests__/**", "**/node_modules/**"],
+  "exclude-after-remap": true,
+  "all": true
+}
