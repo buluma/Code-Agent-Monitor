@@ -133,7 +133,7 @@ router.get("/", (req, res) => {
 });
 
 // POST /api/alerts/:id/ack - Acknowledge one alert
-router.post("/:id(\\d+)/ack", (req, res) => {
+router.post("/:id/ack", (req, res) => {
   const alert = stmts.getAlertEvent.get(req.params.id);
   if (!alert) {
     return res.status(404).json({ error: { code: "NOT_FOUND", message: "Alert not found" } });
