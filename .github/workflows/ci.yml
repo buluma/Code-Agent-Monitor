@@ -466,7 +466,7 @@ jobs:
           echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Resolved release tag: v${VERSION}"
 
-      - name: Check whether the release already exists and has its DMGs
+      - name: Check whether the release already exists and has its assets
         id: check
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -479,16 +479,23 @@ jobs:
             # run ahead of CI. That used to wedge asset publishing forever,
             # since this job only ran the `create` path and skipped whenever
             # a release already existed, regardless of what it contained. So
-            # check content, not just existence: `needs_dmg=true` unless both
-            # per-arch DMGs are already attached, and the step below re-runs
-            # (via `gh release upload`, not `create`) until they are.
-            ASSET_COUNT="$(gh release view "${TAG}" --json assets -q '[.assets[].name | select(endswith(".dmg"))] | length')"
-            if [ "${ASSET_COUNT}" -ge 2 ]; then
+            # check content, not just existence — `needs_dmg=true` unless
+            # every required asset (both per-arch DMGs, both per-arch zips,
+            # and both latest-mac*.yml feed files) is already attached, and
+            # the step below re-runs (via `gh release upload`, not `create`)
+            # until they all are. Reusing `needs_dmg` as the output name
+            # despite it now covering the full set — renaming it would touch
+            # the two `if:` conditions below for no behavior change.
+            ASSETS_JSON="$(gh release view "${TAG}" --json assets)"
+            DMG_COUNT="$(jq '[.assets[].name | select(endswith(".dmg"))] | length' <<<"${ASSETS_JSON}")"
+            ZIP_COUNT="$(jq '[.assets[].name | select(endswith(".zip"))] | length' <<<"${ASSETS_JSON}")"
+            YML_COUNT="$(jq '[.assets[].name | select(test("^latest-mac.*\\.yml$"))] | length' <<<"${ASSETS_JSON}")"
+            if [ "${DMG_COUNT}" -ge 2 ] && [ "${ZIP_COUNT}" -ge 2 ] && [ "${YML_COUNT}" -ge 2 ]; then
               echo "needs_dmg=false" >> "$GITHUB_OUTPUT"
-              echo "Release ${TAG} already exists with ${ASSET_COUNT} DMG asset(s) — nothing to publish."
+              echo "Release ${TAG} already has ${DMG_COUNT} dmg, ${ZIP_COUNT} zip, ${YML_COUNT} yml asset(s) — nothing to publish."
             else
               echo "needs_dmg=true" >> "$GITHUB_OUTPUT"
-              echo "Release ${TAG} exists but has only ${ASSET_COUNT} DMG asset(s) — attaching the missing DMG(s)."
+              echo "Release ${TAG} has ${DMG_COUNT} dmg, ${ZIP_COUNT} zip, ${YML_COUNT} yml asset(s) — attaching what's missing."
             fi
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -520,11 +527,11 @@ jobs:
           echo "Published ${TAG} → ${{ github.server_url }}/${{ github.repository }}/releases/tag/${TAG}"
 
       - name: Attach missing assets to existing release
-        # Same self-heal note as above: this still gates on the DMG count
-        # (>= 2), not on the zip/yml files, so a release published before
-        # this feature landed will NOT retroactively grow update-feed assets
-        # — auto-update starts working from whichever version first ships
-        # them onward, not for older already-published releases.
+        # Same self-heal note as above — the gate now checks dmg/zip/yml
+        # counts together, so this also backfills the zip + latest-mac*.yml
+        # feed files onto a release that predates this feature (as long as
+        # its tag's workflow run is re-triggered; nothing re-runs it
+        # automatically for an already-completed push).
         if: steps.check.outputs.exists == 'true' && steps.check.outputs.needs_dmg == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

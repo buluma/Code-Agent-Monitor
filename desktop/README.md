@@ -738,7 +738,7 @@ flowchart LR
     j2 --> j3["smoke test"]
     j3 --> j4["build both per-arch DMGs + zips<br/>+ latest-mac*.yml<br/>(retry on flaky hdiutil detach)"]
     j4 --> j5["upload ClaudeCodeMonitor-dmg artifact<br/>(dmg + zip + yml + blockmap)"]
-    j5 --> rel["release job (master only)<br/>publish vX.Y.Z if new"]
+    j5 --> rel["release job (master/main only)<br/>publish vX.Y.Z if new"]
 
     style job fill:#1f6feb,stroke:#1158c7,color:#fff
     style rel fill:#238636,stroke:#1a6e2c,color:#fff
@@ -754,7 +754,7 @@ flowchart LR
 - The built DMGs, zips, and `latest-mac*.yml`/`*.blockmap` feed files are all
   uploaded together as the **`ClaudeCodeMonitor-dmg`** artifact (downloadable
   from the workflow run).
-- On `master`, a follow-on **`release`** job reads the version from
+- On a push to `master` or `main`, a follow-on **`release`** job reads the version from
   `package.json` and publishes `vX.Y.Z` as a GitHub Release with every one of
   those assets attached — but only when no release exists for that version
   yet, so bumping the version is what cuts a release. The result is a

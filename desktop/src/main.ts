@@ -356,7 +356,7 @@ async function boot(): Promise<void> {
       notifiedForVersion = updaterState.availableVersion;
       new Notification({
         title: APP_NAME,
-        body: `Update v${updaterState.availableVersion} downloaded — click "Restart to update" in the tray or menu to install it.`,
+        body: `Update v${updaterState.availableVersion} downloaded — click "Restart to update" in the tray menu to install it.`,
       }).show();
     }
   });
