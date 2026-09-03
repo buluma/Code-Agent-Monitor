@@ -1,6 +1,6 @@
 {
   "name": "cam-reports",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Generate stakeholder-ready CAM reports from local session, cost, reliability, and workflow data with explicit scope, evidence, and export-friendly Markdown.",
   "author": {
     "name": "Michael Buluma",
