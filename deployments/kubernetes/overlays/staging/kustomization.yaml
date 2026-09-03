@@ -31,4 +31,4 @@ patches:
 
 images:
   - name: cam-dashboard
-    newTag: 4.0.1
+    newTag: 4.0.2

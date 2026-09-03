@@ -2,8 +2,8 @@ apiVersion: v2
 name: agent-monitor
 description: Production-safe single-writer CAM deployment for Claude Code and Codex monitoring
 type: application
-version: 4.0.1
-appVersion: "4.0.1"
+version: 4.0.2
+appVersion: "4.0.2"
 
 home: https://github.com/buluma/Code-Agent-Monitor
 sources:

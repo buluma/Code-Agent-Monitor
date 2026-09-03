@@ -1,7 +1,7 @@
 {
   "name": "cam-platform",
   "description": "Administer CAM's Claude Code and Codex configuration explorers, provider-aware history import, backup restore, hook installation, home directories, updates, and MCP server.",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "author": { "name": "Michael Buluma", "url": "https://github.com/buluma" },
   "homepage": "https://github.com/buluma/Code-Agent-Monitor",
   "repository": "https://github.com/buluma/Code-Agent-Monitor",

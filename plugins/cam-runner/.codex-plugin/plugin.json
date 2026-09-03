@@ -1,6 +1,6 @@
 {
   "name": "cam-runner",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Operate dashboard-launched Claude Code and Codex runs with safe launch, follow-up, stop, resume, model discovery, and persistent run-history workflows.",
   "author": {
     "name": "Michael Buluma",
