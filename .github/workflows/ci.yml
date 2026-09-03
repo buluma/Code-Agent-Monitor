@@ -258,10 +258,12 @@ jobs:
 
       - name: Upload DMG + updater artifacts
         # `*.dmg` is the distributable download; the rest (`*.zip`,
-        # `latest-mac*.yml`, `*.blockmap`) is electron-updater's own update
+        # `latest-mac.yml`, `*.blockmap`) is electron-updater's own update
         # feed — Squirrel.Mac applies updates from the zip, not the DMG, and
-        # `latest-mac.yml`/`latest-mac-arm64.yml` are what `autoUpdater.
-        # checkForUpdates()` reads to find it. See desktop/src/updater.ts.
+        # `latest-mac.yml` (one file, listing all archs — building both in
+        # one `npm run dmg` invocation does not emit a separate per-arch
+        # yml) is what `autoUpdater.checkForUpdates()` reads to find it. See
+        # desktop/src/updater.ts.
         uses: actions/upload-artifact@v7.0.1
         with:
           name: ClaudeCodeMonitor-dmg
@@ -472,6 +474,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ steps.ver.outputs.tag }}"
+          VERSION="${{ steps.ver.outputs.version }}"
           if gh release view "${TAG}" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
             # A release can exist with no (or partial) assets if it was ever
@@ -479,23 +482,38 @@ jobs:
             # run ahead of CI. That used to wedge asset publishing forever,
             # since this job only ran the `create` path and skipped whenever
             # a release already existed, regardless of what it contained. So
-            # check content, not just existence — `needs_dmg=true` unless
-            # every required asset (both per-arch DMGs, both per-arch zips,
-            # and both latest-mac*.yml feed files) is already attached, and
-            # the step below re-runs (via `gh release upload`, not `create`)
-            # until they all are. Reusing `needs_dmg` as the output name
-            # despite it now covering the full set — renaming it would touch
-            # the two `if:` conditions below for no behavior change.
-            ASSETS_JSON="$(gh release view "${TAG}" --json assets)"
-            DMG_COUNT="$(jq '[.assets[].name | select(endswith(".dmg"))] | length' <<<"${ASSETS_JSON}")"
-            ZIP_COUNT="$(jq '[.assets[].name | select(endswith(".zip"))] | length' <<<"${ASSETS_JSON}")"
-            YML_COUNT="$(jq '[.assets[].name | select(test("^latest-mac.*\\.yml$"))] | length' <<<"${ASSETS_JSON}")"
-            if [ "${DMG_COUNT}" -ge 2 ] && [ "${ZIP_COUNT}" -ge 2 ] && [ "${YML_COUNT}" -ge 2 ]; then
+            # check content, not just existence — build the exact filenames
+            # this version's desktop job produces (electron-builder's own
+            # naming: two per-arch DMGs, two per-arch zips, and ONE combined
+            # latest-mac.yml — building both arches in one invocation, which
+            # `npm run dmg` does, does NOT emit a separate
+            # latest-mac-arm64.yml; verified against a real build's output,
+            # not assumed) and require every one of them present.
+            # `needs_dmg=true` unless all five are already attached, and the
+            # step below re-runs (via `gh release upload`, not `create`)
+            # until they are. Reusing `needs_dmg` as the output name despite
+            # it now covering the full set — renaming it would touch the two
+            # `if:` conditions below for no behavior change.
+            EXPECTED_ASSETS=(
+              "CodeAgentMonitor-${VERSION}-arm64.dmg"
+              "CodeAgentMonitor-${VERSION}-x64.dmg"
+              "CodeAgentMonitor-${VERSION}-arm64.zip"
+              "CodeAgentMonitor-${VERSION}-x64.zip"
+              "latest-mac.yml"
+            )
+            ASSET_NAMES="$(gh release view "${TAG}" --json assets -q '.assets[].name')"
+            MISSING_ASSETS=()
+            for name in "${EXPECTED_ASSETS[@]}"; do
+              if ! grep -qxF "${name}" <<<"${ASSET_NAMES}"; then
+                MISSING_ASSETS+=("${name}")
+              fi
+            done
+            if [ "${#MISSING_ASSETS[@]}" -eq 0 ]; then
               echo "needs_dmg=false" >> "$GITHUB_OUTPUT"
-              echo "Release ${TAG} already has ${DMG_COUNT} dmg, ${ZIP_COUNT} zip, ${YML_COUNT} yml asset(s) — nothing to publish."
+              echo "Release ${TAG} already has every expected asset — nothing to publish."
             else
               echo "needs_dmg=true" >> "$GITHUB_OUTPUT"
-              echo "Release ${TAG} has ${DMG_COUNT} dmg, ${ZIP_COUNT} zip, ${YML_COUNT} yml asset(s) — attaching what's missing."
+              echo "Release ${TAG} is missing: ${MISSING_ASSETS[*]} — attaching what's missing."
             fi
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"

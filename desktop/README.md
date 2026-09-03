@@ -462,7 +462,7 @@ stateDiagram-v2
     checking --> up_to_date: no newer version
     checking --> available: newer version found
     up_to_date --> checking: next poll / manual check
-    available --> downloading: user clicks the tray/menu row
+    available --> downloading: user clicks the tray's status row
     downloading --> downloaded: complete
     downloading --> available: download failed
     downloaded --> [*]: user clicks "Restart to update"<br/>(quit + relaunch)
@@ -476,8 +476,10 @@ stateDiagram-v2
   drives those reducers from its events.
 - **Manual download/install, automatic checks** — `autoDownload = false` /
   `autoInstallOnAppQuit = false`. A background poll only ever gets you to
-  `"available"`; downloading and installing are always an explicit tray/menu
-  click, the same philosophy the t3code reference implementation uses.
+  `"available"`; downloading and installing are always an explicit click on
+  the tray's status row (see Surfaces below — the check itself, unlike
+  download/install, is also available from the application menu), the same
+  philosophy the t3code reference implementation uses.
 - **Surfaces** — a status row appears in the tray dropdown and (implicitly,
   via `app.setAboutPanelOptions`) nowhere else; a persistent
   **"Check for Updates…"** item lives in both the tray menu and the
@@ -485,8 +487,9 @@ stateDiagram-v2
   native `Notification` fires once per downloaded version when it's ready to
   install.
 - **Feed files** — building both architectures together (`npm run dmg`, what
-  CI runs) makes electron-builder emit paired `latest-mac.yml` /
-  `latest-mac-arm64.yml` files alongside the zips `autoUpdater` applies
+  CI runs) makes electron-builder emit a single `latest-mac.yml` (listing all
+  four DMG/zip artifacts — confirmed against a real build, not a separate
+  per-arch `latest-mac-arm64.yml`) alongside the zips `autoUpdater` applies
   updates from; the DMGs remain the plain distributable download.
   `electron-builder.yml`'s `publish:` block only shapes these files — every
   packaging script still passes `--publish never`, so electron-builder never
@@ -842,7 +845,7 @@ Reach it from the tray menu → **Show Logs**.
 | "Run Claude" says `claude` isn't on your PATH                   | `shell-path.ts` recovers the login-shell PATH at startup. If `claude` is a shell _alias_ or _function_ (not a real binary), it cannot be spawned — install the `claude` CLI as an executable. Check `desktop.log` for the `user PATH resolved` line. |
 | `desktop:dev` / `desktop:test` fail with `ERR_DLOPEN_FAILED`    | A prior DMG build left `better-sqlite3` built for the other CPU arch. `prebuild.js` auto-heals this on the next build; if needed, run `npm run desktop:install`.                                                                                     |
 | Imported history disappeared after reinstall                    | Fixed — the database now lives in `~/Library/Application Support/Claude Code Monitor/data/`, outside the bundle. A one-time gap exists only across the upgrade from a build that predated this fix; re-run **Import History → Rescan**.              |
-| Auto-updater never finds an update                              | Only a `master`-branch push cuts a GitHub Release with the `latest-mac*.yml` feed files attached — see [Continuous integration](#continuous-integration). A release published before the auto-updater feature landed has no feed files and will never be found this way. Check `desktop.log` for `updater error` lines.                          |
+| Auto-updater never finds an update                              | Only a `master`/`main` push cuts a GitHub Release with the `latest-mac.yml` feed file attached — see [Continuous integration](#continuous-integration). A release published before the auto-updater feature landed has no feed file and will never be found this way. Check `desktop.log` for `updater error` lines.                          |
 | "Check for Updates…" does nothing / greyed out                  | It's disabled while a check or download is already in flight, or when `CAM_DESKTOP_DISABLE_AUTO_UPDATE=1` / the build is unpackaged (`desktop:dev`) — auto-updates are always off there.                                                              |
 
 ---

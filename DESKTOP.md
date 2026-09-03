@@ -90,9 +90,9 @@ open desktop/release/ClaudeCodeMonitor-*-arm64.dmg   # …-x64.dmg for the Intel
 The app checks GitHub Releases for a newer version automatically — 15 seconds
 after launch, then every 4 hours, and any time you click **Check for
 Updates…** (tray menu or the app menu, right under About). A found update
-downloads only when you click its tray/menu row, and installs only when you
-click **Restart to update** on that same row afterward — nothing downloads or
-installs itself without you clicking. A native notification also appears once
+downloads only when you click its status row in the tray menu, and installs
+only when you click **Restart to update** on that same row afterward —
+nothing downloads or installs itself without you clicking. A native notification also appears once
 an update finishes downloading. Set `CAM_DESKTOP_DISABLE_AUTO_UPDATE=1` in
 your environment to turn this off entirely; it's already off for a
 locally-built (`desktop:dev`) run. See `desktop/README.md`'s
@@ -225,7 +225,7 @@ The smoke test does not exercise the BrowserWindow (no display on headless CI). 
 - **Bundle size** ≈ 80 MB DMG, ≈ 250 MB on disk. The standard Electron tax. Tauri would cut this dramatically but at the cost of a sidecar-process model and a Rust toolchain dependency — fair to revisit in a follow-up PR if bundle size becomes a real complaint.
 - **Native modules**: `better-sqlite3` is rebuilt against Electron's Node version automatically via `electron-builder install-app-deps` in the desktop workspace's `postinstall`. If that build *does* fail (or the binary is missing afterward), `npm run desktop:install` — and any `desktop:*` build — prints the exact per-OS fix (macOS: `xcode-select --install`) plus a no-toolchain alternative (`npm install --ignore-scripts` → `node node_modules/electron/install.js` → `npx electron-builder install-app-deps`), and exits non-zero — failing loudly at install/build time rather than crashing at runtime. Even so, if the module is unavailable the server falls back to `node:sqlite` (per #37), so the app still boots.
 - **Per-architecture DMGs**: `npm run desktop:dmg` builds **both** macOS DMGs (one `arm64`, one `x64`) — the release build, and slower because it packages each architecture separately. It does **not** produce a merged universal binary; the release ships the two per-arch DMGs. `npm run desktop:dmg:arm64` and `npm run desktop:dmg:x64` build a single architecture instead — much faster, and roughly half the disk. If you specifically want a **single merged universal binary** (both slices in one `.dmg`, `lipo`-fat), `npm run desktop:dmg:universal` produces one via `@electron/universal` — the slowest option, and not what the release ships, but handy for hand-distributing one file that runs on any Mac.
-- **Auto-update**: wired via `electron-updater` + GitHub Releases — see [Updates](#updates). Checks are automatic; download and install stay a manual tray/menu click. A release published before this landed has no update-feed files and will never be found by it (only a fresh DMG re-download recovers those).
+- **Auto-update**: wired via `electron-updater` + GitHub Releases — see [Updates](#updates). Checks are automatic (available from both the tray menu and the app menu); download and install stay a manual click on the tray's status row specifically. A release published before this landed has no update-feed files and will never be found by it (only a fresh DMG re-download recovers those).
 
 ## Troubleshooting
 

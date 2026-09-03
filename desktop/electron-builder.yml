@@ -102,9 +102,10 @@ mac:
   # because electron-updater's Squirrel.Mac backend applies updates from a
   # zip, not by re-mounting a DMG. Building both archs together (the `dmg`
   # npm script's `--arm64 --x64` in one electron-builder invocation) is what
-  # makes electron-builder emit the paired `latest-mac.yml` /
-  # `latest-mac-arm64.yml` feed files the updater reads at runtime — see
-  # `src/updater.ts`.
+  # makes electron-builder emit the single `latest-mac.yml` feed file (all
+  # four DMG/zip artifacts listed inside it — confirmed against a real
+  # build's output, NOT a separate per-arch `latest-mac-arm64.yml`) the
+  # updater reads at runtime — see `src/updater.ts`.
   target:
     - dmg
     - zip
