@@ -212,7 +212,7 @@ function startServer(app, port) {
         },
       });
     });
-    app.get("*", (_req, res) => {
+    app.get("/*splat", (_req, res) => {
       res.setHeader("Cache-Control", "no-cache, must-revalidate");
       res.sendFile(path.join(clientDist, "index.html"));
     });
