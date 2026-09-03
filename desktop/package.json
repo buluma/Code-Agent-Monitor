@@ -22,11 +22,12 @@
     "dmg:arm64": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --arm64 --publish never --config.dmg.title='Code Agent Monitor (Apple Silicon)'",
     "dmg:x64": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --x64 --publish never --config.dmg.title='Code Agent Monitor (Intel)'",
     "dmg:universal": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --universal --publish never --config.dmg.title='Code Agent Monitor (Universal)'",
-    "test": "npm run build && node --test --test-reporter=spec tests/smoke.test.mjs",
+    "test": "npm run build && node --test --test-reporter=spec tests/updater-state.test.mjs tests/smoke.test.mjs",
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
-    "better-sqlite3": "^12.11.1"
+    "better-sqlite3": "^12.11.1",
+    "electron-updater": "6.8.9"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

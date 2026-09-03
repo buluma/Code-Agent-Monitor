@@ -82,6 +82,8 @@ export interface MenuActions {
   toggleOpenAtLogin: () => void;
   /** Read the current auto-start state, used to render the checkbox. */
   isOpenAtLogin: () => boolean;
+  /** Run one update check now (see `updater.ts`). */
+  checkForUpdates: () => void;
 }
 
 /**
@@ -104,6 +106,11 @@ export function installApplicationMenu(actions: MenuActions): Menu {
             label: APP_NAME,
             submenu: [
               { role: "about" },
+              { type: "separator" },
+              {
+                label: "Check for Updates…",
+                click: () => actions.checkForUpdates(),
+              },
               { type: "separator" },
               {
                 label: "Open at Login",

@@ -69,7 +69,7 @@ open desktop/release/ClaudeCodeMonitor-*-arm64.dmg   # …-x64.dmg for the Intel
 3. Otherwise it `require()`s `server/index.js` directly in-process — same Node runtime as the main process, same memory. Boot is typically under two seconds.
 4. On startup the server records its **live port** to `~/.claude/.agent-dashboard.json`. The Claude Code hook handler reads that file, so events still reach the dashboard when the app bound a fallback port instead of 4820.
 5. The dashboard window opens — unless the app was launched at login (via macOS Login Items), in which case it stays tray-only.
-6. A tray icon appears in the macOS **menu bar**. One click opens a dropdown with a **live status snapshot** (server port, active sessions, working agents, events today — all clickable to jump into the dashboard) plus *Open Dashboard*, *Open in Browser*, *Restart Server*, *Show Logs*, *Open at Login* (toggle), and *Quit*.
+6. A tray icon appears in the macOS **menu bar**. One click opens a dropdown with a **live status snapshot** (server port, active sessions, working agents, events today — all clickable to jump into the dashboard) plus *Open Dashboard*, *Open in Browser*, *Restart Server*, *Show Logs*, an update status row when one applies, *Check for Updates…*, *Open at Login* (toggle), and *Quit*. See [Updates](#updates) below.
 
 ## Lifecycle semantics
 
@@ -84,6 +84,19 @@ open desktop/release/ClaudeCodeMonitor-*-arm64.dmg   # …-x64.dmg for the Intel
 - **The `claude` CLI on PATH.** The app resolves it using your login-shell `PATH`, recovered at startup — so "Run Claude" works even though a Finder/Dock-launched app would otherwise only inherit a minimal `PATH`.
 - **Notifications** (including the in-dashboard *Send test notification* button) are delivered as **native OS toasts** when running inside the app — the embedded server calls Electron's `Notification` API directly. Web Push doesn't work reliably inside Electron (Chromium-in-Electron ships without Firebase Cloud Messaging credentials, so `pushManager.subscribe` returns endpoints nothing can deliver to), and this path bypasses it entirely. The web dashboard at `npm start` continues to use Web Push as before.
 - **Coexists with the web dashboard.** You can run the desktop app and `npm run dev` (or `npm start`) at the same time. Each server writes its `{port, pid, startedAt, dataDir}` entry to a shared discovery file at `~/.claude/.agent-dashboard.json`, and the Claude Code hook handler POSTs to **one ingest target per unique SQLite data directory** (lowest port wins when both share `~/.claude/agent-dashboard`, so events are never double-ingested). Servers with **different** databases (e.g. the desktop app's Application Support dir alongside `npm run dev`) still each receive hooks and stay real-time.
+
+## Updates
+
+The app checks GitHub Releases for a newer version automatically — 15 seconds
+after launch, then every 4 hours, and any time you click **Check for
+Updates…** (tray menu or the app menu, right under About). A found update
+downloads only when you click its tray/menu row, and installs only when you
+click **Restart to update** on that same row afterward — nothing downloads or
+installs itself without you clicking. A native notification also appears once
+an update finishes downloading. Set `CAM_DESKTOP_DISABLE_AUTO_UPDATE=1` in
+your environment to turn this off entirely; it's already off for a
+locally-built (`desktop:dev`) run. See `desktop/README.md`'s
+[Auto-updates](desktop/README.md#auto-updates) for the implementation.
 
 ## File layout (for contributors)
 
@@ -101,6 +114,9 @@ desktop/
 │   ├── menu.ts                 # native application menu
 │   ├── login-item.ts           # open-at-login (macOS Login Items)
 │   ├── shell-path.ts           # recover the user's shell PATH (find `claude`)
+│   ├── updater.ts              # electron-updater wrapper — check/download/install
+│   ├── updaterState.ts         # pure state/reducers for updater.ts
+│   ├── gatekeeper.ts           # best-effort `xattr -cr` on our own bundle at boot
 │   ├── preload.ts              # (empty — kept for future renderer bridges)
 │   ├── logger.ts               # file logger
 │   └── constants.ts            # app name, port, window defaults
@@ -111,7 +127,8 @@ desktop/
 │   ├── build-icons.sh          # SVG → PNG/ICNS + tray PNGs via qlmanage/sips/iconutil (macOS)
 │   └── notarize.js             # electron-builder afterSign hook (opt-in; macOS only)
 └── tests/
-    └── smoke.test.mjs          # spawn-and-probe /api/health (resolves the real electron binary via createRequire)
+    ├── smoke.test.mjs          # spawn-and-probe /api/health (resolves the real electron binary via createRequire)
+    └── updater-state.test.mjs  # pure reducer/label unit tests (no Electron)
 ```
 
 **Changes outside `desktop/` are deliberately minimal:**
@@ -208,7 +225,7 @@ The smoke test does not exercise the BrowserWindow (no display on headless CI). 
 - **Bundle size** ≈ 80 MB DMG, ≈ 250 MB on disk. The standard Electron tax. Tauri would cut this dramatically but at the cost of a sidecar-process model and a Rust toolchain dependency — fair to revisit in a follow-up PR if bundle size becomes a real complaint.
 - **Native modules**: `better-sqlite3` is rebuilt against Electron's Node version automatically via `electron-builder install-app-deps` in the desktop workspace's `postinstall`. If that build *does* fail (or the binary is missing afterward), `npm run desktop:install` — and any `desktop:*` build — prints the exact per-OS fix (macOS: `xcode-select --install`) plus a no-toolchain alternative (`npm install --ignore-scripts` → `node node_modules/electron/install.js` → `npx electron-builder install-app-deps`), and exits non-zero — failing loudly at install/build time rather than crashing at runtime. Even so, if the module is unavailable the server falls back to `node:sqlite` (per #37), so the app still boots.
 - **Per-architecture DMGs**: `npm run desktop:dmg` builds **both** macOS DMGs (one `arm64`, one `x64`) — the release build, and slower because it packages each architecture separately. It does **not** produce a merged universal binary; the release ships the two per-arch DMGs. `npm run desktop:dmg:arm64` and `npm run desktop:dmg:x64` build a single architecture instead — much faster, and roughly half the disk. If you specifically want a **single merged universal binary** (both slices in one `.dmg`, `lipo`-fat), `npm run desktop:dmg:universal` produces one via `@electron/universal` — the slowest option, and not what the release ships, but handy for hand-distributing one file that runs on any Mac.
-- **Auto-update**: not wired. The current update path is *re-download the latest DMG*. `electron-updater` + GitHub Releases is the natural follow-up.
+- **Auto-update**: wired via `electron-updater` + GitHub Releases — see [Updates](#updates). Checks are automatic; download and install stay a manual tray/menu click. A release published before this landed has no update-feed files and will never be found by it (only a fresh DMG re-download recovers those).
 
 ## Troubleshooting
 
@@ -218,6 +235,7 @@ The smoke test does not exercise the BrowserWindow (no display on headless CI). 
 | "…is damaged and can't be opened. You should move it to the Bin." | Quarantine flag survived onto the installed `.app` (not actual corruption) | `xattr -cr "/Applications/Claude Code Monitor.app"`, then reopen |
 | macOS prompts to install Rosetta when opening the app | You installed the **x64** build on an Apple Silicon Mac | Check your arch with `uname -m` (`arm64` → Apple Silicon, build with `desktop:dmg:arm64`). The arch-specific `desktop:dmg:arm64` / `desktop:dmg:x64` builds each wipe `release/` and emit a single DMG whose mounted-volume title states the architecture — e.g. *Claude Code Monitor (Apple Silicon)* — so there is no ambiguous window to drag from. (`desktop:dmg` emits both per-arch DMGs at once, for release.) If stale DMGs from an older build linger, clear them with `rm -rf desktop/release` and rebuild |
 | Window shows but content is blank | Server didn't boot — check `~/Library/Logs/Claude Code Monitor/desktop.log` | Restart from tray → *Restart Server* |
+| Tray never shows "Update available" | Either genuinely up to date, or the release you're on predates the auto-updater feature and has no update-feed files | Click *Check for Updates…*; check `desktop.log` for `updater error` lines; if the release is old, download the latest DMG manually |
 | Tray icon missing | The OS hides tray icons when the menu bar is full | Move other menu-bar items aside, or look in the overflow chevron |
 | App didn't auto-start at login | Login Items entry got revoked by macOS | Toggle *Open at Login* off and on again from the tray menu |
 | Desktop build/install fails on `better-sqlite3` / native binary missing | No C++ toolchain, or no prebuilt for your Node version | Run `npm run desktop:install` and follow the printed help, or use the no-toolchain alternative (`npm install --ignore-scripts` → `node node_modules/electron/install.js` → `npx electron-builder install-app-deps`); or use Node LTS 20/22 |

@@ -256,11 +256,20 @@ jobs:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
 
-      - name: Upload DMG artifact
+      - name: Upload DMG + updater artifacts
+        # `*.dmg` is the distributable download; the rest (`*.zip`,
+        # `latest-mac*.yml`, `*.blockmap`) is electron-updater's own update
+        # feed — Squirrel.Mac applies updates from the zip, not the DMG, and
+        # `latest-mac.yml`/`latest-mac-arm64.yml` are what `autoUpdater.
+        # checkForUpdates()` reads to find it. See desktop/src/updater.ts.
         uses: actions/upload-artifact@v7.0.1
         with:
           name: ClaudeCodeMonitor-dmg
-          path: desktop/release/*.dmg
+          path: |
+            desktop/release/*.dmg
+            desktop/release/*.zip
+            desktop/release/latest-mac*.yml
+            desktop/release/*.blockmap
           retention-days: 14
 
   deployment:
@@ -414,15 +423,19 @@ jobs:
   #  🚢 Publish GitHub Release                                      #
   #   On a successful push to the default branch, publish a Release #
   #   for the current package.json version (tagged vX.Y.Z, matching #
-  #   the existing v1.0.0 / v1.1.0 convention) and attach the macOS  #
-  #   DMG built by the desktop job. Bumping `version` in package.json #
-  #   is what cuts a new release, and re-running master with an      #
-  #   unchanged version and complete assets is a safe no-op — but if #
-  #   a release already exists with fewer than 2 DMG assets (e.g. it #
-  #   was created by hand, outside this job, before CI ran), the job #
-  #   attaches the missing DMG(s) to that same release instead of    #
-  #   skipping, so a partially-published release self-heals on the   #
-  #   next push rather than staying empty forever.                   #
+  #   the existing v1.0.0 / v1.1.0 convention) and attach every      #
+  #   macOS asset the desktop job built: the DMGs (the distributable #
+  #   download) plus the zips + latest-mac*.yml + blockmaps          #
+  #   electron-updater's auto-updater reads as its GitHub-Releases   #
+  #   update feed (see desktop/src/updater.ts). Bumping `version` in #
+  #   package.json is what cuts a new release, and re-running master #
+  #   with an unchanged version and complete assets is a safe no-op  #
+  #   — but if a release already exists with fewer than 2 DMG assets #
+  #   (e.g. it was created by hand, outside this job, before CI ran),#
+  #   the job attaches everything the desktop job produced to that   #
+  #   same release instead of skipping, so a partially-published     #
+  #   release self-heals on the next push rather than staying empty  #
+  #   forever.                                                       #
   # ────────────────────────────────────────────────────────────────
   release:
     name: "🚢 Publish Release"
@@ -483,7 +496,7 @@ jobs:
             echo "Release ${TAG} does not exist — it will be published."
           fi
 
-      - name: Download macOS DMG artifact
+      - name: Download macOS DMG + updater artifacts
         if: steps.check.outputs.needs_dmg == 'true'
         uses: actions/download-artifact@v8.0.1
         with:
@@ -503,18 +516,23 @@ jobs:
             --title "${TAG}" \
             --generate-notes \
             --latest \
-            dmg/*.dmg
+            dmg/*
           echo "Published ${TAG} → ${{ github.server_url }}/${{ github.repository }}/releases/tag/${TAG}"
 
-      - name: Attach missing DMGs to existing release
+      - name: Attach missing assets to existing release
+        # Same self-heal note as above: this still gates on the DMG count
+        # (>= 2), not on the zip/yml files, so a release published before
+        # this feature landed will NOT retroactively grow update-feed assets
+        # — auto-update starts working from whichever version first ships
+        # them onward, not for older already-published releases.
         if: steps.check.outputs.exists == 'true' && steps.check.outputs.needs_dmg == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ steps.ver.outputs.tag }}"
-          echo "Attaching missing DMGs to existing release ${TAG}:"
+          echo "Attaching missing assets to existing release ${TAG}:"
           ls -la dmg
-          gh release upload "${TAG}" dmg/*.dmg --clobber
+          gh release upload "${TAG}" dmg/* --clobber
           echo "Updated ${TAG} → ${{ github.server_url }}/${{ github.repository }}/releases/tag/${TAG}"
 
   # ────────────────────────────────────────────────────────────────

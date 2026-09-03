@@ -35,6 +35,7 @@
  * ## Internal dependencies
  * - `./constants`
  * - `./logger`
+ * - `./updaterState`
  *
  * ## Public surface
  * - `TrayActions` — exported API; see TSDoc on the symbol for behavior.
@@ -76,6 +77,7 @@ import * as path from "node:path";
 
 import { APP_NAME } from "./constants";
 import { log } from "./logger";
+import { updaterStatusLabel, type UpdaterState } from "./updaterState";
 
 /** Callbacks the tray menu wires to its rows. `main.ts` supplies these —
  * several are shared verbatim with `installApplicationMenu`'s `MenuActions`
@@ -101,6 +103,14 @@ export interface TrayActions {
   refreshSnapshot: () => void;
   /** Prompt the same quit-confirmation dialog ⌘Q triggers. */
   requestQuit: () => void;
+  /** Current auto-updater state — see `updaterState.ts`. */
+  getUpdaterState: () => UpdaterState;
+  /** Run one update check now. */
+  checkForUpdates: () => void;
+  /** Download the update a check found (`status === "available"` only). */
+  downloadUpdate: () => void;
+  /** Apply a downloaded update and relaunch (`status === "downloaded"` only). */
+  installUpdateAndRestart: () => void;
 }
 
 /**
@@ -195,6 +205,28 @@ export function createTray(actions: TrayActions): Tray {
         ]
       : [{ type: "separator" }, { label: "Snapshot unavailable", enabled: false }];
 
+    // The row's click action depends on what state the updater is in: an
+    // "available" update downloads on click, a "downloaded" one installs +
+    // relaunches, and every other state (including no row at all — `idle`,
+    // `disabled`, `up-to-date`) either checks again or does nothing. Hidden
+    // entirely rather than shown-disabled while idle/up-to-date/disabled —
+    // same "don't dim rows next to actionable ones" reasoning as the
+    // snapshot rows above.
+    const updaterState = actions.getUpdaterState();
+    const updaterLabel = updaterStatusLabel(updaterState);
+    const updaterItems: Electron.MenuItemConstructorOptions[] = updaterLabel
+      ? [
+          {
+            label: updaterLabel,
+            enabled: updaterState.status === "available" || updaterState.status === "downloaded",
+            click: () => {
+              if (updaterState.status === "available") actions.downloadUpdate();
+              else if (updaterState.status === "downloaded") actions.installUpdateAndRestart();
+            },
+          },
+        ]
+      : [];
+
     return Menu.buildFromTemplate([
       { label: APP_NAME, enabled: false },
       { label: portLabel, enabled: false },
@@ -205,6 +237,16 @@ export function createTray(actions: TrayActions): Tray {
       { type: "separator" },
       { label: "Restart Server", click: () => actions.restartServer() },
       { label: "Show Logs", click: () => actions.openLogs() },
+      { type: "separator" },
+      ...updaterItems,
+      {
+        label: "Check for Updates…",
+        enabled:
+          updaterState.status !== "checking" &&
+          updaterState.status !== "downloading" &&
+          updaterState.status !== "disabled",
+        click: () => actions.checkForUpdates(),
+      },
       { type: "separator" },
       {
         label: "Open at Login",

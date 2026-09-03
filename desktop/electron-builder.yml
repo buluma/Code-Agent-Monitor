@@ -17,6 +17,17 @@ appId: com.buluma.cam.desktop
 productName: Code Agent Monitor
 copyright: Copyright (c) 2026 Michael Buluma. MIT License.
 
+# Root default artifact name — `dmg:` below overrides this for the DMG; there
+# is no dedicated `zip:` config section, so this is what actually controls
+# the zip's filename. It MUST have no spaces: this is the raw asset name we
+# upload to the GitHub Release with `gh release upload` (bypassing
+# electron-builder's own uploader, which is what would otherwise sanitize a
+# space to a hyphen on the way up) — and it is also, verbatim, what
+# `latest-mac.yml`'s `url:`/`path:` fields say to fetch. A mismatch here
+# between the file actually uploaded and what the yml expects is a silent
+# 404 for every user's auto-update check, not a build failure.
+artifactName: "CodeAgentMonitor-${version}-${arch}.${ext}"
+
 directories:
   output: release
   buildResources: assets
@@ -87,8 +98,16 @@ mac:
   # flag, so `electron-builder --mac --arm64` would still emit an x64 DMG too.
   # With arch left unspecified, the `--arm64` / `--x64` / `--universal` flags
   # the `dmg:*` npm scripts pass are what decide which single DMG is produced.
+  # `zip` is not for distribution — nobody downloads it directly — it exists
+  # because electron-updater's Squirrel.Mac backend applies updates from a
+  # zip, not by re-mounting a DMG. Building both archs together (the `dmg`
+  # npm script's `--arm64 --x64` in one electron-builder invocation) is what
+  # makes electron-builder emit the paired `latest-mac.yml` /
+  # `latest-mac-arm64.yml` feed files the updater reads at runtime — see
+  # `src/updater.ts`.
   target:
     - dmg
+    - zip
   extendInfo:
     LSUIElement: false
     NSHighResolutionCapable: true
@@ -124,3 +143,14 @@ dmg:
 
 # Notarization runs only when the Apple credentials are present.
 afterSign: scripts/notarize.js
+
+# GitHub Releases as the update feed. This only tells electron-builder how to
+# shape `app-update.yml` (bundled into the packaged app) and `latest-mac.yml` —
+# it does NOT make electron-builder upload anything itself: every npm script
+# that packages the app passes `--publish never`, and the existing "🚢 Publish
+# Release" CI job (.github/workflows/ci.yml) is what actually uploads the DMGs
+# (and now the zips + yml feed files) to the GitHub Release via `gh release`.
+publish:
+  provider: github
+  owner: buluma
+  repo: Code-Agent-Monitor
