@@ -27,6 +27,7 @@ auto-start) see [`../DESKTOP.md`](../DESKTOP.md). This file is the **contributor
 - [Background services & hook bootstrap](#background-services--hook-bootstrap)
 - [Window, tray & menu](#window-tray--menu)
 - [Auto-start (Login Items)](#auto-start-login-items)
+- [Auto-updates](#auto-updates)
 - [Source tree](#source-tree)
 - [Packaged app layout](#packaged-app-layout)
 - [Build pipeline](#build-pipeline)
@@ -381,6 +382,8 @@ flowchart TD
     menu --> m2["Open in Browser…"]
     menu --> m3["Restart Server"]
     menu --> m4["Show Logs"]
+    menu --> m4a["update status row (conditional)"]
+    menu --> m4b["Check for Updates…"]
     menu --> m5["Open at Login ☑"]
     menu --> m6["Quit"]
 
@@ -446,6 +449,66 @@ When macOS launches the app at login (`wasOpenedAtLogin`), it starts
 
 ---
 
+## Auto-updates
+
+`electron-updater` reads GitHub Releases as its feed — no separate hosting.
+Checks are automatic; download and install stay user-triggered.
+
+```mermaid
+stateDiagram-v2
+    [*] --> idle: packaged build
+    [*] --> disabled: dev build, or<br/>CAM_DESKTOP_DISABLE_AUTO_UPDATE=1
+    idle --> checking: 15s after boot,<br/>then every 4h — or<br/>tray/menu "Check for Updates…"
+    checking --> up_to_date: no newer version
+    checking --> available: newer version found
+    up_to_date --> checking: next poll / manual check
+    available --> downloading: user clicks the tray's status row
+    downloading --> downloaded: complete
+    downloading --> available: download failed
+    downloaded --> [*]: user clicks "Restart to update"<br/>(quit + relaunch)
+    checking --> error: check failed
+    error --> checking: retry
+```
+
+- **State machine** — `src/updaterState.ts` is pure (no `electron` import),
+  unit-tested directly under plain `node --test`
+  (`tests/updater-state.test.mjs`); `src/updater.ts` wraps `autoUpdater` and
+  drives those reducers from its events.
+- **Manual download/install, automatic checks** — `autoDownload = false` /
+  `autoInstallOnAppQuit = false`. A background poll only ever gets you to
+  `"available"`; downloading and installing are always an explicit click on
+  the tray's status row (see Surfaces below — the check itself, unlike
+  download/install, is also available from the application menu), the same
+  philosophy the t3code reference implementation uses.
+- **Surfaces** — a status row appears in the tray dropdown and (implicitly,
+  via `app.setAboutPanelOptions`) nowhere else; a persistent
+  **"Check for Updates…"** item lives in both the tray menu and the
+  application menu's app submenu (macOS convention, right under About). A
+  native `Notification` fires once per downloaded version when it's ready to
+  install.
+- **Feed files** — building both architectures together (`npm run dmg`, what
+  CI runs) makes electron-builder emit a single `latest-mac.yml` (listing all
+  four DMG/zip artifacts — confirmed against a real build, not a separate
+  per-arch `latest-mac-arm64.yml`) alongside the zips `autoUpdater` applies
+  updates from; the DMGs remain the plain distributable download.
+  `electron-builder.yml`'s `publish:` block only shapes these files — every
+  packaging script still passes `--publish never`, so electron-builder never
+  uploads anything itself. The existing `release` CI job
+  (`.github/workflows/ci.yml`) is what attaches everything to the GitHub
+  Release.
+- **Gatekeeper on an ad-hoc build** — `src/gatekeeper.ts` runs a best-effort
+  `xattr -cr` on our own `.app` bundle at every startup, the same fix
+  [Code signing & notarization](#code-signing--notarization) documents for a
+  manual DMG install, applied automatically. Read that file's header comment
+  before relying on it — it is not a guaranteed unblock for a Gatekeeper
+  prompt that fires before our code runs at all; the durable fix is real
+  Developer ID signing + notarization.
+- **Disabling it** — set `CAM_DESKTOP_DISABLE_AUTO_UPDATE=1` (e.g. for a
+  locked-down/QA machine). It is always off for an unpackaged `desktop:dev`
+  run regardless of this variable.
+
+---
+
 ## Source tree
 
 ```
@@ -462,6 +525,11 @@ desktop/
 │   │                    #   {sessions, agents, events-today} snapshot
 │   ├── login-item.ts    # macOS Login Items (SMAppService)
 │   ├── shell-path.ts    # recover the user's shell PATH (so `claude` is found)
+│   ├── updater.ts       # electron-updater wrapper — check/download/install,
+│   │                    #   startup + 4h poll, GitHub Releases feed
+│   ├── updaterState.ts  # ★ pure state/reducers for updater.ts — no electron
+│   │                    #   import, unit-testable under plain `node --test`
+│   ├── gatekeeper.ts    # best-effort `xattr -cr` on our own bundle at boot
 │   ├── logger.ts        # file logger → app.getPath('logs')/desktop.log
 │   ├── constants.ts     # APP_NAME, ports, timeouts, window size
 │   └── preload.ts       # intentionally empty (zero renderer privilege)
@@ -475,7 +543,8 @@ desktop/
 │   └── build-icons.sh   # regenerate icon.icns + tray PNGs from SVG
 ├── assets/              # icon.icns, icon.png, tray-icon-Template*.png, SVGs
 ├── tests/
-│   └── smoke.test.mjs   # spawn Electron + probe /api/health
+│   ├── smoke.test.mjs         # spawn Electron + probe /api/health
+│   └── updater-state.test.mjs # pure reducer/label unit tests (no Electron)
 ├── electron-builder.yml # DMG packaging config
 ├── tsconfig.json        # strict; src/ → out/
 └── package.json
@@ -670,9 +739,9 @@ flowchart LR
     job --> j1["npm ci (root, client, desktop)"]
     j1 --> j2["tsc build"]
     j2 --> j3["smoke test"]
-    j3 --> j4["build both per-arch DMGs<br/>(retry on flaky hdiutil detach)"]
-    j4 --> j5["upload ClaudeCodeMonitor-dmg artifact"]
-    j5 --> rel["release job (master only)<br/>publish vX.Y.Z if new"]
+    j3 --> j4["build both per-arch DMGs + zips<br/>+ latest-mac*.yml<br/>(retry on flaky hdiutil detach)"]
+    j4 --> j5["upload ClaudeCodeMonitor-dmg artifact<br/>(dmg + zip + yml + blockmap)"]
+    j5 --> rel["release job (master/main only)<br/>publish vX.Y.Z if new"]
 
     style job fill:#1f6feb,stroke:#1158c7,color:#fff
     style rel fill:#238636,stroke:#1a6e2c,color:#fff
@@ -685,13 +754,16 @@ flowchart LR
   `hdiutil detach`, which is intermittently flaky on GitHub macOS runners. The
   step disables Spotlight indexing and retries the build up to 3 times,
   force-detaching any stale volume between attempts.
-- The built DMG is uploaded as the **`ClaudeCodeMonitor-dmg`** artifact
-  (downloadable from the workflow run).
-- On `master`, a follow-on **`release`** job reads the version from
-  `package.json` and publishes `vX.Y.Z` as a GitHub Release with the DMG
-  attached — but only when no release exists for that version yet, so bumping
-  the version is what cuts a release. The result is a permanent, anonymous
-  download URL at `releases/latest`.
+- The built DMGs, zips, and `latest-mac*.yml`/`*.blockmap` feed files are all
+  uploaded together as the **`ClaudeCodeMonitor-dmg`** artifact (downloadable
+  from the workflow run).
+- On a push to `master` or `main`, a follow-on **`release`** job reads the version from
+  `package.json` and publishes `vX.Y.Z` as a GitHub Release with every one of
+  those assets attached — but only when no release exists for that version
+  yet, so bumping the version is what cuts a release. The result is a
+  permanent, anonymous download URL at `releases/latest`, and the same
+  release is what `src/updater.ts` polls at runtime (see
+  [Auto-updates](#auto-updates)).
 
 ---
 
@@ -731,6 +803,7 @@ unrelated server on `:4820`.
 | `CAM_DESKTOP_BIND_PORT`                                     | `server-host.ts`          | Bind exactly this port — disables adoption and fallback. Used by the smoke test.                                                                                                                   |
 | `CAM_DESKTOP_NO_ADOPT`                                      | `server-host.ts`          | `=1` → never adopt an existing `:4820` server; always start our own.                                                                                                                               |
 | `CAM_DESKTOP_VERBOSE`                                       | `logger.ts`               | Mirror `info`/`warn` log lines to stdout (errors always go to stderr).                                                                                                                             |
+| `CAM_DESKTOP_DISABLE_AUTO_UPDATE`                            | `updater.ts`              | `=1` → auto-updater stays `"disabled"` even in a packaged build. See [Auto-updates](#auto-updates).                                                                                                |
 | `DASHBOARD_DATA_DIR`                                         | `server-host.ts` → server | Set automatically to `app.getPath('userData')/data` so the SQLite database and VAPID keys live in the per-user Application Support directory, never inside the (possibly read-only) `.app` bundle. |
 | `CSC_IDENTITY_AUTO_DISCOVERY`                                | electron-builder          | Set to `false` by the `package` script — forces ad-hoc signing.                                                                                                                                    |
 | `CSC_LINK` / `CSC_KEY_PASSWORD`                              | electron-builder          | Explicit Developer ID `.p12` for real signing.                                                                                                                                                     |
@@ -772,6 +845,8 @@ Reach it from the tray menu → **Show Logs**.
 | "Run Claude" says `claude` isn't on your PATH                   | `shell-path.ts` recovers the login-shell PATH at startup. If `claude` is a shell _alias_ or _function_ (not a real binary), it cannot be spawned — install the `claude` CLI as an executable. Check `desktop.log` for the `user PATH resolved` line. |
 | `desktop:dev` / `desktop:test` fail with `ERR_DLOPEN_FAILED`    | A prior DMG build left `better-sqlite3` built for the other CPU arch. `prebuild.js` auto-heals this on the next build; if needed, run `npm run desktop:install`.                                                                                     |
 | Imported history disappeared after reinstall                    | Fixed — the database now lives in `~/Library/Application Support/Claude Code Monitor/data/`, outside the bundle. A one-time gap exists only across the upgrade from a build that predated this fix; re-run **Import History → Rescan**.              |
+| Auto-updater never finds an update                              | Only a `master`/`main` push cuts a GitHub Release with the `latest-mac.yml` feed file attached — see [Continuous integration](#continuous-integration). A release published before the auto-updater feature landed has no feed file and will never be found this way. Check `desktop.log` for `updater error` lines.                          |
+| "Check for Updates…" does nothing / greyed out                  | It's disabled while a check or download is already in flight, or when `CAM_DESKTOP_DISABLE_AUTO_UPDATE=1` / the build is unpackaged (`desktop:dev`) — auto-updates are always off there.                                                              |
 
 ---
 

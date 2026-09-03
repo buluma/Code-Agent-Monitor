@@ -38,12 +38,14 @@
  *
  * ## Internal dependencies
  * - `./constants`
+ * - `./gatekeeper`
  * - `./login-item`
  * - `./logger`
  * - `./menu`
  * - `./server-host`
  * - `./shell-path`
  * - `./tray`
+ * - `./updater`
  * - `./window`
  *
  * ## Testing pointers
@@ -61,6 +63,7 @@ import { BrowserWindow, Notification, app, dialog, shell } from "electron";
 
 import { BUILD_DATE } from "./build-info";
 import { APP_NAME } from "./constants";
+import { stripOwnQuarantineAttribute } from "./gatekeeper";
 import { isOpenAtLogin, launchedAtLogin, toggleOpenAtLogin } from "./login-item";
 import { log } from "./logger";
 import { focusOrCreateWindow, installApplicationMenu } from "./menu";
@@ -74,6 +77,14 @@ import {
 } from "./server-host";
 import { ensureUserPath } from "./shell-path";
 import { createTray } from "./tray";
+import {
+  checkForUpdates,
+  configureUpdater,
+  downloadUpdate,
+  getUpdaterState,
+  installUpdateAndRestart,
+  onUpdaterStateChange,
+} from "./updater";
 import { appIconPath, createDashboardWindow } from "./window";
 
 /** Single mutable record of process-wide state, held in the module-level
@@ -256,6 +267,10 @@ async function boot(): Promise<void> {
   // "Run Claude" feature unable to find the `claude` CLI.
   ensureUserPath();
 
+  // Best-effort Gatekeeper self-heal for this ad-hoc signed build — see
+  // gatekeeper.ts's file header for exactly what this does and does not fix.
+  stripOwnQuarantineAttribute();
+
   try {
     state.serverHandle = await startEmbeddedServer();
   } catch (err) {
@@ -298,6 +313,7 @@ async function boot(): Promise<void> {
       log.info("open-at-login set to", next);
     },
     isOpenAtLogin,
+    checkForUpdates: () => void checkForUpdates("menu"),
   });
 
   state.tray = createTray({
@@ -315,11 +331,35 @@ async function boot(): Promise<void> {
     getSnapshot: () => getServerSnapshot(),
     refreshSnapshot: () => void refreshServerSnapshot(state.serverHandle?.port ?? null),
     requestQuit,
+    getUpdaterState,
+    checkForUpdates: () => void checkForUpdates("tray"),
+    downloadUpdate: () => void downloadUpdate(),
+    installUpdateAndRestart,
   });
 
   // Keep the tray's live counts fresh by polling the running server's stats
   // API on an interval (and on each menu open via refreshSnapshot above).
   startSnapshotPolling(() => state.serverHandle?.port ?? null);
+
+  // Auto-check + auto-download-on-user-click only — install still requires
+  // the explicit tray/menu "Restart to update" click (installUpdateAndRestart
+  // above). Configure after the tray exists so the very first startup check's
+  // "available" transition (15s later) already has a menu to render into.
+  configureUpdater();
+  let notifiedForVersion: string | null = null;
+  onUpdaterStateChange((updaterState) => {
+    if (
+      updaterState.status === "downloaded" &&
+      updaterState.availableVersion !== null &&
+      updaterState.availableVersion !== notifiedForVersion
+    ) {
+      notifiedForVersion = updaterState.availableVersion;
+      new Notification({
+        title: APP_NAME,
+        body: `Update v${updaterState.availableVersion} downloaded — click "Restart to update" in the tray menu to install it.`,
+      }).show();
+    }
+  });
 
   // Skip the dashboard window when macOS launched us at login — the user just
   // logged in, they don't want a window jumping in their face. Tray only.
