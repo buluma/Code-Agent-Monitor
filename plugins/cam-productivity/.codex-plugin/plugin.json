@@ -1,6 +1,6 @@
 {
   "name": "cam-productivity",
-  "version": "4.0.2",
+  "version": "4.1.0",
   "description": "Productivity workflows for Claude Code — daily standups, weekly reports, sprint summaries, and intelligent workflow optimization powered by Agent Monitor session data.",
   "author": {
     "name": "Michael Buluma",

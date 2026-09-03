@@ -1,7 +1,7 @@
 {
   "name": "cam-reports",
   "description": "Generate stakeholder-ready CAM reports from local session, cost, reliability, and workflow data with explicit scope, evidence, and export-friendly Markdown.",
-  "version": "4.0.2",
+  "version": "4.1.0",
   "author": { "name": "Michael Buluma", "url": "https://github.com/buluma" },
   "homepage": "https://github.com/buluma/Code-Agent-Monitor",
   "repository": "https://github.com/buluma/Code-Agent-Monitor",
