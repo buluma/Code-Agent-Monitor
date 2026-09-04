@@ -1,7 +1,7 @@
 /**
- * @file Page header: title, live/offline badge, provider toggle, scope
- * toggle, and the backups/refresh actions. Extracted out of CcConfig.tsx —
- * see SHA-167 — no behavior change.
+ * @file Page header: title, live/offline badge, provider toggle (Claude Code,
+ * Codex, Helm Code, T3), scope toggle, and the backups/refresh actions.
+ * Extracted out of CcConfig.tsx — see SHA-167.
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 

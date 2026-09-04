@@ -23,7 +23,7 @@
     },
     "both": {
       "label": "All",
-      "description": "Every Claude Code, Codex, and Helm Code session, usage, and cost."
+      "description": "Every Claude Code, Codex, Helm Code, and T3 session, usage, and cost."
     },
     "beta": "Beta",
     "continue": "Continue to dashboard",

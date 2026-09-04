@@ -80,7 +80,7 @@ function createThreadProvider(config) {
 
   function getServerRuntime() {
     try {
-      const raw = fs.readFileSync(path.join(getHome(), "userdata", "server-runtime.json"), "utf8");
+      const raw = fs.readFileSync(path.join(getUserDataDir(), "server-runtime.json"), "utf8");
       const parsed = JSON.parse(raw);
       if (!parsed || typeof parsed !== "object") return null;
       return {
@@ -98,6 +98,14 @@ function createThreadProvider(config) {
 
   function getUsageModelRatesPath() {
     return path.join(getUserDataDir(), "usage-model-rates.json");
+  }
+
+  function getSyncIntervalMs() {
+    const raw = process.env[syncIntervalEnvKey];
+    if (raw == null || raw.trim() === "") return 4_000;
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed) || parsed < 0) return 4_000;
+    return Math.floor(parsed);
   }
 
   function onHomeChanged(listener) {
@@ -446,7 +454,7 @@ function createThreadProvider(config) {
       status === "completed" || status === "error" || status === "abandoned"
         ? thread.updated_at || new Date().toISOString()
         : null;
-    if (!existing || existing.provider !== provider) {
+    if (!existing) {
       insertSessionStmt.run(
         sessionId,
         thread.title || `New session - ${thread.created_at || new Date().toISOString()}`,
@@ -583,11 +591,31 @@ function createThreadProvider(config) {
     return Number(last?.r) || 0;
   }
 
+  function providerCollision(threadId) {
+    const existingSession = stmts.getSession.get(threadId);
+    if (!existingSession || existingSession.provider === provider) return null;
+    return {
+      changed: false,
+      created: false,
+      skipped: true,
+      collision: true,
+      id: threadId,
+      provider,
+      existing_provider: existingSession.provider || "claude",
+      session: existingSession,
+      agent: null,
+      events: [],
+      removed: false,
+    };
+  }
+
   function reconcileThread(thread, handle, options = {}) {
+    const collision = providerCollision(thread.thread_id);
+    if (collision) return collision;
     const cursorRow = getCursorStmt.get(thread.thread_id);
     const lastApplied = cursorRow?.last_applied_sequence || 0;
     const maxSeq = threadMaxSequence(handle, thread.thread_id);
-    if (options.full !== true && maxSeq <= lastApplied) {
+    if (options.full !== true && cursorRow && maxSeq <= lastApplied) {
       return {
         changed: false,
         created: false,
@@ -677,12 +705,10 @@ function createThreadProvider(config) {
     }
 
     upsertCursorStmt.run(thread.thread_id, maxSeq);
-    if (maxSeq) {
-      db.prepare(`UPDATE ${table}sync SET last_turn_row = ? WHERE thread_id = ?`).run(
-        lastEmittableTurnRow(handle, thread.thread_id) || 0,
-        thread.thread_id
-      );
-    }
+    db.prepare(`UPDATE ${table}sync SET last_turn_row = ? WHERE thread_id = ?`).run(
+      lastEmittableTurnRow(handle, thread.thread_id) || 0,
+      thread.thread_id
+    );
 
     return {
       changed: true,
@@ -695,6 +721,8 @@ function createThreadProvider(config) {
   }
 
   function wipeThread(threadId) {
+    const collision = providerCollision(threadId);
+    if (collision) return collision;
     const session = stmts.getSession.get(threadId);
     if (session) deleteSessionStmt.run(threadId);
     deleteCursorStmt.run(threadId);
@@ -720,7 +748,9 @@ function createThreadProvider(config) {
             full: true,
             confirmedLive: options.confirmedLive,
           });
-          if (reconciled.changed || reconciled.created) results.push(reconciled);
+          if (reconciled.changed || reconciled.created || reconciled.skipped) {
+            results.push(reconciled);
+          }
         }
         return results;
       }) || []
@@ -737,7 +767,9 @@ function createThreadProvider(config) {
             continue;
           }
           const reconciled = reconcileThread(thread, handle, options);
-          if (reconciled.changed || reconciled.created) results.push(reconciled);
+          if (reconciled.changed || reconciled.created || reconciled.skipped) {
+            results.push(reconciled);
+          }
         }
         return results;
       }) || []
@@ -965,10 +997,8 @@ function createThreadProvider(config) {
     const initial = setTimeout(() => void runSweep(), 300);
     if (initial.unref) initial.unref();
 
-    const pollMs = process.env[syncIntervalEnvKey]
-      ? Number(process.env[syncIntervalEnvKey])
-      : 4_000;
-    if (Number.isFinite(pollMs) && pollMs > 0) {
+    const pollMs = getSyncIntervalMs();
+    if (pollMs > 0) {
       const timer = setInterval(() => void runSweep(), pollMs);
       if (timer.unref) timer.unref();
     }
@@ -1081,6 +1111,7 @@ function createThreadProvider(config) {
     getUserDataDir,
     getStateDbPath,
     getServerRuntime,
+    getSyncIntervalMs,
     getUsageModelRatesPath,
     onHomeChanged,
     setHome,

@@ -12,6 +12,7 @@ const { Router } = require("express");
 const fs = require("fs");
 const {
   getT3Home,
+  getT3SyncIntervalMs,
   getT3UserDataDir,
   getT3StateDbPath,
   getT3ServerRuntime,
@@ -36,11 +37,11 @@ function readStateDbStat(stateDbPath) {
 }
 
 function envOverrides() {
+  const syncInterval = getT3SyncIntervalMs();
   return {
     DASHBOARD_T3_HOME: process.env.DASHBOARD_T3_HOME || null,
     T3_HOME: process.env.T3_HOME || null,
-    DASHBOARD_T3_SYNC_MS:
-      process.env.DASHBOARD_T3_SYNC_MS == null ? null : Number(process.env.DASHBOARD_T3_SYNC_MS),
+    DASHBOARD_T3_SYNC_MS: process.env.DASHBOARD_T3_SYNC_MS == null ? null : syncInterval,
   };
 }
 
@@ -58,8 +59,7 @@ router.get("/overview", (_req, res) => {
     server_runtime: getT3ServerRuntime(),
     env: envOverrides(),
     sync: {
-      poll_ms:
-        process.env.DASHBOARD_T3_SYNC_MS == null ? 4000 : Number(process.env.DASHBOARD_T3_SYNC_MS),
+      poll_ms: getT3SyncIntervalMs(),
     },
     projection_counts: projectionCounts || null,
   });

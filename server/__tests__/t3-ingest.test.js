@@ -2,8 +2,9 @@
  * @file Verifies T3 thread ingestion end-to-end against a synthetic
  * state.sqlite fixture: first-sweep materialization with T3 provider/event
  * attribution, second-sweep idempotence, incremental event emission after the
- * orchestration cursor advances, token-bucket sync, wipe-on-delete/archive,
- * and the shared transcript DTO served for t3 sessions.
+ * orchestration cursor advances, zero-sequence turn watermarks, provider-id
+ * collision handling, token-bucket sync, wipe-on-delete/archive, and the
+ * shared transcript DTO served for t3 sessions.
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
@@ -22,11 +23,14 @@ delete process.env.DASHBOARD_LITE_DB_PATH;
 
 const { db, stmts } = require("../db");
 const { readT3Transcript } = require("../routes/sessions");
-const { syncT3Sessions } = require("../lib/t3-ingest");
+const { ingestT3Snapshot, syncT3Sessions } = require("../lib/t3-ingest");
 
 const T1 = "00000000-0000-4000-8000-000000000001";
 const T2 = "00000000-0000-4000-8000-000000000002";
 const T4 = "00000000-0000-4000-8000-000000000004";
+const T5 = "00000000-0000-4000-8000-000000000005";
+const T6 = "00000000-0000-4000-8000-000000000006";
+const T7 = "00000000-0000-4000-8000-000000000007";
 
 // The state database T3 (release builds) owns: `<home>/userdata/state.sqlite`.
 function statePath() {
@@ -149,11 +153,13 @@ function seedThread(handle, thread) {
       thread.active_turn_id || null,
       thread.last_error || null
     );
-  handle
-    .prepare(
-      "INSERT INTO orchestration_events (aggregate_kind, stream_id, sequence) VALUES ('thread', ?, ?)"
-    )
-    .run(thread.thread_id, thread.sequence ?? 1);
+  if (thread.sequence !== null) {
+    handle
+      .prepare(
+        "INSERT INTO orchestration_events (aggregate_kind, stream_id, sequence) VALUES ('thread', ?, ?)"
+      )
+      .run(thread.thread_id, thread.sequence ?? 1);
+  }
 }
 
 function seedMessage(handle, message) {
@@ -399,5 +405,53 @@ describe("T3 ingestor", () => {
       ["user", "assistant"]
     );
     assert.equal(all.messages[0].content[0].type, "text");
+  });
+
+  it("persists the turn watermark when a full reconciliation has sequence zero", () => {
+    const handle = openState();
+    seedThread(handle, {
+      thread_id: T7,
+      title: "No orchestration sequence",
+      sequence: null,
+    });
+    seedTurn(handle, 7, { thread_id: T7, turn_id: "turn-seven" });
+    handle.close();
+
+    const results = ingestT3Snapshot();
+    assert.ok(results.some((result) => result.session?.id === T7));
+    assert.equal(stmts.getT3Cursor.get(T7).last_applied_sequence, 0);
+    assert.equal(stmts.getT3Cursor.get(T7).last_turn_row, 7);
+  });
+
+  it("reports a provider-owned thread collision and continues syncing later threads", () => {
+    stmts.insertSession.run(
+      T5,
+      "Existing Claude session",
+      "active",
+      "/workspace/claude",
+      null,
+      null
+    );
+    const handle = openState();
+    seedThread(handle, { thread_id: T5, title: "Colliding T3 thread", sequence: 1 });
+    seedMessage(handle, {
+      message_id: "m-t5-1",
+      thread_id: T5,
+      role: "user",
+      text: "Do not attach this to Claude",
+    });
+    seedThread(handle, { thread_id: T6, title: "Non-colliding T3 thread", sequence: 1 });
+    handle.close();
+
+    const results = syncT3Sessions();
+    const collision = results.find((result) => result.id === T5);
+    assert.equal(collision?.skipped, true);
+    assert.equal(collision?.collision, true);
+    assert.equal(collision?.existing_provider, "claude");
+    assert.equal(stmts.getSession.get(T5).name, "Existing Claude session");
+    assert.equal(stmts.getSession.get(T5).provider, "claude");
+    assert.equal(stmts.getAgent.get(`t3:${T5}`), undefined);
+    assert.equal(stmts.listT3Messages.all(T5).length, 0);
+    assert.equal(stmts.getSession.get(T6).provider, "t3");
   });
 });

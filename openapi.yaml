@@ -1943,7 +1943,6 @@ components:
             - claude
             - codex
             - helmcode
-            - t3
         platform:
           type: string
         default_projects_dir:
@@ -1999,7 +1998,6 @@ components:
             - claude
             - codex
             - helmcode
-            - t3
         source:
           type: string
           enum:
@@ -2072,7 +2070,6 @@ components:
             - claude
             - codex
             - helmcode
-            - t3
             - both
         pricing:
           type: array
@@ -3577,7 +3574,7 @@ components:
         server_runtime:
           type: object
           nullable: true
-          description: Parsed contents of <home>/userdata/server-runtime.json when present, otherwise null.
+          description: Parsed contents of <userdata_dir>/server-runtime.json when present, otherwise null.
           required:
             - version
             - pid
@@ -3724,7 +3721,7 @@ components:
         server_runtime:
           type: object
           nullable: true
-          description: Parsed contents of <home>/userdata/server-runtime.json when present, otherwise null.
+          description: Parsed contents of <userdata_dir>/server-runtime.json when present, otherwise null.
           required:
             - version
             - pid
@@ -7227,7 +7224,6 @@ paths:
                       - claude
                       - codex
                       - helmcode
-                      - t3
       responses:
         '200':
           description: Selected hook installers completed
