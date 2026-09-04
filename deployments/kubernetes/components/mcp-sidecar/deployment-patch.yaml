@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
         - name: mcp-sidecar
-          image: cam-mcp:4.2.0
+          image: cam-mcp:4.2.1
           imagePullPolicy: IfNotPresent
 
           ports:

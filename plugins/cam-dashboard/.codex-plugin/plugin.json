@@ -1,6 +1,6 @@
 {
   "name": "cam-dashboard",
-  "version": "4.2.0",
+  "version": "4.2.1",
   "description": "Direct MCP integration with the Code Agent Monitor dashboard — real-time session data access, quick stats, and dashboard health monitoring via Model Context Protocol.",
   "author": {
     "name": "Michael Buluma",

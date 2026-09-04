@@ -1,7 +1,7 @@
 {
   "name": "cam-config",
   "description": "Audit and govern your Claude Code configuration and file-based memory via the Agent Monitor Config Explorer API — skills, subagents, commands, MCP servers, hooks, settings, and the per-project memory store. Surfaces sprawl, duplication, risky hooks, and stale facts, all read through the dashboard at http://localhost:4820.",
-  "version": "4.2.0",
+  "version": "4.2.1",
   "author": { "name": "Michael Buluma", "url": "https://github.com/buluma" },
   "homepage": "https://github.com/buluma/Code-Agent-Monitor",
   "repository": "https://github.com/buluma/Code-Agent-Monitor",
