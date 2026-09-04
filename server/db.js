@@ -917,6 +917,40 @@ try {
   db.prepare("ALTER TABLE helmcode_sync ADD COLUMN last_turn_row INTEGER NOT NULL DEFAULT 0").run();
 }
 
+// T3 ingest bookkeeping. T3 is a fork of Helm Code with an identical
+// projection schema; the dashboard mirrors T3's orchestration-event log +
+// projections into its own provider-neutral rows.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS t3_sync (
+    thread_id TEXT PRIMARY KEY,
+    last_applied_sequence INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  );
+  CREATE TABLE IF NOT EXISTS t3_messages (
+    message_id TEXT PRIMARY KEY,
+    thread_id TEXT NOT NULL,
+    role TEXT NOT NULL,
+    text TEXT,
+    turn_id TEXT,
+    seq INTEGER,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (thread_id) REFERENCES sessions(id) ON DELETE CASCADE
+  );
+  CREATE INDEX IF NOT EXISTS idx_t3_messages_thread ON t3_messages(thread_id, created_at);
+  CREATE INDEX IF NOT EXISTS idx_t3_messages_thread_seq ON t3_messages(thread_id, seq);
+  CREATE TABLE IF NOT EXISTS t3_activities (
+    activity_id TEXT PRIMARY KEY,
+    thread_id TEXT NOT NULL,
+    FOREIGN KEY (thread_id) REFERENCES sessions(id) ON DELETE CASCADE
+  );
+  CREATE INDEX IF NOT EXISTS idx_t3_activities_thread ON t3_activities(thread_id);
+`);
+try {
+  db.prepare("SELECT last_turn_row FROM t3_sync LIMIT 1").get();
+} catch {
+  db.prepare("ALTER TABLE t3_sync ADD COLUMN last_turn_row INTEGER NOT NULL DEFAULT 0").run();
+}
+
 // Dashboard run records predate provider-aware launching. Keep existing rows
 // as Claude Code runs and add the Codex-specific sandbox metadata without
 // rebuilding the table, preserving installed users' run history.
@@ -1448,6 +1482,28 @@ const stmts = {
   listHelmcodeActivityIds: db.prepare(
     "SELECT activity_id FROM helmcode_activities WHERE thread_id = ?"
   ),
+  // T3 ingest cursor (per-thread watermark over `orchestration_events`)
+  insertT3Session: db.prepare(
+    "INSERT INTO sessions (id, name, status, cwd, model, provider, source, started_at, updated_at, metadata) VALUES (?, ?, ?, ?, ?, 't3', ?, ?, ?, ?)"
+  ),
+  getT3Cursor: db.prepare("SELECT * FROM t3_sync WHERE thread_id = ?"),
+  listT3Cursors: db.prepare("SELECT * FROM t3_sync"),
+  upsertT3Cursor: db.prepare(
+    "INSERT INTO t3_sync (thread_id, last_applied_sequence, updated_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) ON CONFLICT(thread_id) DO UPDATE SET last_applied_sequence = excluded.last_applied_sequence, updated_at = excluded.updated_at"
+  ),
+  deleteT3Cursor: db.prepare("DELETE FROM t3_sync WHERE thread_id = ?"),
+  upsertT3Message: db.prepare(
+    "INSERT INTO t3_messages (message_id, thread_id, role, text, turn_id, seq, created_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(message_id) DO UPDATE SET text = excluded.text, turn_id = excluded.turn_id, seq = excluded.seq, role = excluded.role, created_at = excluded.created_at"
+  ),
+  listT3Messages: db.prepare(
+    "SELECT * FROM t3_messages WHERE thread_id = ? ORDER BY created_at ASC, COALESCE(seq, 0) ASC, message_id ASC"
+  ),
+  deleteT3Messages: db.prepare("DELETE FROM t3_messages WHERE thread_id = ?"),
+  deleteT3Session: db.prepare("DELETE FROM sessions WHERE id = ? AND provider = 't3'"),
+  listT3Sessions: db.prepare(
+    "SELECT * FROM sessions WHERE provider = 't3' ORDER BY updated_at DESC"
+  ),
+  listT3ActivityIds: db.prepare("SELECT activity_id FROM t3_activities WHERE thread_id = ?"),
   // A compact, durable summary of the two newest real human turns. It is
   // intentionally not a transcript cache: full content stays in JSONL, while
   // cards can render useful context even after an import or server restart.

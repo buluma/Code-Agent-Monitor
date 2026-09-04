@@ -13,6 +13,7 @@
 const ccConfig = require("./openapi-extra/cc-config");
 const codexConfig = require("./openapi-extra/codex-config");
 const helmcodeConfig = require("./openapi-extra/helmcode-config");
+const t3Config = require("./openapi-extra/t3-config");
 const run = require("./openapi-extra/run");
 const push = require("./openapi-extra/push");
 const misc = require("./openapi-extra/misc");
@@ -47,6 +48,7 @@ module.exports = combine(
   ccConfig,
   codexConfig,
   helmcodeConfig,
+  t3Config,
   run,
   push,
   misc,

@@ -122,8 +122,8 @@ real installs. This change does not publish or submit anything externally.
 
 ## Plugin Catalog
 
-| Plugin              | Focus                                           | Bundled skills                                                                                                |
-| ------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Plugin             | Focus                                           | Bundled skills                                                                                                |
+| ------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `cam-analytics`    | tokens, costs, cache, model mix, trends         | `cache-efficiency`, `cost-breakdown`, `model-mix`, `productivity-score`, `session-report`, `usage-trends`     |
 | `cam-config`       | Claude config and memory governance             | `config-audit`, `hook-inventory`, `mcp-audit`, `memory-review`, `skill-inventory`                             |
 | `cam-cost-guard`   | budgets, forecasts, cost alerts                 | `budget-set`, `cost-alert`, `daily-budget-check`, `model-savings`, `spend-forecast`                           |
@@ -151,9 +151,13 @@ event types** as it ingests non-Claude sessions. Codex emits
 `codex_tool_call`. Helm Code (read-only mirror) emits `helmcode_user_message`,
 `helmcode_tool_call`, `helmcode_task_started`, `helmcode_task_updated`,
 `helmcode_task_complete`, `helmcode_turn_start`, `helmcode_turn_complete`,
-`helmcode_context_compacted`, `helmcode_error`, and `helmcode_info`. These
-synthetic rows carry `"provider"` in their JSON `data` payload, so analytics can
-distinguish them from Claude hook traffic and scope by provider.
+`helmcode_context_compacted`, `helmcode_error`, and `helmcode_info`. T3 — a
+direct fork of Helm Code that also installs no hooks and is mirrored read-only
+from its state DB — emits the matching `t3_user_message`, `t3_tool_call`,
+`t3_task_complete`, `t3_turn_start`, `t3_turn_complete`, `t3_context_compacted`,
+`t3_error`, and `t3_activity` types. These synthetic rows carry `"provider"` in
+their JSON `data` payload, so analytics can distinguish them from Claude hook
+traffic and scope by provider.
 
 ## MCP-enabled plugins
 

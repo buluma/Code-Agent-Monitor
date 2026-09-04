@@ -68,17 +68,17 @@ technologies:
 ### First-run hook setup
 
 `SplashScreen.tsx` asks which provider data to display (Claude Code, Codex, or
-both — read-only Helm Code sessions are included automatically under both)
-before dashboard routes render. Continuing checks the current hook state against
-that exact scope: Claude-only needs Claude hooks, Codex-only needs Codex hooks,
-and Both needs both. Helm Code needs no hooks, so it is never part of hook
-installation. A ready selection enters the dashboard immediately. A partial or
-missing setup opens the live-monitoring gate with only the missing selected
-providers, then calls `POST /api/settings/install-hooks` for that subset and
-shows command output in place. A status-check failure remains fail-soft by
-opening manual setup for the full selected scope. API paths are deliberately
-excluded, so Swagger, ReDoc, and the raw OpenAPI document remain unobstructed
-and retain the dashboard favicon.
+both — read-only Helm Code and T3 sessions are included automatically under
+both) before dashboard routes render. Continuing checks the current hook state
+against that exact scope: Claude-only needs Claude hooks, Codex-only needs Codex
+hooks, and Both needs both. Helm Code and T3 need no hooks, so they are never
+part of hook installation. A ready selection enters the dashboard immediately. A
+partial or missing setup opens the live-monitoring gate with only the missing
+selected providers, then calls `POST /api/settings/install-hooks` for that
+subset and shows command output in place. A status-check failure remains
+fail-soft by opening manual setup for the full selected scope. API paths are
+deliberately excluded, so Swagger, ReDoc, and the raw OpenAPI document remain
+unobstructed and retain the dashboard favicon.
 
 Chart legends use the shared `PaginatedLegend.tsx` component. Lists at or below
 the configured page size render exactly as before with no controls. Longer
@@ -111,9 +111,14 @@ guarded editor, and expose a one-click copy action for their exact
 Code integration: the resolved home, the live `server-runtime.json` descriptor,
 the env override chain, the active sync poll cadence, and live projection
 counts. The only mutation is a non-destructive **Resync now** action that
-re-runs the dashboard's own ingest pass; Helm Code itself is never modified. A
-`?provider=claude|codex|helmcode` query parameter deep-links directly to the
-matching tab (Settings → Helm Code uses `?provider=helmcode`).
+re-runs the dashboard's own ingest pass; Helm Code itself is never modified. Its
+**T3** switch renders `T3ConfigExplorer.tsx`, the same read-only Config Explorer
+for the T3 fork of Helm Code (provider key `'t3'`): the resolved `~/.t3` home,
+the live `server-runtime.json` descriptor, the env override chain, the active
+sync poll cadence, and live projection counts, with the same non-destructive
+**Resync now** action. A `?provider=claude|codex|helmcode|t3` query parameter
+deep-links directly to the matching tab (Settings → Helm Code uses
+`?provider=helmcode`; Settings → T3 uses `?provider=t3`).
 `codex --profile <name>` launch command. The explicit editor reads unredacted
 text only for its server allowlist, including `config.toml`, profiles,
 `hooks.json`, user rules, `SKILL.md` files, and Codex/project instructions, so
@@ -364,14 +369,14 @@ architecture simple. The one small exception is the **data-scope store**
 (`lib/dataScope.ts`): a lightweight app-wide store holding the current source
 set (`local` plus any configured
 [Remote Data Sources](../server/README.md#remote-data-sources)) and provider set
-(`claude`, `codex`, `helmcode`, or any combination). Pages append the resulting
-`?providers=` parameters to their API requests, so the Settings selector
-immediately narrows the whole app to the chosen machines and/or agents. Remote
-sources are managed from the Settings page via the `RemoteSources` component
-(`components/RemoteSources.tsx`), which configures independent `~/.claude` and
-`~/.codex` homes, renders provider-specific connection/sync results, drives the
-`/api/remote-sources` CRUD/test/sync endpoints, and reflects live
-`remote_source.status` WebSocket updates. A source can be Claude-only,
+(`claude`, `codex`, `helmcode`, `t3`, or any combination). Pages append the
+resulting `?providers=` parameters to their API requests, so the Settings
+selector immediately narrows the whole app to the chosen machines and/or agents.
+Remote sources are managed from the Settings page via the `RemoteSources`
+component (`components/RemoteSources.tsx`), which configures independent
+`~/.claude` and `~/.codex` homes, renders provider-specific connection/sync
+results, drives the `/api/remote-sources` CRUD/test/sync endpoints, and reflects
+live `remote_source.status` WebSocket updates. A source can be Claude-only,
 Codex-only, or both; a healthy provider's data keeps refreshing even if its
 sibling provider is unavailable. When a sync finishes, stats pages refetch via
 `lib/remoteDataEvents.ts` (`remote_data.updated`, `remote_source.status` with
@@ -553,7 +558,7 @@ Server broadcasts these event types over WebSocket:
 | `notification.received` | Notification object                                                                                                                              | Notification hook                                                                                                                                                                                                                                               |
 | `remote_source.status`  | `{ id, status, error?, providers?, last_sync_at? }` (`status`: `idle`/`syncing`/`ok`/`error`/`deleted`; each provider can also be `unavailable`) | Remote Data Source sync poller + `/api/remote-sources` routes                                                                                                                                                                                                   |
 | `remote_data.updated`   | `{ sourceId, source, label?, counters?, providers?, last_sync_at? }`                                                                             | Emitted once per successful remote sync; provider-aware counters trigger stats/cost/session refetches. The server also broadcasts `session_created` / `session_updated` (and main-agent frames) for each mirrored session so Kanban/Sessions update immediately |
-| `session.removed`       | `{ id, provider }`                                                                                                                               | Helm Code sweep wipes a thread session after a helmcode-side delete or archive. Pages receiving `session.removed` reload their session lists; the Session detail page navigates back to the list when its own session is removed                                |
+| `session.removed`       | `{ id, provider }`                                                                                                                               | Helm Code or T3 sweep wipes a thread session after a helmcode-/t3-side delete or archive. Pages receiving `session.removed` reload their session lists; the Session detail page navigates back to the list when its own session is removed                      |
 
 ### EventBus Pattern
 
@@ -931,13 +936,13 @@ with a copy button.
 
 Click the **Live** / **Disconnected** pill in the sidebar footer to open a
 details panel about the WebSocket transport: the active `ws://` endpoint, how
-long the current socket has been up, total events received, top event types as
-a horizontal bar chart, a 60-second throughput sparkline, and the last 8 events
-as a recent-activity list. Cumulative stats (totals, type breakdown, recent
-list) persist across reloads via `localStorage` under
-`sidebar-connection-stats` (see [Browser storage keys](#browser-storage-keys));
-the rolling sparkline and "connected since" timer are intentionally ephemeral.
-A **Reset** button in the footer clears everything on demand.
+long the current socket has been up, total events received, top event types as a
+horizontal bar chart, a 60-second throughput sparkline, and the last 8 events as
+a recent-activity list. Cumulative stats (totals, type breakdown, recent list)
+persist across reloads via `localStorage` under `sidebar-connection-stats` (see
+[Browser storage keys](#browser-storage-keys)); the rolling sparkline and
+"connected since" timer are intentionally ephemeral. A **Reset** button in the
+footer clears everything on demand.
 
 ---
 
@@ -999,7 +1004,7 @@ no central store — each feature owns its own key — so this is the inventory:
 | `agent-dashboard-tabby-enabled`      | local       | `components/Tabby/prefs.ts`     | Whether the Tabby companion is shown                                              |
 | `agent-dashboard-tabby-muted`        | local       | `components/Tabby/prefs.ts`     | Whether Tabby's speech bubbles are muted                                          |
 | `agent-dashboard-tabby-pos`          | local       | `components/Tabby/prefs.ts`     | Tabby's docked edge and vertical offset, as a viewport fraction                   |
-| `cam-data-scope`                    | local       | `lib/dataScope.ts`              | App-wide data scope — selected remote sources and providers                       |
+| `cam-data-scope`                     | local       | `lib/dataScope.ts`              | App-wide data scope — selected remote sources and providers                       |
 | `sidebar-collapsed`                  | local       | `components/Sidebar.tsx`        | Sidebar collapsed state                                                           |
 | `sidebar-connection-stats`           | local       | `components/Sidebar.tsx`        | Cumulative WebSocket stats for the connection modal                               |
 | `provider-onboarding-shown-v1`       | **session** | `components/SplashScreen.tsx`   | Splash shown once per browser session, not once ever                              |
@@ -1023,13 +1028,13 @@ Web Audio API from a declarative list of partials (frequency, offset, duration,
 peak gain, oscillator type), routed through a master gain node and a low-pass
 filter.
 
-| Export | Purpose |
-| --- | --- |
-| `playCue(cue, { force })` | Plays one of `sessionStart`, `sessionComplete`, `sessionError`, `subagentSpawn`, `notification`, `connected`, `disconnected`, `click`. Returns whether audio was actually scheduled. `force` bypasses the per-cue flag and the rate limiter (used by the Settings previews). |
-| `getSoundPrefs()` / `setSoundPrefs(patch)` | Read / merge-write the `SoundPrefs` object persisted to `localStorage` under `agent-monitor-sound`. Defaults have `enabled: true`. |
-| `subscribeToSoundPrefs(handler)` | Subscribe to preference changes within the tab; returns an unsubscribe function. |
-| `installSoundUnlock()` / `unlockSound()` | Satisfy browser autoplay policy — cues stay silent until the first pointer / key / touch gesture. |
-| `DEFAULT_SOUND_PREFS` | The shipped defaults, also used as the merge base for partial saved objects. |
+| Export                                     | Purpose                                                                                                                                                                                                                                                                      |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `playCue(cue, { force })`                  | Plays one of `sessionStart`, `sessionComplete`, `sessionError`, `subagentSpawn`, `notification`, `connected`, `disconnected`, `click`. Returns whether audio was actually scheduled. `force` bypasses the per-cue flag and the rate limiter (used by the Settings previews). |
+| `getSoundPrefs()` / `setSoundPrefs(patch)` | Read / merge-write the `SoundPrefs` object persisted to `localStorage` under `agent-monitor-sound`. Defaults have `enabled: true`.                                                                                                                                           |
+| `subscribeToSoundPrefs(handler)`           | Subscribe to preference changes within the tab; returns an unsubscribe function.                                                                                                                                                                                             |
+| `installSoundUnlock()` / `unlockSound()`   | Satisfy browser autoplay policy — cues stay silent until the first pointer / key / touch gesture.                                                                                                                                                                            |
+| `DEFAULT_SOUND_PREFS`                      | The shipped defaults, also used as the merge base for partial saved objects.                                                                                                                                                                                                 |
 
 `hooks/useSoundCues.ts` is the automatic, event-driven consumer of the engine
 (the Settings page is the other caller, driving `playCue(..., { force: true })`
@@ -1051,15 +1056,15 @@ slider, per-cue switches, preview button).
 
 **What each cue sounds like:**
 
-| Cue                           | When it fires                                                    | What it sounds like                                                     |
-| ------------------------------ | ------------------------------------------------------------------ | --------------------------------------------------------------------------- |
-| `sessionStart`                | A new session appears                                            | Rising perfect fifth (C5 → G5)                                          |
-| `sessionComplete`             | A session finishes responding (`Stop`) or closes (`SessionEnd`)  | Resolving major arpeggio (E5 → G5 → C6)                                 |
-| `sessionError`                | A session enters the `error` state                               | Soft falling minor third on a triangle wave — noticeable, not alarming  |
-| `subagentSpawn`               | A subagent spawns                                                 | Single short pluck                                                      |
-| `notification`                | Claude Code emits a `Notification` event                         | Detuned pair ringing like a small bell                                  |
-| `connected` / `disconnected`  | The dashboard WebSocket returns or drops                         | Two-note lift / drop                                                    |
-| `click`                       | You press a button, link, tab, or switch                         | Barely-audible tick                                                     |
+| Cue                          | When it fires                                                   | What it sounds like                                                    |
+| ---------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `sessionStart`               | A new session appears                                           | Rising perfect fifth (C5 → G5)                                         |
+| `sessionComplete`            | A session finishes responding (`Stop`) or closes (`SessionEnd`) | Resolving major arpeggio (E5 → G5 → C6)                                |
+| `sessionError`               | A session enters the `error` state                              | Soft falling minor third on a triangle wave — noticeable, not alarming |
+| `subagentSpawn`              | A subagent spawns                                               | Single short pluck                                                     |
+| `notification`               | Claude Code emits a `Notification` event                        | Detuned pair ringing like a small bell                                 |
+| `connected` / `disconnected` | The dashboard WebSocket returns or drops                        | Two-note lift / drop                                                   |
+| `click`                      | You press a button, link, tab, or switch                        | Barely-audible tick                                                    |
 
 Cues live inside a C-major set so overlapping tails never sound dissonant, and
 every envelope decays exponentially rather than cutting off, which avoids the

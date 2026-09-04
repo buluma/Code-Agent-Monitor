@@ -704,8 +704,8 @@ export interface Session {
   source?: string;
   /** Product that created this session. Historical records default to Claude;
    *  Codex rollouts are marked `codex` and use the GPT price card; Helm Code
-   *  sessions are marked `helmcode` (their mirror carries no token totals). */
-  provider?: "claude" | "codex" | "helmcode";
+   *  sessions are marked `helmcode`; T3 sessions are marked `t3`. */
+  provider?: "claude" | "codex" | "helmcode" | "t3";
   /** Compact latest task progress attached to Sessions-list rows. Null when the
    * provider never emitted task/checklist/plan state. */
   todo_summary?: SessionTodoSummary | null;

@@ -12,8 +12,8 @@ import type { CcScope } from "../../lib/api";
 // ── Header ────────────────────────────────────────────────────────────
 
 interface HeaderProps {
-  provider: "claude" | "codex" | "helmcode";
-  onProviderChange: (provider: "claude" | "codex" | "helmcode") => void;
+  provider: "claude" | "codex" | "helmcode" | "t3";
+  onProviderChange: (provider: "claude" | "codex" | "helmcode" | "t3") => void;
   loading: boolean;
   lastUpdated: Date | null;
   scope: CcScope;
@@ -105,8 +105,8 @@ function ProviderToggle({
   value,
   onChange,
 }: {
-  value: "claude" | "codex" | "helmcode";
-  onChange: (value: "claude" | "codex" | "helmcode") => void;
+  value: "claude" | "codex" | "helmcode" | "t3";
+  onChange: (value: "claude" | "codex" | "helmcode" | "t3") => void;
 }) {
   const { t } = useTranslation("ccConfig");
   return (
@@ -114,7 +114,7 @@ function ProviderToggle({
       className="inline-flex rounded-full border border-border bg-surface-2 p-0.5"
       aria-label={t("provider.aria", "Configuration provider")}
     >
-      {(["claude", "codex", "helmcode"] as const).map((option) => (
+      {(["claude", "codex", "helmcode", "t3"] as const).map((option) => (
         <button
           key={option}
           onClick={() => onChange(option)}

@@ -6,7 +6,7 @@
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
-const VALID_PROVIDERS = new Set(["claude", "codex", "helmcode"]);
+const VALID_PROVIDERS = new Set(["claude", "codex", "helmcode", "t3"]);
 
 /** Parse `?providers=claude,codex`; absent means every provider. */
 function parseProviders(req) {

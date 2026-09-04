@@ -118,13 +118,14 @@ interface AgentStatusBadgeProps {
    *  never squeezes the card title. */
   compact?: boolean;
   /** Product that owns the waiting row; drives provider wording in the tooltip. */
-  provider?: "claude" | "codex" | "helmcode";
+  provider?: "claude" | "codex" | "helmcode" | "t3";
 }
 
 /** Human product name for an awaiting-row tooltip. */
-function providerDisplayName(provider?: "claude" | "codex" | "helmcode"): string {
+function providerDisplayName(provider?: "claude" | "codex" | "helmcode" | "t3"): string {
   if (provider === "codex") return "Codex";
   if (provider === "helmcode") return "Helm Code";
+  if (provider === "t3") return "T3";
   return "Claude";
 }
 
@@ -178,7 +179,7 @@ interface SessionStatusBadgeProps {
    *  never squeezes the card title. */
   compact?: boolean;
   /** Product that owns the waiting row; drives provider wording in the tooltip. */
-  provider?: "claude" | "codex" | "helmcode";
+  provider?: "claude" | "codex" | "helmcode" | "t3";
 }
 
 export function SessionStatusBadge({

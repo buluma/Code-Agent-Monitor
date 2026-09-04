@@ -637,7 +637,7 @@ export const api = {
       sort_desc?: boolean;
       limit?: number;
       offset?: number;
-      provider?: "claude" | "codex" | "helmcode";
+      provider?: "claude" | "codex" | "helmcode" | "t3";
       include_transient?: boolean;
       include_task_progress?: boolean;
     }) => {
@@ -1037,6 +1037,18 @@ export const api = {
       /** @param path New absolute `~/.helmcode`-style directory. */
       set: (path: string) =>
         request<{ ok: boolean; helmcode_home: string }>("/settings/helmcode-home", {
+          method: "PUT",
+          body: JSON.stringify({ path }),
+        }),
+    },
+    /** Get/set the local T3 state root. Changing it re-arms the live state-DB
+     * watcher and immediately rescans the selected `userdata/` tree. */
+    t3Home: {
+      /** @returns `{ t3_home }` — the resolved T3 home directory. */
+      get: () => request<{ t3_home: string }>("/settings/t3-home"),
+      /** @param path New absolute `~/.t3`-style directory. */
+      set: (path: string) =>
+        request<{ ok: boolean; t3_home: string }>("/settings/t3-home", {
           method: "PUT",
           body: JSON.stringify({ path }),
         }),
@@ -1647,6 +1659,19 @@ export const api = {
     overview: () => request<HelmcodeConfigOverview>("/helmcode-config/overview"),
     resync: () =>
       request<HelmcodeConfigResyncResult>("/helmcode-config/resync", {
+        method: "POST",
+        body: JSON.stringify({ confirmed: true }),
+      }),
+  },
+
+  // ────────────────────────────────── T3 Config ──────────────────────────────
+  /** Read-only Config Explorer surface for the local T3 integration.
+   *  T3 is a Helm Code fork; the dashboard mirrors its state via an idempotent
+   *  ingest pass and never writes to T3's own database. */
+  t3Config: {
+    overview: () => request<T3ConfigOverview>("/t3-config/overview"),
+    resync: () =>
+      request<T3ConfigResyncResult>("/t3-config/resync", {
         method: "POST",
         body: JSON.stringify({ confirmed: true }),
       }),
@@ -2612,6 +2637,45 @@ export interface HelmcodeConfigOverview {
 
 /** Response shape of a successful `helmcodeConfig.resync()` call. */
 export interface HelmcodeConfigResyncResult {
+  ok: true;
+  summary: { scanned: number; changed: number; created: number; removed: number };
+}
+
+// ── T3 Config Explorer (read-only + non-destructive Resync) ─────────────────
+
+/** Read-only snapshot of the T3 Config Explorer overview. */
+export interface T3ConfigOverview {
+  home: string;
+  userdata_dir: string;
+  state_db_path: string;
+  state_db: { exists: boolean; size_bytes: number | null; mtime: string | null };
+  server_runtime: {
+    version: number | null;
+    pid: number | null;
+    host: string | null;
+    port: number | null;
+    origin: string | null;
+    started_at: string | null;
+  } | null;
+  env: {
+    DASHBOARD_T3_HOME: string | null;
+    T3_HOME: string | null;
+    DASHBOARD_T3_SYNC_MS: number | null;
+  };
+  sync: { poll_ms: number };
+  projection_counts: {
+    projects: number;
+    threads: number;
+    archived: number;
+    deleted: number;
+    messages: number;
+    activities: number;
+    turns: number;
+  } | null;
+}
+
+/** Response shape of a successful `t3Config.resync()` call. */
+export interface T3ConfigResyncResult {
   ok: true;
   summary: { scanned: number; changed: number; created: number; removed: number };
 }

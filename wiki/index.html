@@ -948,6 +948,13 @@ The provider filter adds a <strong>Helm Code</strong> scope that mirrors session
                   </p>
                 </div>
                 <div class="feature-card">
+                  <div class="feature-icon ic-violet">◈</div>
+                  <h3 id="feat-t3">T3 Monitor</h3>
+                  <p>
+The provider filter adds a <strong>T3</strong> scope that mirrors sessions read-only from T3's local <code>state.sqlite</code> at <code>~/.t3</code> (no hooks installed). T3 is a direct fork of Helm Code, so it rides the same generic thread engine and exposes the same <code>t3_*</code> activity, turn, and human-message events with shared transcript pagination, a live incremental sweep (filesystem watcher plus safety-net poll), and a read-only <strong>T3 Config Explorer</strong> for its resolved home and projection counts. Deleting or archiving a T3 thread wipes its session row and broadcasts a <code>session_removed</code> frame, dropping its cards immediately.
+                  </p>
+                </div>
+                <div class="feature-card">
                   <div class="feature-icon ic-violet">🔬</div>
                   <h3 id="feat-session-detail">Session Detail</h3>
                   <p>
@@ -1958,6 +1965,16 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
                   <td><code>DASHBOARD_CODEX_SYNC_MS</code></td>
                   <td><code>4000</code></td>
                   <td>Safety-net interval (ms) for incremental Codex rollout scanning. Default <code>4000</code>; <code>0</code> disables polling but keeps the watcher.</td>
+                </tr>
+                <tr>
+                  <td><code>DASHBOARD_T3_HOME</code></td>
+                  <td><code>~/.t3</code></td>
+                  <td>Optional T3 data root. Settings saves this dashboard-only override, which resolves through <code>DASHBOARD_T3_HOME</code> &gt; T3's own env override &gt; <code>~/.t3</code>, and re-arms the state-db watcher. T3 is a direct fork of Helm Code mirrored read-only from its <code>userdata/state.sqlite</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>DASHBOARD_T3_SYNC_MS</code></td>
+                  <td><code>4000</code></td>
+                  <td>Safety-net interval (ms) for incremental T3 state-database scanning of <code>~/.t3/userdata/state.sqlite</code>. Default <code>4000</code>; <code>0</code> disables polling but keeps the filesystem watcher.</td>
                 </tr>
                 <tr>
                   <td><code>DASHBOARD_TASK_SUMMARY_TTL_MS</code></td>

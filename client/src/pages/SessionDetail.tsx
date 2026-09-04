@@ -745,7 +745,9 @@ export function SessionDetail() {
                             ? "Codex"
                             : session.provider === "helmcode"
                               ? "Helm Code"
-                              : "Claude",
+                              : session.provider === "t3"
+                                ? "T3"
+                                : "Claude",
                       })
                     : t("detail.waitingBanner.generic")}
                 </div>

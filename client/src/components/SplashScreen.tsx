@@ -84,7 +84,7 @@ type HookStatus = {
 /** Providers whose live dashboard hooks must be ready for a selected scope. */
 export function hookProvidersForScope(provider: ProviderScope): HookProvider[] {
   if (provider === "both") return ["claude", "codex"];
-  if (provider === "helmcode") return [];
+  if (provider === "helmcode" || provider === "t3") return [];
   return [provider];
 }
 
@@ -284,6 +284,7 @@ export function SplashScreen() {
                 ["claude", "Claude Code", "provider.claude"],
                 ["codex", "Codex", "provider.codex"],
                 ["helmcode", "Helm Code", "provider.helmcode"],
+                ["t3", "T3", "provider.t3"],
                 ["both", t("provider.both.label"), "provider.both"],
               ] as const
             ).map(([value, label, key]) => (

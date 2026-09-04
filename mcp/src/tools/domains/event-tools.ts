@@ -92,7 +92,7 @@ export function registerEventTools(context: ToolContext): void {
       to: z.string().max(128).optional(),
       sources: z.array(z.string().min(1).max(256)).min(1).max(100).optional(),
       providers: z
-        .array(z.enum(["claude", "codex", "helmcode"]))
+        .array(z.enum(["claude", "codex", "helmcode", "t3"]))
         .min(1)
         .max(2)
         .optional(),

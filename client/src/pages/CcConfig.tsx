@@ -76,6 +76,7 @@ import { AlertCircle, Plus, Search, X } from "lucide-react";
 import { api } from "../lib/api";
 import { CodexConfigExplorer } from "../components/CodexConfigExplorer";
 import { HelmcodeConfigExplorer } from "../components/HelmcodeConfigExplorer";
+import { T3ConfigExplorer } from "../components/T3ConfigExplorer";
 import type { EditorState, ConfirmDeleteState, Toast, PageState, TabKey } from "./ccConfig/types";
 import {
   FileViewer,
@@ -132,7 +133,7 @@ const EMPTY_STATE: PageState = {
 
 export function CcConfig() {
   const { t } = useTranslation("ccConfig");
-  const [provider, setProvider] = useState<"claude" | "codex" | "helmcode">("claude");
+  const [provider, setProvider] = useState<"claude" | "codex" | "helmcode" | "t3">("claude");
   const [tab, setTab] = useState<TabKey>("overview");
   const [scope, setScope] = useState<CcScope>("all");
   const [data, setData] = useState<PageState>(EMPTY_STATE);
@@ -157,12 +158,17 @@ export function CcConfig() {
     return () => clearTimeout(id);
   }, [toast]);
 
-  // Honor a ?provider=claude|codex|helmcode deep link so Settings and the
+  // Honor a ?provider=claude|codex|helmcode|t3 deep link so Settings and the
   // "Open Config Explorer" link land directly on the right tab.
   const [searchParams] = useSearchParams();
   useEffect(() => {
     const requested = searchParams.get("provider");
-    if (requested === "helmcode" || requested === "codex" || requested === "claude") {
+    if (
+      requested === "helmcode" ||
+      requested === "codex" ||
+      requested === "claude" ||
+      requested === "t3"
+    ) {
       setProvider(requested);
     }
   }, [searchParams]);
@@ -406,6 +412,8 @@ export function CcConfig() {
         <CodexConfigExplorer />
       ) : provider === "helmcode" ? (
         <HelmcodeConfigExplorer />
+      ) : provider === "t3" ? (
+        <T3ConfigExplorer />
       ) : (
         <>
           {error && (
