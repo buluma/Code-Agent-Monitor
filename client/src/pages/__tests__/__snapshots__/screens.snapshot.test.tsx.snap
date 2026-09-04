@@ -3038,6 +3038,11 @@ exports[`screen snapshots > Claude Config 1`] = `
               >
                 Helm Code
               </button>
+              <button
+                class="rounded-full px-2 py-px text-[10px] font-medium transition-colors text-gray-400 hover:text-gray-200"
+              >
+                T3
+              </button>
             </div>
           </div>
           <p
@@ -7872,7 +7877,7 @@ exports[`screen snapshots > Settings 1`] = `
       >
         <div
           aria-label="Dashboard Data"
-          class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4"
+          class="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:grid-cols-5"
           role="radiogroup"
         >
           <button
@@ -7986,6 +7991,31 @@ exports[`screen snapshots > Settings 1`] = `
                 <span
                   class="text-sm font-medium text-gray-200"
                 >
+                  T3
+                </span>
+              </span>
+            </span>
+            <span
+              class="mt-1 block text-xs leading-relaxed text-gray-500"
+            >
+              Show only T3 sessions and activity.
+            </span>
+          </button>
+          <button
+            aria-checked="false"
+            class="rounded-lg border p-3 text-left transition-colors border-border bg-surface-2 hover:border-gray-600"
+            role="radio"
+            type="button"
+          >
+            <span
+              class="flex items-center justify-between gap-2"
+            >
+              <span
+                class="flex min-w-0 items-center gap-1.5"
+              >
+                <span
+                  class="text-sm font-medium text-gray-200"
+                >
                   All
                 </span>
               </span>
@@ -7993,7 +8023,7 @@ exports[`screen snapshots > Settings 1`] = `
             <span
               class="mt-1 block text-xs leading-relaxed text-gray-500"
             >
-              Combine Claude Code, Codex, and Helm Code data.
+              Combine Claude Code, Codex, Helm Code, and T3 data.
             </span>
           </button>
         </div>
@@ -11257,7 +11287,7 @@ exports[`screen snapshots > Settings 1`] = `
             <p
               class="text-[10px] text-amber-400/90 mt-1"
             >
-              UI build v4.1.0 (rebuild client to match)
+              UI build v4.2.0 (rebuild client to match)
             </p>
           </div>
           <div

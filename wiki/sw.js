@@ -3,7 +3,7 @@
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
-const CACHE_NAME = "wiki-v109";
+const CACHE_NAME = "wiki-v110";
 const PRECACHE = [
   "./",
   "./index.html",

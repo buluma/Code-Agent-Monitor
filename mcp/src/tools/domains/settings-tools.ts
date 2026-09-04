@@ -49,6 +49,13 @@ export function registerSettingsTools(context: ToolContext): void {
   );
 
   register(
+    "dashboard_get_t3_config",
+    "Read the T3 Config Explorer overview (home, state DB, runtime, env overrides, projection counts).",
+    {},
+    async () => api.get("/api/t3-config/overview")
+  );
+
+  register(
     "dashboard_set_claude_home",
     "Set the Claude Code state directory used by hook and transcript discovery.",
     { path: z.string().min(1).max(4096) },
@@ -73,7 +80,7 @@ export function registerSettingsTools(context: ToolContext): void {
     "Install or update the selected Claude Code and Codex hook integrations.",
     {
       providers: z
-        .array(z.enum(["claude", "codex", "helmcode"]))
+        .array(z.enum(["claude", "codex", "helmcode", "t3"]))
         .min(1)
         .max(2)
         .refine((providers) => new Set(providers).size === providers.length, {

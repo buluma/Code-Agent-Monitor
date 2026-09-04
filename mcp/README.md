@@ -1,7 +1,7 @@
 # CAM MCP Server Reference
 
 The Code Agent Monitor (CAM) MCP server exposes the local dashboard's complete
-supported action surface as **97 typed tools**. The same canonical catalog is
+supported action surface as **98 typed tools**. The same canonical catalog is
 used by stdio, Streamable HTTP, legacy SSE, and the interactive REPL, so tool
 names, schemas, and policy guards cannot drift between transports.
 
@@ -40,8 +40,8 @@ npm run mcp:start:repl
 
 ## Transports
 
-| Mode                  | Command          | Endpoint or stream                                               |
-| --------------------- | ---------------- | ---------------------------------------------------------------- |
+| Mode                  | Command         | Endpoint or stream                                               |
+| --------------------- | --------------- | ---------------------------------------------------------------- |
 | stdio                 | `cam mcp stdio` | MCP JSON-RPC on stdin/stdout                                     |
 | Streamable HTTP + SSE | `cam mcp http`  | `/mcp`, `/sse`, `/messages`, `/health` on port `8819` by default |
 | REPL                  | `cam mcp repl`  | Direct validated tool invocation with domain filtering           |
@@ -150,7 +150,7 @@ and `before`. Transcript images are returned as
 
 Event filtering covers event types, tools, agents, sessions, text, time range,
 providers, and sources. Provider arguments accept `claude`, `codex`, or the
-read-only `helmcode` mirror.
+read-only `helmcode` and `t3` mirrors.
 
 ### Pricing and cost
 
@@ -247,6 +247,7 @@ Deleting a source retains imported data by default. Purging requires
 - `dashboard_get_update_status`, `dashboard_check_for_updates`
 - `dashboard_get_agent_homes`, `dashboard_set_claude_home`,
   `dashboard_set_codex_home`
+- `dashboard_get_t3_config`
 - `dashboard_install_hooks`
 
 ### Push notifications
@@ -330,8 +331,8 @@ Claude and Codex plugins use the stable launcher:
 }
 ```
 
-This avoids plugin-cache-relative paths. Run `npm run setup` in the CAM
-checkout first so `cam` is linked and `mcp/build/index.js` exists.
+This avoids plugin-cache-relative paths. Run `npm run setup` in the CAM checkout
+first so `cam` is linked and `mcp/build/index.js` exists.
 
 ## Validation
 
@@ -342,7 +343,7 @@ npm run mcp:build
 npm run extensions:validate
 ```
 
-`test:mcp` asserts the 97-tool catalog, unique names, policy gates, destructive
+`test:mcp` asserts the 98-tool catalog, unique names, policy gates, destructive
 confirmations, and schema validation in direct REPL invocation.
 
 ## Troubleshooting

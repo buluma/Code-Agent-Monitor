@@ -18,6 +18,7 @@ const { calculateProviderCost, attachAgentCosts } = require("./pricing");
 const { parseSources, sourceColumnClause } = require("../lib/source-filter");
 const { parseProviders, providerColumnClause } = require("../lib/provider-filter");
 const { getCodexProcessSessions } = require("../lib/codex-process-overlay");
+const { readT3Transcript } = require("../lib/t3-ingest");
 const { extractSessionTaskProgress } = require("../lib/task-progress");
 const { focusTerminalForSession } = require("../lib/terminal-focus");
 const {
@@ -77,6 +78,23 @@ const SESSION_PROMPT_PREVIEW_SQL = `COALESCE(
         SELECT substr(trim(COALESCE(m.text, '')), 1, 10240) AS prompt,
                m.created_at, m.message_id
         FROM helmcode_messages m
+        WHERE m.thread_id = s.id
+          AND m.role = 'user'
+          AND trim(COALESCE(m.text, '')) != ''
+        ORDER BY m.created_at DESC, m.message_id DESC
+        LIMIT 2
+      ) latest_prompts
+      ORDER BY created_at ASC, message_id ASC
+    ) ordered_prompts
+  ) END,
+  CASE WHEN s.provider = 't3' THEN (
+    SELECT group_concat(prompt, char(10))
+    FROM (
+      SELECT prompt
+      FROM (
+        SELECT substr(trim(COALESCE(m.text, '')), 1, 10240) AS prompt,
+               m.created_at, m.message_id
+        FROM t3_messages m
         WHERE m.thread_id = s.id
           AND m.role = 'user'
           AND trim(COALESCE(m.text, '')) != ''
@@ -1233,6 +1251,12 @@ router.get("/:id/transcript", async (req, res) => {
     );
   }
 
+  if (session.provider === "t3") {
+    // T3 is a Helm Code fork with the same projection layout; the mirrored
+    // t3_messages rows supply the conversation DTO.
+    return res.json(readT3Transcript(req.params.id, { limit, afterLine, beforeLine, offset }));
+  }
+
   // Determine the JSONL file path to read. Prefer the live file under
   // ~/.claude/projects, then fall back to the dashboard's durable snapshot —
   // the live file is gone once Claude Code prunes it under cleanupPeriodDays
@@ -1701,3 +1725,4 @@ module.exports = router;
 module.exports.classifyTranscriptSender = classifyTranscriptSender;
 module.exports.readCodexTranscript = readCodexTranscript;
 module.exports.readHelmcodeTranscript = readHelmcodeTranscript;
+module.exports.readT3Transcript = readT3Transcript;

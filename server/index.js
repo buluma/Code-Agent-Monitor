@@ -67,6 +67,7 @@ const updatesRouter = require("./routes/updates");
 const ccConfigRouter = require("./routes/cc-config");
 const codexConfigRouter = require("./routes/codex-config");
 const helmcodeConfigRouter = require("./routes/helmcode-config");
+const t3ConfigRouter = require("./routes/t3-config");
 const runRouter = require("./routes/run");
 const alertsRouter = require("./routes/alerts");
 const webhooksRouter = require("./routes/webhooks");
@@ -114,6 +115,7 @@ function createApp() {
   app.use("/api/cc-config", ccConfigRouter);
   app.use("/api/codex-config", codexConfigRouter);
   app.use("/api/helmcode-config", helmcodeConfigRouter);
+  app.use("/api/t3-config", t3ConfigRouter);
   app.use("/api/run", runRouter);
   app.use("/api/alerts", alertsRouter);
   app.use("/api/webhooks", webhooksRouter);
@@ -523,6 +525,14 @@ function startBackgroundServices() {
     startHelmcodeSync({ broadcast });
   } catch (err) {
     console.warn("Helm Code session sync failed to start:", err.message);
+  }
+  // T3 is a Helm Code fork with the same state-DB layout; a short poll +
+  // debounced watcher mirrors new sessions/events and wipes deleted threads.
+  try {
+    const { startT3Sync } = require("./lib/t3-sync");
+    startT3Sync({ broadcast });
+  } catch (err) {
+    console.warn("T3 session sync failed to start:", err.message);
   }
   // A new Codex TUI has no provider session id until its first prompt. Keep a
   // process-only card in memory for that brief window. Durable rollout/state

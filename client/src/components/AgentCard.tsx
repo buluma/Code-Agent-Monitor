@@ -157,13 +157,16 @@ export function AgentCard({ agent, session, label, onClick }: AgentCardProps) {
   const isCodexMain = isMain && session?.provider === "codex" && agent.name.trim() === "Codex";
   const isHelmcodeMain =
     isMain && session?.provider === "helmcode" && agent.name.trim() === "Helm Code";
+  const isT3Main = isMain && session?.provider === "t3" && agent.name.trim() === "T3";
   const displayName = isCodexMain
     ? `Codex · ${realSessionName || agent.session_id.slice(0, 8)}`
     : isHelmcodeMain
       ? `Helm Code · ${realSessionName || agent.session_id.slice(0, 8)}`
-      : isMain
-        ? mainAgentDisplayName(agent.name, realSessionName)
-        : agent.name;
+      : isT3Main
+        ? `T3 · ${realSessionName || agent.session_id.slice(0, 8)}`
+        : isMain
+          ? mainAgentDisplayName(agent.name, realSessionName)
+          : agent.name;
   // Session titles and requests are intentionally independent: Claude and
   // Codex both persist two recent real human turns on the session, while a
   // main-agent task remains the truthful fallback for pre-preview history.

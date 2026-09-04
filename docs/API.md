@@ -169,7 +169,7 @@ optional field.
 | `sort_by`               | string              | `time`  | Ordering dimension: `time`, `duration`, or `price`                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `sort_desc`             | boolean             | `true`  | Use descending order; set to `false` for ascending order                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `sources`               | string              | -       | Comma-separated data-source ids to include (the built-in local history is `local`; remote SSH machines use their `remote_sources.id`). Omit for all sources. Also accepted on `/api/events`, `/api/agents`, `/api/stats`, `/api/analytics`, and `/api/pricing/cost`. See [Remote Data Sources](#remote-data-sources)                                                                                                                                                |
-| `providers`             | string              | -       | Comma-separated product providers: `claude`, `codex`, `helmcode`, or any combination. It composes with `sources` and is accepted by the scoped list, aggregate, facet, per-session detail, cost, and workflow routes. Codex workflow responses include its recorded `response_item` tool calls, token/model totals, and `context_compacted` events; only Claude Code's Workflow-tool run journals are unavailable for Codex.                                        |
+| `providers`             | string              | -       | Comma-separated product providers: `claude`, `codex`, `helmcode`, `t3`, or any combination. It composes with `sources` and is accepted by the scoped list, aggregate, facet, per-session detail, cost, and workflow routes. Codex workflow responses include its recorded `response_item` tool calls, token/model totals, and `context_compacted` events; only Claude Code's Workflow-tool run journals are unavailable for Codex.                                  |
 | `include_transient`     | boolean             | `false` | Opt in to local, in-memory Codex startup cards before Codex exposes a stable session ID. On `/api/sessions`, this is honored only on the first page when `status` is absent or `active`; on `/api/agents`, only on the first `status=waiting` page without `session_id`. These cards are prepended without changing durable `total`, pagination, analytics, pricing, workflows, alerts, or history.                                                                 |
 | `include_task_progress` | boolean             | `false` | Attach nullable `todo_summary` values for the latest top-level work item to at most the first 100 returned rows. A new Claude human turn or Codex task that emits no tracker clears older state; a turn/task ending without a final update drops unfinished state. Fully completed history remains available. Each transcript scan reads only the newest 32 MiB and each summary includes at most five preview tasks. Rows after the enrichment cap omit the field. |
 
@@ -389,10 +389,11 @@ responses include human turns, legacy `function_call` records, and the primary
 can render the actual command flow rather than only `wait` calls. Helm Code
 sessions serve the same DTO and cursor pagination from their
 `projection_thread_messages` (human turns plus the assistant output of each
-orchestration activity). All providers also expose persisted PNG/JPEG/GIF/WebP
-user attachments as `image` content blocks; missing or expired files are simply
-omitted, and Codex's duplicated response/event user records are returned as one
-human turn.
+orchestration activity). T3 — a direct fork of Helm Code — serves the identical
+DTO from its own `projection_thread_messages` through the same shared engine.
+All providers also expose persisted PNG/JPEG/GIF/WebP user attachments as
+`image` content blocks; missing or expired files are simply omitted, and Codex's
+duplicated response/event user records are returned as one human turn.
 
 #### Read Persisted Transcript Image
 
@@ -514,9 +515,9 @@ curl -X POST http://localhost:4820/api/sessions/sess_abc123/focus-terminal
 
 **Error Responses:**
 
-| Code | Description        |
-| ---- | ------------------- |
-| 404  | Session not found   |
+| Code | Description       |
+| ---- | ----------------- |
+| 404  | Session not found |
 
 ---
 
@@ -768,8 +769,8 @@ API uses, so they match the UI.
 
 Response `Content-Type: text/plain; version=0.0.4; charset=utf-8`.
 
-| Metric                               | Type    | Labels                                               | Meaning                                          |
-| ------------------------------------ | ------- | ---------------------------------------------------- | ------------------------------------------------ |
+| Metric                              | Type    | Labels                                               | Meaning                                          |
+| ----------------------------------- | ------- | ---------------------------------------------------- | ------------------------------------------------ |
 | `cam_up`                            | gauge   | —                                                    | `1` when the API served the scrape               |
 | `cam_build_info`                    | gauge   | `version`                                            | Always `1`; dashboard version rides on the label |
 | `cam_process_uptime_seconds`        | gauge   | —                                                    | Server process uptime                            |
@@ -1139,7 +1140,16 @@ destination. List and mutation responses mask URLs and redact secrets.
 
 ### Remote Data Sources
 
-The `/api/remote-sources/*` namespace configures **remote SSH machines** the dashboard pulls Claude Code, Codex, Helm Code, or all histories from, so one dashboard can consolidate sessions from several machines. Each provider is mirrored and imported independently; a source succeeds when either provider is present. Codex additionally mirrors its lightweight `session_index.jsonl` so native renamed titles survive import. **No secrets are stored** — SSH authentication defers entirely to the host's SSH stack (ssh-agent, `~/.ssh/config`, key files). Every imported session is tagged with the source's id in the `sessions.source` column (the built-in local history uses the id `local`), which powers the `sources` filter below.
+The `/api/remote-sources/*` namespace configures **remote SSH machines** the
+dashboard pulls Claude Code, Codex, Helm Code, T3, or all histories from, so one
+dashboard can consolidate sessions from several machines. Each provider is
+mirrored and imported independently; a source succeeds when either provider is
+present. Codex additionally mirrors its lightweight `session_index.jsonl` so
+native renamed titles survive import. **No secrets are stored** — SSH
+authentication defers entirely to the host's SSH stack (ssh-agent,
+`~/.ssh/config`, key files). Every imported session is tagged with the source's
+id in the `sessions.source` column (the built-in local history uses the id
+`local`), which powers the `sources` filter below.
 
 **RemoteSource shape:**
 
@@ -1336,19 +1346,19 @@ curl "http://localhost:4820/api/sessions?sources=local,4d1f0e2a-7b9c-4c33-8a21-9
 
 ### Linear
 
-Read-only ticket linking, scoped to [Linear](https://linear.app) only — no
-Jira, no GitHub Issues support. The personal API key lives in one file under
-the dashboard's data dir (never in SQLite); the config endpoints only ever
-return a `configured` boolean, never the key itself.
+Read-only ticket linking, scoped to [Linear](https://linear.app) only — no Jira,
+no GitHub Issues support. The personal API key lives in one file under the
+dashboard's data dir (never in SQLite); the config endpoints only ever return a
+`configured` boolean, never the key itself.
 
-| Method   | Path                             | Description                                                                                                      |
-| -------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `GET`    | `/api/linear/config`              | `{ "configured": boolean }`                                                                                         |
-| `PUT`    | `/api/linear/config`              | Set the API key. Body: `{ "apiKey": "..." }`. **400** if `apiKey` is missing/empty                                  |
-| `DELETE` | `/api/linear/config`              | Clear the stored API key                                                                                            |
-| `GET`    | `/api/linear/sessions/:id/link`   | `{ "link": {...} \| null }` — the session's linked issue, if any                                                    |
-| `POST`   | `/api/linear/sessions/:id/link`   | Link by pasted URL (`{ "url": "..." }`) or by auto-detecting from the session's git branch (`{ "auto": true }`)     |
-| `DELETE` | `/api/linear/sessions/:id/link`   | Unlink. Returns `{ "ok": true }`                                                                                     |
+| Method   | Path                            | Description                                                                                                     |
+| -------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `GET`    | `/api/linear/config`            | `{ "configured": boolean }`                                                                                     |
+| `PUT`    | `/api/linear/config`            | Set the API key. Body: `{ "apiKey": "..." }`. **400** if `apiKey` is missing/empty                              |
+| `DELETE` | `/api/linear/config`            | Clear the stored API key                                                                                        |
+| `GET`    | `/api/linear/sessions/:id/link` | `{ "link": {...} \| null }` — the session's linked issue, if any                                                |
+| `POST`   | `/api/linear/sessions/:id/link` | Link by pasted URL (`{ "url": "..." }`) or by auto-detecting from the session's git branch (`{ "auto": true }`) |
+| `DELETE` | `/api/linear/sessions/:id/link` | Unlink. Returns `{ "ok": true }`                                                                                |
 
 `GET /api/linear/sessions/:id/link` responses look like:
 
@@ -1371,9 +1381,9 @@ return a `configured` boolean, never the key itself.
 `POST /api/linear/sessions/:id/link` with `{ "auto": true }` runs
 `git rev-parse --abbrev-ref HEAD` in the session's `cwd` and extracts an issue
 identifier (e.g. `ENG-123`) from the branch name. **404** if the session is
-unknown, the API key isn't configured, the pasted URL isn't a Linear issue
-link, or (for `auto`) no identifier could be detected from the branch.
-**502** if the Linear API request itself fails (bad key, network error).
+unknown, the API key isn't configured, the pasted URL isn't a Linear issue link,
+or (for `auto`) no identifier could be detected from the branch. **502** if the
+Linear API request itself fails (bad key, network error).
 
 ```bash
 curl -X PUT http://localhost:4820/api/linear/config -H 'Content-Type: application/json' \
@@ -1399,13 +1409,15 @@ curl -X POST http://localhost:4820/api/linear/sessions/sess_abc123/link \
 | `GET` / `PUT` | `/api/settings/claude-home`   | Read or update the Claude Code transcript/configuration root                                                         |
 | `GET` / `PUT` | `/api/settings/codex-home`    | Read or update the Codex rollout/hooks root; saving re-arms the live watcher and schedules an immediate session scan |
 | `GET` / `PUT` | `/api/settings/helmcode-home` | Read or update the Helm Code data root; saving re-arms the state-db watcher                                          |
+| `GET` / `PUT` | `/api/settings/t3-home`       | Read or update the T3 data root; saving re-arms the state-db watcher                                                 |
 
 All home updates accept `{ "path": "/absolute/path" }` (a leading `~/` is
 expanded). The resolved path must exist and be a directory; invalid input
 returns `400 INVALID_PATH`. Codex changes are persisted as
-`DASHBOARD_CODEX_HOME` and Helm Code changes as `DASHBOARD_HELMCODE_HOME`; both
-notify their background synchronizer after the response so a large history
-cannot delay the Settings action.
+`DASHBOARD_CODEX_HOME`, Helm Code changes as `DASHBOARD_HELMCODE_HOME`, and T3
+changes as `DASHBOARD_T3_HOME`; all three also notify their background
+synchronizer after the response so a large history cannot delay the Settings
+action.
 
 `POST /api/settings/import` accepts one export file up to 25 MiB. Multipart
 callers use field `file`; CLI/MCP callers may send an absolute server-side
@@ -1536,6 +1548,36 @@ and atomic. A write containing the preview marker `[redacted]` is rejected so a
 copied redacted preview cannot overwrite real secrets. `codex_config_changed` is
 emitted over WebSocket when relevant configuration, skill, rule, or plugin files
 change.
+
+### T3 Config Explorer
+
+The T3 half of Agent Config is the read-only Config Explorer for the **T3**
+integration. T3 is a direct fork of Helm Code that shares Helm Code's SQLite
+projection schema, so it is monitored through the same generic thread-provider
+engine behind thin `t3-*` wrappers. The T3 Config Explorer surfaces the resolved
+home, the live `server-runtime.json` descriptor, the env override chain, the
+sync poll cadence, and the current projection counts — read defensively against
+a possibly missing state database. T3's `state.sqlite` is never written to.
+
+```http
+GET /api/t3-config/overview
+POST /api/t3-config/resync
+Content-Type: application/json
+
+{ "confirmed": true }
+```
+
+`GET /api/t3-config/overview` returns the resolved home, the live server-runtime
+descriptor, the env override chain, the sync poll cadence, and current
+projection counts. The only mutation is `POST /api/t3-config/resync`, which
+re-runs the idempotent ingest pass against the dashboard's own mirror; it
+requires the body `{"confirmed": true}` so a stray UI event cannot trigger a
+sweep, returns `{ ok, summary }`, and broadcasts `t3_config_changed` on success.
+The home override resolves through `DASHBOARD_T3_HOME` > `T3_HOME` > `~/.t3`
+(mirroring the Helm Code chain), with the `userdata/state.sqlite` release path
+or the `dev/` development variant. The CLI exposes `cam config t3 overview` and
+`cam config t3 resync --yes`, and the MCP tool `dashboard_get_t3_config`
+provides the same overview.
 
 ### Import History
 

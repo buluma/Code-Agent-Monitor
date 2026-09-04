@@ -16,6 +16,7 @@ const {
   BATCH_DISCOUNT_MULTIPLIER,
 } = require("../lib/pricing-constants");
 const { calculateHelmcodeCost } = require("../lib/helmcode-pricing");
+const { calculateT3Cost } = require("../lib/t3-pricing");
 
 const router = Router();
 
@@ -311,25 +312,28 @@ function calculateGptCost(tokenRows, pricingRules) {
   };
 }
 
-/** Combine Claude, Codex, and Helm Code accounting without ever applying one provider's rate card to another. */
+/** Combine Claude, Codex, Helm Code, and T3 accounting without ever applying one provider's rate card to another. */
 function calculateProviderCost(tokenRows, claudePricingRules, gptPricingRules, asOf) {
   const claudeRows = tokenRows.filter(
-    (row) => row.provider !== "codex" && row.provider !== "helmcode"
+    (row) => row.provider !== "codex" && row.provider !== "helmcode" && row.provider !== "t3"
   );
   const codexRows = tokenRows.filter((row) => row.provider === "codex");
   const helmcodeRows = tokenRows.filter((row) => row.provider === "helmcode");
+  const t3Rows = tokenRows.filter((row) => row.provider === "t3");
   const claude = calculateCost(claudeRows, claudePricingRules, asOf);
   const codex = calculateGptCost(codexRows, gptPricingRules);
   const helmcode = calculateHelmcodeCost(helmcodeRows);
+  const t3 = calculateT3Cost(t3Rows);
 
   return {
-    total_cost: round4(claude.total_cost + codex.total_cost + helmcode.total_cost),
-    breakdown: [...claude.breakdown, ...codex.breakdown, ...helmcode.breakdown],
+    total_cost: round4(claude.total_cost + codex.total_cost + helmcode.total_cost + t3.total_cost),
+    breakdown: [...claude.breakdown, ...codex.breakdown, ...helmcode.breakdown, ...t3.breakdown],
     feature_costs: claude.feature_costs,
     unpriced_models: [
       ...claude.unpriced_models,
       ...codex.unpriced_models,
       ...helmcode.unpriced_models,
+      ...t3.unpriced_models,
     ],
   };
 }

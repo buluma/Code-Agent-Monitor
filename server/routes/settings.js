@@ -45,6 +45,7 @@ const APP_VERSION = (() => {
 const { getSettingsPath, getClaudeHome, setClaudeHome } = require("../lib/claude-home");
 const { getCodexHome, setCodexHome } = require("../lib/codex-home");
 const { getHelmcodeHome, setHelmcodeHome } = require("../lib/helmcode-home");
+const { getT3Home, setT3Home } = require("../lib/t3-home");
 const CLAUDE_SETTINGS_PATH = getSettingsPath();
 
 function getDbSize() {
@@ -426,6 +427,31 @@ router.put("/helmcode-home", (req, res) => {
   try {
     const resolved = setHelmcodeHome(newPath);
     res.json({ ok: true, helmcode_home: resolved });
+  } catch (err) {
+    res.status(400).json({
+      error: { code: "INVALID_PATH", message: err.message },
+    });
+  }
+});
+
+// GET /api/settings/t3-home — get the active T3 state directory.
+router.get("/t3-home", (_req, res) => {
+  res.json({ t3_home: getT3Home() });
+});
+
+// PUT /api/settings/t3-home — repoint the T3 state scanner.
+// setT3Home notifies the live synchronizer, which re-watches the new
+// state directory and sweeps it without blocking this response.
+router.put("/t3-home", (req, res) => {
+  const { path: newPath } = req.body;
+  if (!newPath || typeof newPath !== "string") {
+    return res.status(400).json({
+      error: { code: "INVALID_PATH", message: "path is required and must be a string" },
+    });
+  }
+  try {
+    const resolved = setT3Home(newPath);
+    res.json({ ok: true, t3_home: resolved });
   } catch (err) {
     res.status(400).json({
       error: { code: "INVALID_PATH", message: err.message },

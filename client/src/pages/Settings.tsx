@@ -1689,11 +1689,11 @@ export function Settings() {
         </div>
         <div className="card p-4">
           <div
-            className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4"
+            className="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:grid-cols-5"
             role="radiogroup"
             aria-label={t("display.title")}
           >
-            {(["claude", "codex", "helmcode", "both"] as ProviderScope[]).map((provider) => {
+            {(["claude", "codex", "helmcode", "t3", "both"] as ProviderScope[]).map((provider) => {
               const selected = (dataScope.provider || "claude") === provider;
               const title =
                 provider === "claude"
@@ -1702,7 +1702,9 @@ export function Settings() {
                     ? "Codex"
                     : provider === "helmcode"
                       ? "Helm Code"
-                      : t("display.both");
+                      : provider === "t3"
+                        ? "T3"
+                        : t("display.both");
               return (
                 <button
                   key={provider}

@@ -207,7 +207,7 @@ CREATE TABLE sessions (
         CHECK (status IN ('active','completed','error','abandoned')),
     cwd TEXT,
     model TEXT,
-    provider TEXT NOT NULL DEFAULT 'claude',                          -- claude | codex | helmcode
+    provider TEXT NOT NULL DEFAULT 'claude',                          -- claude | codex | helmcode | t3
     started_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
     ended_at TEXT,
     metadata TEXT,
@@ -229,7 +229,7 @@ CREATE TABLE sessions (
 | `status`               | TEXT | NO       | `active`, `completed`, `error`, or `abandoned` (CHECK-constrained). Besides the `SessionEnd` hook, the 15 s watchdog's **liveness reap** also lands `active` → `completed` when no running matching local `claude` or `codex` process has the session's `cwd` (a `SessionEnd` lost while the dashboard was down); gated by `DASHBOARD_LIVENESS_IDLE_SECONDS`, disabled via `DASHBOARD_LIVENESS_PROBE=0`. Sessions with a non-`local` `source` (Remote Data Sources) are always exempt from the local process reap and transcript watchdog. Each remote provider has independent health: sessions stay out of stale sweeps only while their own Claude or Codex mirror is healthy. If that provider reports `error`/`unavailable`, or remains `syncing` longer than `DASHBOARD_STALE_MINUTES`, an active session older than that same window falls back to the ordinary stale sweep (`abandoned`, agents completed) until a fresh mirror can reactivate it |
 | `cwd`                  | TEXT | YES      | Working directory the CLI was launched from                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `model`                | TEXT | YES      | Claude model ID (e.g. `claude-opus-4-7`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `provider`             | TEXT | NO       | Product that produced the session: `claude` (default), `codex`, or `helmcode`. Powers the composable `providers` API scope and lets shared token buckets use the correct rate card.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `provider`             | TEXT | NO       | Product that produced the session: `claude` (default), `codex`, `helmcode`, or `t3`. Powers the composable `providers` API scope and lets shared token buckets use the correct rate card.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `started_at`           | TEXT | NO       | ISO 8601 timestamp                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `ended_at`             | TEXT | YES      | ISO 8601 timestamp on terminal transition                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `metadata`             | TEXT | YES      | JSON blob for extras (turn duration totals, thinking blocks, …). Codex sessions also carry `provider`, `transcript_path`, `cli_version`, `model_provider`, and `git`; a Codex run that never wrote a rollout to disk (`codex exec --ephemeral`) additionally carries `hook_only: true`, which the UI uses to explain the absent transcript. That flag and the hook-reconstructed events tagged `data.source = "hook"` are both removed if a real rollout is later linked to the session                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
@@ -569,6 +569,39 @@ Activity-dedupe keys so a partially-failed sweep never duplicates tool/task rows
 into the `events` table (which has no unique constraint): one row per
 orchestration activity id per thread, also cascade-deleted with the session.
 
+> **T3 mirror:** T3 is a direct fork of Helm Code with an identical
+> `projection_*` schema, monitored through the same generic engine
+> (`server/lib/thread-provider.js`) with `provider = 't3'` /
+> `stmtPrefix = 't3'`. It uses the same three tables — `t3_sync`, `t3_messages`,
+> and `t3_activities` — defined identically to the `helmcode_*` family above and
+> feeding the same provider model. Prepared statements mirror the `helmcode_*`
+> family keyed by thread/message/activity id; activities map to
+> provider-prefixed `t3_*` event types (`t3_user_message`, `t3_tool_call`,
+> `t3_context_compacted`, `t3_task_complete`, `t3_turn_start`,
+> `t3_turn_complete`, `t3_error`, and `t3_activity`).
+
+### t3_sync
+
+Identical to `helmcode_sync`: the durable mirror cursor for each T3 thread,
+storing `thread_id`, `last_applied_sequence`, `last_turn_row`, and `updated_at`
+as the primary-sweep sequence watermark and incremental fingerprint (additive
+migration). Rows are deleted when the thread is wiped.
+
+### t3_messages
+
+Local, read-only mirror of T3's `projection_thread_messages`, keyed by
+`message_id`, feeding the shared conversation DTO at
+`GET /api/sessions/:id/transcript` with the same `after`/`before` cursor
+semantics as the JSONL providers. Carries the same
+`FOREIGN KEY (thread_id) REFERENCES sessions(id) ON DELETE CASCADE`.
+
+### t3_activities
+
+Activity-dedupe keys keyed by orchestration activity id per thread so a
+partially-failed sweep never duplicates tool/task rows into the `events` table;
+cascade-deleted with the session. Activities map to the provider-prefixed `t3_*`
+event-type set above.
+
 ---
 
 ### remote_sources
@@ -657,17 +690,17 @@ CREATE TABLE linear_links (
 
 **Columns:**
 
-| Column       | Type | Nullable | Description                                                                            |
-| ------------ | ---- | -------- | ---------------------------------------------------------------------------------------- |
-| `session_id` | TEXT | NO       | Primary key and FK to `sessions.id`, `ON DELETE CASCADE`                                 |
-| `issue_id`   | TEXT | NO       | Linear's internal issue UUID                                                             |
-| `identifier` | TEXT | NO       | Human-readable issue key, e.g. `ENG-123`                                                 |
-| `title`      | TEXT | YES      | Cached issue title from the last successful lookup                                       |
-| `url`        | TEXT | NO       | Linear issue URL                                                                          |
-| `state`      | TEXT | YES      | Linear workflow state name (e.g. "In Progress"), or NULL                                 |
+| Column       | Type | Nullable | Description                                                                                 |
+| ------------ | ---- | -------- | ------------------------------------------------------------------------------------------- |
+| `session_id` | TEXT | NO       | Primary key and FK to `sessions.id`, `ON DELETE CASCADE`                                    |
+| `issue_id`   | TEXT | NO       | Linear's internal issue UUID                                                                |
+| `identifier` | TEXT | NO       | Human-readable issue key, e.g. `ENG-123`                                                    |
+| `title`      | TEXT | YES      | Cached issue title from the last successful lookup                                          |
+| `url`        | TEXT | NO       | Linear issue URL                                                                            |
+| `state`      | TEXT | YES      | Linear workflow state name (e.g. "In Progress"), or NULL                                    |
 | `source`     | TEXT | NO       | How the link was made: `url` (pasted issue URL) or `branch` (auto-detected from git branch) |
-| `linked_at`  | TEXT | NO       | ISO 8601 timestamp the link was created/last re-linked                                   |
-| `synced_at`  | TEXT | NO       | ISO 8601 timestamp of the last successful Linear API refresh                             |
+| `linked_at`  | TEXT | NO       | ISO 8601 timestamp the link was created/last re-linked                                      |
+| `synced_at`  | TEXT | NO       | ISO 8601 timestamp of the last successful Linear API refresh                                |
 
 Managed through the `/api/linear/*` routes. See
 [docs/API.md → Linear](./API.md#linear).

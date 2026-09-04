@@ -1,6 +1,6 @@
 {
   "name": "cam-platform",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Administer CAM's Claude Code and Codex configuration explorers, provider-aware history import, backup restore, hook installation, home directories, updates, and MCP server.",
   "author": {
     "name": "Michael Buluma",

@@ -523,9 +523,9 @@ Prometheus + Grafana stack with four auto-provisioned dashboards (default home
 **Data scope (`?sources=` and `?providers=`).** `GET /api/sessions`,
 `/api/events`, `/api/agents`, `/api/stats`, `/api/analytics`, `/api/workflows`,
 workflow drill-ins, and pricing cost endpoints accept an optional source list
-and a provider list (`claude`, `codex`, `helmcode`, or a scope). The filters
-compose, so a single Settings choice immediately scopes every page by both
-machine and product. `server/lib/source-filter.js` and
+and a provider list (`claude`, `codex`, `helmcode`, `t3`, or a scope). The
+filters compose, so a single Settings choice immediately scopes every page by
+both machine and product. `server/lib/source-filter.js` and
 `server/lib/provider-filter.js` build the SQL predicates; `/api/stats` and
 `/api/analytics` use their scoped aggregates only when a filter is present.
 `GET /api/sessions/facets` returns both `sources` and `providers`.
@@ -592,18 +592,20 @@ sessions map their human turns, legacy `function_call` records, and primary
 same DTO, so the Conversation tab does not collapse into a wait-only stream.
 Helm Code sessions map their `projection_thread_messages` (human turns plus the
 assistant output of each orchestration activity) into the same DTO, served with
-the identical `after`/`before` cursor pagination. Persisted PNG/JPEG/GIF/WebP
-attachments render as safe `image` blocks: Codex keeps its bounded inline raster
-data, while Claude receives an opaque same-origin `/transcript-image` URL that
-resolves only the referenced transcript line and never leaks the local path.
-Codex's response-item/event copies of the same human image turn are normalized
-and deduplicated before pagination. Codex `/rename` titles are read from the
-native `session_index.jsonl` and published as real-time `session_updated` frames
-even when no rollout byte changes. The queue is shared with harness injections,
-so queued lines are only attributed to the human when they aren't harness
-traffic: `<task-notification>`/`[SYSTEM NOTIFICATION` payloads and any
-non-`human` `origin.kind` render as `system` (harness notification attachments
-carry no `origin` field at all; typed messages carry `origin.kind = "human"`).
+the identical `after`/`before` cursor pagination. T3 — a Helm Code fork with the
+same projection layout — maps `t3_messages` into that same DTO with the same
+pagination. Persisted PNG/JPEG/GIF/WebP attachments render as safe `image`
+blocks: Codex keeps its bounded inline raster data, while Claude receives an
+opaque same-origin `/transcript-image` URL that resolves only the referenced
+transcript line and never leaks the local path. Codex's response-item/event
+copies of the same human image turn are normalized and deduplicated before
+pagination. Codex `/rename` titles are read from the native
+`session_index.jsonl` and published as real-time `session_updated` frames even
+when no rollout byte changes. The queue is shared with harness injections, so
+queued lines are only attributed to the human when they aren't harness traffic:
+`<task-notification>`/`[SYSTEM NOTIFICATION` payloads and any non-`human`
+`origin.kind` render as `system` (harness notification attachments carry no
+`origin` field at all; typed messages carry `origin.kind = "human"`).
 Content-less `local_command` lines, other `system` subtypes, `queue-operation`
 lines, and every other attachment subtype are dropped.
 
@@ -683,6 +685,24 @@ liveness wipe removes the thread row while the database stays readable. Helm
 Code installs **no dashboard hooks**; the primary sweep is an idempotent full
 pass so a missed watcher event still converges.
 
+**T3 mirror.** T3 is a direct fork of Helm Code and shares the identical SQLite
+projection schema, so its sessions are mirrored read-only through the same
+generic engine (`server/lib/thread-provider.js` `createThreadProvider` +
+`stmtPrefix`), with a thin T3 wrapper (`server/lib/t3-home.js`,
+`server/lib/t3-ingest.js`, `server/lib/t3-pricing.js`, `server/lib/t3-sync.js`).
+T3's state DB is never written to. The resolved home follows `DASHBOARD_T3_HOME`
+(T3's own env override, i.e. `T3_HOME`) then falls back to
+`~/.t3/userdata/state.sqlite` (release) or `~/.t3/dev/` (dev builds). A
+filesystem watcher on `state.sqlite` / `state.sqlite-wal` plus a
+`DASHBOARD_T3_SYNC_MS` safety-net poll (default 4000 ms; 0 disables) drives the
+same incremental sweep: only fresh orchestration events are republished as
+`t3_*` activity/turn/human-message rows with the shared `prompt_preview` card
+summary and paginated transcript DTO. Threads deleted or archived in T3 are
+wiped — session row, agents, events, messages — and a `session_removed`
+WebSocket frame drops their cards live. T3 installs **no dashboard hooks**; the
+primary sweep is an idempotent full pass so a missed watcher event still
+converges.
+
 Claude turn-duration ingestion assigns each `TurnDuration` a stable transcript
 identity (UUID or byte offset). A complete parse atomically reconciles rows and
 exact `turn_count` / `total_turn_duration_ms` metadata, repairing duplicates
@@ -696,8 +716,8 @@ historical turns.
 | `POST` | `/api/hooks/event` | Ingest one Claude Code hook event envelope                                                                                        |
 | `POST` | `/api/hooks/codex` | Acknowledge a Codex lifecycle notification and asynchronously ingest its rollout (or, for a rollout-less run, the payload itself) |
 
-Helm Code installs no hooks; its sessions arrive through the state-db sweep
-described above.
+Helm Code and T3 install no hooks; their sessions arrive through the state-db
+sweep described above.
 
 Request body shape:
 
@@ -744,10 +764,10 @@ silently priced as zero.
 
 ### Workflows
 
-| Method | Path                         | Description                                                                                                                                     |
-| ------ | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET`  | `/api/workflows`             | Provider/source-scoped aggregate workflow intelligence (`?status=active\|completed\|...`, `?sources=...`, `?providers=claude\|codex\|helmcode`) |
-| `GET`  | `/api/workflows/session/:id` | Provider/source-scoped per-session drill-in (tree, recorded tool timeline, swim lanes, events)                                                  |
+| Method | Path                         | Description                                                                                                                                         |
+| ------ | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`  | `/api/workflows`             | Provider/source-scoped aggregate workflow intelligence (`?status=active\|completed\|...`, `?sources=...`, `?providers=claude\|codex\|helmcode\|t3`) |
+| `GET`  | `/api/workflows/session/:id` | Provider/source-scoped per-session drill-in (tree, recorded tool timeline, swim lanes, events)                                                      |
 
 ### Remote Data Sources
 
@@ -875,12 +895,14 @@ the `linear_links` table. See
 | `GET` / `PUT` | `/api/settings/claude-home`     | Read or update the Claude Code transcript/configuration root                                                                                                                             |
 | `GET` / `PUT` | `/api/settings/codex-home`      | Read or update the Codex rollout/hooks root; saving immediately re-arms the watcher and schedules a scan                                                                                 |
 | `GET` / `PUT` | `/api/settings/helmcode-home`   | Read or update the Helm Code data root; saving immediately re-arms the state-db watcher                                                                                                  |
+| `GET` / `PUT` | `/api/settings/t3-home`         | Read or update the T3 data root; saving immediately re-arms the state-db watcher                                                                                                         |
 
 All home updates accept `{ "path": "/absolute/path" }`; a leading `~/` is
 expanded, and a missing or non-directory path returns `400 INVALID_PATH`. The
-Codex setting persists as `DASHBOARD_CODEX_HOME`, not `CODEX_HOME`, and the Helm
-Code setting persists as `DASHBOARD_HELMCODE_HOME`, not `HELMCODE_HOME`, so
-Settings never mutates the broader CLI environments.
+Codex setting persists as `DASHBOARD_CODEX_HOME`, not `CODEX_HOME`, the Helm
+Code setting persists as `DASHBOARD_HELMCODE_HOME`, not `HELMCODE_HOME`, and the
+T3 setting persists as `DASHBOARD_T3_HOME`, not `T3_HOME`, so Settings never
+mutates the broader CLI environments.
 
 Backup restore accepts exactly one export bundle up to 25 MiB from either
 multipart field `file` or a server-side absolute `path`. Larger inputs return
@@ -989,6 +1011,32 @@ The MCP tool `dashboard_get_helmcode_config` (in
 and the CLI commands `cam config helmcode overview` /
 `cam config helmcode resync --yes` wrap both routes.
 
+### T3 Config Explorer (`/api/t3-config`)
+
+The Agent Config page also includes a **T3 configuration workspace** as a fourth
+read-only tab, mirroring the Helm Code Config Explorer surface. T3 is a direct
+fork of Helm Code, so the dashboard never writes to T3's own state database;
+configuration discovery is limited to inspecting the resolved home, the live
+`server-runtime.json` descriptor, the env override chain, the watcher / poller
+state, and a snapshot of projection counts (projects, live threads, archived,
+deleted, messages, activities, turns). The only mutation is a non-destructive
+**Resync** that re-runs the idempotent `ingestT3Snapshot` pass against the
+dashboard's own mirror and is safe to repeat. The Resync requires
+`{"confirmed": true}` so a stray UI event cannot trigger a sweep, and broadcasts
+`t3_config_changed` on success. Every state-DB read is wrapped in
+`lib/t3-ingest.js` (`ingestT3Snapshot` / `getT3ProjectionCounts`); a missing or
+unreadable state DB yields `projection_counts: null` rather than a 5xx, so a
+never-installed T3 never crashes the dashboard.
+
+| Method | Path                      | Description                                                                                                                               |
+| ------ | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`  | `/api/t3-config/overview` | Resolved home, state DB path + size/mtime, `server-runtime.json` descriptor, env override chain, sync poll cadence, and projection counts |
+| `POST` | `/api/t3-config/resync`   | Re-runs the idempotent ingest pass against the dashboard mirror; body must be `{"confirmed": true}`; returns `{ok, summary}`              |
+
+The MCP tool `dashboard_get_t3_config` exposes the overview to MCP clients, and
+the CLI commands `cam config t3 overview` / `cam config t3 resync --yes` wrap
+both routes.
+
 ### Run Agent (`/api/run`)
 
 Provider-aware HTTP surface for spawning and supervising Claude Code processes
@@ -1014,8 +1062,8 @@ WebSocket message types added: `run_stream` (Claude stream-json envelopes or
 normalized Codex app-server events), `run_status` (status transitions),
 `run_input_ack` (follow-up accepted), `cc_config_changed`,
 `codex_config_changed` (the Codex workspace's filesystem/dashboard refresh
-signal), and `session_removed` `{ id, provider }` (a Helm Code thread wiped
-after a Helm Code-side delete or archive).
+signal), and `session_removed` `{ id, provider }` (a Helm Code or T3 thread
+wiped after a Helm Code- or T3-side delete or archive).
 
 ### Import History
 
@@ -1052,6 +1100,11 @@ returns a `reparented` count).
 | `server/lib/codex-ingest.js`     | Incremental Codex rollout ingestor. Discovery stats each rollout **once** rather than inside the sort comparator, which made newest-first ordering cost O(N log N) stat syscalls. Both read paths close their descriptor in a `finally`, and an I/O failure is reported as `failed` (distinct from a completed no-op) so the sweep keeps that file queued instead of recording its fingerprint and skipping it. The thread id, not the rollout, identifies a session for every lifecycle notification, so a run that persists nothing (`codex exec --ephemeral`) still completes properly; while it has no rollout its hook payloads are stored as events tagged `data.source = "hook"` and the session is marked `hook_only`, both withdrawn if a real rollout is linked later                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `server/lib/helmcode-home.js`    | Resolves the Helm Code data root (`DASHBOARD_HELMCODE_HOME` > `HELMCODE_HOME` > `~/.helmcode`), its `userdata/state.sqlite` (release) or `dev/` layout, and per-thread row ids; persists the Settings override, notifies synchronizers of Moves, reads `server-runtime.json` for `?pid=threadId` transcripts                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `server/lib/helmcode-ingest.js`  | Incremental read-only Helm Code sweep: fingerprints each `projection_threads` row's `last_turn_row`, republishes only new orchestration activity as `helmcode_*` events, wipes deleted/archived threads (cascade + `session_removed` frame), and serves the paginated transcript DTO via `readHelmcodeTranscript`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `server/lib/thread-provider.js`  | Generic engine shared by Helm Code and T3: `createThreadProvider(config)` + `stmtPrefix` builds the SQLite projection scanner either fork drives                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `server/lib/t3-home.js`          | Resolves the T3 data root (`DASHBOARD_T3_HOME` > T3's own env override > `~/.t3`), its `userdata/state.sqlite` (release) or `dev/` layout, and per-thread row ids; persists the Settings override, notifies synchronizers of Moves, reads `server-runtime.json` for `?pid=threadId` transcripts                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `server/lib/t3-ingest.js`        | Incremental read-only T3 sweep (`syncT3Sessions` / `ingestT3Snapshot` / `reconcileT3Liveness`): fingerprints each `projection_threads` row's `last_turn_row`, republishes only new orchestration activity as `t3_*` events, wipes deleted/archived threads (cascade + `session_removed` frame), and serves the paginated transcript DTO via `readT3Transcript`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `server/lib/t3-pricing.js`       | Best-effort cost attribution for T3 sessions via `calculateT3Cost`, mirroring the Helm Code pricing approach against T3's own bundled rate table                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `server/lib/t3-sync.js`          | `startT3Sync` — wires the filesystem watcher + `DASHBOARD_T3_SYNC_MS` safety-net poll that drives T3's read-only ingest sweep                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `server/lib/archive.js`          | Safe archive extractors (`.zip` / `.tar(.gz)` / `.gz`) with path-traversal and size-cap enforcement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `scripts/import-history.js`      | Generalized directory walker (`importFromDirectory`) + shared `parseSessionFile` / `importSession`. Re-import is fully incremental: per-event-type high-water mark (`MAX(created_at) GROUP BY event_type` per session) drives `ts > cutoff[type]` dedup for Stop / PostToolUse / TurnDuration / ToolError, and `sessions.ended_at` is rolled forward when the JSONL has progressed past the stored value. After each batch imports, it calls `ingestWorkflowsForSession` (`server/lib/workflow-ingest.js`) per session — outside the SQLite transaction — so an offline/headless/CI/cluster **Workflow-tool** run (whose journal never reached a live server) has its inner agents linked to their `run_id` on a plain rescan / path import, not left orphaned (`workflow_run_id = NULL`). Both parsers reconcile usage per `message.id` (last record wins), matching `transcript-cache.js`. `reconcileTokens(dbModule, {all, resetBaselines})` backs `npm run repair-tokens` — the one-time repair that re-derives totals for every **Claude** session with a transcript on disk (located under `~/.claude/projects/` or via the session's stored `transcript_path`) and zeroes the `baseline_*` columns, which the ordinary high-water fold would otherwise use to preserve a historical over-count. It clears only non-workflow rows, excludes Codex sessions (their usage comes from rollout journals, not Claude transcripts), and refuses to run while a dashboard is up |
 | `server/lib/transcript-cache.js` | Chunked 4 MiB sync byte-stream reader for JSONL transcripts — never materializes the whole file as a JS string, so files larger than V8's max string length (~512 MiB on 64-bit Node 20) parse without aborting Node with `FATAL ERROR: v8::ToLocalChecked Empty MaybeLocal`. Token usage is **reconciled per `message.id`** (last record wins), not summed per record: Claude Code writes one record per content block and each copies the message's `usage`, so the old per-record sum inflated totals 2–4× (issue #293)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -1974,25 +2027,23 @@ npm run typecheck:server
 ```
 
 Add the pragma to a file only once its JSDoc actually makes it pass — an
-un-annotated file that opts in just adds noisy errors without catching
-anything.
+un-annotated file that opts in just adds noisy errors without catching anything.
 
 ### Linting
 
-`eslint.config.js` at the repo root covers `server/`, `scripts/`, and
-root-level JS with ESLint 9's flat config (`@eslint/js` recommended +
-`no-unused-vars`, everything downgraded to a **warning** — no rule fails the
-build). `no-console` is off for `server/` and `scripts/`, both Node ops
-processes that legitimately log (hook install, token repair, shutdown).
-`client/`, `mcp/`, and `desktop/` are out of scope — they have their own
-TypeScript build pipelines.
+`eslint.config.js` at the repo root covers `server/`, `scripts/`, and root-level
+JS with ESLint 9's flat config (`@eslint/js` recommended + `no-unused-vars`,
+everything downgraded to a **warning** — no rule fails the build). `no-console`
+is off for `server/` and `scripts/`, both Node ops processes that legitimately
+log (hook install, token repair, shutdown). `client/`, `mcp/`, and `desktop/`
+are out of scope — they have their own TypeScript build pipelines.
 
 ```bash
 npm run lint
 ```
 
-Existing violations are left as warnings on purpose (see SHA-168) — ratchet
-them file-by-file in follow-ups, don't batch-fix.
+Existing violations are left as warnings on purpose (see SHA-168) — ratchet them
+file-by-file in follow-ups, don't batch-fix.
 
 ### Example Test
 
@@ -2104,6 +2155,8 @@ DASHBOARD_CODEX_SYNC_MS=4000       # Codex rollout safety-net poll (ms); 0 disab
 DASHBOARD_CODEX_HOOK_IDLE_SECONDS=60 # Wait for a lost SessionEnd on a hook-only (rollout-less) Codex session
 DASHBOARD_HELMCODE_HOME=            # Optional Helm Code data root (~/.helmcode by default); Settings saves this dashboard-only override
 DASHBOARD_HELMCODE_SYNC_MS=4000     # Helm Code state-db safety-net poll (ms); 0 disables poll (watcher stays)
+DASHBOARD_T3_HOME=                  # Optional T3 data root (~/.t3 by default); Settings saves this dashboard-only override
+DASHBOARD_T3_SYNC_MS=4000           # T3 state-db safety-net poll (ms); 0 disables poll (watcher stays)
 DASHBOARD_TASK_SUMMARY_TTL_MS=2000 # Serve-stale window (ms) for task-progress summaries of actively-growing transcripts; 0 re-parses on every change
 DASHBOARD_TOKEN_REPAIR=1           # One-time startup repair of pre-reconciliation token totals; 0 skips it
 DASHBOARD_LIVENESS_PROBE=1         # 0 disables the local Claude Code/Codex dead-session liveness reap (use when hooks arrive from another machine)
