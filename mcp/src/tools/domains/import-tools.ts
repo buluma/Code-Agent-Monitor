@@ -10,7 +10,7 @@ import { registrarFor } from "../../core/tool-registry.js";
 import { assertMutationsEnabled } from "../../policy/tool-guards.js";
 import type { ToolContext } from "../../types/tool-context.js";
 
-const ProviderSchema = z.enum(["claude", "codex", "helmcode", "t3"]);
+const ProviderSchema = z.enum(["claude", "codex", "helmcode"]);
 
 export function registerImportTools(context: ToolContext): void {
   const { api, config } = context;

@@ -1,8 +1,8 @@
 /**
  * @file CcConfig.tsx
  * @description Agent configuration explorer. Switches between the complete
- * Claude Code configuration workspace and a backup-backed editable Codex explorer.
- * The Claude workspace surfaces every plugin,
+ * Claude Code configuration workspace, a backup-backed editable Codex explorer,
+ * and read-only Helm Code / T3 Config Explorers. The Claude workspace surfaces every plugin,
  * skill, subagent, slash command, MCP server, hook, settings file, memory
  * file, marketplace, keybinding, and statusline script Claude Code knows
  * about. Read access for all surfaces; create / edit / delete for the

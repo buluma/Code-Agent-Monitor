@@ -615,7 +615,7 @@ function createThreadProvider(config) {
     const cursorRow = getCursorStmt.get(thread.thread_id);
     const lastApplied = cursorRow?.last_applied_sequence || 0;
     const maxSeq = threadMaxSequence(handle, thread.thread_id);
-    if (options.full !== true && maxSeq <= lastApplied) {
+    if (options.full !== true && cursorRow && maxSeq <= lastApplied) {
       return {
         changed: false,
         created: false,
