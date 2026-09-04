@@ -64,10 +64,7 @@ function getHelmcodeStateDbPath() {
  */
 function getHelmcodeServerRuntime() {
   try {
-    const raw = fs.readFileSync(
-      path.join(getHelmcodeHome(), "userdata", "server-runtime.json"),
-      "utf8"
-    );
+    const raw = fs.readFileSync(path.join(getHelmcodeUserDataDir(), "server-runtime.json"), "utf8");
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return null;
     return {

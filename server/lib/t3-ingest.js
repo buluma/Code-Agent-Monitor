@@ -8,10 +8,7 @@
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
-const { createThreadProvider } = require("./thread-provider");
-const { config: T3_CONFIG } = require("./t3-home");
-
-const engine = createThreadProvider(T3_CONFIG);
+const { engine } = require("./t3-home");
 
 module.exports = {
   findT3Threads: engine.findThreads,

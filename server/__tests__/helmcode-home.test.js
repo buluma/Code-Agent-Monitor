@@ -87,8 +87,11 @@ describe("Helm Code home resolution", () => {
   it("reads the optional server-runtime.json without treating a missing file as an error", () => {
     assert.equal(getHelmcodeServerRuntime(), null);
 
+    fs.rmSync(path.join(TMP, "override", "userdata", "state.sqlite"), { force: true });
+    fs.writeFileSync(path.join(TMP, "override", "dev", "state.sqlite"), "");
+
     fs.writeFileSync(
-      path.join(TMP, "override", "userdata", "server-runtime.json"),
+      path.join(TMP, "override", "dev", "server-runtime.json"),
       JSON.stringify({
         version: 1,
         pid: 4242,
@@ -99,6 +102,7 @@ describe("Helm Code home resolution", () => {
       })
     );
     const runtime = getHelmcodeServerRuntime();
+    assert.equal(getHelmcodeUserDataDir(), path.join(TMP, "override", "dev"));
     assert.equal(runtime.port, 4453);
     assert.equal(runtime.pid, 4242);
     assert.equal(runtime.started_at, "2026-08-01T12:00:00.000Z");

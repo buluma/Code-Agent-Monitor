@@ -202,6 +202,30 @@ describe("OpenAPI / Swagger", () => {
     for (const pathName of EXPECTED_API_PATHS) {
       assert.ok(res.body.paths[pathName], `Expected path ${pathName} to be documented`);
     }
+
+    assert.deepEqual(res.body.components.schemas.ImportGuideResponse.properties.provider.enum, [
+      "claude",
+      "codex",
+      "helmcode",
+    ]);
+    assert.deepEqual(res.body.components.schemas.ImportResultResponse.properties.provider.enum, [
+      "claude",
+      "codex",
+      "helmcode",
+    ]);
+    assert.ok(
+      !res.body.components.schemas.ResetPricingResponse.properties.provider.enum.includes("t3")
+    );
+    assert.ok(
+      !res.body.paths["/api/settings/install-hooks"].post.requestBody.content[
+        "application/json"
+      ].schema.properties.providers.items.enum.includes("t3")
+    );
+    assert.ok(
+      !res.body.paths["/api/settings/reset-pricing"].post.requestBody.content[
+        "application/json"
+      ].schema.properties.provider.enum.includes("t3")
+    );
   });
 
   it("should serve Swagger UI", async () => {
@@ -625,6 +649,12 @@ describe("Settings and GPT pricing API", () => {
     assert.equal(res.status, 200);
     assert.equal(typeof res.body.codex_home, "string");
     assert.ok(path.isAbsolute(res.body.codex_home));
+  });
+
+  it("returns INVALID_PATH when the T3 home request has no JSON body", async () => {
+    const res = await fetch("/api/settings/t3-home", { method: "PUT" });
+    assert.equal(res.status, 400);
+    assert.equal(res.body.error.code, "INVALID_PATH");
   });
 
   it("seeds the supplied GPT card with explicit long-context availability", async () => {

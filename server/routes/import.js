@@ -134,16 +134,14 @@ function countsSummary(counters) {
 
 function requestedProvider(req) {
   const value = req.body?.provider ?? req.query?.provider ?? "claude";
-  return value === "claude" || value === "codex" || value === "helmcode" || value === "t3"
-    ? value
-    : null;
+  return value === "claude" || value === "codex" || value === "helmcode" ? value : null;
 }
 
 function rejectUnsupportedProvider(res) {
   return res.status(400).json({
     error: {
       code: "INVALID_PROVIDER",
-      message: "`provider` must be either `claude`, `codex`, `helmcode`, or `t3`",
+      message: "`provider` must be either `claude`, `codex`, or `helmcode`",
     },
   });
 }
