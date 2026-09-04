@@ -3,8 +3,8 @@
  * route is read-only against T3's state database and exposes a single
  * non-destructive mutation (`POST /resync`) that re-runs the idempotent
  * `ingestT3Snapshot` pass. These tests build a synthetic `state.sqlite`
- * fixture and exercise both endpoints, including the missing-home and
- * unconfirmed-resync error paths.
+ * fixture and exercise both endpoints, including sync-interval normalization,
+ * missing-home, and unconfirmed-resync behavior.
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
@@ -205,6 +205,28 @@ describe("T3 Config Explorer route", () => {
       assert.equal(body.projection_counts.messages, 0);
       assert.equal(body.projection_counts.activities, 0);
       assert.equal(body.projection_counts.turns, 0);
+    });
+
+    it("normalizes the configured sync interval while preserving an explicit zero", async () => {
+      const saved = process.env.DASHBOARD_T3_SYNC_MS;
+      try {
+        for (const [raw, expected] of [
+          ["0", 0],
+          ["4100.9", 4100],
+          ["-1", 4000],
+          ["not-a-number", 4000],
+          ["Infinity", 4000],
+        ]) {
+          process.env.DASHBOARD_T3_SYNC_MS = raw;
+          const res = await request(port, "GET", "/api/t3-config/overview");
+          assert.equal(res.status, 200);
+          assert.equal(res.json.env.DASHBOARD_T3_SYNC_MS, expected);
+          assert.equal(res.json.sync.poll_ms, expected);
+        }
+      } finally {
+        if (saved === undefined) delete process.env.DASHBOARD_T3_SYNC_MS;
+        else process.env.DASHBOARD_T3_SYNC_MS = saved;
+      }
     });
 
     it("POST /resync without confirmation returns 400 ENOTCONFIRMED", async () => {

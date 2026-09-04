@@ -22,7 +22,9 @@ const engine = createThreadProvider(T3_CONFIG);
 
 module.exports = {
   config: T3_CONFIG,
+  engine,
   getT3Home: engine.getHome,
+  getT3SyncIntervalMs: engine.getSyncIntervalMs,
   getT3UserDataDir: engine.getUserDataDir,
   getT3StateDbPath: engine.getStateDbPath,
   getT3ServerRuntime: engine.getServerRuntime,

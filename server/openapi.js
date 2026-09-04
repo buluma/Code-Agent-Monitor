@@ -1479,7 +1479,7 @@ function createOpenApiSpec() {
         ImportGuideResponse: {
           type: "object",
           properties: {
-            provider: { type: "string", enum: ["claude", "codex", "helmcode", "t3"] },
+            provider: { type: "string", enum: ["claude", "codex", "helmcode"] },
             platform: { type: "string" },
             default_projects_dir: { type: "string" },
             default_projects_dir_display: { type: "string" },
@@ -1513,7 +1513,7 @@ function createOpenApiSpec() {
           required: ["ok", "source", "imported", "skipped", "errors"],
           properties: {
             ok: { type: "boolean", enum: [true] },
-            provider: { type: "string", enum: ["claude", "codex", "helmcode", "t3"] },
+            provider: { type: "string", enum: ["claude", "codex", "helmcode"] },
             source: { type: "string", enum: ["default", "path", "upload"] },
             path: { type: "string", nullable: true },
             imported: { type: "integer" },
@@ -1552,7 +1552,7 @@ function createOpenApiSpec() {
           required: ["ok", "provider", "pricing", "gpt_pricing"],
           properties: {
             ok: { type: "boolean", enum: [true] },
-            provider: { type: "string", enum: ["claude", "codex", "helmcode", "t3", "both"] },
+            provider: { type: "string", enum: ["claude", "codex", "helmcode", "both"] },
             pricing: { type: "array", items: { $ref: "#/components/schemas/PricingRule" } },
             gpt_pricing: {
               type: "array",
@@ -2863,7 +2863,7 @@ function createOpenApiSpec() {
                       type: "array",
                       minItems: 1,
                       uniqueItems: true,
-                      items: { type: "string", enum: ["claude", "codex", "helmcode", "t3"] },
+                      items: { type: "string", enum: ["claude", "codex", "helmcode"] },
                     },
                   },
                 },
@@ -2910,7 +2910,7 @@ function createOpenApiSpec() {
                 schema: {
                   type: "object",
                   properties: {
-                    provider: { type: "string", enum: ["claude", "codex", "helmcode", "t3"] },
+                    provider: { type: "string", enum: ["claude", "codex", "helmcode"] },
                   },
                 },
               },

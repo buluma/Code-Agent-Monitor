@@ -390,10 +390,12 @@ can render the actual command flow rather than only `wait` calls. Helm Code
 sessions serve the same DTO and cursor pagination from their
 `projection_thread_messages` (human turns plus the assistant output of each
 orchestration activity). T3 — a direct fork of Helm Code — serves the identical
-DTO from its own `projection_thread_messages` through the same shared engine.
-All providers also expose persisted PNG/JPEG/GIF/WebP user attachments as
-`image` content blocks; missing or expired files are simply omitted, and Codex's
-duplicated response/event user records are returned as one human turn.
+DTO from its own `projection_thread_messages` through the same shared engine,
+but its transcript rows expose text only and do not return attachment blocks.
+Providers that support and return persisted PNG/JPEG/GIF/WebP user attachments
+expose them as `image` content blocks; missing or expired files are simply
+omitted for those providers. Codex's duplicated response/event user records are
+returned as one human turn.
 
 #### Read Persisted Transcript Image
 
@@ -1141,11 +1143,11 @@ destination. List and mutation responses mask URLs and redact secrets.
 ### Remote Data Sources
 
 The `/api/remote-sources/*` namespace configures **remote SSH machines** the
-dashboard pulls Claude Code, Codex, Helm Code, T3, or all histories from, so one
-dashboard can consolidate sessions from several machines. Each provider is
-mirrored and imported independently; a source succeeds when either provider is
-present. Codex additionally mirrors its lightweight `session_index.jsonl` so
-native renamed titles survive import. **No secrets are stored** — SSH
+dashboard pulls Claude Code, Codex, or both histories from, so one dashboard can
+consolidate sessions from several machines. Claude Code and Codex are mirrored
+and imported independently; a source succeeds when either provider is present.
+Codex additionally mirrors its lightweight `session_index.jsonl` so native
+renamed titles survive import. **No secrets are stored** — SSH
 authentication defers entirely to the host's SSH stack (ssh-agent,
 `~/.ssh/config`, key files). Every imported session is tagged with the source's
 id in the `sessions.source` column (the built-in local history uses the id

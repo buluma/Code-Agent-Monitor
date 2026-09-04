@@ -1,7 +1,7 @@
 /**
- * @file Verifies T3 home resolution precedence, state-DB path discovery
- * across release/dev layouts, dashboard-only override persistence, and the
- * optional server-runtime descriptor read.
+ * @file Verifies T3's shared provider engine, home resolution precedence,
+ * state-DB path discovery across release/dev layouts, dashboard-only override
+ * persistence, and optional server-runtime descriptor reads.
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
@@ -16,7 +16,9 @@ process.env.DASHBOARD_ENV_PATH = path.join(TMP, "config", ".env");
 process.env.T3_HOME = path.join(TMP, "env-t3");
 
 const {
+  engine,
   getT3Home,
+  getT3SyncIntervalMs,
   getT3UserDataDir,
   getT3StateDbPath,
   getT3ServerRuntime,
@@ -46,6 +48,18 @@ after(() => {
 });
 
 describe("T3 home resolution", () => {
+  it("shares one provider engine across the T3 home, ingest, pricing, and sync surfaces", () => {
+    const ingest = require("../lib/t3-ingest");
+    const pricing = require("../lib/t3-pricing");
+    const sync = require("../lib/t3-sync");
+
+    assert.equal(getT3Home, engine.getHome);
+    assert.equal(getT3SyncIntervalMs, engine.getSyncIntervalMs);
+    assert.equal(ingest.syncT3Sessions, engine.syncSessions);
+    assert.equal(pricing.calculateT3Cost, engine.calculateCost);
+    assert.equal(sync.startT3Sync, engine.startSync);
+  });
+
   it("resolves T3_HOME then the dashboard-only override, and prefers userdata over dev", () => {
     delete process.env.DASHBOARD_T3_HOME;
     assert.equal(getT3Home(), path.resolve(process.env.T3_HOME));
@@ -81,8 +95,11 @@ describe("T3 home resolution", () => {
   it("reads the optional server-runtime.json without treating a missing file as an error", () => {
     assert.equal(getT3ServerRuntime(), null);
 
+    fs.rmSync(path.join(TMP, "override", "userdata", "state.sqlite"), { force: true });
+    fs.writeFileSync(path.join(TMP, "override", "dev", "state.sqlite"), "");
+
     fs.writeFileSync(
-      path.join(TMP, "override", "userdata", "server-runtime.json"),
+      path.join(TMP, "override", "dev", "server-runtime.json"),
       JSON.stringify({
         version: 1,
         pid: 4242,
@@ -93,6 +110,7 @@ describe("T3 home resolution", () => {
       })
     );
     const runtime = getT3ServerRuntime();
+    assert.equal(getT3UserDataDir(), path.join(TMP, "override", "dev"));
     assert.equal(runtime.port, 4453);
     assert.equal(runtime.pid, 4242);
     assert.equal(runtime.started_at, "2026-08-01T12:00:00.000Z");

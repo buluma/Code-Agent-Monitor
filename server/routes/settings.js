@@ -443,7 +443,7 @@ router.get("/t3-home", (_req, res) => {
 // setT3Home notifies the live synchronizer, which re-watches the new
 // state directory and sweeps it without blocking this response.
 router.put("/t3-home", (req, res) => {
-  const { path: newPath } = req.body;
+  const { path: newPath } = req.body || {};
   if (!newPath || typeof newPath !== "string") {
     return res.status(400).json({
       error: { code: "INVALID_PATH", message: "path is required and must be a string" },

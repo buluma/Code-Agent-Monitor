@@ -230,7 +230,8 @@ allowlist. Base `config.toml` is edit-only.
 - `dashboard_start_run`, `dashboard_send_run_message`, `dashboard_stop_run`
 
 These tools launch or control real local Claude Code/Codex processes and require
-the mutation gate.
+the mutation gate. Provider-selecting Run Agent tools accept only `claude` and
+`codex`.
 
 ### Remote Data Sources
 

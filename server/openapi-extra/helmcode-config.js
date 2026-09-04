@@ -66,7 +66,7 @@ const schemas = {
         type: "object",
         nullable: true,
         description:
-          "Parsed contents of <home>/userdata/server-runtime.json when present, otherwise null.",
+          "Parsed contents of <userdata_dir>/server-runtime.json when present, otherwise null.",
         required: ["version", "pid", "host", "port", "origin", "started_at"],
         properties: {
           version: { type: "integer", nullable: true },

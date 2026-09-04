@@ -195,4 +195,16 @@ describe("collectAllTools", () => {
       /At least one of abandon_hours or purge_days is required/
     );
   });
+
+  it("run tools reject providers that the Run API cannot launch", async () => {
+    const tools = collectAllTools(config, api, logger);
+    const getRunBinary = tools.find((tool) => tool.name === "dashboard_get_run_binary");
+    assert.ok(getRunBinary);
+
+    await assert.rejects(
+      () => getRunBinary.handler({ provider: "helmcode" }),
+      /Invalid enum value/
+    );
+    await assert.rejects(() => getRunBinary.handler({ provider: "t3" }), /Invalid enum value/);
+  });
 });

@@ -237,6 +237,12 @@ describe("GET /api/import/guide", () => {
     assert.equal(res.status, 400);
     assert.equal(res.body.error.code, "INVALID_PROVIDER");
   });
+
+  it("rejects T3 until an import pipeline is implemented", async () => {
+    const res = await fetch("/api/import/guide?provider=t3");
+    assert.equal(res.status, 400);
+    assert.equal(res.body.error.code, "INVALID_PROVIDER");
+  });
 });
 
 describe("POST /api/import/scan-path validation", () => {
