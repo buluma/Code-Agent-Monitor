@@ -118,7 +118,7 @@
     "deploy:validate": "bash deployments/scripts/validate-deployment.sh"
   },
   "dependencies": {
-    "adm-zip": "0.6.0",
+    "adm-zip": "0.6.1",
     "cors": "^2.8.5",
     "cross-spawn": "^7.0.6",
     "express": "5.2.1",
