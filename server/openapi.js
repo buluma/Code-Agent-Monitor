@@ -1,5 +1,6 @@
 /**
  * @file Central OpenAPI 3.0 specification for the dashboard HTTP API.
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
@@ -491,7 +492,7 @@ function createOpenApiSpec() {
             version: {
               type: "string",
               description: "Dashboard release version from package.json",
-              example: "2.2.6",
+              example: "2.2.7",
             },
             timestamp: { type: "string", format: "date-time" },
           },
