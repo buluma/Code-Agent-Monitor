@@ -81,13 +81,13 @@
   <text x="290" y="298"
         font-family="'Inter', 'Helvetica Neue', Arial, sans-serif"
         font-size="72" font-weight="800" letter-spacing="-2"
-        fill="url(#titleGrad)">Code Agent Monitor</text>
+        fill="url(#titleGrad)">Agent Dashboard</text>
 
   <!-- Subtitle -->
   <text x="292" y="355"
         font-family="'Inter', 'Helvetica Neue', Arial, sans-serif"
         font-size="26" font-weight="400"
-        fill="#8888aa">Real-time monitoring platform for code agent activity</text>
+        fill="#8888aa">Real-time monitoring platform for Claude Code agent activity</text>
 
   <!-- Divider line -->
   <line x1="290" y1="385" x2="840" y2="385" stroke="#252538" stroke-width="1"/>
@@ -118,5 +118,5 @@
   <text x="290" y="580"
         font-family="'Inter', 'Helvetica Neue', Arial, sans-serif"
         font-size="18" font-weight="500"
-        fill="#55556a">github.com/buluma · buluma.github.io</text>
+        fill="#55556a">github.com/hoangsonww · sonnguyenhoang.com</text>
 </svg>

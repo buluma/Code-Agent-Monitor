@@ -1,9 +1,9 @@
 {
-  "id": "code-agent-monitor-landing",
-  "name": "Code Agent Monitor",
+  "id": "claude-code-agent-monitor-landing",
+  "name": "Claude Code Agent Monitor",
   "short_name": "CC Monitor",
   "description": "Local-first monitoring dashboard for Claude Code sessions.",
-  "author": "Michael Buluma",
+  "author": "Son Nguyen",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

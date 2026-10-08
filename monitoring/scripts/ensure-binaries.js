@@ -3,7 +3,7 @@
  * @file Downloads official Prometheus + Grafana OSS binaries into monitoring/.bin/.
  * Supports macOS (arm64/Intel), Linux (arm64/amd64), and Windows (x64).
  * Run via `npm run monitoring:setup` — no Homebrew, apt, or global install needed.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 const fs = require("node:fs");
 const path = require("node:path");
@@ -81,7 +81,7 @@ async function main() {
   const tmpDir = path.join(DATA_ROOT, "downloads");
   await fs.promises.mkdir(tmpDir, { recursive: true });
 
-  console.log("Downloading CAM monitoring binaries (one-time setup)…");
+  console.log("Downloading CCAM monitoring binaries (one-time setup)…");
   await installPrometheus(tmpDir);
   await installGrafana(tmpDir);
   await fs.promises.rm(tmpDir, { recursive: true, force: true });

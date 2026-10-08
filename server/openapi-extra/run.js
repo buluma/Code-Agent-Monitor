@@ -10,7 +10,7 @@
  * `Run`. The shared error envelope `ErrorResponse` (`{ error: { code, message } }`)
  * is defined in the base spec and only referenced here — never redefined.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const tags = [
@@ -44,7 +44,7 @@ const ebadOrigin403 = {
 const schemas = {
   RunProvider: {
     type: "string",
-    enum: ["claude", "codex", "helmcode"],
+    enum: ["claude", "codex"],
     description: "The CLI provider used for the run.",
     example: "codex",
   },

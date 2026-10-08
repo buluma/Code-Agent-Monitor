@@ -20,7 +20,7 @@
  * never leaks operational data to an unexpected origin. The turnkey Prometheus +
  * Grafana bundle in `monitoring/` documents the exact setup.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { Router } = require("express");
@@ -75,26 +75,26 @@ function appendMetric(out, name, help, type, samples) {
 router.get("/", (_req, res) => {
   const out = [];
 
-  appendMetric(out, "cam_up", "1 when the dashboard API is serving this scrape.", "gauge", [
+  appendMetric(out, "ccam_up", "1 when the dashboard API is serving this scrape.", "gauge", [
     { value: 1 },
   ]);
   appendMetric(
     out,
-    "cam_build_info",
+    "ccam_build_info",
     "Dashboard build info; the value is always 1, the version rides on the label.",
     "gauge",
     [{ labels: { version: APP_VERSION }, value: 1 }]
   );
   appendMetric(
     out,
-    "cam_process_uptime_seconds",
+    "ccam_process_uptime_seconds",
     "Uptime of the dashboard server process in seconds.",
     "gauge",
     [{ value: Math.round(process.uptime()) }]
   );
   appendMetric(
     out,
-    "cam_process_resident_memory_bytes",
+    "ccam_process_resident_memory_bytes",
     "Resident set size (RSS) of the dashboard server process in bytes.",
     "gauge",
     [{ value: process.memoryUsage().rss }]
@@ -104,7 +104,7 @@ router.get("/", (_req, res) => {
   const sessionCounts = new Map(stmts.sessionStatusCounts.all().map((r) => [r.status, r.count]));
   appendMetric(
     out,
-    "cam_sessions",
+    "ccam_sessions",
     "Number of sessions by lifecycle status.",
     "gauge",
     SESSION_STATUSES.map((status) => ({
@@ -117,7 +117,7 @@ router.get("/", (_req, res) => {
   const agentCounts = new Map(stmts.agentStatusCounts.all().map((r) => [r.status, r.count]));
   appendMetric(
     out,
-    "cam_agents",
+    "ccam_agents",
     "Number of agents (main + subagents) by status.",
     "gauge",
     AGENT_STATUSES.map((status) => ({ labels: { status }, value: agentCounts.get(status) || 0 }))
@@ -126,7 +126,7 @@ router.get("/", (_req, res) => {
   // Event throughput (monotonic — a counter).
   appendMetric(
     out,
-    "cam_events_total",
+    "ccam_events_total",
     "Total hook and synthetic events recorded since the database was created.",
     "counter",
     [{ value: stmts.countEvents.get().count }]
@@ -141,7 +141,7 @@ router.get("/", (_req, res) => {
   }
   appendMetric(
     out,
-    "cam_websocket_clients",
+    "ccam_websocket_clients",
     "Currently connected realtime (WebSocket) dashboard clients.",
     "gauge",
     [{ value: clients }]
@@ -159,7 +159,7 @@ router.get("/", (_req, res) => {
   }
   appendMetric(
     out,
-    "cam_remote_sources",
+    "ccam_remote_sources",
     "Configured Remote Data Sources, split by auto-sync enabled state.",
     "gauge",
     [
@@ -182,7 +182,7 @@ router.get("/", (_req, res) => {
     .get();
   appendMetric(
     out,
-    "cam_tokens_total",
+    "ccam_tokens_total",
     "Cumulative token usage across all sessions, by kind.",
     "counter",
     [

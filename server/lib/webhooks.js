@@ -10,7 +10,7 @@
  *
  * Delivery is detached and fully fail-safe: it never throws into, slows, or
  * blocks the alert path or hook ingestion.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const crypto = require("crypto");
@@ -287,7 +287,7 @@ function sendTest(target) {
     rule_type: "test",
     session_id: null,
     agent_id: null,
-    message: `Test notification from Code Agent Monitor to "${target.name}". If you can read this, delivery works.`,
+    message: `Test notification from Claude Code Agent Monitor to "${target.name}". If you can read this, delivery works.`,
     details: { test: true, target: target.name, type: target.type },
     triggered_at: new Date().toISOString(),
   };

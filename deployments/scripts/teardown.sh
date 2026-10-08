@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# teardown.sh – Clean removal of Code Agent Monitor infrastructure
+# teardown.sh – Clean removal of Claude Code Agent Monitor infrastructure
 #
 # Usage:
 #   ./teardown.sh --env dev --method helm
 #   ./teardown.sh --help
 # ─────────────────────────────────────────────────────────────────────────────
-# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+# @author Son Nguyen <hoangson091104@gmail.com>
 set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -250,7 +250,7 @@ verify_teardown() {
 main() {
   echo ""
   echo -e "${BOLD}${RED}╔══════════════════════════════════════════════════╗${NC}"
-  echo -e "${BOLD}${RED}║   Code Agent Monitor – Teardown                 ║${NC}"
+  echo -e "${BOLD}${RED}║   Claude Code Agent Monitor – Teardown          ║${NC}"
   echo -e "${BOLD}${RED}╚══════════════════════════════════════════════════╝${NC}"
   echo ""
 

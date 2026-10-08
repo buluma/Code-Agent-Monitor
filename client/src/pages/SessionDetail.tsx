@@ -2,12 +2,12 @@
  * @file SessionDetail.tsx
  * @description Displays session agents, owner-aware task progress, events, and
  * cost details with real-time updates and an expandable agent hierarchy.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/pages/SessionDetail.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/pages/SessionDetail.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -88,6 +88,9 @@ import {
   Hourglass,
 } from "lucide-react";
 import { api } from "../lib/api";
+import { useUrlTab } from "../hooks/usePageShortcuts";
+import { usePaletteAction } from "../components/PaletteActionProvider";
+import { announceAction } from "../lib/appEvents";
 import { eventBus } from "../lib/eventBus";
 import { isRemoteDataRefreshMessage } from "../lib/remoteDataEvents";
 import { useDataScope } from "../lib/dataScope";
@@ -136,19 +139,34 @@ import type {
   CostResult,
   TranscriptInfo,
   WorkflowRun,
-  SessionRemovedPayload,
 } from "../lib/types";
 import { WorkflowRunsPanel } from "../components/workflows/WorkflowRunsPanel";
-import { LinearLinkPanel } from "../components/LinearLinkPanel";
 
-type DetailTab = "agents" | "conversation" | "timeline";
+/** Tab keys in render order — also the order `1`…`3` and `[`/`]` address them. */
+const DETAIL_TABS = ["agents", "conversation", "timeline"] as const;
+/** Session Detail tab: agents, conversation, or timeline. */
+type DetailTab = (typeof DETAIL_TABS)[number];
 
+/** Events loaded when the timeline first opens. */
 const EVENTS_INITIAL_BATCH = 50;
+/** Events added each time "load more" is clicked. */
 const EVENTS_MORE_BATCH = 500;
-// Live-refresh bounds - see ActivityFeed for rationale.
+/**
+ * Live-refresh bounds (see ActivityFeed for the rationale). This is the most events one refresh
+ * reloads, the server's per-request cap.
+ */
 const EVENTS_MAX_REFRESH = 500;
+/** Delay that coalesces a burst of live events into one refresh. */
 const EVENTS_REFRESH_DEBOUNCE_MS = 500;
 
+/**
+ * Session Detail page (`/sessions/:id`). Shows the session header with cost and status, the
+ * overview stats, and three tabs mirrored in the URL. The Agents tab is the agent tree. The
+ * Conversation tab is the transcript, for the main agent or any subagent. The Timeline tab is the
+ * filterable event list. A banner links to the Run page when a live run is driving the session.
+ * Session, agents, and events refresh on matching WebSocket messages; the timeline keeps however
+ * many events were already loaded when it refreshes.
+ */
 export function SessionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -171,7 +189,9 @@ export function SessionDetail() {
   const [expandedAgents, setExpandedAgents] = useState<Set<string>>(() => {
     return new Set<string>();
   });
-  const [activeTab, setActiveTab] = useState<DetailTab>("agents");
+  // URL-backed so a link can point at a session's conversation or timeline
+  // directly, not just at the session.
+  const [activeTab, setActiveTab] = useUrlTab(DETAIL_TABS, "agents");
   // Keep tabs mounted once visited so switching between them doesn't unmount/
   // remount their subtrees (which causes a perceptible flash on click).
   const [visitedTabs, setVisitedTabs] = useState<Set<DetailTab>>(() => new Set(["agents"]));
@@ -198,6 +218,9 @@ export function SessionDetail() {
   const eventsLoadedCountRef = useRef(0);
   const eventsRefreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   eventsLoadedCountRef.current = events.length;
+  /**
+   * Go back in history when the user arrived from inside the app, otherwise to the sessions list.
+   */
   const goBack = useCallback(() => {
     const historyState =
       typeof window !== "undefined" ? (window.history.state as { idx?: number } | null) : null;
@@ -224,6 +247,7 @@ export function SessionDetail() {
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
+    /** Check whether a live Run is driving this session, to show the link back to the Run page. */
     const probe = () => {
       // Defensive: tests mock the api module without a `run` namespace.
       if (!api.run || typeof api.run.list !== "function") return;
@@ -250,6 +274,7 @@ export function SessionDetail() {
     };
   }, [id]);
 
+  /** Load the session with its agents and its cost; a failed cost request leaves cost empty. */
   const load = useCallback(async () => {
     if (!id) return;
     try {
@@ -268,6 +293,29 @@ export function SessionDetail() {
       setLoading(false);
     }
   }, [id, scope, t]);
+
+  usePaletteAction("page.refresh", () => {
+    void load();
+  });
+  // Contextual palette commands. Each declines (returns false) when the datum it
+  // would copy is not loaded, so the palette never offers an empty clipboard.
+  usePaletteAction("session.copyId", () => {
+    if (!session) return false;
+    void navigator.clipboard?.writeText(session.id);
+    announceAction(session.id);
+    return true;
+  });
+  usePaletteAction("session.copyPath", () => {
+    if (!session?.cwd) return false;
+    void navigator.clipboard?.writeText(session.cwd);
+    announceAction(session.cwd);
+    return true;
+  });
+  usePaletteAction("session.openInRun", () => {
+    if (!session) return false;
+    void navigate(`/run?session=${encodeURIComponent(session.id)}`);
+    return true;
+  });
 
   useEffect(() => {
     load();
@@ -294,6 +342,10 @@ export function SessionDetail() {
       // Clear any previous not-found warning
       setTranscriptNotFound(false);
 
+      /**
+       * Find the transcript for a clicked agent: exact match on the database agent id first, then
+       * `main` for the main agent, then a match on subagent type narrowed by name.
+       */
       const findTranscriptId = (ts: TranscriptInfo[]): string | null => {
         // 1. Exact match via db_agent_id (most reliable)
         const exactMatch = ts.find((t) => t.db_agent_id === agent.id);
@@ -440,6 +492,7 @@ export function SessionDetail() {
     return map;
   }, [events]);
 
+  /** Load the first batch of events for the current filters. */
   const loadEvents = useCallback(async () => {
     if (!eventApiParams) return;
     try {
@@ -459,6 +512,7 @@ export function SessionDetail() {
     loadEvents();
   }, [loadEvents]);
 
+  /** Append the next batch of events for the current filters. */
   const loadMoreEvents = useCallback(async () => {
     if (!eventApiParams) return;
     setEventsLoadingMore(true);
@@ -539,13 +593,6 @@ export function SessionDetail() {
       ) {
         load();
       }
-      // The session was wiped out-of-band (today only a Helm Code thread
-      // deleted/archived in the product): leave the dead page.
-      if (msg.type === "session_removed") {
-        const removed = msg.data as SessionRemovedPayload;
-        if (removed.id === id) navigate("/sessions", { replace: true });
-        return;
-      }
       if (msg.type === "new_event") {
         const event = msg.data as DashboardEvent;
         if (
@@ -579,7 +626,7 @@ export function SessionDetail() {
         eventsRefreshTimerRef.current = null;
       }
     };
-  }, [load, refreshEventsWithPagination, navigate]);
+  }, [load, refreshEventsWithPagination]);
 
   if (loading) {
     return (
@@ -683,9 +730,6 @@ export function SessionDetail() {
               <CopyButton text={session.cwd} />
             </div>
           )}
-          <div className="mt-2">
-            <LinearLinkPanel sessionId={session.id} />
-          </div>
         </div>
         <button onClick={load} className="btn-ghost">
           <RefreshCw className="w-4 h-4" />
@@ -743,11 +787,9 @@ export function SessionDetail() {
                         provider:
                           session.provider === "codex"
                             ? "Codex"
-                            : session.provider === "helmcode"
-                              ? "Helm Code"
-                              : session.provider === "t3"
-                                ? "T3"
-                                : "Claude",
+                            : session.provider === "cursor"
+                              ? "Cursor"
+                              : "Claude",
                       })
                     : t("detail.waitingBanner.generic")}
                 </div>
@@ -932,6 +974,7 @@ export function SessionDetail() {
                     const hasChildren = children.length > 0;
                     const isSubagent = depth > 0;
                     const totalDesc = hasChildren ? countDescendants(agent.id) : 0;
+                    /** Expand or collapse this agent's subagent tree. */
                     const toggleExpanded = () =>
                       setExpandedAgents((prev) => {
                         const next = new Set(prev);

@@ -14,12 +14,12 @@
  * commit re-opens the prompt. Settings can reset dismissal via the
  * `dashboard:reset-update-dismissal` window event.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/UpdateNotifier.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/UpdateNotifier.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -77,7 +77,12 @@ import type { UpdateStatusPayload, WSMessage } from "../lib/types";
 /** `localStorage` key storing the dismissed upstream SHA. */
 const DISMISS_KEY = "agent-monitor-update-dismissed-sha";
 
-/** Narrow unknown WebSocket payloads to {@link UpdateStatusPayload}. */
+/**
+ * Narrow unknown WebSocket payloads to {@link UpdateStatusPayload}.
+ *
+ * @param x - Message data.
+ * @returns True when it is an update status payload.
+ */
 function isUpdatePayload(x: unknown): x is UpdateStatusPayload {
   return typeof x === "object" && x !== null && "git_repo" in x && "update_available" in x;
 }
@@ -103,6 +108,7 @@ export function UpdateNotifier() {
   const [copied, setCopied] = useState(false);
   const [checking, setChecking] = useState(false);
 
+  /** Adopt a status payload, clearing the error once a fetch succeeds. */
   const syncFromPayload = useCallback((s: UpdateStatusPayload) => {
     setStatus(s);
     if (!s.fetch_error) setError(null);
@@ -135,6 +141,7 @@ export function UpdateNotifier() {
   }, [syncFromPayload]);
 
   useEffect(() => {
+    /** Forget the dismissed version when the sidebar's manual check asks to. */
     const handler = () => setDismissedSha(null);
     window.addEventListener("dashboard:reset-update-dismissal", handler);
     return () => window.removeEventListener("dashboard:reset-update-dismissal", handler);
@@ -144,6 +151,10 @@ export function UpdateNotifier() {
     status?.update_available && status.remote_sha && dismissedSha !== status.remote_sha
   );
 
+  /**
+   * Hide the notice for the current remote version by remembering its commit; a newer version shows
+   * the notice again.
+   */
   const dismiss = useCallback(() => {
     if (!status?.remote_sha) return;
     try {
@@ -157,6 +168,7 @@ export function UpdateNotifier() {
   // Escape to dismiss - standard modal affordance.
   useEffect(() => {
     if (!show) return;
+    /** Dismiss on Escape. */
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") dismiss();
     };
@@ -164,6 +176,7 @@ export function UpdateNotifier() {
     return () => window.removeEventListener("keydown", handler);
   }, [show, dismiss]);
 
+  /** Copy the update command and show a check mark for 2 seconds. */
   const copyCmd = async () => {
     if (!status?.manual_command) return;
     try {
@@ -175,6 +188,7 @@ export function UpdateNotifier() {
     }
   };
 
+  /** Check for updates now. */
   const checkNow = async () => {
     if (checking) return;
     setError(null);

@@ -1,13 +1,13 @@
 apiVersion: v2
 name: agent-monitor
-description: Production-safe single-writer CAM deployment for Claude Code and Codex monitoring
+description: Production-safe single-writer CCAM deployment for Claude Code and Codex monitoring
 type: application
-version: 4.2.1
-appVersion: "4.2.1"
+version: 2.2.6
+appVersion: "2.2.6"
 
-home: https://github.com/buluma/Code-Agent-Monitor
+home: https://github.com/hoangsonww/Claude-Code-Agent-Monitor
 sources:
-  - https://github.com/buluma/Code-Agent-Monitor
+  - https://github.com/hoangsonww/Claude-Code-Agent-Monitor
 
 keywords:
   - claude
@@ -20,10 +20,10 @@ keywords:
   - observability
 
 maintainers:
-  - name: Michael Buluma
-    url: https://github.com/buluma
+  - name: David Nguyen
+    url: https://github.com/hoangsonww
 
-icon: https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/master/favicon.svg
+icon: https://raw.githubusercontent.com/hoangsonww/Claude-Code-Agent-Monitor/master/favicon.svg
 
 annotations:
   artifacthub.io/license: MIT

@@ -5,7 +5,7 @@
  * server at it, and exercises every surface plus path-containment guards,
  * write/delete with backup, plugin contributions, marketplaces, keybindings,
  * statusline, and hook scripts.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { describe, it, before, after } = require("node:test");

@@ -17,12 +17,12 @@
  * We run the user's login shell once at startup, capture its `PATH`, and merge
  * it into `process.env.PATH`. The embedded server runs in this same process,
  * so it (and every `claude` it spawns) inherits the corrected `PATH`.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/desktop/src/shell-path.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/desktop/src/shell-path.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -74,18 +74,20 @@ import * as path from "node:path";
 
 import { log } from "./logger";
 
-// Markers fence the PATH off from any shell-startup noise (banners, MOTD, …).
-// An interactive login shell may print arbitrary text before running our
-// `-c` command (e.g. a `.zshrc` `neofetch` call); scanning for this sentinel
-// pair — rather than trusting the last line of stdout — makes extraction
-// robust to whatever the user's shell profile prints.
-const DELIM = "__CAM_SHELL_PATH__";
+/**
+ * Sentinel that fences the PATH off from shell startup noise (banners, MOTD, and so on). An
+ * interactive login shell may print arbitrary text before running the `-c` command (for example a
+ * `.zshrc` that calls `neofetch`), so scanning for this sentinel pair, rather than trusting the
+ * last line of output, keeps extraction robust whatever the profile prints.
+ */
+const DELIM = "__CCAM_SHELL_PATH__";
 
 /**
  * Run the user's login+interactive shell and capture its `PATH`. Returns null
  * on any failure (timeout, missing shell, unparseable output).
  */
 function loginShellPath(): string | null {
+  if (process.platform === "win32") return null;
   const shell = process.env.SHELL || "/bin/zsh";
   try {
     // -i interactive (sources .zshrc/.bashrc), -l login (sources .zprofile),
@@ -109,11 +111,16 @@ function loginShellPath(): string | null {
 /**
  * Merge the login-shell `PATH` — plus the common directories CLIs install
  * into — onto `process.env.PATH`. Idempotent: deduplicates entries, so it is
- * safe even if called more than once.
+ * safe even if called more than once. No-op on Windows.
  */
 export function ensureUserPath(): void {
+  if (process.platform === "win32") return;
+
   const ordered: string[] = [];
   const seen = new Set<string>();
+  /**
+   * Append each segment of a PATH-style value that has not been seen yet, keeping first-seen order.
+   */
   const add = (value?: string | null): void => {
     if (!value) return;
     for (const seg of value.split(path.delimiter)) {

@@ -1,6 +1,6 @@
 /**
  * @file Unit tests for the TranscriptCache class, which extracts token usage from Claude transcript JSONL files and caches results for performance. Tests cover cache hits/misses, compaction detection, multiple models, and edge cases like malformed files and eviction behavior.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { describe, it, beforeEach, afterEach } = require("node:test");
@@ -71,6 +71,28 @@ describe("TranscriptCache", () => {
     assert.deepStrictEqual(r1, r2);
     // Same object reference proves cache hit (no re-parse)
     assert.strictEqual(r1, r2);
+  });
+
+  it("should restore the cached byte cursor with its last complete result", () => {
+    const file = path.join(tmpDir, "session.jsonl");
+    const first = { message: { id: "first", model: "m1", usage: { input_tokens: 100 } } };
+    const second = { message: { id: "second", model: "m1", usage: { input_tokens: 25 } } };
+    writeJsonl(file, [first]);
+    const cache = new TranscriptCache();
+    const parsed = cache.extract(file);
+    const cached = cache.getCachedEntry(file);
+
+    fs.writeFileSync(file, "");
+    assert.strictEqual(cache.extract(file), null);
+    cache.restoreCachedEntry(file, cached);
+
+    writeJsonl(file, [first, second]);
+    const regrown = cache.extract(file);
+    const tokens = Object.values(regrown.tokensByModel)[0];
+
+    assert.equal(tokens.input, 125, "the original record must not be counted twice");
+    assert.strictEqual(cache.getCachedEntry(path.join(tmpDir, "unknown.jsonl")), null);
+    assert.strictEqual(cached.result, parsed);
   });
 
   it("should detect new data when file grows", () => {

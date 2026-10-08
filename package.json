@@ -1,10 +1,10 @@
 {
-  "name": "code-agent-monitor",
-  "version": "4.2.1",
+  "name": "agent-dashboard",
+  "version": "2.2.6",
   "bin": {
-    "cam": "bin/cam.js"
+    "ccam": "bin/ccam.js"
   },
-  "description": "Real-time dashboard for tracking Claude Code agent activity",
+  "description": "Real-time dashboard for tracking Claude Code, Cursor, and Codex agent activity",
   "private": true,
   "type": "commonjs",
   "main": "server/index.js",
@@ -17,21 +17,23 @@
     "README.md",
     "LICENSE"
   ],
-  "author": "Michael Buluma",
-  "funding": "https://github.com/sponsors/buluma",
+  "author": "Son Nguyen",
+  "funding": "https://github.com/sponsors/hoangsonww",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/buluma/Code-Agent-Monitor.git"
+    "url": "git+https://github.com/hoangsonww/Claude-Code-Agent-Monitor.git"
   },
   "bugs": {
-    "url": "https://github.com/buluma/Code-Agent-Monitor/issues"
+    "url": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor/issues"
   },
   "license": "MIT",
-  "homepage": "https://github.com/buluma/Code-Agent-Monitor#readme",
+  "homepage": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor#readme",
   "keywords": [
     "claude",
     "claude-code",
     "anthropic",
+    "cursor",
+    "codex",
     "agent",
     "dashboard",
     "real-time",
@@ -56,13 +58,13 @@
     "postinstall": "node scripts/postinstall.js",
     "dev": "node scripts/dev.js",
     "dev:raw": "concurrently -n server,client -c blue,green \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "node --watch server/index.js",
+    "dev:server": "node scripts/dev-server.js",
     "dev:client": "cd client && npm run dev",
     "build": "cd client && npm run build",
     "start": "node server/index.js",
-    "setup": "npm install && (cd client && npm install) && (cd vscode-extension && npm install) && npm run mcp:install && npm run mcp:build && npm run link-cli",
+    "setup": "node scripts/run-npm.js ci && node scripts/run-npm.js --prefix client ci && node scripts/run-npm.js --prefix vscode-extension ci && npm run mcp:install && npm run mcp:build && npm run link-cli",
     "update:pull-setup": "git pull --ff-only && npm run setup",
-    "mcp:install": "npm --prefix mcp install",
+    "mcp:install": "node scripts/run-npm.js --prefix mcp ci",
     "mcp:build": "npm --prefix mcp run build",
     "mcp:start": "npm --prefix mcp run start",
     "mcp:start:http": "npm --prefix mcp run start:http",
@@ -73,8 +75,8 @@
     "mcp:typecheck": "npm --prefix mcp run typecheck",
     "extensions:sync": "node scripts/sync-agent-extensions.js",
     "extensions:validate": "node scripts/validate-agent-extensions.js",
-    "mcp:docker:build": "docker build -f mcp/Dockerfile -t code-agent-monitor-mcp:local .",
-    "mcp:podman:build": "podman build -f mcp/Dockerfile -t localhost/code-agent-monitor-mcp:local .",
+    "mcp:docker:build": "docker build -f mcp/Dockerfile -t agent-dashboard-mcp:local .",
+    "mcp:podman:build": "podman build -f mcp/Dockerfile -t localhost/agent-dashboard-mcp:local .",
     "desktop:install": "cd desktop && node scripts/install.js",
     "desktop:dev": "npm run build && cd desktop && npm run dev",
     "desktop:build": "cd desktop && npm run build",
@@ -82,6 +84,8 @@
     "desktop:dmg:arm64": "npm run build && cd desktop && npm run dmg:arm64",
     "desktop:dmg:x64": "npm run build && cd desktop && npm run dmg:x64",
     "desktop:dmg:universal": "npm run build && cd desktop && npm run dmg:universal",
+    "desktop:win": "npm run build && cd desktop && npm run win",
+    "desktop:win:portable": "npm run build && cd desktop && npm run win:portable",
     "desktop:test": "cd desktop && npm test",
     "install-hooks": "node scripts/install-hooks.js",
     "seed": "node scripts/seed.js",
@@ -90,19 +94,16 @@
     "clear-data": "node scripts/clear-data.js",
     "test": "node --test server/__tests__/*.test.js && cd client && npm test",
     "test:server": "node --test server/__tests__/*.test.js",
+    "test:snapshots": "node --test server/__tests__/snapshot-store.test.js server/__tests__/snapshot-retention.test.js",
     "test:client": "cd client && npm test",
     "test:mcp": "npm --prefix mcp run test",
-    "test:coverage:server": "c8 node --test server/__tests__/*.test.js",
-    "test:coverage:client": "cd client && npm run test:coverage",
     "check:headers": "bash .claude/skills/file-headers/scripts/check-headers.sh",
     "typecheck:client": "npm --prefix client run typecheck",
-    "typecheck:server": "tsc -p server/tsconfig.json",
-    "lint": "eslint .",
-    "verify": "npm run check:headers && npm run format:check && npm run typecheck:client && npm run typecheck:server && npm run lint && npm run test:server && npm run test:client",
+    "verify": "npm run check:headers && npm run format:check && npm run typecheck:client && npm run test:server && npm run test:client",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "openapi:yaml": "node scripts/generate-openapi-yaml.js",
-    "link-cli": "npm link || node -e \"console.warn('cam CLI not linked globally (no permission?). Link manually with: npm link')\"",
+    "link-cli": "npm link || node -e \"console.warn('ccam CLI not linked globally (no permission?). Link manually with: npm link')\"",
     "monitoring:install": "npm install --prefix monitoring",
     "monitoring:setup": "npm run monitoring:install",
     "monitoring:up": "npm --prefix monitoring run start",
@@ -119,9 +120,10 @@
   },
   "dependencies": {
     "adm-zip": "0.6.1",
+    "commander": "^14.0.3",
     "cors": "^2.8.5",
     "cross-spawn": "^7.0.6",
-    "express": "5.2.1",
+    "express": "4.22.2",
     "multer": "2.4.0",
     "redoc": "^2.5.3",
     "swagger-ui-express": "^5.0.1",
@@ -134,18 +136,12 @@
     "better-sqlite3": "^12.0.0"
   },
   "overrides": {
-    "js-yaml": "4.3.2"
+    "js-yaml": "4.3.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
-    "@types/node": "^22.20.1",
-    "c8": "^12.0.0",
     "concurrently": "^9.1.2",
-    "eslint": "^9.39.5",
-    "globals": "^17.11.0",
-    "js-yaml": "4.3.2",
-    "prettier": "^3.8.1",
-    "typescript": "^5.9.3"
+    "js-yaml": "4.3.1",
+    "prettier": "^3.8.1"
   },
   "engines": {
     "node": ">=22.22.0"

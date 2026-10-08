@@ -3,12 +3,12 @@
  * @description Reusable, syntax-highlighted code block with a chrome bar (language pill,
  * optional filename, copy-to-clipboard, line count) and optional gutter line numbers.
  * Used by MarkdownContent for fenced code blocks and by ToolCallBlock for tool I/O.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/conversation/CodeBlock.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/conversation/CodeBlock.tsx`
  * **Purpose:** Renders Claude transcript rows (user, assistant, tool calls) inside Session Detail with markdown, syntax highlighting, and TUI-style segments.
  *
  * ## Design constraints
@@ -58,8 +58,11 @@ import { useMemo, useState } from "react";
 import { Check, Copy, FileCode } from "lucide-react";
 import { canonicalLang, highlight, tokenClass, type Token } from "../../lib/highlight";
 
+/** Props for {@link CodeBlock}. */
 interface CodeBlockProps {
+  /** Source code to show. */
   code: string;
+  /** Language tag from the fence, used for highlighting and the language label. */
   lang?: string;
   /** Optional filename to display in the chrome bar. */
   filename?: string;
@@ -75,6 +78,7 @@ interface CodeBlockProps {
   showLineNumbers?: boolean;
 }
 
+/** Display names for language tags in the header. */
 const LANG_DISPLAY: Record<string, string> = {
   js: "JavaScript",
   ts: "TypeScript",
@@ -89,6 +93,12 @@ const LANG_DISPLAY: Record<string, string> = {
   plain: "Text",
 };
 
+/**
+ * Display name for a language tag, after resolving aliases.
+ *
+ * @param lang - Language tag.
+ * @returns The display name, the raw tag when unknown, or `Text` when empty.
+ */
 function langDisplay(lang: string): string {
   const canon = canonicalLang(lang);
   return LANG_DISPLAY[canon] ?? (lang || "Text");
@@ -97,6 +107,9 @@ function langDisplay(lang: string): string {
 /**
  * Split tokens that span multiple lines so we can render one line at a time
  * (necessary for the gutter line-number column to align).
+ *
+ * @param tokens - Highlighted tokens for the whole block.
+ * @returns Tokens grouped per line, splitting tokens that span newlines.
  */
 function splitTokensByLine(tokens: Token[]): Token[][] {
   const lines: Token[][] = [[]];
@@ -113,6 +126,10 @@ function splitTokensByLine(tokens: Token[]): Token[][] {
   return lines;
 }
 
+/**
+ * Syntax-highlighted code block with a header showing the language or file name and line count, a
+ * copy button, and line numbers (on by default from four lines). `compact` drops the header.
+ */
 export function CodeBlock({
   code,
   lang = "",
@@ -125,11 +142,17 @@ export function CodeBlock({
 }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
+  /** Highlighted tokens for the code. */
   const tokens = useMemo(() => highlight(code, lang), [code, lang]);
+  /** Tokens grouped by line, for line numbers. */
   const lineTokens = useMemo(() => splitTokensByLine(tokens), [tokens]);
   const totalLines = lineTokens.length;
   const gutter = showLineNumbers ?? totalLines >= 4;
 
+  /**
+   * Copy the code and show a check mark for 1.5 seconds; does nothing when the clipboard is
+   * unavailable.
+   */
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(code);

@@ -10,8 +10,8 @@ resources:
   - ../../base
 
 images:
-  - name: cam-dashboard
-    newTag: 4.2.1
+  - name: ccam-dashboard
+    newTag: 2.2.6
 
 patches:
   - path: patches/deployment-patch.yaml

@@ -14,27 +14,27 @@ Intended to be referenced from Claude Code's ``statusLine`` setting (see
 
 :file: statusline/statusline.py
 :module: Claude-Code-Agent-Monitor.statusline
-:author: Michael Buluma <1452922+buluma@users.noreply.github.com>
-:maintainer: Michael Buluma
-:copyright: (c) 2026 Michael Buluma
+:author: Son Nguyen <hoangson091104@gmail.com>
+:maintainer: Son Nguyen (a.k.a. David Nguyen, hoangsonww)
+:copyright: (c) 2026 Son Nguyen
 :license: MIT
-:repository: https://github.com/buluma/Code-Agent-Monitor
+:repository: https://github.com/hoangsonww/Claude-Code-Agent-Monitor
 :requires: Python 3.6+
 :encoding: utf-8
 
-@author Michael Buluma <1452922+buluma@users.noreply.github.com>
+@author Son Nguyen <hoangson091104@gmail.com>
 """
 
 __file_name__ = "statusline.py"
 __module__ = "Claude-Code-Agent-Monitor.statusline"
-__author__ = "Michael Buluma"
-__email__ = "1452922+buluma@users.noreply.github.com"
-__maintainer__ = "Michael Buluma"
-__copyright__ = "Copyright (c) 2026 Michael Buluma"
+__author__ = "Son Nguyen"
+__email__ = "hoangson091104@gmail.com"
+__maintainer__ = "Son Nguyen"
+__copyright__ = "Copyright (c) 2026 Son Nguyen"
 __license__ = "MIT"
 __version__ = "1.0.0"
 __status__ = "Production"
-__repository__ = "https://github.com/buluma/Code-Agent-Monitor"
+__repository__ = "https://github.com/hoangsonww/Claude-Code-Agent-Monitor"
 
 import sys
 import json
@@ -75,7 +75,7 @@ if user:
 # CWD — strip home prefix
 cwd = (data.get('workspace') or {}).get('current_dir') or data.get('cwd', '')
 if cwd:
-    home = os.path.expanduser('~')  # C:\Users\buluma
+    home = os.path.expanduser('~')  # C:\Users\nguyens6
     if cwd.startswith(home):
         cwd = '~' + cwd[len(home):].replace('\\', '/')
     else:

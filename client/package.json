@@ -1,5 +1,5 @@
 {
-  "name": "code-agent-monitor-client",
+  "name": "agent-dashboard-client",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -12,8 +12,7 @@
     "typecheck": "tsc -b",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
@@ -37,13 +36,12 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
     "@vitejs/plugin-react": "5.2.0",
-    "@vitest/coverage-v8": "^5.0.0",
     "autoprefixer": "^10.4.20",
     "jsdom": "^27.0.1",
     "postcss": "8.5.25",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.3",
     "vite": "7.3.6",
-    "vitest": "5.0.0"
+    "vitest": "3.2.7"
   }
 }

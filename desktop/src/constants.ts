@@ -5,12 +5,12 @@
  * documented default dashboard port, and the embedded server health probe in
  * `server-host.ts`.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/desktop/src/constants.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/desktop/src/constants.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -32,6 +32,7 @@
  *
  * ## Public surface
  * - `APP_NAME` — exported API; see TSDoc on the symbol for behavior.
+ * - `APP_ID` — exported API; see TSDoc on the symbol for behavior.
  * - `PREFERRED_PORT` — exported API; see TSDoc on the symbol for behavior.
  * - `FALLBACK_PORT_RANGE` — exported API; see TSDoc on the symbol for behavior.
  * - `HEALTH_TIMEOUT_MS` — exported API; see TSDoc on the symbol for behavior.
@@ -51,6 +52,11 @@
  * EXPORT CATALOG — quick index of symbols defined below (documentation only).
  * -----------------------------------------------------------------------------
  * **APP_NAME**
+ *   Part of this module's public contract. Downstream imports should treat
+ *   the signature and return type as stable unless release notes say otherwise.
+ *   When behavior changes, update the `@file` overview and relevant tests.
+ *
+ * **APP_ID**
  *   Part of this module's public contract. Downstream imports should treat
  *   the signature and return type as stable unless release notes say otherwise.
  *   When behavior changes, update the `@file` overview and relevant tests.
@@ -78,7 +84,16 @@
  * ----------------------------------------------------------------------------- */
 
 /** Human-readable product name shown in window title and About menu. */
-export const APP_NAME = "Code Agent Monitor";
+export const APP_NAME = "Claude Code Monitor";
+
+/**
+ * Application identifier. Must match `appId` in electron-builder.yml: on Windows
+ * we hand it to `app.setAppUserModelId()` so toast notifications attribute to
+ * the installed Start-Menu shortcut (NSIS writes the same AUMID there) instead
+ * of appearing as a generic "electron.app" toast — and so taskbar windows group
+ * under one icon. Ignored on macOS/Linux.
+ */
+export const APP_ID = "com.hoangsonww.ccam.desktop";
 
 /**
  * Preferred dashboard port — matches the project's documented default. Also

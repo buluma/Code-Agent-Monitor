@@ -6,12 +6,12 @@
  * and a meaningful provider-native title with its latest two human prompts
  * (or a stable short session ID). Durable cards navigate to details; the brief
  * pre-identity Codex process card stays non-navigable until a real ID exists.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/SessionCard.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/SessionCard.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -59,10 +59,9 @@
  *
  * ----------------------------------------------------------------------------- */
 
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { FolderOpen, Bot, Clock, Coins, Cpu, TerminalSquare } from "lucide-react";
+import { FolderOpen, Bot, Clock, Coins, Cpu } from "lucide-react";
 import { SessionStatusBadge } from "./StatusBadge";
 import {
   effectiveSessionStatus,
@@ -71,13 +70,25 @@ import {
 } from "../lib/types";
 import type { Session } from "../lib/types";
 import { formatDuration, timeAgo, formatModelName } from "../lib/format";
-import { api } from "../lib/api";
 
+/** Props for {@link SessionCard}. */
 interface SessionCardProps {
+  /** Session to show. */
   session: Session;
+  /** Click handler; defaults to opening the session's detail page. */
   onClick?: () => void;
+  /** `dot` shrinks the status badge to its colored dot where the layout
+   *  already shows the status (Kanban columns). Defaults to the full badge. */
+  statusDisplay?: "badge" | "dot";
 }
 
+/**
+ * Whether a card is a transient placeholder for a Codex TUI process that has not written a session
+ * id yet. Such cards are not clickable, since there is no session page to open.
+ *
+ * @param metadata - The row's JSON metadata.
+ * @returns True when `pre_identity_process` is set.
+ */
 function isTransientProcessCard(metadata: string | null | undefined): boolean {
   if (!metadata) return false;
   try {
@@ -87,6 +98,13 @@ function isTransientProcessCard(metadata: string | null | undefined): boolean {
   }
 }
 
+/**
+ * Compact cost: two decimals from $1, three from 1 cent, four below that, and `$0` for zero or
+ * invalid values.
+ *
+ * @param cost - Cost in USD.
+ * @returns The formatted cost.
+ */
 function formatCost(cost: number): string {
   if (!Number.isFinite(cost) || cost <= 0) return "$0";
   if (cost >= 1) return `$${cost.toFixed(2)}`;
@@ -95,7 +113,11 @@ function formatCost(cost: number): string {
 }
 
 /** Two compact, distinct request rows give terse Claude and Codex follow-ups
- * surrounding context without allowing a session card to grow unbounded. */
+ * surrounding context without allowing a session card to grow unbounded.
+ *
+ * @param value - Stored prompt context, possibly empty.
+ * @returns Up to two display lines.
+ */
 function promptPreviewLines(value: string | null | undefined): string[] {
   const seen = new Set<string>();
   return String(value || "")
@@ -110,7 +132,12 @@ function promptPreviewLines(value: string | null | undefined): string[] {
     .slice(-2);
 }
 
-export function SessionCard({ session, onClick }: SessionCardProps) {
+/**
+ * Kanban card for a session: title, a compact status badge (the waiting reason shows in its
+ * tooltip), the latest prompt lines, and session details such as cost. Clicking opens the session,
+ * except for transient Codex placeholders, which have no page yet.
+ */
+export function SessionCard({ session, onClick, statusDisplay = "badge" }: SessionCardProps) {
   const navigate = useNavigate();
   const { t } = useTranslation("kanban");
   const isActive = session.status === "active";
@@ -134,27 +161,10 @@ export function SessionCard({ session, onClick }: SessionCardProps) {
   // what the session is doing.
   const promptPreviewLinesForCard = promptPreviewLines(session.prompt_preview);
   const isTransient = isTransientProcessCard(session.metadata);
-  const [focusState, setFocusState] = useState<"idle" | "focusing" | "focused" | "not_found">(
-    "idle"
-  );
 
   function handleClick() {
     if (onClick) onClick();
     else if (!isTransient) navigate(`/sessions/${session.id}`);
-  }
-
-  async function handleFocusTerminal(e: React.MouseEvent) {
-    e.stopPropagation();
-    if (focusState === "focusing") return;
-    setFocusState("focusing");
-    try {
-      const result = await api.sessions.focusTerminal(session.id);
-      setFocusState(result.focused ? "focused" : "not_found");
-    } catch {
-      setFocusState("not_found");
-    } finally {
-      setTimeout(() => setFocusState("idle"), 2500);
-    }
   }
 
   return (
@@ -171,47 +181,33 @@ export function SessionCard({ session, onClick }: SessionCardProps) {
       }`}
     >
       <div className="flex items-start justify-between gap-2 mb-3 min-w-0">
-        <div className="flex items-center gap-2.5 min-w-0 overflow-hidden">
+        <div className="flex items-start gap-2.5 min-w-0 overflow-hidden">
           <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 bg-accent/15 text-accent">
             <FolderOpen className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0 overflow-hidden">
-            <p className="text-sm font-medium text-gray-200 truncate">{title}</p>
+            {/* Up to three lines (long unbroken tokens break anywhere) so long
+                titles stay readable without stretching the card. */}
+            <p
+              className="text-sm font-medium leading-snug text-gray-200 line-clamp-3 [overflow-wrap:anywhere]"
+              title={title}
+            >
+              {title}
+            </p>
             <p className="text-[11px] text-gray-500 font-mono truncate">
               {session.id.slice(0, 12)}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          {isActive && !isTransient && (
-            <button
-              type="button"
-              onClick={handleFocusTerminal}
-              disabled={focusState === "focusing"}
-              title={
-                focusState === "not_found"
-                  ? t("session.focusTerminalNotFound")
-                  : focusState === "focused"
-                    ? t("session.focusTerminalFocused")
-                    : t("session.focusTerminal")
-              }
-              aria-label={t("session.focusTerminal")}
-              className="p-1 rounded text-gray-500 hover:text-gray-200 hover:bg-surface-2 disabled:opacity-50 transition-colors"
-            >
-              <TerminalSquare
-                className={`w-3.5 h-3.5 ${focusState === "focused" ? "text-emerald-400" : focusState === "not_found" ? "text-gray-600" : ""}`}
-              />
-            </button>
-          )}
-          {/* compact: cards are narrow — inline reason chip would squeeze the
-              title, so the reason stays hover-tooltip-only here. */}
-          <SessionStatusBadge
-            status={status}
-            reason={sessionAwaitingReason(session)}
-            provider={session.provider}
-            compact
-          />
-        </div>
+        {/* compact: cards are narrow — inline reason chip would squeeze the
+            title, so the reason stays hover-tooltip-only here. */}
+        <SessionStatusBadge
+          status={status}
+          reason={sessionAwaitingReason(session)}
+          provider={session.provider}
+          compact
+          variant={statusDisplay}
+        />
       </div>
 
       {promptPreviewLinesForCard.length > 0 && (
@@ -229,7 +225,10 @@ export function SessionCard({ session, onClick }: SessionCardProps) {
       )}
 
       {session.cwd && (
-        <p className="text-xs text-gray-400 mb-3 truncate font-mono leading-relaxed">
+        <p
+          className="text-xs text-gray-400 mb-3 truncate font-mono leading-relaxed"
+          title={session.cwd}
+        >
           {session.cwd}
         </p>
       )}
@@ -242,7 +241,9 @@ export function SessionCard({ session, onClick }: SessionCardProps) {
         {model && (
           <span className="flex items-center gap-1 flex-shrink-0 truncate">
             <Cpu className="w-3 h-3" />
-            <span className="truncate">{model}</span>
+            <span className="truncate" title={model}>
+              {model}
+            </span>
           </span>
         )}
         {typeof session.cost === "number" && session.cost > 0 && (

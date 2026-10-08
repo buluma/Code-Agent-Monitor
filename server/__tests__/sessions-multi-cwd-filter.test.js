@@ -2,7 +2,7 @@
  * @file Integration tests for the Sessions API's repeatable `cwd` query filter.
  * Verifies that selecting multiple project directories is an OR filter while
  * preserving the existing single-directory behavior and result pagination.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { after, before, describe, it } = require("node:test");
@@ -12,7 +12,7 @@ const http = require("node:http");
 const os = require("node:os");
 const path = require("node:path");
 
-const TEST_DB = path.join(os.tmpdir(), `cam-sessions-cwd-${Date.now()}-${process.pid}.db`);
+const TEST_DB = path.join(os.tmpdir(), `ccam-sessions-cwd-${Date.now()}-${process.pid}.db`);
 process.env.DASHBOARD_DB_PATH = TEST_DB;
 process.env.DASHBOARD_REMOTE_SYNC_MS = "0";
 process.env.DASHBOARD_LIVENESS_PROBE = "0";

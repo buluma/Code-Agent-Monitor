@@ -12,7 +12,7 @@
  * Reads the page source through Vite's `?raw` import rather than `node:fs`: the
  * client tsconfig is DOM-only, so a Node builtin here typechecks locally under
  * Vitest but breaks `tsc -b` in the production build.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 import { describe, it, expect } from "vitest";

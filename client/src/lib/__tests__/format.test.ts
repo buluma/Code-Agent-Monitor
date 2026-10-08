@@ -1,7 +1,7 @@
 /**
  * @file format.test.ts
- * @description Unit tests for the format utility functions to ensure correct formatting of durations, time ago, truncation, and locale-aware date/time in the Code Agent Monitor application.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @description Unit tests for the format utility functions to ensure correct formatting of durations, time ago, truncation, and locale-aware date/time in the agent dashboard application.
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 import { describe, it, expect, vi, afterEach } from "vitest";
@@ -105,18 +105,30 @@ describe("timeAgo", () => {
 });
 
 describe("locale-aware date formatting", () => {
-  it("should map selected language to en-US locale", async () => {
+  it("should map selected language to the expected locale", async () => {
+    await i18n.changeLanguage("zh");
+    expect(getCurrentLocale()).toBe("zh-CN");
+
+    await i18n.changeLanguage("vi");
+    expect(getCurrentLocale()).toBe("vi-VN");
+
+    await i18n.changeLanguage("ko");
+    expect(getCurrentLocale()).toBe("ko-KR");
+
+    await i18n.changeLanguage("es");
+    expect(getCurrentLocale()).toBe("es-ES");
+
     await i18n.changeLanguage("en");
     expect(getCurrentLocale()).toBe("en-US");
   });
 
-  it("should format date-time using en-US locale", async () => {
+  it("should format date-time using the active locale", async () => {
     const spy = vi.spyOn(Date.prototype, "toLocaleString").mockReturnValue("formatted-datetime");
-    await i18n.changeLanguage("en");
+    await i18n.changeLanguage("vi");
 
     expect(formatDateTime("2026-03-05T10:00:00.000Z")).toBe("formatted-datetime");
     expect(spy).toHaveBeenCalledWith(
-      "en-US",
+      "vi-VN",
       expect.objectContaining({
         month: "short",
         day: "numeric",
@@ -126,13 +138,13 @@ describe("locale-aware date formatting", () => {
     );
   });
 
-  it("should format time using en-US locale", async () => {
+  it("should format time using the active locale", async () => {
     const spy = vi.spyOn(Date.prototype, "toLocaleTimeString").mockReturnValue("formatted-time");
-    await i18n.changeLanguage("en");
+    await i18n.changeLanguage("zh");
 
     expect(formatTime("2026-03-05T10:00:00.000Z")).toBe("formatted-time");
     expect(spy).toHaveBeenCalledWith(
-      "en-US",
+      "zh-CN",
       expect.objectContaining({
         hour: "2-digit",
         minute: "2-digit",

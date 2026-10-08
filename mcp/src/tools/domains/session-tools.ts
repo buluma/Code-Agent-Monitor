@@ -1,12 +1,12 @@
 /**
  * @file session-tools.ts
  * @description Defines and registers tools for managing sessions in the dashboard, including listing sessions with optional filters, retrieving session details, creating new sessions, and updating existing sessions. Each tool includes input validation using Zod schemas and interacts with the dashboard API to perform the necessary operations. The tools also check for mutation permissions before allowing changes to session data, ensuring that the application configuration is respected.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/tools/domains/session-tools.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/tools/domains/session-tools.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -66,6 +66,8 @@ import type { ToolContext } from "../../types/tool-context.js";
  * List/get are read-only; create/update both call
  * {@link assertMutationsEnabled} first. None are gated by the
  * destructive-tools flag.
+ *
+ * @param context - Shared tool context.
  */
 export function registerSessionTools(context: ToolContext): void {
   const { api, config } = context;
@@ -88,7 +90,7 @@ export function registerSessionTools(context: ToolContext): void {
       sort_desc: z.boolean().optional(),
       sources: z.array(z.string().min(1).max(256)).min(1).max(100).optional(),
       providers: z
-        .array(z.enum(["claude", "codex", "helmcode", "t3"]))
+        .array(z.enum(["claude", "codex"]))
         .min(1)
         .max(2)
         .optional(),

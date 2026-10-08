@@ -7,8 +7,113 @@
  * enabled by default), a shared `AudioContext` that is unlocked on the first
  * user gesture to satisfy browser autoplay policies, and the rate limiting that
  * keeps bursty WebSocket traffic from turning into a stream of beeps.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
+/* =============================================================================
+ * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
+ * =============================================================================
+ * **Path:** `client/src/lib/sound.ts`
+ * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
+ *
+ * ## Design constraints
+ * - Local-first: no telemetry leaves the machine unless the user configures webhooks.
+ * - Fail-safe hooks path on the server must never block Claude Code; UI mirrors that
+ *   philosophy by degrading gracefully (empty states, stale badges, reconnect loops).
+ * - Destructive flows stay behind explicit confirmation modals and server-side gates.
+ * - Internationalization: user-visible strings belong in i18n JSON, not literals here.
+ *
+ * ## Remote data & SSH
+ * Remote Data Sources let operators aggregate multiple machines. SSH entries describe
+ * how to reach a peer dashboard; the global data scope (`dataScope.ts`) narrows every
+ * scoped GET via `?sources=`. Health checks and import history surface in Settings.
+ *
+ * ## Observability
+ * Prometheus scrapes `GET /api/metrics` (see `monitoring/`). Grafana ships four
+ * provisioned boards (overview, sessions, tools, alerts). Native npm scripts and
+ * Docker Compose profiles are documented in `monitoring/README.md`.
+ *
+ * ## Public surface
+ * - `CueName` — exported API; see TSDoc on the symbol for behavior.
+ * - `SoundPrefs` — exported API; see TSDoc on the symbol for behavior.
+ * - `DEFAULT_SOUND_PREFS` — exported API; see TSDoc on the symbol for behavior.
+ * - `getSoundPrefs` — exported API; see TSDoc on the symbol for behavior.
+ * - `setSoundPrefs` — exported API; see TSDoc on the symbol for behavior.
+ * - `subscribeToSoundPrefs` — exported API; see TSDoc on the symbol for behavior.
+ * - `unlockSound` — exported API; see TSDoc on the symbol for behavior.
+ * - `installSoundUnlock` — exported API; see TSDoc on the symbol for behavior.
+ * - `resetSoundThrottle` — exported API; see TSDoc on the symbol for behavior.
+ * - `playCue` — exported API; see TSDoc on the symbol for behavior.
+ * - `resetSoundEngine` — exported API; see TSDoc on the symbol for behavior.
+ *
+ * ## Testing pointers
+ * - Prefer colocated `__tests__` with Vitest + Testing Library for UI.
+ * - Server contract changes require `npm run test:server` and OpenAPI sync.
+ * - MCP edits: `npm run mcp:typecheck` and `npm run mcp:build`.
+ *
+ * ## Related docs
+ * - `ARCHITECTURE.md` — hooks → API → SQLite → WebSocket → UI pipeline.
+ * - `docs/API.md` — REST reference.
+ * - `.claude/skills/file-headers/` — mandatory `@author` header policy.
+ * ============================================================================= */
+/* -----------------------------------------------------------------------------
+ * EXPORT CATALOG — quick index of symbols defined below (documentation only).
+ * -----------------------------------------------------------------------------
+ * **CueName**
+ *   Part of this module's public contract. Downstream imports should treat
+ *   the signature and return type as stable unless release notes say otherwise.
+ *   When behavior changes, update the `@file` overview and relevant tests.
+ *
+ * **SoundPrefs**
+ *   Part of this module's public contract. Downstream imports should treat
+ *   the signature and return type as stable unless release notes say otherwise.
+ *   When behavior changes, update the `@file` overview and relevant tests.
+ *
+ * **DEFAULT_SOUND_PREFS**
+ *   Part of this module's public contract. Downstream imports should treat
+ *   the signature and return type as stable unless release notes say otherwise.
+ *   When behavior changes, update the `@file` overview and relevant tests.
+ *
+ * **getSoundPrefs**
+ *   Part of this module's public contract. Downstream imports should treat
+ *   the signature and return type as stable unless release notes say otherwise.
+ *   When behavior changes, update the `@file` overview and relevant tests.
+ *
+ * **setSoundPrefs**
+ *   Part of this module's public contract. Downstream imports should treat
+ *   the signature and return type as stable unless release notes say otherwise.
+ *   When behavior changes, update the `@file` overview and relevant tests.
+ *
+ * **subscribeToSoundPrefs**
+ *   Part of this module's public contract. Downstream imports should treat
+ *   the signature and return type as stable unless release notes say otherwise.
+ *   When behavior changes, update the `@file` overview and relevant tests.
+ *
+ * **unlockSound**
+ *   Part of this module's public contract. Downstream imports should treat
+ *   the signature and return type as stable unless release notes say otherwise.
+ *   When behavior changes, update the `@file` overview and relevant tests.
+ *
+ * **installSoundUnlock**
+ *   Part of this module's public contract. Downstream imports should treat
+ *   the signature and return type as stable unless release notes say otherwise.
+ *   When behavior changes, update the `@file` overview and relevant tests.
+ *
+ * **resetSoundThrottle**
+ *   Part of this module's public contract. Downstream imports should treat
+ *   the signature and return type as stable unless release notes say otherwise.
+ *   When behavior changes, update the `@file` overview and relevant tests.
+ *
+ * **playCue**
+ *   Part of this module's public contract. Downstream imports should treat
+ *   the signature and return type as stable unless release notes say otherwise.
+ *   When behavior changes, update the `@file` overview and relevant tests.
+ *
+ * **resetSoundEngine**
+ *   Part of this module's public contract. Downstream imports should treat
+ *   the signature and return type as stable unless release notes say otherwise.
+ *   When behavior changes, update the `@file` overview and relevant tests.
+ *
+ * ----------------------------------------------------------------------------- */
 
 /** `localStorage` key holding the serialized {@link SoundPrefs}. */
 const SOUND_KEY = "agent-monitor-sound";
@@ -83,6 +188,7 @@ const CUE_PREF: Record<CueName, CueFlag> = {
 
 // ─── Preference storage ───
 
+/** Memoized preferences; cleared by `setSoundPrefs`. */
 let cached: SoundPrefs | null = null;
 
 /**
@@ -139,6 +245,14 @@ export function subscribeToSoundPrefs(handler: () => void): () => void {
   return () => window.removeEventListener(PREFS_EVENT, listener);
 }
 
+/**
+ * Clamp a number to a range, treating non-finite input (NaN, Infinity) as `min`.
+ *
+ * @param value - Input.
+ * @param min - Lower bound.
+ * @param max - Upper bound.
+ * @returns The clamped value.
+ */
 function clamp(value: number, min: number, max: number): number {
   if (!Number.isFinite(value)) return min;
   return Math.min(max, Math.max(min, value));
@@ -160,17 +274,30 @@ interface Note {
   type?: OscillatorType;
 }
 
-// Frequencies are equal-temperament pitches. Cues stay inside a C-major
-// pentatonic-ish set so overlapping tails never sound dissonant, and every
-// envelope decays exponentially to avoid the click of a hard cutoff.
+/**
+ * Frequencies in Hz, using equal-temperament pitches. Cues stay inside a C-major pentatonic-like
+ * set so overlapping tails never sound dissonant, and every envelope decays exponentially to avoid
+ * the click of a hard cutoff. This is C5.
+ */
 const C5 = 523.25;
+/** D5 in Hz. */
 const D5 = 587.33;
+/** E5 in Hz. */
 const E5 = 659.25;
+/** G5 in Hz. */
 const G5 = 783.99;
+/** A5 in Hz. */
 const A5 = 880.0;
+/** C6 in Hz. */
 const C6 = 1046.5;
+/** E6 in Hz. */
 const E6 = 1318.51;
+/** G4 in Hz; the lower note of the session-error cue. */
 const G4 = 392.0;
+/**
+ * B-flat 4 in Hz; with G4 it forms the session-error cue's falling minor third, noticeable without
+ * sounding alarming.
+ */
 const Bb4 = 466.16;
 
 /** The synthesis recipe for every cue, as a list of scheduled partials. */
@@ -226,7 +353,9 @@ const BUDGET_EXEMPT: ReadonlySet<CueName> = new Set<CueName>(["click"]);
 
 // ─── Audio graph ───
 
+/** Shared Web Audio context, created lazily on the first cue after a user gesture. */
 let ctx: AudioContext | null = null;
+/** Master gain node; the volume preference (0 to 1) is applied here. */
 let master: GainNode | null = null;
 /** Set once a user gesture has been observed; before that, browsers refuse to
  *  start an `AudioContext` and every cue is a silent no-op. */
@@ -279,6 +408,7 @@ export function unlockSound(): void {
 export function installSoundUnlock(): () => void {
   if (typeof window === "undefined") return () => {};
   const events: (keyof WindowEventMap)[] = ["pointerdown", "keydown", "touchstart"];
+  /** Unlock audio on the first user gesture, then stop listening. */
   const handler = () => {
     unlockSound();
     events.forEach((e) => window.removeEventListener(e, handler));
@@ -289,16 +419,22 @@ export function installSoundUnlock(): () => void {
 
 // ─── Rate limiting ───
 
+/** When each cue last played, for its per-cue cooldown. */
 const lastPlayed = new Map<CueName, number>();
 /** Timestamps of recent plays, used for the global burst budget. */
 let recent: number[] = [];
 /** At most this many cues may start within {@link BURST_WINDOW_MS}. */
 const BURST_LIMIT = 4;
+/** Length of the window the burst budget is counted over, in milliseconds. */
 const BURST_WINDOW_MS = 1200;
 
 /** Returns true when `cue` is allowed to play right now, recording the play if
  *  so. Guards against both a single event type repeating (per-cue cooldown) and
- *  an import or reconnect replaying hundreds of messages (burst budget). */
+ *  an import or reconnect replaying hundreds of messages (burst budget).
+ *
+ * @param cue - Cue that wants to play.
+ * @param now - Current time in epoch milliseconds.
+ */
 function allow(cue: CueName, now: number): boolean {
   const cooldown = COOLDOWN_MS[cue] ?? DEFAULT_COOLDOWN_MS;
   const last = lastPlayed.get(cue);

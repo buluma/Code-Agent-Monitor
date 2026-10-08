@@ -4,13 +4,14 @@
  * the source-scoped data filter threaded through the sessions/events/agents/
  * stats/analytics endpoints. The actual SSH/rsync transfer is not exercised
  * (that needs a live remote); everything up to and around it is.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { describe, it, before, after } = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("path");
 const fs = require("fs");
+const { EventEmitter } = require("events");
 const os = require("os");
 const http = require("http");
 
@@ -165,6 +166,37 @@ describe("remote-sync validateSourceInput", () => {
 });
 
 describe("remote-sync command builders", () => {
+  it("contains EPIPE from an SSH-to-tar stream instead of crashing the server", () => {
+    class FakeStream extends EventEmitter {
+      pipe(destination) {
+        this.destination = destination;
+        return destination;
+      }
+
+      unpipe(destination) {
+        this.unpiped = destination;
+      }
+    }
+
+    const source = new FakeStream();
+    const destination = new FakeStream();
+    let captured = null;
+    const detach = remoteSync.pipeChildStreams(source, destination, (error) => {
+      captured = error;
+    });
+    const error = Object.assign(new Error("write EPIPE"), { code: "EPIPE" });
+
+    destination.emit("error", error);
+    // A second stream error is still observed (and swallowed) but must not
+    // trigger duplicate sync failures while both child processes are closing.
+    source.emit("error", Object.assign(new Error("read ECONNRESET"), { code: "ECONNRESET" }));
+
+    assert.equal(captured, error);
+    assert.equal(source.destination, destination);
+    assert.equal(source.unpiped, destination);
+    detach();
+  });
+
   it("builds ssh option args with port + identity", async () => {
     const args = await remoteSync.sshOptionArgs({ ssh_port: 2222, identity_file: "/k" });
     assert.ok(args.includes("-p"));
@@ -222,7 +254,7 @@ describe("remote-sync command builders", () => {
   });
 
   it("connectionSuccessMessage reflects explicit vs auto-detected WSL", () => {
-    const wslProbe = "wsl.exe -e sh -c 'test -d ~/.claude/projects && echo CAM_OK'";
+    const wslProbe = "wsl.exe -e sh -c 'test -d ~/.claude/projects && echo CCAM_OK'";
     assert.match(
       remoteSync.connectionSuccessMessage({ remote_home: "wsl:~/.claude" }, wslProbe),
       /wsl:~\/\.claude/
@@ -236,7 +268,7 @@ describe("remote-sync command builders", () => {
       /auto-detected/i
     );
     assert.match(
-      remoteSync.connectionSuccessMessage({ remote_home: null }, "sh -c 'echo CAM_OK'"),
+      remoteSync.connectionSuccessMessage({ remote_home: null }, "sh -c 'echo CCAM_OK'"),
       /Remote Claude Code history found/
     );
   });
@@ -279,7 +311,7 @@ describe("remote-sync command builders", () => {
   it("uses sh probe for POSIX absolute remote homes", () => {
     const probes = remoteSync.connectionProbeCommands({ remote_home: "/opt/cc" });
     assert.deepEqual(probes, [
-      "sh -c 'test -d /opt/cc/projects && echo CAM_OK || echo CAM_NO_DIR'",
+      "sh -c 'test -d /opt/cc/projects && echo CCAM_OK || echo CCAM_NO_DIR'",
     ]);
   });
   it("accepts Windows-style remote_home with forward slashes", () => {
@@ -370,7 +402,7 @@ describe("remote-sync command builders", () => {
     );
   });
   it("identifies top-level session ids in a mirrored tree (skips subagents)", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cam-staged-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-staged-"));
     const proj = path.join(dir, "-Users-x-proj");
     fs.mkdirSync(path.join(proj, "sess-1", "subagents"), { recursive: true });
     fs.writeFileSync(path.join(proj, "sess-1.jsonl"), "{}\n");
@@ -382,7 +414,7 @@ describe("remote-sync command builders", () => {
   });
 
   it("identifies native Codex rollout ids in a mirrored staging tree", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cam-codex-staged-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-codex-staged-"));
     const id = "019fbb99-bd87-7c80-afec-ee65e2ebbe1c";
     const rollout = path.join(
       dir,
@@ -403,7 +435,7 @@ describe("remote Codex staging import", () => {
   it("uses the Codex ingestor, tags the source, and honors mirrored native titles", async () => {
     const sourceId = "src_remote_codex_import";
     const sessionId = "019fbb99-bd87-7c80-afec-ee65e2ebbe1c";
-    const stage = fs.mkdtempSync(path.join(os.tmpdir(), "cam-remote-codex-import-"));
+    const stage = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-remote-codex-import-"));
     const rollout = path.join(
       stage,
       "sessions",
@@ -797,7 +829,7 @@ describe("reconcileRemoteSessionStatus", () => {
   let stageRoot;
 
   before(() => {
-    stageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "cam-recon-"));
+    stageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-recon-"));
   });
   after(() => {
     try {

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# db-restore.sh – SQLite database restore for Code Agent Monitor
+# db-restore.sh – SQLite database restore for Claude Code Agent Monitor
 #
 # Usage:
 #   ./db-restore.sh --env production --input ./backups/agent-monitor_production_20240101_120000.db
 #   ./db-restore.sh --help
 # ─────────────────────────────────────────────────────────────────────────────
-# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+# @author Son Nguyen <hoangson091104@gmail.com>
 set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -101,7 +101,7 @@ validate_input() {
   # Decompress if needed
   if [[ "$INPUT_FILE" == *.gz ]]; then
     info "Decompressing gzipped backup..."
-    TEMP_RESTORE_FILE="$(mktemp "${TMPDIR:-/tmp}/cam-restore.XXXXXX.db")"
+    TEMP_RESTORE_FILE="$(mktemp "${TMPDIR:-/tmp}/ccam-restore.XXXXXX.db")"
     gzip -dc "${INPUT_FILE}" > "${TEMP_RESTORE_FILE}" || fatal "Failed to decompress ${INPUT_FILE}"
     restore_file="${TEMP_RESTORE_FILE}"
   fi
@@ -401,7 +401,7 @@ main() {
   trap cleanup EXIT
   echo ""
   echo -e "${BOLD}${YELLOW}╔══════════════════════════════════════════════════╗${NC}"
-  echo -e "${BOLD}${YELLOW}║   Code Agent Monitor – DB Restore               ║${NC}"
+  echo -e "${BOLD}${YELLOW}║   Claude Code Agent Monitor – DB Restore        ║${NC}"
   echo -e "${BOLD}${YELLOW}╚══════════════════════════════════════════════════╝${NC}"
   echo ""
 

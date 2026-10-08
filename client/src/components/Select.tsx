@@ -10,12 +10,12 @@
  * Used on the Run Claude page and webhook settings form wherever a compact
  * enum picker is needed.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/Select.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/Select.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -114,6 +114,7 @@ export function Select<T extends string>({ value, onChange, options, disabled }:
 
   useEffect(() => {
     if (!open) return;
+    /** Close the list on a click outside the component. */
     const onClick = (e: MouseEvent) => {
       if (!containerRef.current) return;
       if (!containerRef.current.contains(e.target as Node)) setOpen(false);
@@ -141,12 +142,18 @@ export function Select<T extends string>({ value, onChange, options, disabled }:
     }
   }, [open, value, options]);
 
+  /** Pick an option, close the list, and return focus to the button. */
   const choose = (opt: SelectOption<T>) => {
     onChange(opt.value);
     setOpen(false);
     buttonRef.current?.focus();
   };
 
+  /**
+   * Keyboard handling on the button: arrow keys, Enter, or Space open the list; while open, arrows
+   * move the highlight, Home and End jump to the ends, Enter or Space picks the highlighted option,
+   * and Escape closes.
+   */
   const onKey = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     if (
       !open &&

@@ -1,11 +1,11 @@
 /**
  * @file Native application menu (the macOS top-bar menu).
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/desktop/src/menu.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/desktop/src/menu.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -82,8 +82,6 @@ export interface MenuActions {
   toggleOpenAtLogin: () => void;
   /** Read the current auto-start state, used to render the checkbox. */
   isOpenAtLogin: () => boolean;
-  /** Run one update check now (see `updater.ts`). */
-  checkForUpdates: () => void;
 }
 
 /**
@@ -95,6 +93,9 @@ export interface MenuActions {
  * Item visibility and roles branch on `process.platform === "darwin"` in a
  * handful of places — see the inline comments on the `File ▸ Open Dashboard`
  * item and the `Window` submenu for why those specific items are macOS-only.
+ *
+ * @param actions - Callbacks the menu items trigger.
+ * @returns The installed menu.
  */
 export function installApplicationMenu(actions: MenuActions): Menu {
   const isMac = process.platform === "darwin";
@@ -106,11 +107,6 @@ export function installApplicationMenu(actions: MenuActions): Menu {
             label: APP_NAME,
             submenu: [
               { role: "about" },
-              { type: "separator" },
-              {
-                label: "Check for Updates…",
-                click: () => actions.checkForUpdates(),
-              },
               { type: "separator" },
               {
                 label: "Open at Login",
@@ -215,13 +211,14 @@ export function installApplicationMenu(actions: MenuActions): Menu {
       submenu: [
         {
           label: "Project on GitHub",
-          click: () => void shell.openExternal("https://github.com/buluma/Code-Agent-Monitor"),
+          click: () =>
+            void shell.openExternal("https://github.com/hoangsonww/Claude-Code-Agent-Monitor"),
         },
         {
           label: "Report an Issue",
           click: () =>
             void shell.openExternal(
-              "https://github.com/buluma/Code-Agent-Monitor/issues/new/choose"
+              "https://github.com/hoangsonww/Claude-Code-Agent-Monitor/issues/new/choose"
             ),
         },
         {

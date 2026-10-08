@@ -2,7 +2,7 @@
  * @file dashboard-api-client.test.ts
  * @description Contract tests for MCP dashboard HTTP requests, including
  * bearer-token propagation and DELETE request bodies used by config tools.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 import { afterEach, describe, it } from "node:test";
@@ -77,7 +77,7 @@ describe("DashboardApiClient", () => {
   });
 
   it("rejects multipart uploads above the cumulative size cap before fetch", async () => {
-    const directory = await mkdtemp(path.join(os.tmpdir(), "cam-mcp-upload-"));
+    const directory = await mkdtemp(path.join(os.tmpdir(), "ccam-mcp-upload-"));
     const first = path.join(directory, "first.jsonl");
     const second = path.join(directory, "second.jsonl");
     await writeFile(first, Buffer.alloc(50 * 1024 * 1024));

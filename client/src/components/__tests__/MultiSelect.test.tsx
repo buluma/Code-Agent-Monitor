@@ -2,7 +2,7 @@
  * @file MultiSelect.test.tsx
  * @description Tests the searchable custom multi-select's filtering, multi-value
  * toggling, and long-label accessible rendering.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 import { describe, expect, it, vi } from "vitest";

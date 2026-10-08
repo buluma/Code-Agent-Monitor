@@ -1,12 +1,12 @@
 /**
  * @file index.ts
  * @description The main entry point for the MCP application, responsible for initializing the server, loading configuration, setting up logging, and starting the appropriate transport based on configuration or command-line arguments. The application supports multiple transport modes (stdio, http, repl) and includes graceful shutdown handling. It also collects tools and registers them with the server when using HTTP or REPL transports. The main function orchestrates the startup process and ensures that any unhandled errors are logged before exiting.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/index.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/index.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -64,6 +64,9 @@ import { printBanner, printServerInfo, printReady, printShutdown } from "./ui/ba
  * `MCP_TRANSPORT` env value passed as `env`. Priority: explicit
  * `--transport=<mode>`, then bare `--repl`/`--http`, then `env`. An
  * unrecognized `--transport=` value falls through rather than throwing.
+ *
+ * @param env - Transport from `MCP_TRANSPORT`.
+ * @returns The transport to start.
  */
 function resolveTransport(env: TransportMode): TransportMode {
   const cliArg = process.argv.find((a) => a.startsWith("--transport="));
@@ -112,7 +115,7 @@ async function main() {
 
     await server.connect(stdioTransport);
 
-    logger.info("Code Agent Monitor MCP server started", {
+    logger.info("Agent Dashboard MCP server started", {
       serverName: config.serverName,
       serverVersion: config.serverVersion,
       dashboardBaseUrl: config.dashboardBaseUrl.toString(),

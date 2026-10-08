@@ -15,7 +15,7 @@
 
 dashboard:
   name: "Agent Monitor – Operations"
-  description: "Code Agent Monitor: real-time operations, SLOs, and infrastructure health"
+  description: "Claude Code Agent Monitor: real-time operations, SLOs, and infrastructure health"
   folder: "Agent Monitor"
   tags:
     - agent-monitor

@@ -213,7 +213,7 @@ exports[`screen snapshots > Activity feed 1`] = `
                 <dd
                   class="self-center"
                 >
-                  Work is starting or under way: a prompt was submitted, a Codex turn began, or a tool is about to run (PreToolUse, UserPromptSubmit, codex_user_message, codex_task_started, codex_tool_call).
+                  Work is starting or under way: a prompt was submitted, a Codex turn began, or a tool is about to run (PreToolUse, UserPromptSubmit, cursor_user_message, codex_user_message, codex_task_started, codex_tool_call).
                 </dd>
                 <dt>
                   <span
@@ -3033,16 +3033,6 @@ exports[`screen snapshots > Claude Config 1`] = `
                   BETA
                 </span>
               </button>
-              <button
-                class="rounded-full px-2 py-px text-[10px] font-medium transition-colors text-gray-400 hover:text-gray-200"
-              >
-                Helm Code
-              </button>
-              <button
-                class="rounded-full px-2 py-px text-[10px] font-medium transition-colors text-gray-400 hover:text-gray-200"
-              >
-                T3
-              </button>
             </div>
           </div>
           <p
@@ -4869,7 +4859,8 @@ exports[`screen snapshots > Dashboard 1`] = `
                 d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"
               />
             </svg>
-             Monitor
+             
+            Monitor
           </button>
           <button
             class="px-2.5 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-2 text-gray-500 hover:text-gray-300"
@@ -4915,7 +4906,8 @@ exports[`screen snapshots > Dashboard 1`] = `
                 y2="18"
               />
             </svg>
-             Health
+             
+            Health
           </button>
         </div>
         <button
@@ -5492,7 +5484,7 @@ exports[`screen snapshots > Kanban board 1`] = `
           <p
             class="text-xs text-gray-500 truncate"
           >
-            0 agent tracked
+            0 agents tracked
           </p>
         </div>
       </div>
@@ -6183,43 +6175,6 @@ exports[`screen snapshots > Session detail 1`] = `
             </svg>
             Copy
           </button>
-        </div>
-        <div
-          class="mt-2"
-        >
-          <div
-            class="flex items-center gap-2 text-xs text-gray-500"
-          >
-            <svg
-              class="lucide lucide-link w-3.5 h-3.5 flex-shrink-0"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
-              />
-              <path
-                d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
-              />
-            </svg>
-            <span>
-              Linear isn't connected.
-            </span>
-            <a
-              class="text-accent hover:underline"
-              data-discover="true"
-              href="/settings"
-            >
-              Add an API key in Settings
-            </a>
-          </div>
         </div>
       </div>
       <button
@@ -6919,7 +6874,7 @@ exports[`screen snapshots > Sessions 1`] = `
             aria-live="polite"
             class="text-xs text-gray-500"
           >
-            0 session recorded
+            0 sessions recorded
           </p>
         </div>
       </div>
@@ -6960,7 +6915,7 @@ exports[`screen snapshots > Sessions 1`] = `
       class="flex flex-wrap lg:flex-nowrap items-center gap-3 mb-6 bg-surface-2/40 p-2 rounded-xl border border-border w-full"
     >
       <div
-        class="relative flex-1 min-w-[180px] max-w-[340px]"
+        class="relative flex-1 min-w-[260px] max-w-[340px]"
       >
         <svg
           class="lucide lucide-search absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
@@ -6985,11 +6940,17 @@ exports[`screen snapshots > Sessions 1`] = `
         </svg>
         <input
           aria-label="Search sessions..."
-          class="input w-full pl-10"
+          class="input w-full pl-10 pr-12"
           placeholder="Search sessions..."
           type="text"
           value=""
         />
+        <kbd
+          aria-hidden="true"
+          class="pointer-events-none select-none rounded border border-border bg-surface-2 px-1.5 py-0.5 font-sans text-[10px] text-gray-500 absolute right-2.5 top-1/2 -translate-y-1/2"
+        >
+          Ctrl K
+        </kbd>
       </div>
       <div
         class="w-full shrink-0 sm:w-[280px] lg:w-[300px]"
@@ -7110,46 +7071,46 @@ exports[`screen snapshots > Sessions 1`] = `
         </button>
       </div>
       <div
-        class="flex gap-1 bg-surface-1 rounded-lg p-1 border border-border ml-auto shrink-0"
+        class="ml-auto flex min-w-0 max-w-full gap-1 overflow-x-auto no-scrollbar rounded-lg border border-border bg-surface-1 p-1"
       >
         <button
           aria-pressed="true"
-          class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap bg-surface-4 text-gray-200"
+          class="shrink-0 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap bg-surface-4 text-gray-200"
           type="button"
         >
           All
         </button>
         <button
           aria-pressed="false"
-          class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap text-gray-500 hover:text-gray-300"
+          class="shrink-0 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap text-gray-500 hover:text-gray-300"
           type="button"
         >
           Active
         </button>
         <button
           aria-pressed="false"
-          class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap text-gray-500 hover:text-gray-300"
+          class="shrink-0 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap text-gray-500 hover:text-gray-300"
           type="button"
         >
           Waiting
         </button>
         <button
           aria-pressed="false"
-          class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap text-gray-500 hover:text-gray-300"
+          class="shrink-0 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap text-gray-500 hover:text-gray-300"
           type="button"
         >
           Completed
         </button>
         <button
           aria-pressed="false"
-          class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap text-gray-500 hover:text-gray-300"
+          class="shrink-0 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap text-gray-500 hover:text-gray-300"
           type="button"
         >
           Error
         </button>
         <button
           aria-pressed="false"
-          class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap text-gray-500 hover:text-gray-300"
+          class="shrink-0 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap text-gray-500 hover:text-gray-300"
           type="button"
         >
           Abandoned
@@ -7394,6 +7355,35 @@ exports[`screen snapshots > Settings 1`] = `
         </button>
         <button
           class="inline-flex items-center gap-1.5 text-xs whitespace-nowrap px-2.5 py-1.5 rounded-lg border transition-colors flex-shrink-0 border-border text-gray-400 hover:text-gray-200 hover:bg-surface-3"
+          data-settings-section="cursor-pricing"
+          type="button"
+        >
+          <svg
+            class="lucide lucide-dollar-sign w-3.5 h-3.5"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <line
+              x1="12"
+              x2="12"
+              y1="2"
+              y2="22"
+            />
+            <path
+              d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+            />
+          </svg>
+          Cursor Pricing
+        </button>
+        <button
+          class="inline-flex items-center gap-1.5 text-xs whitespace-nowrap px-2.5 py-1.5 rounded-lg border transition-colors flex-shrink-0 border-border text-gray-400 hover:text-gray-200 hover:bg-surface-3"
           data-settings-section="gpt-pricing"
           type="button"
         >
@@ -7527,45 +7517,6 @@ exports[`screen snapshots > Settings 1`] = `
             />
           </svg>
           Remote Data Sources
-        </button>
-        <button
-          class="inline-flex items-center gap-1.5 text-xs whitespace-nowrap px-2.5 py-1.5 rounded-lg border transition-colors flex-shrink-0 border-border text-gray-400 hover:text-gray-200 hover:bg-surface-3"
-          data-settings-section="linear"
-          type="button"
-        >
-          <svg
-            class="lucide lucide-git-branch w-3.5 h-3.5"
-            fill="none"
-            height="24"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            viewBox="0 0 24 24"
-            width="24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <line
-              x1="6"
-              x2="6"
-              y1="3"
-              y2="15"
-            />
-            <circle
-              cx="18"
-              cy="6"
-              r="3"
-            />
-            <circle
-              cx="6"
-              cy="18"
-              r="3"
-            />
-            <path
-              d="M18 9a9 9 0 0 1-9 9"
-            />
-          </svg>
-          Linear
         </button>
         <button
           class="inline-flex items-center gap-1.5 text-xs whitespace-nowrap px-2.5 py-1.5 rounded-lg border transition-colors flex-shrink-0 border-border text-gray-400 hover:text-gray-200 hover:bg-surface-3"
@@ -7877,7 +7828,7 @@ exports[`screen snapshots > Settings 1`] = `
       >
         <div
           aria-label="Dashboard Data"
-          class="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:grid-cols-5"
+          class="grid grid-cols-1 gap-2 sm:grid-cols-3"
           role="radiogroup"
         >
           <button
@@ -7918,7 +7869,7 @@ exports[`screen snapshots > Settings 1`] = `
             <span
               class="mt-1 block text-xs leading-relaxed text-gray-500"
             >
-              Show only Claude Code data.
+              Show Claude Code and Cursor data.
             </span>
           </button>
           <button
@@ -7966,64 +7917,14 @@ exports[`screen snapshots > Settings 1`] = `
                 <span
                   class="text-sm font-medium text-gray-200"
                 >
-                  Helm Code
+                  Both
                 </span>
               </span>
             </span>
             <span
               class="mt-1 block text-xs leading-relaxed text-gray-500"
             >
-              Show only Helm Code sessions and activity.
-            </span>
-          </button>
-          <button
-            aria-checked="false"
-            class="rounded-lg border p-3 text-left transition-colors border-border bg-surface-2 hover:border-gray-600"
-            role="radio"
-            type="button"
-          >
-            <span
-              class="flex items-center justify-between gap-2"
-            >
-              <span
-                class="flex min-w-0 items-center gap-1.5"
-              >
-                <span
-                  class="text-sm font-medium text-gray-200"
-                >
-                  T3
-                </span>
-              </span>
-            </span>
-            <span
-              class="mt-1 block text-xs leading-relaxed text-gray-500"
-            >
-              Show only T3 sessions and activity.
-            </span>
-          </button>
-          <button
-            aria-checked="false"
-            class="rounded-lg border p-3 text-left transition-colors border-border bg-surface-2 hover:border-gray-600"
-            role="radio"
-            type="button"
-          >
-            <span
-              class="flex items-center justify-between gap-2"
-            >
-              <span
-                class="flex min-w-0 items-center gap-1.5"
-              >
-                <span
-                  class="text-sm font-medium text-gray-200"
-                >
-                  All
-                </span>
-              </span>
-            </span>
-            <span
-              class="mt-1 block text-xs leading-relaxed text-gray-500"
-            >
-              Combine Claude Code, Codex, Helm Code, and T3 data.
+              Combine Claude Code, Cursor, and Codex data.
             </span>
           </button>
         </div>
@@ -8223,6 +8124,198 @@ exports[`screen snapshots > Settings 1`] = `
     </section>
     <section
       class="scroll-mt-24"
+      id="cursor-pricing"
+    >
+      <div>
+        <div
+          class="mb-4"
+        >
+          <h3
+            class="flex items-center gap-2 text-sm font-medium text-gray-300"
+          >
+            <svg
+              class="lucide lucide-dollar-sign h-4 w-4 text-gray-500"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <line
+                x1="12"
+                x2="12"
+                y1="2"
+                y2="22"
+              />
+              <path
+                d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+              />
+            </svg>
+            Cursor Model Pricing
+            <button
+              aria-label="How Cursor pricing works"
+              class="inline-flex items-center justify-center rounded-full p-0.5 text-gray-500 hover:text-gray-300 focus:outline-none focus:ring-1 focus:ring-accent/40"
+              type="button"
+            >
+              <svg
+                class="lucide lucide-info w-3.5 h-3.5"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                />
+                <path
+                  d="M12 16v-4"
+                />
+                <path
+                  d="M12 8h.01"
+                />
+              </svg>
+            </button>
+          </h3>
+          <p
+            class="mt-0.5 text-xs text-gray-500"
+          >
+            Cursor's published rates for Cursor-native and routed third-party models. USD per 1M tokens; the most specific matching pattern wins.
+          </p>
+          <a
+            class="mt-1 inline-block text-[11px] text-accent hover:underline"
+            href="https://cursor.com/docs/models-and-pricing"
+            rel="noreferrer"
+            target="_blank"
+          >
+            View Cursor Models & Pricing ↗
+          </a>
+          <div
+            class="mt-3 flex items-center gap-2"
+          >
+            <button
+              class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors disabled:opacity-50 text-gray-400 hover:bg-surface-4 hover:text-gray-300"
+              type="button"
+            >
+              <svg
+                class="lucide lucide-rotate-ccw h-3 w-3"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                />
+                <path
+                  d="M3 3v5h5"
+                />
+              </svg>
+              Reset Defaults
+            </button>
+            <button
+              class="btn-primary text-xs disabled:opacity-50"
+              type="button"
+            >
+              <svg
+                class="lucide lucide-plus h-3.5 w-3.5"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 12h14"
+                />
+                <path
+                  d="M12 5v14"
+                />
+              </svg>
+              Add Model
+            </button>
+          </div>
+        </div>
+        <div
+          class="card overflow-x-auto"
+        >
+          <table
+            class="w-full min-w-[780px] text-left text-xs"
+          >
+            <thead
+              class="bg-surface-3 text-[10px] uppercase tracking-wide text-gray-500"
+            >
+              <tr>
+                <th
+                  class="px-3 py-2"
+                >
+                  Pattern
+                </th>
+                <th
+                  class="px-3 py-2"
+                >
+                  Name
+                </th>
+                <th
+                  class="border-l border-border px-2 py-2 text-right"
+                >
+                  Input
+                </th>
+                <th
+                  class="border-l border-border px-2 py-2 text-right"
+                >
+                  Cache write
+                </th>
+                <th
+                  class="border-l border-border px-2 py-2 text-right"
+                >
+                  Cache read
+                </th>
+                <th
+                  class="border-l border-border px-2 py-2 text-right"
+                >
+                  Output
+                </th>
+                <th
+                  class="px-3 py-2"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="divide-y divide-border/60"
+            />
+          </table>
+        </div>
+        <p
+          class="mt-3 text-[11px] leading-relaxed text-gray-600"
+        >
+          Estimates use Cursor's per-token rate card. Included usage pools, plan allowances, Auto routing, and team token-rate billing can make your actual subscription charge differ.
+        </p>
+      </div>
+    </section>
+    <section
+      class="scroll-mt-24"
       id="gpt-pricing"
     >
       <div>
@@ -8290,7 +8383,7 @@ exports[`screen snapshots > Settings 1`] = `
             <p
               class="text-xs text-gray-500 mt-0.5"
             >
-              Published OpenAI API rates for Codex usage. Standard requests use Short rates at or below 272K input tokens and Long rates above 272K; Fast mode uses its own rate card. USD per 1M tokens.
+              Published OpenAI API rates for Codex usage. Standard requests use Short rates at or below 272K input tokens and Long rates above 272K; Fast mode has separate Short and Long rates. USD per 1M tokens.
             </p>
           </div>
           <div
@@ -8352,7 +8445,7 @@ exports[`screen snapshots > Settings 1`] = `
           class="card overflow-x-auto"
         >
           <table
-            class="w-full min-w-[1260px] text-left text-xs"
+            class="w-full min-w-[1560px] text-left text-xs"
           >
             <thead
               class="bg-surface-3 text-[10px] uppercase tracking-wide text-gray-500"
@@ -8386,7 +8479,13 @@ exports[`screen snapshots > Settings 1`] = `
                   class="border-l border-border px-2 py-2 text-center"
                   colspan="4"
                 >
-                  Fast mode
+                  Fast · Short ≤272K
+                </th>
+                <th
+                  class="border-l border-border px-2 py-2 text-center"
+                  colspan="4"
+                >
+                  Fast · Long &gt;272K
                 </th>
                 <th
                   class="px-3 py-2"
@@ -8396,6 +8495,26 @@ exports[`screen snapshots > Settings 1`] = `
                 </th>
               </tr>
               <tr>
+                <th
+                  class="border-l border-border px-2 py-1.5 text-right"
+                >
+                  Input
+                </th>
+                <th
+                  class="border-l border-border px-2 py-1.5 text-right"
+                >
+                  Cached
+                </th>
+                <th
+                  class="border-l border-border px-2 py-1.5 text-right"
+                >
+                  Cache write
+                </th>
+                <th
+                  class="border-l border-border px-2 py-1.5 text-right"
+                >
+                  Output
+                </th>
                 <th
                   class="border-l border-border px-2 py-1.5 text-right"
                 >
@@ -8693,7 +8812,7 @@ exports[`screen snapshots > Settings 1`] = `
       <p
         class="text-[11px] text-gray-600 italic mb-4 leading-snug"
       >
-        Informational: Cursor sessions count here too — Cursor happens to use the same ~/.claude paths as Claude Code (locally and on synced remotes).
+        Cursor is included with the Claude Code dashboard scope. Local history is discovered and snapshotted from ~/.cursor automatically; remote Cursor folders are not synced by Claude-only SSH imports.
       </p>
       <div
         class="card p-5 space-y-5"
@@ -9522,7 +9641,7 @@ exports[`screen snapshots > Settings 1`] = `
         <p
           class="text-[11px] text-gray-600 italic mb-4 leading-snug"
         >
-          Informational: Cursor sessions count here too — Cursor happens to use the same ~/.claude paths as Claude Code (locally and on synced remotes).
+          Cursor is included with the Claude Code dashboard scope. Local history is discovered and snapshotted from ~/.cursor automatically; remote Cursor folders are not synced by Claude-only SSH imports.
         </p>
         <div
           class="card p-5 mb-4"
@@ -9817,45 +9936,6 @@ exports[`screen snapshots > Settings 1`] = `
             Add a machine you reach over SSH to pull its Claude Code and Codex usage in.
           </p>
         </div>
-      </div>
-    </section>
-    <section
-      class="scroll-mt-24"
-      id="linear"
-    >
-      <div
-        class="card p-6 space-y-3"
-      >
-        <div>
-          <h3
-            class="text-sm font-medium text-gray-200"
-          >
-            Linear
-          </h3>
-          <p
-            class="text-xs text-gray-500 mt-1"
-          >
-            Link dashboard sessions to Linear issues from Session Detail — paste an issue URL or auto-detect one from the session's git branch. Read-only: nothing is written back to Linear.
-          </p>
-        </div>
-        <form
-          class="flex items-center gap-2"
-        >
-          <input
-            autocomplete="off"
-            class="flex-1 max-w-sm text-xs bg-surface-2 border border-border rounded px-2.5 py-1.5 outline-none focus:border-accent disabled:opacity-50"
-            placeholder="Linear personal API key"
-            type="password"
-            value=""
-          />
-          <button
-            class="btn-primary text-xs px-3 py-1.5 disabled:opacity-50"
-            disabled=""
-            type="submit"
-          >
-            Save
-          </button>
-        </form>
       </div>
     </section>
     <section
@@ -10972,6 +11052,262 @@ exports[`screen snapshots > Settings 1`] = `
             class="flex items-center gap-3"
           >
             <div
+              class="w-9 h-9 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center"
+            >
+              <svg
+                class="lucide lucide-archive w-4 h-4 text-sky-400"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  height="5"
+                  rx="1"
+                  width="20"
+                  x="2"
+                  y="3"
+                />
+                <path
+                  d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"
+                />
+                <path
+                  d="M10 12h4"
+                />
+              </svg>
+            </div>
+            <div>
+              <p
+                class="text-sm font-medium text-gray-300"
+              >
+                Transcript Snapshots
+              </p>
+              <p
+                class="text-xs text-gray-500"
+              >
+                Durable copies that keep conversations readable after Claude Code, Codex, and Cursor delete their own transcripts.
+              </p>
+            </div>
+          </div>
+          <p
+            class="text-xs text-gray-500"
+          >
+            Loading snapshot storage...
+          </p>
+          <div
+            class="flex flex-wrap items-center gap-2"
+          >
+            <button
+              class="text-xs px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 text-gray-400 hover:text-gray-300 hover:bg-surface-4 border border-border"
+            >
+              <svg
+                class="lucide lucide-package-open w-3 h-3 inline mr-1"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12 22v-9"
+                />
+                <path
+                  d="M15.17 2.21a1.67 1.67 0 0 1 1.63 0L21 4.57a1.93 1.93 0 0 1 0 3.36L8.82 14.79a1.655 1.655 0 0 1-1.64 0L3 12.43a1.93 1.93 0 0 1 0-3.36z"
+                />
+                <path
+                  d="M20 13v3.87a2.06 2.06 0 0 1-1.11 1.83l-6 3.08a1.93 1.93 0 0 1-1.78 0l-6-3.08A2.06 2.06 0 0 1 4 16.87V13"
+                />
+                <path
+                  d="M21 12.43a1.93 1.93 0 0 0 0-3.36L8.83 2.2a1.64 1.64 0 0 0-1.63 0L3 4.57a1.93 1.93 0 0 0 0 3.36l12.18 6.86a1.636 1.636 0 0 0 1.63 0z"
+                />
+              </svg>
+              Compress now
+            </button>
+            <span
+              class="text-[11px] text-gray-500"
+            >
+              Lossless: only snapshots whose original is gone, verified before the plain copy is removed.
+            </span>
+          </div>
+          <div
+            class="border-t border-border pt-4 space-y-3"
+          >
+            <div>
+              <p
+                class="text-xs font-medium text-gray-300"
+              >
+                Prune old snapshots
+              </p>
+              <p
+                class="text-[11px] text-gray-500"
+              >
+                Removes the snapshots of whole finished sessions, oldest first. Preview first: a pruned snapshot may be the only remaining copy of a conversation.
+              </p>
+            </div>
+            <div
+              class="grid grid-cols-1 sm:grid-cols-3 gap-3"
+            >
+              <div
+                class="bg-surface-2 rounded-lg px-4 py-3"
+              >
+                <label
+                  class="text-xs text-gray-400 block mb-2"
+                >
+                  Older than
+                </label>
+                <div
+                  class="flex items-center gap-2"
+                >
+                  <input
+                    class="input w-20 text-sm text-right font-mono"
+                    min="1"
+                    placeholder="—"
+                    type="number"
+                    value=""
+                  />
+                  <span
+                    class="text-xs text-gray-500"
+                  >
+                    days
+                  </span>
+                </div>
+              </div>
+              <div
+                class="bg-surface-2 rounded-lg px-4 py-3"
+              >
+                <label
+                  class="text-xs text-gray-400 block mb-2"
+                >
+                  Keep total under
+                </label>
+                <div
+                  class="flex items-center gap-2"
+                >
+                  <input
+                    class="input w-20 text-sm text-right font-mono"
+                    min="0.1"
+                    placeholder="—"
+                    step="0.1"
+                    type="number"
+                    value=""
+                  />
+                  <span
+                    class="text-xs text-gray-500"
+                  >
+                    GB
+                  </span>
+                </div>
+              </div>
+              <div
+                class="bg-surface-2 rounded-lg px-4 py-3 flex items-center"
+              >
+                <button
+                  aria-checked="false"
+                  class="group inline-flex items-center gap-2 text-left "
+                  role="checkbox"
+                  type="button"
+                >
+                  <span
+                    class="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-[5px] border transition-colors bg-surface-2 border-border group-hover:border-border-light"
+                  />
+                  <span
+                    class="text-xs text-gray-400"
+                  >
+                    Also remove snapshots of sessions no longer in the database
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="flex flex-wrap items-center gap-2"
+            >
+              <button
+                class="text-xs px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 text-gray-400 hover:text-gray-300 hover:bg-surface-4 border border-border"
+                disabled=""
+              >
+                <svg
+                  class="lucide lucide-eye w-3 h-3 inline mr-1"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                  />
+                </svg>
+                Preview
+              </button>
+              <button
+                class="text-xs px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 text-gray-400 hover:text-gray-300 hover:bg-surface-4 border border-border"
+                disabled=""
+                title="Preview these settings first"
+              >
+                <svg
+                  class="lucide lucide-trash2 w-3 h-3 inline mr-1"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M3 6h18"
+                  />
+                  <path
+                    d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"
+                  />
+                  <path
+                    d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"
+                  />
+                  <line
+                    x1="10"
+                    x2="10"
+                    y1="11"
+                    y2="17"
+                  />
+                  <line
+                    x1="14"
+                    x2="14"
+                    y1="11"
+                    y2="17"
+                  />
+                </svg>
+                Prune
+              </button>
+            </div>
+          </div>
+        </div>
+        <div
+          class="card p-5 space-y-4"
+        >
+          <div
+            class="flex items-center gap-3"
+          >
+            <div
               class="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center"
             >
               <svg
@@ -11287,7 +11623,7 @@ exports[`screen snapshots > Settings 1`] = `
             <p
               class="text-[10px] text-amber-400/90 mt-1"
             >
-              UI build v4.2.1 (rebuild client to match)
+              UI build v2.2.6 (rebuild client to match)
             </p>
           </div>
           <div

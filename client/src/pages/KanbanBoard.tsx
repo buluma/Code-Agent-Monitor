@@ -5,12 +5,12 @@
  * by their SessionStatus (active/completed/error/abandoned). The view toggle
  * is persisted in localStorage so the user's choice survives reloads. Each
  * column paginates client-side at COLUMN_PAGE_SIZE.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/pages/KanbanBoard.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/pages/KanbanBoard.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -66,9 +66,12 @@ import { useEffect, useState, useCallback, useMemo, useRef, useSyncExternalStore
 import { useTranslation } from "react-i18next";
 import { RefreshCw, Columns3, ChevronDown, HelpCircle } from "lucide-react";
 import { api } from "../lib/api";
+import { useUrlTab } from "../hooks/usePageShortcuts";
+import { usePaletteAction } from "../components/PaletteActionProvider";
 import { useDataScope } from "../lib/dataScope";
 import { eventBus } from "../lib/eventBus";
 import { isRemoteDataRefreshMessage } from "../lib/remoteDataEvents";
+import { mergeFreshestById } from "../lib/merge-by-id";
 import { AgentCard } from "../components/AgentCard";
 import { SessionCard } from "../components/SessionCard";
 import { EmptyState } from "../components/EmptyState";
@@ -88,13 +91,23 @@ import type {
   WSMessage,
 } from "../lib/types";
 
-type BoardView = "agents" | "sessions";
+/** Board views in render order — also the order `1`/`2` and `[`/`]` address them. */
+const BOARD_VIEWS = ["agents", "sessions"] as const;
+/** Which board is shown: agents or sessions. */
+type BoardView = (typeof BOARD_VIEWS)[number];
 
-// Persisted statuses we fetch from the API.
+/**
+ * Agent statuses fetched from the API, one request each. Waiting agents are fetched with transient
+ * rows included.
+ */
 const AGENT_FETCH_STATUSES: AgentStatus[] = ["working", "waiting", "completed", "error"];
 
-// Columns rendered on the Agents board.
+/** Columns of the Agents board, in display order. */
 const AGENT_COLUMNS: EffectiveAgentStatus[] = ["working", "waiting", "completed", "error"];
+/**
+ * Columns of the Sessions board, in display order. The waiting column is derived on the client from
+ * active sessions that are waiting for input.
+ */
 const SESSION_COLUMNS: EffectiveSessionStatus[] = [
   "active",
   "waiting",
@@ -102,42 +115,47 @@ const SESSION_COLUMNS: EffectiveSessionStatus[] = [
   "error",
   "abandoned",
 ];
+/** Cards shown per column before a "show more" button; each click reveals this many more. */
 const COLUMN_PAGE_SIZE = 10;
+/** localStorage key mirroring the last chosen board, used when the URL does not name one. */
 const VIEW_STORAGE_KEY = "kanban-board-view";
 
-function loadView(): BoardView {
-  try {
-    const stored = localStorage.getItem(VIEW_STORAGE_KEY);
-    if (stored === "agents" || stored === "sessions") return stored;
-  } catch {
-    /* ignore */
-  }
-  return "agents";
-}
-
-function persistView(view: BoardView): void {
-  try {
-    localStorage.setItem(VIEW_STORAGE_KEY, view);
-  } catch {
-    /* ignore */
-  }
-}
-
+/**
+ * Agent Board page (`/kanban`): a Kanban view of agents or sessions by status, chosen with a toggle
+ * that is mirrored into the `view` URL parameter. Agents are fetched per status in parallel and
+ * merged to one card per agent, keeping the freshest row, so an agent that changes status
+ * mid-request lands in a single lane. Sessions are fetched too, so main-agent cards can show model,
+ * working directory, and cost. Columns paginate on the client, the data follows the global data
+ * scope, and the board refreshes on live WebSocket updates.
+ */
 export function KanbanBoard() {
   const { t } = useTranslation("kanban");
   const [dataScope] = useDataScope();
-  const [view, setViewState] = useState<BoardView>(loadView);
+  // URL-backed so the palette and shared links can open either board directly;
+  // `kanban-board-view` still mirrors the last choice for an unqualified visit.
+  const [view, setViewState] = useUrlTab(BOARD_VIEWS, "agents", {
+    param: "view",
+    storageKey: VIEW_STORAGE_KEY,
+  });
   const [agents, setAgents] = useState<Agent[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, number>>({});
 
-  const setView = useCallback((next: BoardView) => {
-    setViewState(next);
-    persistView(next);
-    setExpanded({}); // reset per-column pagination when switching views
-  }, []);
+  /** Switch boards and reset each column's "show more" pagination. */
+  const setView = useCallback(
+    (next: BoardView) => {
+      setViewState(next);
+      setExpanded({}); // reset per-column pagination when switching views
+    },
+    [setViewState]
+  );
 
+  /**
+   * Load agents for every board status in parallel (waiting agents include transient rows), merging
+   * duplicates to the freshest row, plus the sessions that main-agent cards need for model, working
+   * directory, and cost.
+   */
   const loadAgents = useCallback(async () => {
     // Fetch every persisted agent status. Bucketing happens below in
     // `groupedAgents`.
@@ -153,10 +171,17 @@ export function KanbanBoard() {
       ),
       api.sessions.list({ limit: 10000, include_transient: true }),
     ]);
-    setAgents(agentResults.flatMap((r) => r.agents));
+    // One request per status runs in parallel, so an agent whose status changes
+    // mid-flight returns in two of them. Merge to one card per agent id, keeping
+    // the freshest row so it lands in a single lane.
+    setAgents(mergeFreshestById(...agentResults.map((r) => r.agents)));
     setSessions(sessionsRes.sessions);
   }, [dataScope]);
 
+  /**
+   * Load sessions for every board status in parallel, up to the server's 10,000-row cap per status,
+   * so each column has its full set; columns paginate on the client.
+   */
   const loadSessions = useCallback(async () => {
     // Each column needs the full set for its status - column-level
     // pagination ("show more") is handled client-side at COLUMN_PAGE_SIZE.
@@ -175,9 +200,14 @@ export function KanbanBoard() {
         })
       )
     );
-    setSessions(results.flatMap((r) => r.sessions));
+    // Same parallel-status race as the agent lanes above.
+    setSessions(mergeFreshestById(...results.map((r) => r.sessions)));
   }, [dataScope]);
 
+  /**
+   * Load the data for the board currently shown. Errors are logged and leave the previous cards on
+   * screen.
+   */
   const load = useCallback(async () => {
     try {
       if (view === "agents") await loadAgents();
@@ -186,6 +216,10 @@ export function KanbanBoard() {
       setLoading(false);
     }
   }, [view, loadAgents, loadSessions]);
+
+  usePaletteAction("page.refresh", () => {
+    void load();
+  });
 
   useEffect(() => {
     setLoading(true);
@@ -205,18 +239,13 @@ export function KanbanBoard() {
           msg.type === "agent_created" ||
           msg.type === "agent_updated" ||
           msg.type === "session_updated" ||
-          msg.type === "session_created" ||
-          msg.type === "session_removed"
+          msg.type === "session_created"
         ) {
           if (debounceTimer) clearTimeout(debounceTimer);
           debounceTimer = setTimeout(loadAgents, 300);
         }
       } else {
-        if (
-          msg.type === "session_created" ||
-          msg.type === "session_updated" ||
-          msg.type === "session_removed"
-        ) {
+        if (msg.type === "session_created" || msg.type === "session_updated") {
           if (debounceTimer) clearTimeout(debounceTimer);
           debounceTimer = setTimeout(loadSessions, 300);
         }
@@ -351,15 +380,15 @@ export function KanbanBoard() {
                     ? Array.from({ length: 3 }).map((_, i) => (
                         <CardSkeleton key={`sk-${status}-${i}`} />
                       ))
-                    : items
-                        ?.slice(0, limit)
-                        .map((agent) => (
-                          <AgentCard
-                            key={agent.id}
-                            agent={agent}
-                            session={sessionsById.get(agent.session_id)}
-                          />
-                        ))}
+                    : items?.slice(0, limit).map((agent) => (
+                        <AgentCard
+                          key={agent.id}
+                          agent={agent}
+                          session={sessionsById.get(agent.session_id)}
+                          // The column already names the status.
+                          statusDisplay="dot"
+                        />
+                      ))}
                 </Column>
               );
             })
@@ -391,7 +420,9 @@ export function KanbanBoard() {
                       ))
                     : items
                         ?.slice(0, limit)
-                        .map((session) => <SessionCard key={session.id} session={session} />)}
+                        .map((session) => (
+                          <SessionCard key={session.id} session={session} statusDisplay="dot" />
+                        ))}
                 </Column>
               );
             })}
@@ -400,11 +431,15 @@ export function KanbanBoard() {
   );
 }
 
+/** Props for {@link ViewToggle}. */
 interface ViewToggleProps {
+  /** Board currently shown. */
   view: BoardView;
+  /** Called with the board the user picks. */
   onChange: (next: BoardView) => void;
 }
 
+/** Segmented control switching between the Agents and Sessions boards. */
 function ViewToggle({ view, onChange }: ViewToggleProps) {
   const { t } = useTranslation("kanban");
   const baseClass =
@@ -442,21 +477,35 @@ function ViewToggle({ view, onChange }: ViewToggleProps) {
   );
 }
 
+/** Props for {@link Column}. */
 interface ColumnProps {
+  /** Translation key of the column title. */
   labelKey: string;
+  /** Accent color class for the column header. */
   color: string;
+  /** Class for the status dot in the header. */
   dotClass: string;
+  /** Whether the status dot pulses (live statuses such as working). */
   pulse: boolean;
+  /** Total cards in the column, shown in the header. */
   count: number;
+  /** Text shown when the column has no cards. */
   emptyLabel: string;
   /** Multi-line description rendered in a tooltip when the user hovers
    *  the column's help icon. Pass an empty string to suppress the icon. */
   tooltip?: string;
+  /** Cards not yet revealed; the "show more" button is hidden at 0. */
   remaining: number;
+  /** Reveals the next page of cards. */
   onShowMore: () => void;
+  /** The visible cards. */
   children: React.ReactNode;
 }
 
+/**
+ * One Kanban column: header with status dot, title, count, and an optional help tooltip, then the
+ * cards, an empty message, and a "show more" button when more cards remain.
+ */
 function Column({
   labelKey,
   color,

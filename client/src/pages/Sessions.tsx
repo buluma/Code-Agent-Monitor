@@ -4,12 +4,12 @@
  * status, text, and custom sort filters plus server-side pagination. Rows can
  * show an accessible task-progress donut beside status and the local transient
  * Codex startup row before its durable session id exists.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/pages/Sessions.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/pages/Sessions.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -62,7 +62,7 @@
  *
  * ----------------------------------------------------------------------------- */
 
-import { useEffect, useState, useCallback, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useCallback, useSyncExternalStore } from "react";
 import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
@@ -86,6 +86,9 @@ import { EmptyState } from "../components/EmptyState";
 import { TableRowSkeleton } from "../components/Skeleton";
 import { MultiSelect } from "../components/MultiSelect";
 import { Select } from "../components/Select";
+import { useUrlTab } from "../hooks/usePageShortcuts";
+import { usePaletteAction } from "../components/PaletteActionProvider";
+import { PaletteHint } from "../components/PaletteHint";
 import { formatDateTime, formatDuration, truncate, fmtCost } from "../lib/format";
 import {
   effectiveSessionStatus,
@@ -94,9 +97,18 @@ import {
 } from "../lib/types";
 import type { Session, DashboardEvent } from "../lib/types";
 
+/** Sessions per page. */
 const PAGE_SIZE = 10;
+/** Sort column sent to the server: start time, duration, or cost. */
 type SessionSort = "time" | "duration" | "price";
 
+/**
+ * Whether a row is a transient placeholder for a Codex TUI process that has not written a session
+ * id yet. Such rows have no detail page.
+ *
+ * @param session - Row to check.
+ * @returns True when `pre_identity_process` is set.
+ */
 function isTransientProcessSession(session: Session): boolean {
   if (!session.metadata) return false;
   try {
@@ -106,21 +118,43 @@ function isTransientProcessSession(session: Session): boolean {
   }
 }
 
+/** Status filters in render order — also the order `1`…`6` addresses them.
+ *  `""` is the "all" pseudo-filter the server treats as no status constraint. */
+const SESSION_FILTERS = ["", "active", "waiting", "completed", "error", "abandoned"] as const;
+
+/**
+ * Sessions page (`/sessions`): a server-paginated, searchable, sortable table of every session.
+ * Supports status, project, and data-scope filters (the status filter is in the URL so links and
+ * the palette can open a narrowed list), task-progress indicators, and live updates throttled to
+ * one reload every 2 seconds. Search input is debounced so typing does not query on every
+ * keystroke.
+ */
 export function Sessions() {
   const navigate = useNavigate();
   const { t } = useTranslation("sessions");
   const [sessions, setSessions] = useState<Session[]>([]);
   const [total, setTotal] = useState(0);
-  const [filter, setFilter] = useState("");
+  // The status filter lives in the URL so the command palette (and any shared
+  // link) can open the list already narrowed. `""` is "all", which the hook
+  // treats as a valid value like any other.
+  const [filter, setFilter] = useUrlTab(SESSION_FILTERS, "", { param: "status" });
   // `searchInput` is what the user types; `search` is the debounced value
   // actually sent to the server. Without debouncing, every keystroke would
   // hit /api/sessions.
   const [searchInput, setSearchInput] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
 
-  const [cwds, setCwds] = useState<string[]>([]);
+  // Seeded from `?cwd=` so the palette's project jump lands on a filtered list.
+  // Only the initial value is read from the URL: the multi-select is the source
+  // of truth afterwards, and rewriting the query on every toggle would make Back
+  // walk through filter states instead of pages.
+  const [cwds, setCwds] = useState<string[]>(() => {
+    const initial = new URLSearchParams(window.location.search).get("cwd");
+    return initial ? [initial] : [];
+  });
   const [sortBy, setSortBy] = useState<SessionSort>("time");
   const [sortDesc, setSortDesc] = useState(true);
   const [directories, setDirectories] = useState<string[]>([]);
@@ -134,14 +168,17 @@ export function Sessions() {
   // handle on /run. Lets us badge those rows with a "Run" link.
   const [dashboardRunIds, setDashboardRunIds] = useState<Set<string>>(new Set());
 
-  const FILTER_OPTIONS: Array<{ label: string; value: string }> = [
-    { label: t("filterAll"), value: "" },
-    { label: t("filterActive"), value: "active" },
-    { label: t("filterWaiting"), value: "waiting" },
-    { label: t("filterCompleted"), value: "completed" },
-    { label: t("filterError"), value: "error" },
-    { label: t("filterAbandoned"), value: "abandoned" },
-  ];
+  // Keyed off SESSION_FILTERS so the buttons, the `1`…`6` shortcuts, and the
+  // `?status=` values can never fall out of order with one another.
+  const FILTER_LABELS: Record<(typeof SESSION_FILTERS)[number], string> = {
+    "": t("filterAll"),
+    active: t("filterActive"),
+    waiting: t("filterWaiting"),
+    completed: t("filterCompleted"),
+    error: t("filterError"),
+    abandoned: t("filterAbandoned"),
+  };
+  const FILTER_OPTIONS = SESSION_FILTERS.map((value) => ({ value, label: FILTER_LABELS[value] }));
 
   // Debounce the search input → 300 ms after the user stops typing, the
   // committed value flips and triggers a fresh fetch.
@@ -230,6 +267,19 @@ export function Sessions() {
     // the matching `sources` param.
   }, [filter, search, cwds, sortBy, sortDesc, page, scope]);
 
+  usePaletteAction("page.refresh", () => {
+    void load();
+  });
+  usePaletteAction("sessions.sortTime", () => setSortBy("time"));
+  usePaletteAction("sessions.sortDuration", () => setSortBy("duration"));
+  usePaletteAction("sessions.sortCost", () => setSortBy("price"));
+  usePaletteAction("sessions.toggleSortDirection", () => setSortDesc((prev) => !prev));
+  usePaletteAction("sessions.clearFilters", () => {
+    setFilter("");
+    setSearchInput("");
+    setCwds([]);
+  });
+
   useEffect(() => {
     load();
   }, [load]);
@@ -246,6 +296,10 @@ export function Sessions() {
     // one load per window; the trailing call keeps the list current.
     const THROTTLE_MS = 2_000;
     const throttleRef = { timer: null as ReturnType<typeof setTimeout> | null, lastRun: 0 };
+    /**
+     * Schedule a throttled reload: at most one every 2 seconds, with a trailing call so the list
+     * still catches up after a burst of WebSocket messages.
+     */
     const scheduleLoad = () => {
       if (throttleRef.timer) return; // trailing run already scheduled
       const wait = Math.max(0, THROTTLE_MS - (Date.now() - throttleRef.lastRun));
@@ -256,11 +310,7 @@ export function Sessions() {
       }, wait);
     };
     const unsubscribe = eventBus.subscribe((msg) => {
-      if (
-        msg.type === "session_created" ||
-        msg.type === "session_updated" ||
-        msg.type === "session_removed"
-      ) {
+      if (msg.type === "session_created" || msg.type === "session_updated") {
         scheduleLoad();
       }
       if (msg.type === "new_event") {
@@ -370,16 +420,23 @@ export function Sessions() {
       {/* Filters */}
       <div className="flex flex-wrap lg:flex-nowrap items-center gap-3 mb-6 bg-surface-2/40 p-2 rounded-xl border border-border w-full">
         {/* Search */}
-        <div className="relative flex-1 min-w-[180px] max-w-[340px]">
+        {/* The floor is sized so the field still fits its placeholder alongside
+            the ⌘K chip. A viewport breakpoint cannot express this — the field's
+            width comes from the space the toolbar has left, not the window — so
+            the constraint lives on the field itself, and the row wraps rather
+            than truncating "Search sessions…" to "Search ses". */}
+        <div className="relative flex-1 min-w-[260px] max-w-[340px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input
+            ref={searchRef}
             type="text"
             aria-label={t("searchPlaceholder")}
             placeholder={t("searchPlaceholder")}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="input w-full pl-10"
+            className="input w-full pl-10 pr-12"
           />
+          <PaletteHint variant="absolute" />
         </div>
 
         {/* Directory Selector */}
@@ -415,15 +472,19 @@ export function Sessions() {
           </button>
         </div>
 
-        {/* Status Filters */}
-        <div className="flex gap-1 bg-surface-1 rounded-lg p-1 border border-border ml-auto shrink-0">
+        {/* Status Filters — six pills that together outrun the toolbar on a
+            narrow window. `shrink-0` made the group refuse to yield, so it spilled
+            past the toolbar's rounded edge; it now caps at the space left over and
+            scrolls inside itself, with the pills kept at full size so none of them
+            compress into an unreadable sliver. */}
+        <div className="ml-auto flex min-w-0 max-w-full gap-1 overflow-x-auto no-scrollbar rounded-lg border border-border bg-surface-1 p-1">
           {FILTER_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               type="button"
               onClick={() => setFilter(opt.value)}
               aria-pressed={filter === opt.value}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+              className={`shrink-0 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
                 filter === opt.value
                   ? "bg-surface-4 text-gray-200"
                   : "text-gray-500 hover:text-gray-300"

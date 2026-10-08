@@ -1,7 +1,8 @@
 /**
  * @file Layout.tsx
  * @description Application shell that frames every authenticated route: persistent
- * sidebar, main content column, update notifier, and the Tabby assistant overlay.
+ * sidebar, main content column, update notifier, the Cmd/Ctrl+K command palette,
+ * and the Tabby assistant overlay.
  * The layout is the single parent route in {@link App} — child pages render inside
  * React Router's `<Outlet />` so navigation never remounts chrome.
  *
@@ -16,12 +17,12 @@
  * sticky` elements — e.g. the Settings page table-of-contents — pinned to the
  * viewport rather than a nested scroll box.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/Layout.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/Layout.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -44,6 +45,7 @@
  * ## Internal dependencies
  * - `./Sidebar`
  * - `./UpdateNotifier`
+ * - `./CommandPalette`
  * - `./Tabby/Tabby`
  *
  * ## Public surface
@@ -69,13 +71,15 @@
  *
  * ----------------------------------------------------------------------------- */
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Outlet } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Sidebar, SIDEBAR_STORAGE_KEY, loadCollapsed } from "./Sidebar";
 import { UpdateNotifier } from "./UpdateNotifier";
-import { Tabby } from "./Tabby/Tabby";
 import { CommandPalette } from "./CommandPalette";
+import { Tabby } from "./Tabby/Tabby";
+import { ActionToast } from "./ActionToast";
+import { PaletteActionProvider, usePaletteAction } from "./PaletteActionProvider";
 
 /** Props for {@link Layout}. */
 interface LayoutProps {
@@ -84,13 +88,31 @@ interface LayoutProps {
 }
 
 /**
- * Root layout wrapping all dashboard routes.
+ * Registers the shell-level commands the palette offers on every page: the
+ * sidebar toggle and the two scroll jumps. They are palette actions rather than
+ * chords — ⌘/Ctrl+K is the dashboard's only navigation shortcut.
+ */
+function LayoutActions({ onToggleSidebar }: { onToggleSidebar: () => void }) {
+  usePaletteAction("layout.toggleSidebar", onToggleSidebar);
+  usePaletteAction("layout.scrollTop", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  usePaletteAction("layout.scrollBottom", () => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+  });
+  return null;
+}
+
+/**
+ * Root layout wrapping all dashboard routes: sidebar, global overlays, and the
+ * routed page outlet.
  * @param props See {@link LayoutProps}.
  */
 export function Layout({ wsConnected }: LayoutProps) {
   const { t } = useTranslation("nav");
   const [collapsed, setCollapsed] = useState(loadCollapsed);
 
+  /** Collapse or expand the sidebar and remember the choice in localStorage. */
   const toggle = useCallback(() => {
     setCollapsed((prev) => {
       const next = !prev;
@@ -102,30 +124,34 @@ export function Layout({ wsConnected }: LayoutProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-surface-0">
-      <a href="#main-content" className="skip-to-content">
-        {t("skipToContent")}
-      </a>
-      <UpdateNotifier />
-      <Tabby />
-      <CommandPalette />
-      <Sidebar wsConnected={wsConnected} collapsed={collapsed} onToggle={toggle} />
-      <main
-        id="main-content"
-        tabIndex={-1}
-        className="min-h-screen min-w-0 transition-[margin-left,width] duration-200 outline-none"
-        style={{
-          marginLeft: collapsed ? "4.25rem" : "15rem",
-          width: collapsed ? "calc(100% - 4.25rem)" : "calc(100% - 15rem)",
-        }}
-      >
-        {/* overflow-x-clip (not -hidden) clips horizontal overflow without
+    <PaletteActionProvider>
+      <div className="min-h-screen bg-surface-0">
+        <a href="#main-content" className="skip-to-content">
+          {t("skipToContent")}
+        </a>
+        <LayoutActions onToggleSidebar={toggle} />
+        <UpdateNotifier />
+        <CommandPalette />
+        <ActionToast />
+        <Tabby />
+        <Sidebar wsConnected={wsConnected} collapsed={collapsed} onToggle={toggle} />
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="min-h-screen min-w-0 transition-[margin-left,width] duration-200 outline-none"
+          style={{
+            marginLeft: collapsed ? "4.25rem" : "15rem",
+            width: collapsed ? "calc(100% - 4.25rem)" : "calc(100% - 15rem)",
+          }}
+        >
+          {/* overflow-x-clip (not -hidden) clips horizontal overflow without
             creating a scroll container, so descendant `position: sticky`
             elements (e.g. the Settings page TOC) still pin to the window. */}
-        <div className="p-5 lg:p-6 max-w-full overflow-x-clip">
-          <Outlet />
-        </div>
-      </main>
-    </div>
+          <div className="p-5 lg:p-6 max-w-full overflow-x-clip">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </PaletteActionProvider>
   );
 }

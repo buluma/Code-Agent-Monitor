@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# health-check.sh – Comprehensive health check for Code Agent Monitor
+# health-check.sh – Comprehensive health check for Claude Code Agent Monitor
 #
 # Usage:
 #   ./health-check.sh --url http://localhost:4820
@@ -8,7 +8,7 @@
 #   ./health-check.sh --url http://host:port --json
 #   ./health-check.sh --help
 # ─────────────────────────────────────────────────────────────────────────────
-# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+# @author Son Nguyen <hoangson091104@gmail.com>
 set -euo pipefail
 
 # ── Colors & logging ───────────────────────────────────────────────────────
@@ -338,7 +338,7 @@ main() {
   [[ "$JSON_OUTPUT" != true ]] && {
     echo ""
     echo -e "${BOLD}${GREEN}╔══════════════════════════════════════════════════╗${NC}"
-    echo -e "${BOLD}${GREEN}║   Code Agent Monitor – Health Check             ║${NC}"
+    echo -e "${BOLD}${GREEN}║   Claude Code Agent Monitor – Health Check      ║${NC}"
     echo -e "${BOLD}${GREEN}╚══════════════════════════════════════════════════╝${NC}"
     echo ""
     info "Target: ${BASE_URL}"

@@ -1,12 +1,12 @@
 /**
  * @file app-config.ts
  * @description Module for loading and validating application configuration from environment variables. This module defines the AppConfig interface representing the configuration structure, along with functions to parse and validate individual configuration values such as booleans, integers, log levels, dashboard URLs, and transport modes. The loadConfig function aggregates all configuration values into a single AppConfig object, applying defaults and validation as needed. The module ensures that the application is configured correctly before it starts, providing clear error messages for invalid configurations.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/config/app-config.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/config/app-config.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -80,7 +80,7 @@ export type TransportMode = "stdio" | "http" | "repl";
  * field has a safe default so the server boots with no env vars set.
  */
 export interface AppConfig {
-  /** From `MCP_SERVER_NAME`, default `"code-agent-monitor-mcp"`. */
+  /** From `MCP_SERVER_NAME`, default `"agent-dashboard-mcp"`. */
   serverName: string;
   /** From `MCP_SERVER_VERSION`, default `"1.0.0"`. */
   serverVersion: string;
@@ -106,8 +106,9 @@ export interface AppConfig {
    * (see `policy/tool-guards.ts`). From `MCP_DASHBOARD_ALLOW_MUTATIONS`,
    * default `false`. */
   allowMutations: boolean;
-  /** Gate for `dashboard_clear_all_data` only; requires `allowMutations`
-   * too. From `MCP_DASHBOARD_ALLOW_DESTRUCTIVE`, default `false`. */
+  /** Gate for the irreversible tools (`dashboard_clear_all_data` and an
+   * applied `dashboard_prune_snapshots`); requires `allowMutations` too.
+   * From `MCP_DASHBOARD_ALLOW_DESTRUCTIVE`, default `false`. */
   allowDestructive: boolean;
   /** From `MCP_LOG_LEVEL`, default `"info"`. */
   logLevel: LogLevel;
@@ -145,10 +146,16 @@ const LOCAL_DASHBOARD_HOSTS = new Set([
   "host.containers.internal",
   "agent-monitor",
 ]);
+/** Log levels accepted in `MCP_LOG_LEVEL`. */
 const VALID_LOG_LEVELS = new Set<LogLevel>(["debug", "info", "warn", "error"]);
 
 /** Parses `1/true/yes/on` / `0/false/no/off` (case-insensitive); anything
- * else, including `undefined`, resolves to `fallback`. */
+ * else, including `undefined`, resolves to `fallback`.
+ *
+ * @param value - Raw environment value.
+ * @param fallback - Result for missing or unrecognized values.
+ * @returns The parsed flag.
+ */
 function parseBoolean(value: string | undefined, fallback: boolean): boolean {
   if (value === undefined) return fallback;
   const normalized = value.trim().toLowerCase();
@@ -158,7 +165,14 @@ function parseBoolean(value: string | undefined, fallback: boolean): boolean {
 }
 
 /** Parses and clamps an integer env var into `[min, max]`; non-numeric or
- * missing input falls back to `fallback` rather than throwing. */
+ * missing input falls back to `fallback` rather than throwing.
+ *
+ * @param value - Raw environment value.
+ * @param fallback - Result for missing or non-numeric values.
+ * @param min - Lowest allowed value.
+ * @param max - Highest allowed value.
+ * @returns The clamped integer.
+ */
 function parseInteger(
   value: string | undefined,
   fallback: number,
@@ -171,7 +185,12 @@ function parseInteger(
   return Math.min(max, Math.max(min, parsed));
 }
 
-/** Normalizes `MCP_LOG_LEVEL`, falling back to `"info"`. */
+/**
+ * Normalizes `MCP_LOG_LEVEL`, falling back to `"info"`.
+ *
+ * @param value - Raw `MCP_LOG_LEVEL` value.
+ * @returns A valid log level.
+ */
 function parseLogLevel(value: string | undefined): LogLevel {
   const normalized = value?.trim().toLowerCase() as LogLevel | undefined;
   return normalized && VALID_LOG_LEVELS.has(normalized) ? normalized : "info";
@@ -183,6 +202,9 @@ function parseLogLevel(value: string | undefined): LogLevel {
  * target is startup-fatal, not something to paper over.
  * @throws {Error} on an invalid URL, a non-http(s) scheme, or a hostname
  *   outside {@link LOCAL_DASHBOARD_HOSTS}.
+ *
+ * @param raw - Raw `MCP_DASHBOARD_BASE_URL`; defaults to `http://127.0.0.1:4820`.
+ * @returns The validated URL.
  */
 function parseDashboardUrl(raw: string | undefined): URL {
   const value = (raw ?? "http://127.0.0.1:4820").trim();
@@ -208,6 +230,13 @@ function parseDashboardUrl(raw: string | undefined): URL {
   return url;
 }
 
+/**
+ * Read the dashboard API token: `MCP_DASHBOARD_API_TOKEN` or `DASHBOARD_API_TOKEN`, else the file
+ * named by `MCP_DASHBOARD_API_TOKEN_FILE` or `DASHBOARD_API_TOKEN_FILE`.
+ *
+ * @param env - Process environment.
+ * @returns The token, or undefined when none is configured.
+ */
 function readDashboardToken(env: NodeJS.ProcessEnv): string | undefined {
   const direct = env.MCP_DASHBOARD_API_TOKEN?.trim() || env.DASHBOARD_API_TOKEN?.trim();
   if (direct) return direct;
@@ -221,6 +250,14 @@ function readDashboardToken(env: NodeJS.ProcessEnv): string | undefined {
   }
 }
 
+/**
+ * Read a secret from an environment variable, or else from the file named by a second variable.
+ *
+ * @param env - Process environment.
+ * @param directName - Variable holding the secret itself.
+ * @param fileName - Variable holding a path to a file with the secret.
+ * @returns The trimmed secret, or undefined.
+ */
 function readSecret(
   env: NodeJS.ProcessEnv,
   directName: string,
@@ -237,6 +274,15 @@ function readSecret(
   }
 }
 
+/**
+ * Read the dashboard token and refuse to send it over plain HTTP, except to loopback addresses and
+ * the `agent-monitor` container alias.
+ *
+ * @param env - Process environment.
+ * @param dashboardBaseUrl - Dashboard URL the token will be sent to.
+ * @returns The token, or undefined.
+ * @throws When a token is configured for a non-loopback HTTP URL.
+ */
 function parseDashboardToken(env: NodeJS.ProcessEnv, dashboardBaseUrl: URL): string | undefined {
   const token = readDashboardToken(env);
   if (
@@ -252,7 +298,11 @@ function parseDashboardToken(env: NodeJS.ProcessEnv, dashboardBaseUrl: URL): str
 }
 
 /** Normalizes `MCP_TRANSPORT`, falling back to `"stdio"`. This is only the
- * default — `index.ts`'s `resolveTransport` may override it with CLI flags. */
+ * default — `index.ts`'s `resolveTransport` may override it with CLI flags.
+ *
+ * @param value - Raw `MCP_TRANSPORT` value.
+ * @returns `stdio`, `http`, or `repl`.
+ */
 function parseTransport(value: string | undefined): TransportMode {
   const normalized = value?.trim().toLowerCase();
   if (normalized === "http" || normalized === "repl" || normalized === "stdio") return normalized;
@@ -268,7 +318,7 @@ function parseTransport(value: string | undefined): TransportMode {
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const dashboardBaseUrl = parseDashboardUrl(env.MCP_DASHBOARD_BASE_URL);
   return {
-    serverName: env.MCP_SERVER_NAME?.trim() || "code-agent-monitor-mcp",
+    serverName: env.MCP_SERVER_NAME?.trim() || "agent-dashboard-mcp",
     serverVersion: env.MCP_SERVER_VERSION?.trim() || "1.0.0",
     dashboardBaseUrl,
     dashboardApiToken: parseDashboardToken(env, dashboardBaseUrl),

@@ -20,7 +20,7 @@
  *      re-derives inflated historical rows, clears stale bucket rows whose
  *      pricing key no longer occurs, and leaves workflow rows alone — while
  *      the default (non-reset) sweep still never reduces totals.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { describe, it, before, after } = require("node:test");

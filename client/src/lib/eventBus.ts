@@ -1,6 +1,6 @@
 /**
  * @file eventBus.ts
- * @description Implements a simple event bus for managing WebSocket messages and connection status in the Code Agent Monitor application. It allows components to subscribe to real-time updates from the server and react to changes in WebSocket connectivity. The event bus maintains a list of handlers for incoming messages and connection status changes, providing a clean interface for publishing events and managing subscriptions.
+ * @description Implements a simple event bus for managing WebSocket messages and connection status in the agent dashboard application. It allows components to subscribe to real-time updates from the server and react to changes in WebSocket connectivity. The event bus maintains a list of handlers for incoming messages and connection status changes, providing a clean interface for publishing events and managing subscriptions.
  *
  * ## Design
  * This is a module-level singleton (there is exactly one bus per browser tab) built on
@@ -25,12 +25,12 @@
  * cheap and defensive. There is also no buffering: a message published while nobody is
  * subscribed is simply dropped.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/lib/eventBus.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/lib/eventBus.ts`
  * **Purpose:** In-memory pub/sub bus bridging `useWebSocket` to any page without prop drilling.
  *
  * ## Design constraints
@@ -114,7 +114,10 @@ export const eventBus = {
   /** Broadcasts `msg` to every currently-subscribed {@link Handler}. Called by
    *  `useWebSocket` on each parsed inbound frame - not intended to be called
    *  directly by UI code. Dispatch is synchronous and in subscription order; a
-   *  throwing handler aborts delivery to the handlers after it. */
+   *  throwing handler aborts delivery to the handlers after it.
+   *
+   * @param msg - Message to deliver to every subscriber.
+   */
   publish(msg: WSMessage): void {
     handlers.forEach((handler) => handler(msg)); // notify each subscriber in turn
   },
@@ -125,7 +128,10 @@ export const eventBus = {
   },
 
   /** Updates the shared connection flag and notifies every {@link onConnection}
-   *  listener. Called by `useWebSocket` on socket open/close. */
+   *  listener. Called by `useWebSocket` on socket open/close.
+   *
+   * @param value - Whether the WebSocket is connected.
+   */
   setConnected(value: boolean): void {
     wsConnected = value; // update the shared flag first so late reads see the new state
     connectionHandlers.forEach((handler) => handler(value)); // then fan out the transition

@@ -4,7 +4,7 @@
  * every hook ingest, time-based rules (inactivity, status_duration) run on a
  * periodic sweep. Fired alerts are persisted to alert_events with per-scope
  * cooldown dedup and broadcast to clients as `alert_triggered`.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { db, stmts } = require("../db");

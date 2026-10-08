@@ -1,14 +1,14 @@
 {
-  "name": "code-agent-monitor-desktop",
-  "version": "4.2.1",
+  "name": "agent-dashboard-desktop",
+  "version": "2.2.6",
   "private": true,
-  "description": "Native macOS desktop shell for Code Agent Monitor.",
-  "author": "Michael Buluma <1452922+buluma@users.noreply.github.com>",
+  "description": "Native macOS and Windows desktop shell for Claude Code Agent Monitor.",
+  "author": "Son Nguyen <hoangson091104@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/buluma/Code-Agent-Monitor",
+  "homepage": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
   "repository": {
     "type": "git",
-    "url": "https://github.com/buluma/Code-Agent-Monitor.git"
+    "url": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor.git"
   },
   "main": "out/main.js",
   "scripts": {
@@ -16,18 +16,20 @@
     "prebuild": "node scripts/prebuild.js",
     "build": "npm run prebuild && tsc -p tsconfig.json",
     "build:icons": "bash scripts/build-icons.sh",
+    "build:win-icon": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-win-icon.ps1",
     "dev": "npm run build && electron out/main.js",
     "package": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --arm64 --x64 --publish never",
     "dmg": "npm run package",
-    "dmg:arm64": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --arm64 --publish never --config.dmg.title='Code Agent Monitor (Apple Silicon)'",
-    "dmg:x64": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --x64 --publish never --config.dmg.title='Code Agent Monitor (Intel)'",
-    "dmg:universal": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --universal --publish never --config.dmg.title='Code Agent Monitor (Universal)'",
-    "test": "npm run build && node --test --test-reporter=spec tests/updater-state.test.mjs tests/smoke.test.mjs",
+    "dmg:arm64": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --arm64 --publish never --config.dmg.title='Claude Code Monitor (Apple Silicon)'",
+    "dmg:x64": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --x64 --publish never --config.dmg.title='Claude Code Monitor (Intel)'",
+    "dmg:universal": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --universal --publish never --config.dmg.title='Claude Code Monitor (Universal)'",
+    "win": "npm run build && electron-builder --win nsis --x64 --publish never",
+    "win:portable": "npm run build && electron-builder --win portable --x64 --publish never",
+    "test": "npm run build && node --test --test-reporter=spec tests/smoke.test.mjs",
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
-    "better-sqlite3": "^12.11.1",
-    "electron-updater": "6.8.9"
+    "better-sqlite3": "^12.11.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

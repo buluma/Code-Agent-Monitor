@@ -1,12 +1,12 @@
 /**
  * @file logger.ts
  * @description Logger class for the MCP application, responsible for logging messages in JSON format to stderr with different log levels (debug, info, warn, error). The logger respects a minimum log level configuration and includes timestamps in ISO format. Each log entry is a single line of JSON containing the timestamp, log level, message, and optional metadata. This structured logging approach allows for easy parsing and analysis of logs. The Logger class provides methods for each log level and a private method to handle the actual writing of log entries to stderr.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/core/logger.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/core/logger.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -75,28 +75,52 @@ export class Logger {
   constructor(private readonly minLevel: LogLevel) {}
 
   /** Per-call tracing, e.g. tool invocation start/completion; silent unless
-   * `MCP_LOG_LEVEL=debug`. */
+   * `MCP_LOG_LEVEL=debug`.
+   *
+   * @param message - Log message.
+   * @param meta - Optional structured fields, included when non-empty.
+   */
   debug(message: string, meta?: Record<string, unknown>) {
     this.write("debug", message, meta);
   }
 
-  /** Default-visible lifecycle events (server started, new session opened). */
+  /**
+   * Default-visible lifecycle events (server started, new session opened).
+   *
+   * @param message - Log message.
+   * @param meta - Optional structured fields, included when non-empty.
+   */
   info(message: string, meta?: Record<string, unknown>) {
     this.write("info", message, meta);
   }
 
-  /** Recoverable/transient issues, e.g. a retried dashboard API request. */
+  /**
+   * Recoverable/transient issues, e.g. a retried dashboard API request.
+   *
+   * @param message - Log message.
+   * @param meta - Optional structured fields, included when non-empty.
+   */
   warn(message: string, meta?: Record<string, unknown>) {
     this.write("warn", message, meta);
   }
 
-  /** Aborted operations, e.g. a thrown tool handler or unhandled rejection. */
+  /**
+   * Aborted operations, e.g. a thrown tool handler or unhandled rejection.
+   *
+   * @param message - Log message.
+   * @param meta - Optional structured fields, included when non-empty.
+   */
   error(message: string, meta?: Record<string, unknown>) {
     this.write("error", message, meta);
   }
 
   /** Writes one entry if `level` meets {@link minLevel}; `meta` is included
-   * only when non-empty. */
+   * only when non-empty.
+   *
+   * @param level - Severity of the entry.
+   * @param message - Log message.
+   * @param meta - Optional structured fields.
+   */
   private write(level: LogLevel, message: string, meta?: Record<string, unknown>) {
     if (LEVEL_ORDER[level] < LEVEL_ORDER[this.minLevel]) {
       return;
