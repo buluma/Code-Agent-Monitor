@@ -2,6 +2,7 @@
  * @file Analytics.tsx
  * @description Provides a comprehensive analytics dashboard for monitoring Claude Code sessions, agents, token usage, and events in real-time. Features include an activity heatmap, token distribution charts, paginated chart legends, session outcome breakdowns, and more, all with interactive tooltips and live updates via WebSocket.
  * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
@@ -745,6 +746,10 @@ const ANALYTICS_TAB_LABEL_KEYS: Record<(typeof ANALYTICS_TABS)[number], string> 
  * data scope and refreshes every 15 seconds and on live WebSocket updates.
  */
 export function Analytics() {
+  // Start at the newest week on mount, without overriding later manual scrolling.
+  const showLatestActivity = useCallback((element: HTMLDivElement | null) => {
+    if (element) element.scrollLeft = element.scrollWidth;
+  }, []);
   const { t, i18n } = useTranslation("analytics");
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [costData, setCostData] = useState<CostResult | null>(null);
@@ -1093,7 +1098,7 @@ export function Analytics() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="card p-5 lg:col-span-2">
               <h3 className="text-sm font-medium text-gray-300 mb-4">{t("eventActivity")}</h3>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" ref={showLatestActivity}>
                 <div className="w-fit min-w-max mx-auto">
                   <Heatmap weeks={weeks} />
                 </div>
