@@ -69,6 +69,8 @@ Cursor cards use the native session title plus `Cursor · <project>`, subagent-c
 
 Chart legends use the shared `PaginatedLegend.tsx` component. Lists at or below the configured page size render exactly as before with no controls. Longer Analytics donut legends and data-driven Workflows legends render one bounded page at a time with localized Previous / Next buttons and an accessible visible-range announcement, so labels stay reachable without expanding the chart card indefinitely.
 
+Dashboard Monitor, Dashboard Health, and Analytics suspend polling and event-triggered query batches while the page is hidden. Returning to the page refreshes once. The Dashboard refreshes only its selected tab, including manual refresh. The shared `useDashboardRefresh` scheduler combines event bursts into at most one batch per two seconds, prevents overlapping batches, and ignores responses from an old data scope or visibility state. Visible polling retains the existing 10-second Monitor, 30-second Health, and 15-second Analytics intervals. Hooks and server ingestion continue while the window is hidden.
+
 The Analytics Event Activity heatmap opens at the newest dates when it overflows horizontally. You can scroll left to explore earlier weeks; live data updates preserve your scroll position.
 
 ### Run Agent and Agent Config

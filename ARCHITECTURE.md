@@ -3048,3 +3048,7 @@ make docker-down    Stop docker-compose stack
 ```
 
 See `Makefile` for the complete set of 30 targets covering setup, dev, testing, formatting, MCP, data management, Codex extensions, and Docker/Podman workflows.
+
+### Dashboard and Analytics refresh scheduling
+
+`client/src/hooks/useDashboardRefresh.ts` gates Dashboard and Analytics query batches by page visibility and the selected Dashboard tab. It coalesces event bursts with a two-second trailing throttle and serializes batches; responses from obsolete scopes or visibility states are discarded. Polling stops while hidden and resumes with one refresh when shown. This controls display queries only; hooks, ingestion, server watchers, and desktop tray polling continue independently.
