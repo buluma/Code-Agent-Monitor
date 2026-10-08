@@ -2,7 +2,7 @@
  * @file Guards release metadata that must carry the root package version.
  * The checks make version bumps fail fast when packaged artifacts or published
  * API specifications, or deployment configurations drift.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { describe, it } = require("node:test");
@@ -58,6 +58,16 @@ describe("release version consistency", () => {
     assert.equal(desktopLockfile.packages[""].version, packageVersion);
   });
 
+  it("keeps the mcp lockfile's linked parent version aligned", () => {
+    // mcp/package.json depends on the repo root through `file:..`, so its
+    // lockfile records the parent version. When a release bumps package.json
+    // without regenerating this lockfile, every `npm install` rewrites it and
+    // the next `git pull --ff-only` aborts on the dirty file.
+    const mcpLockfile = readJson("mcp/package-lock.json");
+
+    assert.equal(mcpLockfile.packages[".."].version, packageVersion);
+  });
+
   it("keeps live and generated OpenAPI versions aligned", () => {
     const liveSpec = createOpenApiSpec();
     const generatedSpec = yaml.load(fs.readFileSync(path.join(ROOT, "openapi.yaml"), "utf8"));
@@ -75,8 +85,8 @@ describe("release version consistency", () => {
     const compose = readText("docker-compose.yml");
     const chart = yaml.load(readText("deployments/helm/agent-monitor/Chart.yaml"));
 
-    assert.match(compose, new RegExp(`cam-dashboard:${packageVersion}`));
-    assert.match(compose, new RegExp(`cam-mcp:${packageVersion}`));
+    assert.match(compose, new RegExp(`ccam-dashboard:${packageVersion}`));
+    assert.match(compose, new RegExp(`ccam-mcp:${packageVersion}`));
     assert.equal(chart.version, packageVersion);
     assert.equal(chart.appVersion, packageVersion);
   });
@@ -90,7 +100,7 @@ describe("release version consistency", () => {
     for (const manifest of manifests) {
       const contents = fs.readFileSync(manifest, "utf8");
       versionLabels.push(...contents.matchAll(/app\.kubernetes\.io\/version:\s*["']?([^"'\s]+)/g));
-      imageTags.push(...contents.matchAll(/image: cam-(?:dashboard|mcp):([^\s]+)/g));
+      imageTags.push(...contents.matchAll(/image: ccam-(?:dashboard|mcp):([^\s]+)/g));
       releaseTags.push(...contents.matchAll(/newTag:\s*["']?([^"'\s]+)/g));
     }
 
@@ -159,7 +169,7 @@ describe("release version consistency", () => {
   });
 
   it("keeps deployment image substitutions and examples aligned", () => {
-    const image = `cam-dashboard:${packageVersion}`;
+    const image = `ccam-dashboard:${packageVersion}`;
 
     for (const guide of ["DEPLOYMENT.md", "docs/DEPLOYMENT.md", "deployments/scripts/deploy.sh"]) {
       assert.ok(readText(guide).includes(image), `${guide} must use ${image}`);
@@ -183,5 +193,12 @@ describe("release version consistency", () => {
       "CITATION.cff must declare a quoted string version"
     );
     assert.equal(citation.version, packageVersion, "CITATION.cff must track the root release");
+  });
+
+  it("keeps public site metadata on the shipping release", () => {
+    const versionEntry = `"softwareVersion": "${packageVersion}"`;
+
+    assert.ok(readText("index.html").includes(versionEntry));
+    assert.ok(readText("wiki/index.html").includes(versionEntry));
   });
 });

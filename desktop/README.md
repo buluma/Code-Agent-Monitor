@@ -1,18 +1,18 @@
 # `desktop/` — Native macOS App (Electron)
 
-The **desktop workspace** ships the Code Agent Monitor dashboard as a native
-macOS `.app` (distributed as a `.dmg`). It is an Electron shell that **embeds
-the existing Express server in-process** and renders the already-built React
-client in a `BrowserWindow`.
+The **desktop workspace** ships the Claude Code Agent Monitor dashboard as a
+native macOS `.app` (distributed as a `.dmg`). It is an Electron shell that
+**embeds the existing Express server in-process** and renders the already-built
+React client in a `BrowserWindow`.
 
-> **One-line mental model:** _Electron is a window onto the same code._ The
+> **One-line mental model:** *Electron is a window onto the same code.* The
 > desktop app does not reimplement the dashboard — it `require()`s
 > `server/index.js` directly, in the same Node runtime as the Electron main
 > process, and points a Chromium window at it.
 
 For the **user-facing** guide (download, install, Gatekeeper, tray menu,
-auto-start) see [`../DESKTOP.md`](../DESKTOP.md). This file is the **contributor
-/ architecture** reference.
+auto-start) see [`../DESKTOP.md`](../DESKTOP.md). This file is the
+**contributor / architecture** reference.
 
 ---
 
@@ -27,7 +27,6 @@ auto-start) see [`../DESKTOP.md`](../DESKTOP.md). This file is the **contributor
 - [Background services & hook bootstrap](#background-services--hook-bootstrap)
 - [Window, tray & menu](#window-tray--menu)
 - [Auto-start (Login Items)](#auto-start-login-items)
-- [Auto-updates](#auto-updates)
 - [Source tree](#source-tree)
 - [Packaged app layout](#packaged-app-layout)
 - [Build pipeline](#build-pipeline)
@@ -38,7 +37,7 @@ auto-start) see [`../DESKTOP.md`](../DESKTOP.md). This file is the **contributor
 - [Smoke test](#smoke-test)
 - [Environment variables](#environment-variables)
 - [Logs & troubleshooting](#logs--troubleshooting)
-- [What this workspace does _not_ touch](#what-this-workspace-does-not-touch)
+- [What this workspace does *not* touch](#what-this-workspace-does-not-touch)
 
 ---
 
@@ -56,6 +55,10 @@ npm run desktop:test     # smoke test (spawn Electron + probe /api/health)
 npm run desktop:dmg          # both per-arch DMGs (arm64 + x64) — correct for release, SLOWER
 npm run desktop:dmg:arm64    # Apple Silicon only — fast, for your own machine
 npm run desktop:dmg:x64      # Intel only — fast
+
+# Build a Windows .exe (run on Windows x64):
+npm run desktop:win          # NSIS installer → release/ClaudeCodeMonitor-Setup-<ver>-x64.exe
+npm run desktop:win:portable # no-install portable → release/ClaudeCodeMonitor-<ver>-x64-portable.exe
 ```
 
 > ⚠️ `desktop:dmg` is slower because it builds the app **twice** — once per
@@ -63,12 +66,18 @@ npm run desktop:dmg:x64      # Intel only — fast
 > merge them into a universal binary. For running on your own Mac, use the
 > arch-specific command. See [Build performance](#build-performance--read-this).
 
-> 🍎 `better-sqlite3` is fetched as a prebuilt Electron binary by
-> `npm run desktop:install`, so no Xcode Command Line Tools are required for the
-> common case. If that fetch/rebuild _does_ fail (no C++ toolchain, or a Node
-> version with no prebuilt binary), `npm run desktop:install` — and any
-> `desktop:*` build, gated by `prebuild.js` — prints the exact prerequisite
-> (`xcode-select --install`) plus a no-toolchain alternative, then exits
+> 🪟 **Windows builds run on Windows** (DMGs build on macOS). `desktop:win`
+> produces an **unsigned** installer — fine to run; SmartScreen may show a
+> "More info → Run anyway" prompt on first launch. The icon (`assets/icon.ico`)
+> is generated from `assets/icon.png` by `npm run build:win-icon`
+> (PowerShell + .NET, no extra tooling). `better-sqlite3` is fetched as a
+> prebuilt Electron binary by `npm run desktop:install`, so no Visual Studio
+> C++ toolchain is required for the common case. If that fetch/rebuild *does*
+> fail (no C++ toolchain, or a Node version with no prebuilt binary),
+> `npm run desktop:install` — and any `desktop:*` build, gated by `prebuild.js` —
+> prints the exact per-OS prerequisite (Windows: Visual Studio Build Tools with
+> the "Desktop development with C++" workload; macOS: `xcode-select --install`;
+> Linux: build-essential + python3) plus a no-toolchain alternative, then exits
 > non-zero rather than crashing at runtime:
 >
 > ```bash
@@ -109,8 +118,8 @@ flowchart TD
 ```
 
 The desktop app touches **no other workspace's runtime behavior**. The only
-change outside `desktop/` is a behavior-preserving refactor of `server/index.js`
-(see [the last section](#what-this-workspace-does-not-touch)).
+change outside `desktop/` is a behavior-preserving refactor of
+`server/index.js` (see [the last section](#what-this-workspace-does-not-touch)).
 
 ---
 
@@ -119,7 +128,7 @@ change outside `desktop/` is a behavior-preserving refactor of `server/index.js`
 Electron runs a **main process** (Node.js) and one or more **renderer
 processes** (Chromium). In this app:
 
-- The **main process** hosts the embedded Express server _and_ manages the
+- The **main process** hosts the embedded Express server *and* manages the
   window, tray, and menus. There is **no child process and no IPC** for the
   server — it runs inside the main process's own event loop.
 - The **renderer** is just Chromium loading `http://127.0.0.1:<port>` — exactly
@@ -194,24 +203,24 @@ sequenceDiagram
 
 Key behaviors:
 
-| Event               | Behavior                                                                                                                   |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Second launch       | `requestSingleInstanceLock()` fails → the new process exits and the existing window is focused.                            |
-| Window close        | Intercepted — the window **hides**, the server and tray keep running.                                                      |
-| `window-all-closed` | App stays alive (tray-only mode).                                                                                          |
-| Launched at login   | The dashboard window is **not** shown — only the tray icon.                                                                |
-| `before-quit`       | If we own the server: stop the HTTP server, then `closeEmbeddedDatabase()` for a clean WAL checkpoint, then `app.exit(0)`. |
+| Event | Behavior |
+|---|---|
+| Second launch | `requestSingleInstanceLock()` fails → the new process exits and the existing window is focused. |
+| Window close | Intercepted — the window **hides**, the server and tray keep running. |
+| `window-all-closed` | App stays alive (tray-only mode). |
+| Launched at login | The dashboard window is **not** shown — only the tray icon. |
+| `before-quit` | If we own the server: stop the HTTP server, then `closeEmbeddedDatabase()` for a clean WAL checkpoint, then `app.exit(0)`. |
 
 ---
 
 ## Server hosting & port discovery
 
-`server-host.ts` is the **only file** that imports `server/index.js`. It picks a
-port, boots the server, and returns a `ServerHandle`.
+`server-host.ts` is the **only file** that imports `server/index.js`. It picks
+a port, boots the server, and returns a `ServerHandle`.
 
 ```mermaid
 flowchart TD
-    start["startEmbeddedServer()"] --> forced{"CAM_DESKTOP_BIND_PORT set?"}
+    start["startEmbeddedServer()"] --> forced{"CCAM_DESKTOP_BIND_PORT set?"}
     forced -->|yes| bind["bind exactly that port<br/>(no adoption, no fallback)"]
     forced -->|no| adopt{"healthy server<br/>already on :4820?"}
     adopt -->|yes| reuse["adopt it<br/>ownedByUs = false"]
@@ -241,16 +250,16 @@ flowchart TD
 **Adoption** — `probePort()` connects, then checks that the listener answers
 `GET /api/health` with `{ status: "ok" }`. If a healthy dashboard server is
 already on `:4820` (e.g. you ran `npm start` in a terminal), the desktop app
-**adopts** it rather than double-binding. An adopted server is _not_ owned by
+**adopts** it rather than double-binding. An adopted server is *not* owned by
 the app — quitting the app leaves it running.
 
 **`ServerHandle`:**
 
 ```ts
 interface ServerHandle {
-  url: string; // e.g. "http://127.0.0.1:4820"
+  url: string;          // e.g. "http://127.0.0.1:4820"
   port: number;
-  ownedByUs: boolean; // false when adopted
+  ownedByUs: boolean;   // false when adopted
   stop: () => Promise<void>;
 }
 ```
@@ -295,12 +304,12 @@ flowchart TD
 
 - The patch is **process-local** and installed exactly once, before
   `server/index.js` is `require()`d.
-- It rewrites _only_ `require("better-sqlite3")`; every other module resolves
+- It rewrites *only* `require("better-sqlite3")`; every other module resolves
   normally.
 - `electron-builder.yml` therefore **excludes** the root `better-sqlite3` from
-  the bundle (it would trip `@electron/universal`'s identical-file detector) and
-  `asarUnpack`s the desktop copy (native `.node` files cannot live inside an
-  `asar` archive).
+  the bundle (it would trip `@electron/universal`'s identical-file detector)
+  and `asarUnpack`s the desktop copy (native `.node` files cannot live inside
+  an `asar` archive).
 - PR #37's `compat-sqlite` (`node:sqlite`) fallback remains as a safety net —
   one reason the desktop app pins **Electron 35** (its bundled Node 22.16 has
   `node:sqlite`; Electron 31's Node 20 did not).
@@ -310,9 +319,10 @@ flowchart TD
   `npm install`. On failure — or if the native binary is missing afterward — it
   prints actionable help (`scripts/preflight.js`'s `printNativeDepHelp()`) and
   exits non-zero, never leaving a half-set-up `node_modules`. The help lists the
-  macOS C++ prerequisite (`xcode-select --install`), notes that a Node LTS
-  (20/22) ships prebuilt binaries (avoiding the compile), and gives a
-  no-toolchain alternative:
+  per-OS C++ prerequisite (Windows: Visual Studio Build Tools with the "Desktop
+  development with C++" workload; macOS: `xcode-select --install`; Linux:
+  build-essential + python3), notes that a Node LTS (20/22) ships prebuilt
+  binaries (avoiding the compile), and gives a no-toolchain alternative:
 
   ```bash
   cd desktop
@@ -357,13 +367,13 @@ flowchart LR
 ```
 
 `bootstrapOwnedServer()` runs **once** (guarded by a module-level flag so a
-_Restart Server_ does not double-register schedulers/watchers) and:
+*Restart Server* does not double-register schedulers/watchers) and:
 
 1. Calls `startBackgroundServices()` — the update scheduler, the `cc-watcher`
    config watcher, and one-time orphaned-run reconciliation.
 2. Calls `installHooks()` — writes the Claude Code hook configuration to
-   `~/.claude/settings.json`, so a **DMG-only user gets events flowing** without
-   ever running `npm run install-hooks` from a checkout.
+   `~/.claude/settings.json`, so a **DMG-only user gets events flowing**
+   without ever running `npm run install-hooks` from a checkout.
 
 It runs only when the server is **owned** by the app — an adopted server has
 already done its own bootstrap.
@@ -382,8 +392,6 @@ flowchart TD
     menu --> m2["Open in Browser…"]
     menu --> m3["Restart Server"]
     menu --> m4["Show Logs"]
-    menu --> m4a["update status row (conditional)"]
-    menu --> m4b["Check for Updates…"]
     menu --> m5["Open at Login ☑"]
     menu --> m6["Quit"]
 
@@ -397,33 +405,28 @@ flowchart TD
 
 - **Tray** — the always-on surface. Left-click toggles the window; right-click
   pops the context menu. The menu is rebuilt on each open so the port label and
-  _Open at Login_ checkbox are always current. (The tray deliberately does
+  *Open at Login* checkbox are always current. (The tray deliberately does
   **not** use `setContextMenu`, which on macOS would make a left-click open the
   menu and collide with the toggle behavior.)
 - **Window** — `BrowserWindow` with `contextIsolation: true`,
   `nodeIntegration: false`, an empty preload, and `webSecurity: true`. Geometry
   is persisted to `window-state.json` under `app.getPath('userData')`. External
   links open in the system browser, never inside Electron. Its `icon` is set to
-  the colored app logo via `appIconPath()` (`icon.png`, the same logo as the
-  macOS Dock, rendered from `assets/icon.svg`), resolving dev vs packaged asset
-  paths, so an unpackaged `desktop:dev` run shows the real logo in the title bar
-  instead of the generic Electron icon. macOS ignores `BrowserWindow#icon` (the
-  dev Dock icon is set separately in `main.ts`; the packaged app gets its icon
-  from the bundle `.icns`).
+  the colored app logo via `appIconPath()` (`icon.ico` on Windows, `icon.png`
+  elsewhere — the same logo as the macOS Dock, rendered from `assets/icon.svg`),
+  resolving dev vs packaged asset paths, so an unpackaged `desktop:dev` run shows
+  the real logo in the title bar / taskbar instead of the generic Electron icon.
+  macOS ignores `BrowserWindow#icon` (the dev Dock icon is set separately in
+  `main.ts`; packaged apps get theirs from the bundle `.icns`/`.exe`).
 - **Application menu** — standard menu (`About`, `Open at Login`, `File`,
-  `Edit`, `View`, `Window`, `Help`). `⌘R` is owned by `View ▸ reload`. The
-  `File ▸ Open Dashboard` item (`⌘1`) reopens the window from its hidden/tray
-  state — macOS keeps a global menu bar after the window hides, so the
-  accelerator still fires. `focusOrCreateWindow` calls `show()` unconditionally
-  so it reliably raises a backgrounded/minimized window.
-- **About panel** — `app.setAboutPanelOptions()` in `main.ts` customizes the
-  native About panel so its "Version X (Y)" line shows the build date instead
-  of duplicating the semver, e.g. "Version 4.0.0 (Built August 28, 2026)" —
-  useful for support/bug reports when a user is on an older DMG. The date
-  comes from `src/build-info.ts`, a git-ignored file `scripts/prebuild.js`
-  regenerates on every `npm run build` (Electron main-process code compiles
-  ahead of time, so there is no runtime signal for "when was this bundle
-  produced" otherwise).
+  `Edit`, `View`, `Window`, `Help`). `⌘R` / `Ctrl+R` is owned by `View ▸ reload`.
+  The `File ▸ Open Dashboard` item (`⌘1`) is gated behind `isMac`: macOS keeps a
+  global menu bar after the window hides so it can reopen it, but on
+  Windows/Linux the menu is attached to the window and a menu accelerator can't
+  fire while it's hidden — reopening there is the tray's *Open Dashboard*, and
+  `focusOrCreateWindow` calls `show()` unconditionally so it reliably raises a
+  backgrounded/minimized window (a bare `focus()` on Windows often only flashes
+  the taskbar button).
 
 ---
 
@@ -431,8 +434,8 @@ flowchart TD
 
 Auto-start uses Electron's first-party `app.setLoginItemSettings` — which wraps
 the modern macOS `SMAppService` / `ServiceManagement` framework — **not** a
-`LaunchAgent` plist. The toggle therefore appears in **System Settings → General
-→ Login Items** where users expect to manage it.
+`LaunchAgent` plist. The toggle therefore appears in
+**System Settings → General → Login Items** where users expect to manage it.
 
 ```mermaid
 stateDiagram-v2
@@ -446,66 +449,6 @@ stateDiagram-v2
 
 When macOS launches the app at login (`wasOpenedAtLogin`), it starts
 **tray-only** with `openAsHidden: true` — no window jumps into the user's face.
-
----
-
-## Auto-updates
-
-`electron-updater` reads GitHub Releases as its feed — no separate hosting.
-Checks are automatic; download and install stay user-triggered.
-
-```mermaid
-stateDiagram-v2
-    [*] --> idle: packaged build
-    [*] --> disabled: dev build, or<br/>CAM_DESKTOP_DISABLE_AUTO_UPDATE=1
-    idle --> checking: 15s after boot,<br/>then every 4h — or<br/>tray/menu "Check for Updates…"
-    checking --> up_to_date: no newer version
-    checking --> available: newer version found
-    up_to_date --> checking: next poll / manual check
-    available --> downloading: user clicks the tray's status row
-    downloading --> downloaded: complete
-    downloading --> available: download failed
-    downloaded --> [*]: user clicks "Restart to update"<br/>(quit + relaunch)
-    checking --> error: check failed
-    error --> checking: retry
-```
-
-- **State machine** — `src/updaterState.ts` is pure (no `electron` import),
-  unit-tested directly under plain `node --test`
-  (`tests/updater-state.test.mjs`); `src/updater.ts` wraps `autoUpdater` and
-  drives those reducers from its events.
-- **Manual download/install, automatic checks** — `autoDownload = false` /
-  `autoInstallOnAppQuit = false`. A background poll only ever gets you to
-  `"available"`; downloading and installing are always an explicit click on
-  the tray's status row (see Surfaces below — the check itself, unlike
-  download/install, is also available from the application menu), the same
-  philosophy the t3code reference implementation uses.
-- **Surfaces** — a status row appears in the tray dropdown and (implicitly,
-  via `app.setAboutPanelOptions`) nowhere else; a persistent
-  **"Check for Updates…"** item lives in both the tray menu and the
-  application menu's app submenu (macOS convention, right under About). A
-  native `Notification` fires once per downloaded version when it's ready to
-  install.
-- **Feed files** — building both architectures together (`npm run dmg`, what
-  CI runs) makes electron-builder emit a single `latest-mac.yml` (listing all
-  four DMG/zip artifacts — confirmed against a real build, not a separate
-  per-arch `latest-mac-arm64.yml`) alongside the zips `autoUpdater` applies
-  updates from; the DMGs remain the plain distributable download.
-  `electron-builder.yml`'s `publish:` block only shapes these files — every
-  packaging script still passes `--publish never`, so electron-builder never
-  uploads anything itself. The existing `release` CI job
-  (`.github/workflows/ci.yml`) is what attaches everything to the GitHub
-  Release.
-- **Gatekeeper on an ad-hoc build** — `src/gatekeeper.ts` runs a best-effort
-  `xattr -cr` on our own `.app` bundle at every startup, the same fix
-  [Code signing & notarization](#code-signing--notarization) documents for a
-  manual DMG install, applied automatically. Read that file's header comment
-  before relying on it — it is not a guaranteed unblock for a Gatekeeper
-  prompt that fires before our code runs at all; the durable fix is real
-  Developer ID signing + notarization.
-- **Disabling it** — set `CAM_DESKTOP_DISABLE_AUTO_UPDATE=1` (e.g. for a
-  locked-down/QA machine). It is always off for an unpackaged `desktop:dev`
-  run regardless of this variable.
 
 ---
 
@@ -525,11 +468,6 @@ desktop/
 │   │                    #   {sessions, agents, events-today} snapshot
 │   ├── login-item.ts    # macOS Login Items (SMAppService)
 │   ├── shell-path.ts    # recover the user's shell PATH (so `claude` is found)
-│   ├── updater.ts       # electron-updater wrapper — check/download/install,
-│   │                    #   startup + 4h poll, GitHub Releases feed
-│   ├── updaterState.ts  # ★ pure state/reducers for updater.ts — no electron
-│   │                    #   import, unit-testable under plain `node --test`
-│   ├── gatekeeper.ts    # best-effort `xattr -cr` on our own bundle at boot
 │   ├── logger.ts        # file logger → app.getPath('logs')/desktop.log
 │   ├── constants.ts     # APP_NAME, ports, timeouts, window size
 │   └── preload.ts       # intentionally empty (zero renderer privilege)
@@ -543,8 +481,7 @@ desktop/
 │   └── build-icons.sh   # regenerate icon.icns + tray PNGs from SVG
 ├── assets/              # icon.icns, icon.png, tray-icon-Template*.png, SVGs
 ├── tests/
-│   ├── smoke.test.mjs         # spawn Electron + probe /api/health
-│   └── updater-state.test.mjs # pure reducer/label unit tests (no Electron)
+│   └── smoke.test.mjs   # spawn Electron + probe /api/health
 ├── electron-builder.yml # DMG packaging config
 ├── tsconfig.json        # strict; src/ → out/
 └── package.json
@@ -557,8 +494,8 @@ Compiled output lands in `desktop/out/` (git-ignored); packaged artifacts in
 
 ## Packaged app layout
 
-`electron-builder` produces `Claude Code Monitor.app`. The Electron main process
-code is packed into `app.asar`; the rest of the repo is shipped as
+`electron-builder` produces `Claude Code Monitor.app`. The Electron main
+process code is packed into `app.asar`; the rest of the repo is shipped as
 **`extraResources`** (plain files under `Resources/app/`):
 
 ```mermaid
@@ -580,8 +517,8 @@ flowchart TD
     style appdir fill:#238636,stroke:#196c2e,color:#fff
 ```
 
-At runtime `server-host.ts` resolves this root: `process.resourcesPath/app` when
-packaged, or the repo root in development.
+At runtime `server-host.ts` resolves this root: `process.resourcesPath/app`
+when packaged, or the repo root in development.
 
 ---
 
@@ -607,10 +544,10 @@ flowchart LR
     style dmg fill:#238636,stroke:#196c2e,color:#fff
 ```
 
-`desktop:dmg` runs the _packaging → rebuild → sign → DMG_ steps **twice** (once
-per architecture) and emits two separate DMGs (`…-arm64.dmg` + `…-x64.dmg`).
-There is no `@electron/universal` merge step — the release ships the two
-per-arch DMGs rather than one fat universal binary.
+`desktop:dmg` runs the *packaging → rebuild → sign → DMG* steps **twice**
+(once per architecture) and emits two separate DMGs (`…-arm64.dmg` +
+`…-x64.dmg`). There is no `@electron/universal` merge step — the release ships
+the two per-arch DMGs rather than one fat universal binary.
 
 ---
 
@@ -619,25 +556,28 @@ per-arch DMGs rather than one fat universal binary.
 All commands are runnable from the **repo root** (`desktop:*`) or from inside
 `desktop/`. Every script that packages first runs `npm run build`, so you never
 need to invoke `electron-builder` bare (doing so skips the TypeScript compile
-and fails with _"entry file out/main.js does not exist"_).
+and fails with *"entry file out/main.js does not exist"*).
 
-| Repo-root command               | `desktop/` command        | What it does                                                                                                                                                                                                                                |
-| ------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run desktop:install`       | `node scripts/install.js` | Install Electron, electron-builder, types; rebuild `better-sqlite3` for Electron's ABI (`postinstall`). Preflights native deps — on failure (or a missing binary) prints per-OS setup help + a no-toolchain alternative and exits non-zero. |
-| `npm run desktop:build`         | `npm run build`           | Prebuild guard + `tsc` → `out/`.                                                                                                                                                                                                            |
-| `npm run desktop:dev`           | `npm run dev`             | Build, then launch Electron against `out/main.js`.                                                                                                                                                                                          |
-| `npm run desktop:test`          | `npm test`                | Build, then run the smoke test.                                                                                                                                                                                                             |
-| `npm run desktop:dmg`           | `npm run dmg`             | **macOS:** both per-arch DMGs (arm64 + x64). Correct for release. **Slower.**                                                                                                                                                               |
-| `npm run desktop:dmg:arm64`     | `npm run dmg:arm64`       | **macOS:** Apple-Silicon-only DMG. **Fast.**                                                                                                                                                                                                |
-| `npm run desktop:dmg:x64`       | `npm run dmg:x64`         | **macOS:** Intel-only DMG. **Fast.**                                                                                                                                                                                                        |
-| `npm run desktop:dmg:universal` | `npm run dmg:universal`   | **macOS:** one merged universal DMG (arm64 + x86_64 via `@electron/universal`). Optional — not what the release ships. **Slowest.**                                                                                                         |
-| —                               | `npm run build:icons`     | **macOS:** regenerate `icon.icns` + tray PNGs from the SVGs.                                                                                                                                                                                |
-| —                               | `npm run clean`           | Remove `out/` and `release/`.                                                                                                                                                                                                               |
+| Repo-root command | `desktop/` command | What it does |
+|---|---|---|
+| `npm run desktop:install` | `node scripts/install.js` | Install Electron, electron-builder, types; rebuild `better-sqlite3` for Electron's ABI (`postinstall`). Preflights native deps — on failure (or a missing binary) prints per-OS setup help + a no-toolchain alternative and exits non-zero. |
+| `npm run desktop:build` | `npm run build` | Prebuild guard + `tsc` → `out/`. |
+| `npm run desktop:dev` | `npm run dev` | Build, then launch Electron against `out/main.js`. |
+| `npm run desktop:test` | `npm test` | Build, then run the smoke test. |
+| `npm run desktop:dmg` | `npm run dmg` | **macOS:** both per-arch DMGs (arm64 + x64). Correct for release. **Slower.** |
+| `npm run desktop:dmg:arm64` | `npm run dmg:arm64` | **macOS:** Apple-Silicon-only DMG. **Fast.** |
+| `npm run desktop:dmg:x64` | `npm run dmg:x64` | **macOS:** Intel-only DMG. **Fast.** |
+| `npm run desktop:dmg:universal` | `npm run dmg:universal` | **macOS:** one merged universal DMG (arm64 + x86_64 via `@electron/universal`). Optional — not what the release ships. **Slowest.** |
+| `npm run desktop:win` | `npm run win` | **Windows:** NSIS installer `.exe` (x64). |
+| `npm run desktop:win:portable` | `npm run win:portable` | **Windows:** no-install portable `.exe` (x64). |
+| — | `npm run build:icons` | **macOS:** regenerate `icon.icns` + tray PNGs from the SVGs. |
+| — | `npm run build:win-icon` | **Windows:** regenerate `icon.ico` from `icon.png` (PowerShell + .NET). |
+| — | `npm run clean` | Remove `out/` and `release/`. |
 
 > **After `npm run clean`** you must `npm run build` again before packaging —
-> `clean` deletes `out/`, and `electron-builder` only _packages_, it does not
-> compile. The `dmg*` scripts chain the build for you; a bare `electron-builder`
-> call does not.
+> `clean` deletes `out/`, and `electron-builder` only *packages*, it does not
+> compile. The `dmg*` scripts chain the build for you; a bare
+> `electron-builder` call does not.
 
 ---
 
@@ -662,7 +602,7 @@ flowchart TD
 Why `desktop:dmg` is slow:
 
 1. **Everything happens twice** — electron-builder builds a full x64 app tree
-   _and_ a full arm64 app tree, rebuilding `better-sqlite3` and packaging a DMG
+   *and* a full arm64 app tree, rebuilding `better-sqlite3` and packaging a DMG
    for each. (There is no universal merge; each arch produces its own DMG.)
 2. **The app tree is large** — the server's entire production dependency tree
    (`express`, `swagger-ui-express`, `ws`, …) ships as `extraResources`; that's
@@ -670,7 +610,7 @@ Why `desktop:dmg` is slow:
 3. **Per-binary code signing** runs over each architecture's bundle.
 
 Net effect: a ~250 MB app is built, copied, and signed once per architecture —
-gigabytes of disk I/O. The Electron runtime downloads (~110 MB each) are _not_
+gigabytes of disk I/O. The Electron runtime downloads (~110 MB each) are *not*
 the bottleneck; packaging two architectures back-to-back is.
 
 **Guidance:**
@@ -695,9 +635,9 @@ without a paid Apple Developer account.
   code-signing certificate already in the contributor's macOS keychain is
   **never** picked up. (Without this, electron-builder auto-discovers such a
   cert and attempts `type=distribution` signing, which fails on a non–Developer
-  ID cert with _"Application … could not be found"_.)
+  ID cert with *"Application … could not be found"*.)
 - **Real Developer ID signing** activates when `CSC_LINK` (a base64-encoded
-  `.p12`) and `CSC_KEY_PASSWORD` are provided — `CSC_LINK` is an _explicit_
+  `.p12`) and `CSC_KEY_PASSWORD` are provided — `CSC_LINK` is an *explicit*
   certificate and is unaffected by the auto-discovery flag.
 - **Notarization** is opt-in: `desktop/scripts/notarize.js` (an
   `electron-builder` `afterSign` hook) runs only when `APPLE_ID`,
@@ -739,31 +679,28 @@ flowchart LR
     job --> j1["npm ci (root, client, desktop)"]
     j1 --> j2["tsc build"]
     j2 --> j3["smoke test"]
-    j3 --> j4["build both per-arch DMGs + zips<br/>+ latest-mac*.yml<br/>(retry on flaky hdiutil detach)"]
-    j4 --> j5["upload ClaudeCodeMonitor-dmg artifact<br/>(dmg + zip + yml + blockmap)"]
-    j5 --> rel["release job (master/main only)<br/>publish vX.Y.Z if new"]
+    j3 --> j4["build both per-arch DMGs<br/>(retry on flaky hdiutil detach)"]
+    j4 --> j5["upload ClaudeCodeMonitor-dmg artifact"]
+    j5 --> rel["release job (master only)<br/>publish vX.Y.Z if new"]
 
     style job fill:#1f6feb,stroke:#1158c7,color:#fff
     style rel fill:#238636,stroke:#1a6e2c,color:#fff
 ```
 
-- The job is **path-filtered** — a `changes` job (`dorny/paths-filter`) detects
-  `desktop/**` edits; the desktop job also runs on any `push` or when a PR
-  carries the `desktop` label.
+- The job is **path-filtered** — a `changes` job (`dorny/paths-filter`)
+  detects `desktop/**` edits; the desktop job also runs on any `push` or when a
+  PR carries the `desktop` label.
 - **DMG build resilience** — `electron-builder` finalizes the DMG with
   `hdiutil detach`, which is intermittently flaky on GitHub macOS runners. The
   step disables Spotlight indexing and retries the build up to 3 times,
   force-detaching any stale volume between attempts.
-- The built DMGs, zips, and `latest-mac*.yml`/`*.blockmap` feed files are all
-  uploaded together as the **`ClaudeCodeMonitor-dmg`** artifact (downloadable
-  from the workflow run).
-- On a push to `master` or `main`, a follow-on **`release`** job reads the version from
-  `package.json` and publishes `vX.Y.Z` as a GitHub Release with every one of
-  those assets attached — but only when no release exists for that version
-  yet, so bumping the version is what cuts a release. The result is a
-  permanent, anonymous download URL at `releases/latest`, and the same
-  release is what `src/updater.ts` polls at runtime (see
-  [Auto-updates](#auto-updates)).
+- The built DMG is uploaded as the **`ClaudeCodeMonitor-dmg`** artifact
+  (downloadable from the workflow run).
+- On `master`, a follow-on **`release`** job reads the version from
+  `package.json` and publishes `vX.Y.Z` as a GitHub Release with the DMG
+  attached — but only when no release exists for that version yet, so bumping
+  the version is what cuts a release. The result is a permanent, anonymous
+  download URL at `releases/latest`.
 
 ---
 
@@ -780,7 +717,7 @@ sequenceDiagram
     participant S as embedded server
 
     T->>T: pick a unique high port
-    T->>E: spawn with CAM_DESKTOP_BIND_PORT=<port>
+    T->>E: spawn with CCAM_DESKTOP_BIND_PORT=<port>
     E->>S: startEmbeddedServer() — bind exactly <port>
     loop until healthy or 60s
         T->>S: GET /api/health
@@ -790,35 +727,33 @@ sequenceDiagram
     T->>E: SIGTERM
 ```
 
-`CAM_DESKTOP_BIND_PORT` forces the server onto an exact port (no adoption, no
-fallback) so the test can be certain it probed _this_ process and not an
+`CCAM_DESKTOP_BIND_PORT` forces the server onto an exact port (no adoption, no
+fallback) so the test can be certain it probed *this* process and not an
 unrelated server on `:4820`.
 
 ---
 
 ## Environment variables
 
-| Variable                                                     | Used by                   | Effect                                                                                                                                                                                             |
-| ------------------------------------------------------------ | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CAM_DESKTOP_BIND_PORT`                                     | `server-host.ts`          | Bind exactly this port — disables adoption and fallback. Used by the smoke test.                                                                                                                   |
-| `CAM_DESKTOP_NO_ADOPT`                                      | `server-host.ts`          | `=1` → never adopt an existing `:4820` server; always start our own.                                                                                                                               |
-| `CAM_DESKTOP_VERBOSE`                                       | `logger.ts`               | Mirror `info`/`warn` log lines to stdout (errors always go to stderr).                                                                                                                             |
-| `CAM_DESKTOP_DISABLE_AUTO_UPDATE`                            | `updater.ts`              | `=1` → auto-updater stays `"disabled"` even in a packaged build. See [Auto-updates](#auto-updates).                                                                                                |
-| `DASHBOARD_DATA_DIR`                                         | `server-host.ts` → server | Set automatically to `app.getPath('userData')/data` so the SQLite database and VAPID keys live in the per-user Application Support directory, never inside the (possibly read-only) `.app` bundle. |
-| `CSC_IDENTITY_AUTO_DISCOVERY`                                | electron-builder          | Set to `false` by the `package` script — forces ad-hoc signing.                                                                                                                                    |
-| `CSC_LINK` / `CSC_KEY_PASSWORD`                              | electron-builder          | Explicit Developer ID `.p12` for real signing.                                                                                                                                                     |
-| `APPLE_ID` / `APPLE_TEAM_ID` / `APPLE_APP_SPECIFIC_PASSWORD` | `notarize.js`             | Enable Apple notarization when all three are set.                                                                                                                                                  |
+| Variable | Used by | Effect |
+|---|---|---|
+| `CCAM_DESKTOP_BIND_PORT` | `server-host.ts` | Bind exactly this port — disables adoption and fallback. Used by the smoke test. |
+| `CCAM_DESKTOP_NO_ADOPT` | `server-host.ts` | `=1` → never adopt an existing `:4820` server; always start our own. |
+| `CCAM_DESKTOP_VERBOSE` | `logger.ts` | Mirror `info`/`warn` log lines to stdout (errors always go to stderr). |
+| `DASHBOARD_DATA_DIR` | `server-host.ts` → server | Set automatically to `app.getPath('userData')/data` so the SQLite database and VAPID keys live in the per-user Application Support directory, never inside the (possibly read-only) `.app` bundle. |
+| `CSC_IDENTITY_AUTO_DISCOVERY` | electron-builder | Set to `false` by the `package` script — forces ad-hoc signing. |
+| `CSC_LINK` / `CSC_KEY_PASSWORD` | electron-builder | Explicit Developer ID `.p12` for real signing. |
+| `APPLE_ID` / `APPLE_TEAM_ID` / `APPLE_APP_SPECIFIC_PASSWORD` | `notarize.js` | Enable Apple notarization when all three are set. |
 
 The embedded server also honors the dashboard's own env vars (`DASHBOARD_PORT`
 and `DASHBOARD_DATA_DIR` are set automatically by `server-host.ts`; everything
-else in [`../INSTALL.md`](../INSTALL.md) applies).
+else in [`../SETUP.md`](../SETUP.md) applies).
 
 > **Writable state never lives in the `.app` bundle.** A packaged, code-signed,
 > or app-translocated bundle is read-only; a database written there would break
 > History Import and event persistence. `server-host.ts` points
-> `DASHBOARD_DATA_DIR` at
-> `~/Library/Application Support/Claude Code Monitor/data/`, which is also why
-> your imported history survives an app reinstall or update.
+> `DASHBOARD_DATA_DIR` at `~/Library/Application Support/Claude Code Monitor/data/`,
+> which is also why your imported history survives an app reinstall or update.
 
 ---
 
@@ -833,24 +768,22 @@ The Electron main process has no console when launched from Finder, so
 
 Reach it from the tray menu → **Show Logs**.
 
-| Symptom                                                         | Cause / fix                                                                                                                                                                                                                                          |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `entry file out/main.js does not exist`                         | You ran `electron-builder` without building first. Run `npm run build` (or use a `dmg*` script).                                                                                                                                                     |
-| Signing fails: `Application … could not be found` after retries | A keychain cert was auto-discovered. The `package` script now sets `CSC_IDENTITY_AUTO_DISCOVERY=false`; ensure you build via `npm run dmg*`, not bare `electron-builder`.                                                                            |
-| DMG build seems slow                                            | Not hung — `desktop:dmg` packages two architectures back-to-back. See [Build performance](#build-performance--read-this). Use `dmg:arm64` / `dmg:x64` for a single arch.                                                                             |
-| `hdiutil detach … exit code 1` in CI                            | Flaky GitHub runner; the CI step already retries with Spotlight disabled. Re-run the job if it still fails.                                                                                                                                          |
-| Dashboard window is blank                                       | The embedded server failed `/api/health` within 30 s — check `desktop.log`.                                                                                                                                                                          |
-| Gatekeeper blocks the app                                       | Ad-hoc DMG. `xattr -cr "/Applications/Claude Code Monitor.app"`.                                                                                                                                                                                     |
-| Hooks not firing                                                | The app installs hooks on first owned-server boot; start a **new** Claude Code session afterwards. Verify entries in `~/.claude/settings.json`.                                                                                                      |
-| "Run Claude" says `claude` isn't on your PATH                   | `shell-path.ts` recovers the login-shell PATH at startup. If `claude` is a shell _alias_ or _function_ (not a real binary), it cannot be spawned — install the `claude` CLI as an executable. Check `desktop.log` for the `user PATH resolved` line. |
-| `desktop:dev` / `desktop:test` fail with `ERR_DLOPEN_FAILED`    | A prior DMG build left `better-sqlite3` built for the other CPU arch. `prebuild.js` auto-heals this on the next build; if needed, run `npm run desktop:install`.                                                                                     |
-| Imported history disappeared after reinstall                    | Fixed — the database now lives in `~/Library/Application Support/Claude Code Monitor/data/`, outside the bundle. A one-time gap exists only across the upgrade from a build that predated this fix; re-run **Import History → Rescan**.              |
-| Auto-updater never finds an update                              | Only a `master`/`main` push cuts a GitHub Release with the `latest-mac.yml` feed file attached — see [Continuous integration](#continuous-integration). A release published before the auto-updater feature landed has no feed file and will never be found this way. Check `desktop.log` for `updater error` lines.                          |
-| "Check for Updates…" does nothing / greyed out                  | It's disabled while a check or download is already in flight, or when `CAM_DESKTOP_DISABLE_AUTO_UPDATE=1` / the build is unpackaged (`desktop:dev`) — auto-updates are always off there.                                                              |
+| Symptom | Cause / fix |
+|---|---|
+| `entry file out/main.js does not exist` | You ran `electron-builder` without building first. Run `npm run build` (or use a `dmg*` script). |
+| Signing fails: `Application … could not be found` after retries | A keychain cert was auto-discovered. The `package` script now sets `CSC_IDENTITY_AUTO_DISCOVERY=false`; ensure you build via `npm run dmg*`, not bare `electron-builder`. |
+| DMG build seems slow | Not hung — `desktop:dmg` packages two architectures back-to-back. See [Build performance](#build-performance--read-this). Use `dmg:arm64` / `dmg:x64` for a single arch. |
+| `hdiutil detach … exit code 1` in CI | Flaky GitHub runner; the CI step already retries with Spotlight disabled. Re-run the job if it still fails. |
+| Dashboard window is blank | The embedded server failed `/api/health` within 30 s — check `desktop.log`. |
+| Gatekeeper blocks the app | Ad-hoc DMG. `xattr -cr "/Applications/Claude Code Monitor.app"`. |
+| Hooks not firing | The app installs hooks on first owned-server boot; start a **new** Claude Code session afterwards. Verify entries in `~/.claude/settings.json`. |
+| "Run Claude" says `claude` isn't on your PATH | `shell-path.ts` recovers the login-shell PATH at startup. If `claude` is a shell _alias_ or _function_ (not a real binary), it cannot be spawned — install the `claude` CLI as an executable. Check `desktop.log` for the `user PATH resolved` line. |
+| `desktop:dev` / `desktop:test` fail with `ERR_DLOPEN_FAILED` | A prior DMG build left `better-sqlite3` built for the other CPU arch. `prebuild.js` auto-heals this on the next build; if needed, run `npm run desktop:install`. |
+| Imported history disappeared after reinstall | Fixed — the database now lives in `~/Library/Application Support/Claude Code Monitor/data/`, outside the bundle. A one-time gap exists only across the upgrade from a build that predated this fix; re-run **Import History → Rescan**. |
 
 ---
 
-## What this workspace does _not_ touch
+## What this workspace does *not* touch
 
 By design, changes outside `desktop/` are kept to a minimum:
 
@@ -863,37 +796,38 @@ By design, changes outside `desktop/` are kept to a minimum:
   `require.main === module` block, so the embedded server never ran it and the
   desktop dashboard started empty; moving it into `startBackgroundServices()`
   fixes that.) The server also publishes its live port on startup.
-- **`server/lib/server-info.js`** _(new)_ — multi-server discovery file at
+- **`server/lib/server-info.js`** *(new)* — multi-server discovery file at
   `~/.claude/.agent-dashboard.json`. Every running dashboard appends its
-  `{port, pid, startedAt}` entry on startup, removes it on clean shutdown, and
-  stale entries are pruned by a `process.kill(pid, 0)` liveness check on read.
-  Exposes `writeServerInfo`, `removeServerInfo`, `resolveAllDashboardPorts`
-  (fan-out targets), and the legacy single-port `resolveDashboardPort`. The file
-  also carries legacy root-level `port`/`pid`/`startedAt` fields populated from
-  the most recently started live server, so older hook handlers bundled inside
-  an already-installed `.app` still resolve to a reachable port.
-- **`scripts/hook-handler.js`** — `Promise.all` fan-out of every hook payload to
-  every live server returned by `resolveAllDashboardPorts()`
-  (`CLAUDE_DASHBOARD_PORT` overrides to a single target). This is what lets the
-  desktop app coexist with `npm run dev` — both dashboards receive every event
-  and both stay real-time.
+  `{port, pid, startedAt}` entry on startup, removes it on clean shutdown,
+  and stale entries are pruned by a `process.kill(pid, 0)` liveness check on
+  read. Exposes `writeServerInfo`, `removeServerInfo`,
+  `resolveAllDashboardPorts` (fan-out targets), and the legacy single-port
+  `resolveDashboardPort`. The file also carries legacy root-level
+  `port`/`pid`/`startedAt` fields populated from the most recently started
+  live server, so older hook handlers bundled inside an already-installed
+  `.app` still resolve to a reachable port.
+- **`scripts/hook-handler.js`** — `Promise.all` fan-out of every hook
+  payload to every live server returned by `resolveAllDashboardPorts()`
+  (`CLAUDE_DASHBOARD_PORT` overrides to a single target). This is what lets
+  the desktop app coexist with `npm run dev` — both dashboards receive every
+  event and both stay real-time.
 - **`server/lib/push.js`** — `sendPushToAll()` now also fires a **native
   Electron notification** when `process.versions.electron` is set, so the
   desktop app surfaces notifications via the OS API instead of relying on Web
-  Push (which fails inside Electron — no FCM credentials in the Chromium build).
-  The standalone server path is unchanged: the native leg is a no-op there, and
-  Web Push delivers as before.
-- **`scripts/dev.js`** _(new)_ — `npm run dev`'s entry point. Probes both
-  `127.0.0.1` and `::1` for a free port in `4820–4859` (so an SSH `LocalForward`
-  with loopback-specific binds can't shadow Node's wildcard listen), exports
-  `DASHBOARD_PORT`, then spawns the existing `concurrently` server + client
-  pipeline. `npm run dev:raw` bypasses it for parity with the old behaviour.
+  Push (which fails inside Electron — no FCM credentials in the Chromium
+  build). The standalone server path is unchanged: the native leg is a no-op
+  there, and Web Push delivers as before.
+- **`scripts/dev.js`** *(new)* — `npm run dev`'s entry point. Probes both
+  `127.0.0.1` and `::1` for a free port in `4820–4859` (so an SSH
+  `LocalForward` with loopback-specific binds can't shadow Node's wildcard
+  listen), exports `DASHBOARD_PORT`, then spawns the existing
+  `concurrently` server + client pipeline. `npm run dev:raw` bypasses it
+  for parity with the old behaviour.
 
 `client/`, `mcp/`, and `vscode-extension/` are **untouched**. If you find
 yourself wanting to edit those, that belongs in a separate PR.
 
 ---
 
-_User-facing docs: [`../DESKTOP.md`](../DESKTOP.md) · Project architecture:
-[`../ARCHITECTURE.md`](../ARCHITECTURE.md) · Setup:
-[`../INSTALL.md`](../INSTALL.md)_
+*User-facing docs: [`../DESKTOP.md`](../DESKTOP.md) · Project architecture:
+[`../ARCHITECTURE.md`](../ARCHITECTURE.md) · Setup: [`../SETUP.md`](../SETUP.md)*

@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1.7
-# Multi-stage OCI image for CAM's MCP server. The repository root is the build
-# context so the local code-agent-monitor dependency resolves, while the runtime
+# Multi-stage OCI image for CCAM's MCP server. The repository root is the build
+# context so the local agent-dashboard dependency resolves, while the runtime
 # contains only production dependencies and compiled output under a non-root
 # user.
-# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+# @author Son Nguyen <hoangson091104@gmail.com>
 
 ARG NODE_IMAGE=node:24.19.0-alpine3.24@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43
 
@@ -12,26 +12,22 @@ WORKDIR /workspace
 
 COPY package.json package-lock.json ./
 COPY mcp/package.json mcp/package-lock.json ./mcp/
-COPY scripts/postinstall.js ./scripts/postinstall.js
+COPY scripts/postinstall.js scripts/run-npm.js ./scripts/
 
-WORKDIR /workspace/mcp
-RUN npm ci --omit=dev
+RUN npm --prefix mcp ci --omit=dev
 
 FROM ${NODE_IMAGE} AS build
 WORKDIR /workspace
 
 COPY package.json package-lock.json ./
 COPY mcp/package.json mcp/package-lock.json ./mcp/
-COPY scripts/postinstall.js ./scripts/postinstall.js
+COPY scripts/postinstall.js scripts/run-npm.js ./scripts/
 
-WORKDIR /workspace/mcp
-RUN npm ci
+RUN npm --prefix mcp ci
 
-WORKDIR /workspace
 COPY mcp ./mcp
 
-WORKDIR /workspace/mcp
-RUN npm run build
+RUN npm --prefix mcp run build
 
 FROM ${NODE_IMAGE} AS runtime
 WORKDIR /app

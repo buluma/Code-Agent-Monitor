@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# db-backup.sh – SQLite database backup for Code Agent Monitor
+# db-backup.sh – SQLite database backup for Claude Code Agent Monitor
 #
 # Usage:
 #   ./db-backup.sh --env production --output ./backups/
 #   ./db-backup.sh --env production --output ./backups/ --upload s3://bucket/path
 #   ./db-backup.sh --help
 # ─────────────────────────────────────────────────────────────────────────────
-# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+# @author Son Nguyen <hoangson091104@gmail.com>
 set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -261,7 +261,7 @@ upload_backup() {
 main() {
   echo ""
   echo -e "${BOLD}${BLUE}╔══════════════════════════════════════════════════╗${NC}"
-  echo -e "${BOLD}${BLUE}║   Code Agent Monitor – DB Backup                ║${NC}"
+  echo -e "${BOLD}${BLUE}║   Claude Code Agent Monitor – DB Backup         ║${NC}"
   echo -e "${BOLD}${BLUE}╚══════════════════════════════════════════════════╝${NC}"
   echo ""
 

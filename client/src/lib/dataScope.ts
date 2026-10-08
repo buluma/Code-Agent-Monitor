@@ -16,12 +16,12 @@
  *   - `selected` → `sources=<comma-separated ids>` (an empty selection falls
  *                  back to `local` so the UI never shows a confusing empty app)
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/lib/dataScope.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/lib/dataScope.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -102,10 +102,17 @@
 
 import { useSyncExternalStore } from "react";
 
+/**
+ * Which machines' data is shown: `all` (this machine and every remote source), `local` (this
+ * machine only), or `selected` (the chosen sources).
+ */
 export type ScopeMode = "all" | "local" | "selected";
-export type ProviderScope = "claude" | "codex" | "helmcode" | "t3" | "both";
+/** Which product's data is shown: Claude-compatible (Claude Code and Cursor), Codex, or both. */
+export type ProviderScope = "claude" | "codex" | "both";
 
+/** The global data scope applied to every scoped list and aggregate request. */
 export interface DataScope {
+  /** Machine selection mode. */
   mode: ScopeMode;
   /** Source ids selected when `mode === "selected"`. */
   selected: string[];
@@ -113,9 +120,17 @@ export interface DataScope {
   provider?: ProviderScope;
 }
 
-const STORAGE_KEY = "cam-data-scope";
+/** localStorage key for the persisted scope. */
+const STORAGE_KEY = "ccam-data-scope";
+/** Scope for a first visit: every machine and both products. */
 const DEFAULT_SCOPE: DataScope = { mode: "all", selected: [] };
 
+/**
+ * Read the persisted scope, validating each field so a corrupt or outdated entry falls back to the
+ * defaults.
+ *
+ * @returns The stored scope, or {@link DEFAULT_SCOPE}.
+ */
 function load(): DataScope {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -129,11 +144,7 @@ function load(): DataScope {
       ? parsed.selected.filter((s): s is string => typeof s === "string")
       : [];
     const provider: ProviderScope | undefined =
-      parsed.provider === "codex" ||
-      parsed.provider === "helmcode" ||
-      parsed.provider === "t3" ||
-      parsed.provider === "both" ||
-      parsed.provider === "claude"
+      parsed.provider === "codex" || parsed.provider === "both" || parsed.provider === "claude"
         ? parsed.provider
         : undefined;
     return provider ? { mode, selected, provider } : { mode, selected };
@@ -142,11 +153,18 @@ function load(): DataScope {
   }
 }
 
-// The single source of truth for this tab. Replaced wholesale on every change so
-// useSyncExternalStore's getSnapshot returns a stable reference between changes.
+/**
+ * The single source of truth for this tab's scope. It is replaced wholesale on every change so
+ * `useSyncExternalStore`'s snapshot stays referentially stable between changes.
+ */
 let current: DataScope = load();
+/** Subscribers notified when the scope changes. */
 const listeners = new Set<() => void>();
 
+/**
+ * Save the current scope to localStorage. If storage is disabled, the in-memory scope still works
+ * for the session.
+ */
 function persist(): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
@@ -160,7 +178,11 @@ export function getScope(): DataScope {
   return current;
 }
 
-/** Replace the scope, persist it, and notify all subscribers. */
+/**
+ * Replace the scope, persist it, and notify all subscribers.
+ *
+ * @param next - New scope; when it has no provider, the current provider is kept.
+ */
 export function setScope(next: DataScope): void {
   current = {
     mode: next.mode,
@@ -171,7 +193,12 @@ export function setScope(next: DataScope): void {
   listeners.forEach((l) => l());
 }
 
-/** Subscribe to scope changes (for useSyncExternalStore / manual wiring). */
+/**
+ * Subscribe to scope changes (for useSyncExternalStore / manual wiring).
+ *
+ * @param cb - Called after every change.
+ * @returns A function that unsubscribes.
+ */
 export function subscribeScope(cb: () => void): () => void {
   listeners.add(cb);
   return () => listeners.delete(cb);
@@ -195,7 +222,11 @@ export function activeProvidersParam(): string | null {
   return current.provider === "both" ? null : current.provider || "claude";
 }
 
-/** Update only the product dimension while preserving the selected machines. */
+/**
+ * Update only the product dimension while preserving the selected machines.
+ *
+ * @param provider - New product scope.
+ */
 export function setProviderScope(provider: ProviderScope): void {
   setScope({ ...current, provider });
 }

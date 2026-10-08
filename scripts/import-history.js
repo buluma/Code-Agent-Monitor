@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Import legacy Claude Code sessions from ~/.claude/ into the Code Agent Monitor.
+ * Import legacy Claude Code sessions from ~/.claude/ into the Agent Dashboard.
  * Reads per-project JSONL session files to populate sessions, agents, token
  * usage, and compact recent-human-turn card context that existed before the
  * dashboard was installed.
@@ -9,7 +9,7 @@
  * Can be run standalone: node scripts/import-history.js [--dry-run] [--project <name>]
  * Also exported for auto-import on server startup.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const fs = require("fs");
@@ -33,6 +33,8 @@ const {
   getTranscriptSnapshotDir,
 } = require("../server/lib/claude-home");
 const { extractFirstUserText, appendRecentUserMessage } = require("../server/lib/transcript-cache");
+const { writeSnapshot } = require("../server/lib/snapshot-store");
+const { getSnapshotPolicy } = require("../server/lib/snapshot-retention");
 const CLAUDE_DIR = getClaudeHome();
 const PROJECTS_DIR = getProjectsDir();
 
@@ -59,25 +61,29 @@ const SWEEP_YIELD_EVERY_FILES = 100;
  * (often leaving only a `.jsonl.wakatime` sidecar). When that happens the
  * session row survives but its transcript is gone → an empty Conversation tab.
  * Keeping a durable copy under <dataDir>/transcripts/ fixes that; the read
- * route prefers the live file and falls back to this snapshot.
+ * route serves whichever of the live file and this snapshot is more complete.
  *
  * Re-snapshots when the source has grown (a live session that gained turns
- * since the last import). Best-effort and non-fatal.
+ * since the last import) and never shrinks an existing snapshot, so a
+ * truncated original cannot overwrite the fuller copy. Writes go through
+ * server/lib/snapshot-store.js (atomic, copy-on-write where the filesystem
+ * supports it). Best-effort and non-fatal.
  */
 function snapshotTranscript(sourceJsonlPath, sessionId) {
   try {
-    const srcMain = path.resolve(sourceJsonlPath);
     const snapDir = getTranscriptSnapshotDir();
-    const destMain = path.join(snapDir, `${sessionId}.jsonl`);
-    if (path.resolve(destMain) !== srcMain) {
-      copyIfNewer(srcMain, destMain);
-    }
+    // Opt-in retention cap (snapshot-retention.js): a source idle past
+    // DASHBOARD_SNAPSHOT_MAX_AGE_DAYS is not snapshotted, so a re-import of old
+    // history doesn't regrow what the cap prunes. Unset by default.
+    const { max_age_days: maxAgeDays } = getSnapshotPolicy();
+    const write = (source, relPath) =>
+      writeSnapshot({ root: snapDir, sessionId, source, relPath, maxAgeDays });
+
+    write(path.resolve(sourceJsonlPath), `${sessionId}.jsonl`);
 
     // Subagent transcripts live under `<sessionId>/subagents/agent-*.jsonl`.
     for (const subPath of findSessionSubagents(sourceJsonlPath)) {
-      const destSub = path.join(snapDir, sessionId, "subagents", path.basename(subPath));
-      if (path.resolve(destSub) === path.resolve(subPath)) continue;
-      copyIfNewer(subPath, destSub);
+      write(subPath, path.join(sessionId, "subagents", path.basename(subPath)));
     }
 
     // Workflow-tool inner-agent transcripts live nested at
@@ -85,35 +91,11 @@ function snapshotTranscript(sourceJsonlPath, sessionId) {
     // `workflows/<runId>/` subpath so the read route resolves the snapshot the
     // same way it resolves the live nested file (see getSnapshotSubagentTranscriptPath).
     for (const sub of findSessionWorkflowSubagents(sourceJsonlPath)) {
-      const destSub = path.join(snapDir, sessionId, "subagents", sub.rel);
-      if (path.resolve(destSub) === path.resolve(sub.abs)) continue;
-      copyIfNewer(sub.abs, destSub);
+      write(sub.abs, path.join(sessionId, "subagents", sub.rel));
     }
   } catch {
     /* non-fatal: metadata import already succeeded */
   }
-}
-
-/**
- * Copy `src` to `dest` only when `dest` is missing or smaller than `src`
- * (i.e. the source grew). Creates parent dirs as needed.
- */
-function copyIfNewer(src, dest) {
-  let srcSize;
-  try {
-    srcSize = fs.statSync(src).size;
-  } catch {
-    return; // source vanished mid-import — nothing to copy
-  }
-  let destSize = -1;
-  try {
-    destSize = fs.statSync(dest).size;
-  } catch {
-    /* dest missing */
-  }
-  if (destSize >= srcSize) return; // snapshot already at least as complete
-  fs.mkdirSync(path.dirname(dest), { recursive: true });
-  fs.copyFileSync(src, dest);
 }
 
 /**
@@ -2145,7 +2127,7 @@ async function reconcileTokens(dbModule, options = {}) {
     // then fall back to the transcript path persisted on the session row. The
     // scan alone misses every Claude session whose transcript lives outside
     // the default tree — e.g. one imported from a custom directory via
-    // `cam import path`, or a non-default CLAUDE_HOME — which would silently
+    // `ccam import path`, or a non-default CLAUDE_HOME — which would silently
     // leave those sessions un-repaired despite having a transcript on disk.
     let jsonlPath = sessionPaths.get(sessionId);
     if (!jsonlPath && storedPath && storedPath.endsWith(".jsonl")) {
@@ -2768,17 +2750,16 @@ async function scanAndImportSubagents(dbModule, sessionId, transcriptPath, opts 
   // A Haiku QA agent under an Opus orchestrator must keep its own (cheaper)
   // token bucket instead of being priced at the orchestrator's rate.
   //
-  // We deliberately SKIP any bucket whose model the MAIN transcript also wrote.
-  // Those buckets are owned by the main-transcript writer in
-  // server/routes/hooks.js; writing one from two sources with different
-  // magnitudes would trip replaceTokenUsage's compaction baseline-shift
+  // We deliberately SKIP any bucket whose model the authoritative live writer
+  // already wrote. server/routes/hooks.js passes the model set from its main +
+  // flat-subagent combination; writing one again from a different scope would
+  // trip replaceTokenUsage's compaction baseline-shift
   // (excluded < stored ⇒ baseline += stored) and inflate the total. The caller
-  // passes opts.parentModels (every model the main transcript used — covers a
-  // mid-session /model switch, not just the latest); we also fold in the stored
-  // session.model as a fallback. Same-model subagents are reconciled by the
-  // authoritative importSession/reconcileTokens path instead. Subagent JSONLs
-  // are append-only, so the combined per-model sum only grows between
-  // SubagentStop sweeps — never a spurious drop.
+  // passes opts.parentModels; we also fold in the stored session.model as a
+  // fallback for older callers. The scanner still stamps each agent's own
+  // metadata.tokens before this session-level write filter. Subagent JSONLs are
+  // append-only, so any remaining per-model sum only grows between SubagentStop
+  // sweeps — never a spurious drop.
   if (parsedSubagents.length > 0) {
     try {
       const parentModels = new Set();

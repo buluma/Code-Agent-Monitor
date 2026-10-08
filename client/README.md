@@ -1,7 +1,6 @@
 # Client Application
 
-Enterprise-grade React + TypeScript dashboard for real-time Claude Code agent
-monitoring.
+Enterprise-grade React + TypeScript dashboard for real-time Claude Code agent monitoring.
 
 ![Claude Code](https://img.shields.io/badge/Claude_Code-orange?style=flat-square&logo=claude&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22.22-339933?style=flat-square&logo=node.js&logoColor=white)
@@ -19,6 +18,7 @@ monitoring.
 ![D3.js](https://img.shields.io/badge/D3.js-7-F9A03C?style=flat-square&logo=d3&logoColor=white)
 ![PostCSS](https://img.shields.io/badge/PostCSS-8.5-DD3A0A?style=flat-square&logo=postcss&logoColor=white)
 ![Autoprefixer](https://img.shields.io/badge/Autoprefixer-10.4-DD3735?style=flat-square&logo=autoprefixer&logoColor=white)
+![ESLint](https://img.shields.io/badge/ESLint-8.44-4B32C3?style=flat-square&logo=eslint&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-20.10-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Podman](https://img.shields.io/badge/Podman-4.0-CC342D?style=flat-square&logo=podman&logoColor=white)
 ![Prometheus](https://img.shields.io/badge/Prometheus-3.13-E6522C?style=flat-square&logo=prometheus&logoColor=white)
@@ -51,15 +51,11 @@ monitoring.
 
 ## Overview
 
-The client is a single-page application (SPA) built with modern web
-technologies:
+The client is a single-page application (SPA) built with modern web technologies:
 
-- **React 19.2** - Component-based UI with hooks and the current supported
-  client runtime
-- **TypeScript 5.7** - Full type safety across components, utilities, and API
-  contracts
-- **Vite 7.3** - Lightning-fast HMR during development, optimized production
-  builds
+- **React 19.2** - Component-based UI with hooks and the current supported client runtime
+- **TypeScript 5.7** - Full type safety across components, utilities, and API contracts
+- **Vite 7.3** - Lightning-fast HMR during development, optimized production builds
 - **Tailwind CSS 3.4** - Utility-first CSS framework for rapid UI development
 - **React Router 8.3** - Declarative client-side routing with nested layouts
 - **WebSocket** - Real-time event streaming from server
@@ -67,70 +63,17 @@ technologies:
 
 ### First-run hook setup
 
-`SplashScreen.tsx` asks which provider data to display (Claude Code, Codex, or
-both — read-only Helm Code and T3 sessions are included automatically under
-both) before dashboard routes render. Continuing checks the current hook state
-against that exact scope: Claude-only needs Claude hooks, Codex-only needs Codex
-hooks, and Both needs both. Helm Code and T3 need no hooks, so they are never
-part of hook installation. A ready selection enters the dashboard immediately. A
-partial or missing setup opens the live-monitoring gate with only the missing
-selected providers, then calls `POST /api/settings/install-hooks` for that
-subset and shows command output in place. A status-check failure remains
-fail-soft by opening manual setup for the full selected scope. API paths are
-deliberately excluded, so Swagger, ReDoc, and the raw OpenAPI document remain
-unobstructed and retain the dashboard favicon.
+`SplashScreen.tsx` asks which provider data to display (Claude Code, Codex, or both) before dashboard routes render. The Claude Code choice explicitly includes Cursor monitoring out of the box; the server expands that scope to stored `claude` + `cursor` rows while only Claude hooks need installation. Codex-only needs Codex hooks, and Both needs both hook sets. A ready selection enters the dashboard immediately. A partial or missing setup opens the live-monitoring gate with only the missing selected providers, then calls `POST /api/settings/install-hooks` for that subset and shows command output in place. A status-check failure remains fail-soft by opening manual setup for the full selected scope. API paths are deliberately excluded, so Swagger, ReDoc, and the raw OpenAPI document remain unobstructed and retain the dashboard favicon.
 
-Chart legends use the shared `PaginatedLegend.tsx` component. Lists at or below
-the configured page size render exactly as before with no controls. Longer
-Analytics donut legends and data-driven Workflows legends render one bounded
-page at a time with localized Previous / Next buttons and an accessible
-visible-range announcement, so labels stay reachable without expanding the chart
-card indefinitely.
+Cursor cards use the native session title plus `Cursor · <project>`, subagent-count, and turn-count subtitles. Session Detail renders Cursor conversations through the same DTO as Claude/Codex and listens for `session_updated` so a newly submitted prompt appears before Cursor emits a tool event or assistant reply. During the prompt-history → transcript hand-off, stable provider message ids merge refresh windows without duplicating the human turn. Settings adds a dedicated Cursor pricing editor (`GET/PUT/DELETE /api/pricing/cursor`) with four published rate columns and plan-billing caveats; its strings ship in all five locales.
+
+Chart legends use the shared `PaginatedLegend.tsx` component. Lists at or below the configured page size render exactly as before with no controls. Longer Analytics donut legends and data-driven Workflows legends render one bounded page at a time with localized Previous / Next buttons and an accessible visible-range announcement, so labels stay reachable without expanding the chart card indefinitely.
 
 ### Run Agent and Agent Config
 
-`/run` deliberately opens on a provider choice, then keeps an accessible Claude
-Code / Codex toggle beside the live-status chip. Claude preserves the
-established headless and stream-json conversation experience. Codex uses the
-native local `codex app-server` protocol for a real interactive thread: it
-supports a model selected from the signed-in live catalog, its own approval
-policy and sandbox selection, stop, resume, follow-ups, and re-attach. WebSocket
-`run_stream` frames are normalized in `Run.tsx`, so both providers render
-messages, reasoning, command/tool activity, file changes, and status changes in
-the same resilient live view.
+`/run` deliberately opens on a provider choice, then keeps an accessible Claude Code / Codex toggle beside the live-status chip. Claude preserves the established headless and stream-json conversation experience. Codex uses the native local `codex app-server` protocol for a real interactive thread: it supports a model selected from the signed-in live catalog, its own approval policy and sandbox selection, stop, resume, follow-ups, and re-attach. WebSocket `run_stream` frames are normalized in `Run.tsx`, so both providers render messages, reasoning, command/tool activity, file changes, and status changes in the same resilient live view.
 
-`/cc-config` is presented as **Agent Config**. Its Claude Code switch keeps the
-existing editable, backup-first explorer. Its Codex switch renders
-`CodexConfigExplorer.tsx`, with a matching overview, stats, scrolling tab rail,
-redacted previews, real installed-plugin cards, and a full local account-model
-catalog that is not truncated by generic file-preview limits. Profiles are
-created as Codex-native `<name>.config.toml` overlays, opened immediately in the
-guarded editor, and expose a one-click copy action for their exact
-`codex --profile <name>` launch command. Its **Helm Code** switch renders
-`HelmcodeConfigExplorer.tsx`, a read-only Config Explorer for the local Helm
-Code integration: the resolved home, the live `server-runtime.json` descriptor,
-the env override chain, the active sync poll cadence, and live projection
-counts. The only mutation is a non-destructive **Resync now** action that
-re-runs the dashboard's own ingest pass; Helm Code itself is never modified. Its
-**T3** switch renders `T3ConfigExplorer.tsx`, the same read-only Config Explorer
-for the T3 fork of Helm Code (provider key `'t3'`): the resolved `~/.t3` home,
-the live `server-runtime.json` descriptor, the env override chain, the active
-sync poll cadence, and live projection counts, with the same non-destructive
-**Resync now** action. A `?provider=claude|codex|helmcode|t3` query parameter
-deep-links directly to the matching tab (Settings → Helm Code uses
-`?provider=helmcode`; Settings → T3 uses `?provider=t3`).
-`codex --profile <name>` launch command. The explicit editor reads unredacted
-text only for its server allowlist, including `config.toml`, profiles,
-`hooks.json`, user rules, `SKILL.md` files, and Codex/project instructions, so
-redaction can never destroy real secret values on save. The server canonicalizes
-preview paths, rejects symlink escapes, and refuses payloads containing
-`[redacted]`. User-maintained profiles, hooks, rules, skills, and instruction
-files use Claude-parity View source / Copy path / Edit / Delete controls:
-deletion needs confirmation and makes a timestamped backup (a skill's complete
-directory is preserved). `config.toml` stays edit-only. The editor warns that
-syntax is not validated; saves are atomic and receive a timestamped backup. It
-subscribes to `codex_config_changed`, so a local CLI, filesystem, or dashboard
-edit refreshes visible configuration without a page reload.
+`/cc-config` is presented as **Agent Config**. Its Claude Code switch keeps the existing editable, backup-first explorer. Its Codex switch renders `CodexConfigExplorer.tsx`, with a matching overview, stats, scrolling tab rail, redacted previews, real installed-plugin cards, and a full local account-model catalog that is not truncated by generic file-preview limits. Profiles are created as Codex-native `<name>.config.toml` overlays, opened immediately in the guarded editor, and expose a one-click copy action for their exact `codex --profile <name>` launch command. The explicit editor reads unredacted text only for its server allowlist, including `config.toml`, profiles, `hooks.json`, user rules, `SKILL.md` files, and Codex/project instructions, so redaction can never destroy real secret values on save. The server canonicalizes preview paths, rejects symlink escapes, and refuses payloads containing `[redacted]`. User-maintained profiles, hooks, rules, skills, and instruction files use Claude-parity View source / Copy path / Edit / Delete controls: deletion needs confirmation and makes a timestamped backup (a skill's complete directory is preserved). `config.toml` stays edit-only. The editor warns that syntax is not validated; saves are atomic and receive a timestamped backup. It subscribes to `codex_config_changed`, so a local CLI, filesystem, or dashboard edit refreshes visible configuration without a page reload.
 
 ```mermaid
 graph TB
@@ -252,12 +195,13 @@ client/
 │   │   ├── EmptyState.tsx
 │   │   ├── Sidebar.tsx
 │   │   ├── Layout.tsx
+│   │   ├── CommandPalette.tsx # Cmd/Ctrl+K launcher over the whole dashboard
+│   │   ├── PaletteActionProvider.tsx # Registry of the actions the mounted page offers the palette
+│   │   ├── ActionToast.tsx           # Confirms actions that change state without navigating
 │   │   ├── SplashScreen.tsx   # First-run provider choice and live-hook setup gate
 │   │   ├── PaginatedLegend.tsx # Bounded responsive legends for Analytics and Workflows
 │   │   ├── RemoteSources.tsx  # Remote Data Sources settings panel (SSH multi-machine collection)
-│   │   ├── CommandPalette.tsx # Cmd+K/Ctrl+K jump-to overlay (nav pages + session search)
-│   │   ├── LinearLinkPanel.tsx # Session Detail: link/unlink a Linear issue
-│   │   ├── LinearSettings.tsx  # Settings panel for the Linear API key
+│   │   ├── SnapshotStorage.tsx # Transcript snapshot storage card: per-provider size, compress now, preview-gated prune
 │   │   ├── TodoProgressIndicator.tsx # Micro donut + portal tooltip beside Sessions status
 │   │   ├── TodoProgressPanel.tsx # Full owner-aware tracker on Session Detail
 │   │   ├── todoProgress.ts       # Shared task status colors/formatters
@@ -288,7 +232,7 @@ client/
 │   │   ├── useNotifications.ts  # Browser push notification triggers
 │   │   └── useSoundCues.ts      # Event-bus → synthesized audio cues
 │   │
-│   ├── i18n/               # Internationalization (en)
+│   ├── i18n/               # Internationalization (en / zh / vi / ko / es)
 │   ├── App.tsx             # Root component + router setup
 │   ├── main.tsx            # Entry point
 │   └── index.css           # Tailwind + custom utilities
@@ -363,62 +307,21 @@ sequenceDiagram
 
 ## State Management
 
-The client uses **local component state** and **React hooks** for state
-management. No global state library (Redux, Zustand) is used to keep the
-architecture simple. The one small exception is the **data-scope store**
-(`lib/dataScope.ts`): a lightweight app-wide store holding the current source
-set (`local` plus any configured
-[Remote Data Sources](../server/README.md#remote-data-sources)) and provider set
-(`claude`, `codex`, `helmcode`, `t3`, or any combination). Pages append the
-resulting `?providers=` parameters to their API requests, so the Settings
-selector immediately narrows the whole app to the chosen machines and/or agents.
-Remote sources are managed from the Settings page via the `RemoteSources`
-component (`components/RemoteSources.tsx`), which configures independent
-`~/.claude` and `~/.codex` homes, renders provider-specific connection/sync
-results, drives the `/api/remote-sources` CRUD/test/sync endpoints, and reflects
-live `remote_source.status` WebSocket updates. A source can be Claude-only,
-Codex-only, or both; a healthy provider's data keeps refreshing even if its
-sibling provider is unavailable. When a sync finishes, stats pages refetch via
-`lib/remoteDataEvents.ts` (`remote_data.updated`, `remote_source.status` with
-`ok`, or remote `import.progress` complete).
+The client uses **local component state** and **React hooks** for state management. No global state library (Redux, Zustand) is used to keep the architecture simple. The one small exception is the **data-scope store** (`lib/dataScope.ts`): a lightweight app-wide store holding the current source set (`local` plus any configured [Remote Data Sources](../server/README.md#remote-data-sources)) and product set (`claude`, which includes Claude Code + Cursor, `codex`, or both). Pages append the resulting `?sources=` and `?providers=` parameters to their API requests, so the Settings selector immediately narrows the whole app to the chosen machines and/or agents. Remote sources are managed from the Settings page via the `RemoteSources` component (`components/RemoteSources.tsx`), which configures independent `~/.claude` and `~/.codex` homes, renders provider-specific connection/sync results, drives the `/api/remote-sources` CRUD/test/sync endpoints, and reflects live `remote_source.status` WebSocket updates. A source can be Claude-only, Codex-only, or both; a healthy provider's data keeps refreshing even if its sibling provider is unavailable. Local Cursor discovery uses its Claude-compatible filesystem path and is included by the `claude` product scope. When a sync finishes, stats pages refetch via `lib/remoteDataEvents.ts` (`remote_data.updated`, `remote_source.status` with `ok`, or remote `import.progress` complete).
 
-The Remote Data Sources form names its independent optional overrides **Remote
-Claude home** and **Remote Codex home**, with `~/.claude` / `~/.codex` defaults
-and `wsl:~/.claude` / `wsl:~/.codex` placeholders for CLI installs inside WSL.
+The Remote Data Sources form names its independent optional overrides **Remote Claude home** and **Remote Codex home**, with `~/.claude` / `~/.codex` defaults and `wsl:~/.claude` / `wsl:~/.codex` placeholders for CLI installs inside WSL.
 
-**Cursor sessions (informational):** Settings surfaces a subtle note on the
-Claude Code home, Import History, and Remote Data Sources panels — **Cursor**
-agent sessions count too because Cursor stores transcripts under the same
-`~/.claude` paths as Claude Code locally (and on synced remotes).
+**Cursor sessions:** Settings explains that the Claude Code dashboard scope also includes native Cursor sessions discovered and snapshotted from `~/.cursor`. Remote Claude-only SSH imports do not mirror remote Cursor homes, so the note calls out that boundary rather than implying those paths are shared.
 
-**Settings data and homes:** the **Dashboard Data** cards select Claude Code,
-Codex, or both through the same global `dataScope` store used by Remote Data
-Sources. Every scoped sessions, agents, events, workflow, analytics, token, and
-cost request re-fetches as soon as the selection changes. The Session Data
-Locations section independently saves the Claude Code root and the
-dashboard-specific Codex root; saving the latter asks the server to re-arm its
-live rollout watcher and scan the new `sessions/` tree immediately. **Import
-History** uses matching Claude Code / Codex tabs: switching tabs reloads
-source-specific instructions and paths, then sends the selected provider with
-rescan, folder, and upload actions while provider-tagged WebSocket progress
-keeps concurrent work isolated.
+**Settings data and homes:** the **Dashboard Data** cards select Claude-compatible (Claude Code + Cursor), Codex, or both through the same global `dataScope` store used by Remote Data Sources. Every scoped sessions, agents, events, workflow, analytics, token, and cost request re-fetches as soon as the selection changes. The Session Data Locations section independently saves the Claude Code root and the dashboard-specific Codex root; local Cursor discovery follows `~/.cursor` (or `DASHBOARD_CURSOR_HOME`) automatically. Saving the Codex root asks the server to re-arm its live rollout watcher and scan the new `sessions/` tree immediately. **Import History** uses matching Claude Code / Codex tabs: switching tabs reloads source-specific instructions and paths, then sends the selected provider with rescan, folder, and upload actions while provider-tagged WebSocket progress keeps concurrent work isolated; Cursor history is backfilled by its background ingestor without a manual import tab.
 
-**Pricing controls:** the Claude and OpenAI GPT pricing sections use the same
-title, info-tooltip, **Reset Defaults**, and **Add Model** layout. Each Settings
-reset button resets only its own provider, while the GPT tooltip holds the
-USD-per-million-token units, 272K Short/Long threshold, Fast-mode behavior,
-pattern matching, manual-update guidance, and unpublished-rate handling that
-would otherwise crowd the table.
+**Transcript snapshots:** the `SnapshotStorage` card (`components/SnapshotStorage.tsx`) reads `snapshots` from `GET /api/settings/info` and shows total and per-provider (Claude Code / Codex / Cursor) snapshot size, the compressed share, and the env-configured retention policy. **Compress now** calls the lossless `POST /api/settings/snapshots/compress`. The prune controls (older than N days, keep total under N GB, include orphans) first run a dry run (`POST /api/settings/snapshots/prune`); **Prune** stays disabled until a preview exists for exactly the criteria on screen, editing any field invalidates it, and applying takes a second confirming click that sends `confirm: "PRUNE_SNAPSHOTS"`. Its strings ship in all five locales.
 
-**Provider-aware card context:** Dashboard agent cards and Kanban session cards
-show compact task context beneath a meaningful provider-native title. Claude
-Code and Codex both expose up to two recent distinct human prompts as a bounded
-two-row history: Claude refreshes its small persisted summary from the shared
-local JSONL cache during live hooks, imports, and watchdog sweeps; Codex
-refreshes from rollout records, with `codex_user_message` events covering older
-imports. Every real-time `session_updated` refresh flows through the ordinary
-scoped data path. Conversation rows render safe persisted raster attachments and
-quietly hide missing/expired files.
+**Pricing controls:** the Claude, Cursor, and OpenAI GPT pricing sections use the same title, info-tooltip, **Reset Defaults**, and **Add Model** layout. Each Settings reset button resets only its own provider. Cursor keeps input, cache-write, cache-read, and output rates in its own table, while the GPT tooltip holds the USD-per-million-token units, 272K Short/Long threshold, Fast-mode behavior, pattern matching, manual-update guidance, and unpublished-rate handling that would otherwise crowd the table.
+
+**GPT rate groups:** Settings exposes Standard short/long and Fast short/long, each with input, cached input, cache-write, and output prices in USD per million tokens. Both modes use the 272K request boundary. Unpublished tiers remain unpriced. Labels and pricing guidance are translated into all five supported languages. Existing custom rules retain their previous Fast prices in the new long band after upgrade; edits can then set either band independently.
+
+**Provider-aware card context:** Dashboard agent cards and Kanban session cards show compact task context beneath a meaningful provider-native title. Claude Code and Codex both expose up to two recent distinct human prompts as a bounded two-row history: Claude refreshes its small persisted summary from the shared local JSONL cache during live hooks, imports, and watchdog sweeps; Codex accepts legacy user-message events plus modern response-item messages explicitly tagged as human text, excludes injected user-role context, and persists both the preview and distinct turn count. Active Codex sessions consumed by an older cursor are repaired once from their rollout. Every real-time `session_updated` refresh flows through the ordinary scoped data path. Conversation rows render safe persisted raster attachments and quietly hide missing/expired files.
 
 ### State Strategy
 
@@ -450,8 +353,7 @@ graph TB
 
 ### State Update Pattern
 
-1. **Initial Load**: Page component fetches data via API client on mount
-   (`useEffect`)
+1. **Initial Load**: Page component fetches data via API client on mount (`useEffect`)
 2. **URL Changes**: React Router triggers re-render, page refetches data
 3. **Real-time Updates**: WebSocket events trigger state updates via `EventBus`
 4. **User Actions**: Click handlers call API, optimistically update local state
@@ -463,18 +365,18 @@ function SessionDetailPage() {
   const { sessionId } = useParams();
   const [session, setSession] = useState(null);
   const [agents, setAgents] = useState([]);
-
+  
   // Initial load
   useEffect(() => {
     fetchSession(sessionId).then(setSession);
     fetchAgents(sessionId).then(setAgents);
   }, [sessionId]);
-
+  
   // Real-time updates
   useEffect(() => {
-    const unsubscribe = eventBus.on("agent.created", (agent) => {
+    const unsubscribe = eventBus.on('agent.created', (agent) => {
       if (agent.session_id === sessionId) {
-        setAgents((prev) => [...prev, agent]);
+        setAgents(prev => [...prev, agent]);
       }
     });
     return unsubscribe;
@@ -491,16 +393,13 @@ function SessionDetailPage() {
 Implemented in [`src/pages/Dashboard.tsx`](src/pages/Dashboard.tsx) and
 [`src/pages/Sessions.tsx`](src/pages/Sessions.tsx).
 
-`session_updated` fires on essentially every hook event of every active session,
-and the list requests it triggers are expensive server-side
-(`include_task_progress` re-parses live transcripts). Both pages therefore
-collapse WebSocket-driven reloads through a **2 s trailing throttle** rather
-than reloading per frame — Sessions previously reloaded un-debounced and
-Dashboard on a 300 ms debounce, which together produced a continuous parse storm
-with a few chatty sessions and one open tab. The trailing call keeps the list
-current, the existing periodic polls remain the backstop, and effect cleanup
-clears any pending reload so a stale closure cannot overwrite newer state after
-a filter change or unmount.
+`session_updated` fires on essentially every hook event of every active session, and the list requests it
+triggers are expensive server-side (`include_task_progress` reads live transcripts incrementally, coalesced by a serve-stale window). Both pages therefore
+collapse WebSocket-driven reloads through a **2 s trailing throttle** rather than reloading per frame —
+Sessions previously reloaded un-debounced and Dashboard on a 300 ms debounce, which together produced a
+continuous parse storm with a few chatty sessions and one open tab. The trailing call keeps the list current,
+the existing periodic polls remain the backstop, and effect cleanup clears any pending reload so a stale
+closure cannot overwrite newer state after a filter change or unmount.
 
 Validate with:
 
@@ -548,17 +447,16 @@ sequenceDiagram
 
 Server broadcasts these event types over WebSocket:
 
-| Event Type              | Payload                                                                                                                                          | Triggered By                                                                                                                                                                                                                                                    |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `session.created`       | Session object                                                                                                                                   | SessionStart hook                                                                                                                                                                                                                                               |
-| `session.updated`       | Session object                                                                                                                                   | Any hook touching session                                                                                                                                                                                                                                       |
-| `agent.created`         | Agent object                                                                                                                                     | PreToolUse hook                                                                                                                                                                                                                                                 |
-| `agent.updated`         | Agent object                                                                                                                                     | PostToolUse/Stop hooks                                                                                                                                                                                                                                          |
-| `tool.executed`         | Tool execution record                                                                                                                            | PostToolUse hook                                                                                                                                                                                                                                                |
-| `notification.received` | Notification object                                                                                                                              | Notification hook                                                                                                                                                                                                                                               |
-| `remote_source.status`  | `{ id, status, error?, providers?, last_sync_at? }` (`status`: `idle`/`syncing`/`ok`/`error`/`deleted`; each provider can also be `unavailable`) | Remote Data Source sync poller + `/api/remote-sources` routes                                                                                                                                                                                                   |
-| `remote_data.updated`   | `{ sourceId, source, label?, counters?, providers?, last_sync_at? }`                                                                             | Emitted once per successful remote sync; provider-aware counters trigger stats/cost/session refetches. The server also broadcasts `session_created` / `session_updated` (and main-agent frames) for each mirrored session so Kanban/Sessions update immediately |
-| `session.removed`       | `{ id, provider }`                                                                                                                               | Helm Code or T3 sweep wipes a thread session after a helmcode-/t3-side delete or archive. Pages receiving `session.removed` reload their session lists; the Session detail page navigates back to the list when its own session is removed                      |
+| Event Type | Payload | Triggered By |
+|------------|---------|--------------|
+| `session.created` | Session object | SessionStart hook |
+| `session.updated` | Session object | Any hook touching session |
+| `agent.created` | Agent object | PreToolUse hook |
+| `agent.updated` | Agent object | PostToolUse/Stop hooks |
+| `tool.executed` | Tool execution record | PostToolUse hook |
+| `notification.received` | Notification object | Notification hook |
+| `remote_source.status` | `{ id, status, error?, providers?, last_sync_at? }` (`status`: `idle`/`syncing`/`ok`/`error`/`deleted`; each provider can also be `unavailable`) | Remote Data Source sync poller + `/api/remote-sources` routes |
+| `remote_data.updated` | `{ sourceId, source, label?, counters?, providers?, last_sync_at? }` | Emitted once per successful remote sync; provider-aware counters trigger stats/cost/session refetches. The server also broadcasts `session_created` / `session_updated` (and main-agent frames) for each mirrored session so Kanban/Sessions update immediately |
 
 ### EventBus Pattern
 
@@ -568,19 +466,19 @@ The `eventBus` is a simple pub/sub system:
 // lib/eventBus.ts
 class EventBus {
   private listeners = new Map<string, Set<Function>>();
-
+  
   on(event: string, callback: Function): () => void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
     this.listeners.get(event)!.add(callback);
-
+    
     // Return unsubscribe function
     return () => this.listeners.get(event)?.delete(callback);
   }
-
+  
   emit(event: string, data: any): void {
-    this.listeners.get(event)?.forEach((cb) => cb(data));
+    this.listeners.get(event)?.forEach(cb => cb(data));
   }
 }
 
@@ -591,7 +489,7 @@ Usage in components:
 
 ```typescript
 useEffect(() => {
-  const unsubscribe = eventBus.on("session.created", handleNewSession);
+  const unsubscribe = eventBus.on('session.created', handleNewSession);
   return unsubscribe; // Cleanup on unmount
 }, []);
 ```
@@ -628,7 +526,7 @@ graph TB
 
 ```tsx
 // App.tsx
-import { BrowserRouter, Route, Routes } from "react-router";
+import { BrowserRouter, Routes, Route } from 'react-router';
 
 function App() {
   return (
@@ -695,7 +593,7 @@ graph LR
 
 ```typescript
 // lib/api.ts
-const BASE_URL = "http://localhost:4820";
+const BASE_URL = 'http://localhost:4820';
 
 class APIClient {
   private async request(path: string, options?: RequestInit) {
@@ -703,42 +601,34 @@ class APIClient {
     if (!response.ok) throw new Error(`API error: ${response.statusText}`);
     return response.json();
   }
-
+  
   // Sessions
-  getSessions() {
-    return this.request("/api/sessions");
-  }
-  getSession(id: string) {
-    return this.request(`/api/sessions/${id}`);
-  }
-
+  getSessions() { return this.request('/api/sessions'); }
+  getSession(id: string) { return this.request(`/api/sessions/${id}`); }
+  
   // Agents
   getAgents(sessionId: string) {
     return this.request(`/api/sessions/${sessionId}/agents`);
   }
-  getAgent(id: string) {
-    return this.request(`/api/agents/${id}`);
-  }
-
+  getAgent(id: string) { return this.request(`/api/agents/${id}`); }
+  
   // Tools
   getTools(agentId: string) {
     return this.request(`/api/agents/${agentId}/tools`);
   }
-
+  
   // Pricing
-  getPricingRules() {
-    return this.request("/api/pricing");
-  }
+  getPricingRules() { return this.request('/api/pricing'); }
   createPricingRule(rule: PricingRule) {
-    return this.request("/api/pricing", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(rule),
+    return this.request('/api/pricing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rule)
     });
   }
   deletePricingRule(pattern: string) {
     return this.request(`/api/pricing/${encodeURIComponent(pattern)}`, {
-      method: "DELETE",
+      method: 'DELETE'
     });
   }
 }
@@ -746,11 +636,7 @@ class APIClient {
 export const api = new APIClient();
 ```
 
-> **API reference:** the endpoints this client calls are fully documented by the
-> server's OpenAPI 3.0.3 spec. With the dashboard running (default port `4820`),
-> explore them at `/api/docs` (interactive Swagger UI), `/api/redoc`
-> (read-optimized ReDoc reference), or `/api/openapi.json` (raw spec). A
-> committed `openapi.yaml` at the repo root mirrors the live spec.
+> **API reference:** the endpoints this client calls are fully documented by the server's OpenAPI 3.0.3 spec. With the dashboard running (default port `4820`), explore them at `/api/docs` (interactive Swagger UI), `/api/redoc` (read-optimized ReDoc reference), or `/api/openapi.json` (raw spec). A committed `openapi.yaml` at the repo root mirrors the live spec.
 
 ### Error Handling
 
@@ -780,12 +666,91 @@ graph TB
 
 ### Component Catalog
 
+#### CommandPalette
+
+Global launcher mounted once by `Layout`. Opens with `Cmd/Ctrl+K` anywhere in the app. Keyboard-only by design: a sidebar button that opens a list so you can pick a page the sidebar already shows costs a click and teaches nothing. Takes no props.
+
+The catalog is built by `lib/paletteCommands.ts` as a pure function of one context object, so `lib/__tests__/paletteCommands.test.ts` can assert coverage directly against the app's route table, `SETTINGS_SECTIONS`, and `TABS` rather than trusting a hand-kept list. One query resolves nine groups:
+
+| Group | Source |
+| --- | --- |
+| Recent | The last 5 command ids, from `lib/recentCommands.ts` (`localStorage`) |
+| Pages | The nine sidebar routes, matched on their **translated** labels so it works in every locale |
+| Sessions | `GET /api/sessions?q=` — debounced 180 ms, minimum 2 characters, capped at 6 results |
+| This page | Whatever the mounted page registered via `usePaletteAction` — listed only where it is bound |
+| Projects | `GET /api/sessions/facets` — jumps to `/sessions?cwd=…` |
+| Views | Page sub-tabs and list filters (`/?tab=`, `/kanban?view=`, `/analytics?tab=`, `/sessions?status=`) |
+| Settings | All 13 `SETTINGS_SECTIONS` anchors (`/settings#<id>`) |
+| Agent Config | All 12 `TABS` keys (`/cc-config?tab=<key>`) |
+| Actions | Sound (on/off, volume), Tabby (enable, mute), notifications, provider and per-machine data scope, the five languages, sidebar, reload, history, scroll, copy link, updates, API reference, issues, releases |
+
+Ranking uses `lib/fuzzy.ts` — subsequence matching with positional scoring — and the matched characters are highlighted in each row. Session search is server-side on purpose: the dashboard routinely holds thousands of sessions, so no client-side index is kept, and reusing the same `?q=` filter the Sessions page uses means results automatically respect the active data scope. A failed or slow query degrades quietly — every other group is local and renders immediately, so the palette is never blocked by the network.
+
+Only non-session picks are remembered: a session id stops resolving as soon as the session is pruned, so remembering one would fill the MRU list with dead rows.
+
+```text
+┌────────────────────────────────────────────────────────┐
+│ 🔍  Search pages, sessions, and actions…    12 results │
+├────────────────────────────────────────────────────────┤
+│ RECENT                                                 │
+│    Cost Analytics                        Analytics     │
+│ PAGES                                                  │
+│  ▸ Analytics                  /analytics    G then N   │
+│ SESSIONS                                               │
+│    Refactor the token parser      /work/api · active   │
+│ SETTINGS                                               │
+│    Alerts and webhooks                    Settings     │
+│ ACTIONS                                                │
+│    Sound cues                                  On      │
+├────────────────────────────────────────────────────────┤
+│ ↑↓ navigate      ↵ open              esc close         │
+└────────────────────────────────────────────────────────┘
+```
+
+Other chrome can open it without lifted state or a context provider by calling `openCommandPalette()` from `lib/appEvents.ts` (re-exported here), which dispatches a `ccam:command-palette` window event.
+
+Accessibility: modal `dialog`, `combobox` input driving an `aria-activedescendant` listbox, arrow-key navigation with feature-detected `scrollIntoView`, `Home`/`End` and `PageUp`/`PageDown` jumps, `Tab` between groups without leaking focus, `Enter` to run, `Escape` to close, and focus restored on close. Hover only takes the selection after a real `mousemove`, so keyboard navigation is never fought by `mouseenter` under a stationary cursor.
+
+#### PaletteHint
+
+The `⌘K` / `Ctrl K` chip shown inside the Sessions and Agent Config search fields, teaching the palette at the moment the user is already searching.
+
+```typescript
+<PaletteHint variant="absolute" />  // pinned inside a `relative` field wrapper
+<PaletteHint />                     // inline, in a flex row beside the input
+```
+
+Renders `null` forever once the palette has been opened — `lib/paletteDiscovery.ts` keeps that one bit in `localStorage` and notifies through `useSyncExternalStore`, so the chip vanishes the instant the palette opens rather than on the next reload. The same bit gates the closing line on the splash screen.
+
+`aria-hidden` and `pointer-events-none`: it annotates a text field, so announcing it or catching a click meant for the input would both be worse than saying nothing. Screen-reader users get the same fact as readable prose on the splash. The `absolute` variant hides below `lg`, where it would clip the Sessions placeholder.
+
+#### PaletteActionProvider
+
+The registry of commands the mounted page offers the palette. Not a keyboard layer — the dashboard binds one chord (⌘/Ctrl+K), and Tabby's pre-existing ⌘/Ctrl+B.
+
+```typescript
+const { register, run, boundIds } = usePaletteActions();
+
+usePaletteAction("page.refresh", load);          // offered while this page is mounted
+usePaletteAction("session.copyId", () => {
+  if (!session) return false;                    // decline; the stack falls through
+  navigator.clipboard?.writeText(session.id);
+});
+```
+
+`register(id, handler)` pushes onto a per-id stack, so the most recently mounted handler wins and unmounting restores the one beneath it — that is how every page registers `page.refresh` under its own reload. A handler returning `false` declines, which is how a contextual command stays out of the way until its data exists.
+
+The palette reads `boundIds` and lists a page command **only** where its handler is mounted, so it cannot offer an action that would do nothing. `PAGE_ACTION_COMMANDS` in `lib/paletteCommands.ts` supplies each id's label and icon.
+
+#### ActionToast
+
+A one-line confirmation for commands that change something without moving the user. A toggle or a clipboard copy closes the palette and then visibly does nothing, which reads as broken even when it worked — navigation confirms itself, everything else needs this. `role="status"` with `aria-live="polite"`, one message at a time, no queue.
+
 #### SessionCard
 
 Displays session summary with status, model, cost, and agent count.
 
 **Props:**
-
 ```typescript
 interface SessionCardProps {
   session: Session;
@@ -793,7 +758,6 @@ interface SessionCardProps {
 ```
 
 **Visual Structure:**
-
 ```
 ┌────────────────────────────────────────┐
 │ 🟢 Session Title         $0.45         │
@@ -820,33 +784,42 @@ local in-memory Codex startup row appears immediately just as it does on
 Dashboard and Kanban. That row remains non-navigable until the durable session
 ID replaces it; durable totals and later pages stay unchanged.
 
-**Props:**
+Provider-owned main cards (Claude Code, Cursor, Codex) title themselves with
+the session's own title — wrapped to at most three lines, with long unbroken
+tokens breaking anywhere and the full title on hover — and lead the subtitle
+with the tool name (`Claude Code · repo · 12 turns`). Without a real title the
+card reads "Untitled session"; the footer keeps only the short session ID
+(subagent cards also keep the session name there as context). Every field that
+stays single-line and truncates in a narrow column — the agent card subtitle
+and footer session name, the session card working directory and model — shows
+its full text on hover.
 
+**Props:**
 ```typescript
 interface AgentCardProps {
   agent: Agent;
+  session?: Session; // model, cwd, cost, title, task progress
+  label?: string; // subtitle override for subagents
+  onClick?: () => void; // default: navigate to the session
+  statusDisplay?: "badge" | "dot"; // "dot" on Kanban, where the column names the status
 }
 ```
 
+`SessionCard` shares the three-line title clamp and the same `statusDisplay`
+prop.
+
 #### StatusBadge
 
-Colored status pills for agents (`AgentStatusBadge`) and sessions
-(`SessionStatusBadge`). When a row is in the yellow **Waiting** overlay
-(`awaiting_input_since` set), an optional `reason` prop explains WHY: a hover
-tooltip carries the full explanation, and — unless `compact` is set — a small
-nested chip (icon + short label) renders inline. Card layouts (Kanban /
-Dashboard trees) pass `compact` so the chip never squeezes the card title; the
-Sessions table and session-detail header show the full chip:
+Colored status pills for agents (`AgentStatusBadge`) and sessions (`SessionStatusBadge`). When a row is in the yellow **Waiting** overlay (`awaiting_input_since` set), an optional `reason` prop explains WHY: a hover tooltip carries the full explanation, and — unless `compact` is set — a small nested chip (icon + short label) renders inline. Card layouts (Kanban / Dashboard trees) pass `compact` so the chip never squeezes the card title; the Sessions table and session-detail header show the full chip. `variant="dot"` renders only the colored status dot — pulse, a tooltip with the status label (plus the waiting reason), and a screen-reader label — for Kanban cards, whose column already names the status:
 
-| `awaiting_reason` | Label       | Meaning                                                         |
-| ----------------- | ----------- | --------------------------------------------------------------- |
-| `notification`    | Needs input | Blocked on a permission prompt / input request (urgent — amber) |
-| `stop`            | Turn done   | Claude finished its reply; idle until the next prompt           |
-| `session_start`   | At prompt   | Fresh/resumed CLI sitting at an empty prompt                    |
-| `interrupted`     | Interrupted | Turn cut short — Esc or a recovered hook (urgent — amber)       |
+| `awaiting_reason` | Label | Meaning |
+| ----------------- | ----- | ------- |
+| `notification` | Needs input | Blocked on a permission prompt / input request (urgent — amber) |
+| `stop` | Turn done | Claude finished its reply; idle until the next prompt |
+| `session_start` | At prompt | Fresh/resumed CLI sitting at an empty prompt |
+| `interrupted` | Interrupted | Turn cut short — Esc or a recovered hook (urgent — amber) |
 
 **Props:**
-
 ```typescript
 interface AgentStatusBadgeProps {
   status: EffectiveAgentStatus;
@@ -856,17 +829,13 @@ interface AgentStatusBadgeProps {
 }
 ```
 
-Unknown/future server reasons degrade to a plain Waiting badge
-(`normalizeAwaitingReason` filters them to null). SessionDetail additionally
-renders a waiting-for-input banner (same reason + relative time) under the
-header via the shared `REASON_ICONS` map.
+Unknown/future server reasons degrade to a plain Waiting badge (`normalizeAwaitingReason` filters them to null). SessionDetail additionally renders a waiting-for-input banner (same reason + relative time) under the header via the shared `REASON_ICONS` map.
 
 #### ToolCard
 
 Displays tool execution details with timing and token usage.
 
 **Props:**
-
 ```typescript
 interface ToolCardProps {
   tool: ToolExecution;
@@ -900,8 +869,7 @@ graph TB
 
 #### ActivityFeed (`pages/ActivityFeed.tsx`)
 
-Real-time streaming event log with pause/resume, pagination, and inline payload
-expansion.
+Real-time streaming event log with pause/resume, pagination, and inline payload expansion.
 
 **UX interaction model:**
 
@@ -918,31 +886,14 @@ flowchart LR
     style NAV fill:#8B5CF6,stroke:#A78BFA,color:#fff
 ```
 
-- The entire row is clickable (keyboard accessible via `Enter`/`Space`) and
-  toggles the `EventDetail` dropdown.
-- The chevron icon rotates 90° when a row is expanded — it is a visual indicator
-  only, not a separate button.
-- The **Session →** button uses `e.stopPropagation()` so navigating to session
-  details never collapses an open payload panel.
+- The entire row is clickable (keyboard accessible via `Enter`/`Space`) and toggles the `EventDetail` dropdown.
+- The chevron icon rotates 90° when a row is expanded — it is a visual indicator only, not a separate button.
+- The **Session →** button uses `e.stopPropagation()` so navigating to session details never collapses an open payload panel.
 - Multiple rows can be expanded simultaneously (state stored in `Set<number>`).
 
 #### EventDetail (`components/EventDetail.tsx`)
 
-Renders the hook payload for a single event inline below its row. Scalars appear
-as `key: value` pairs; objects and arrays render in a terminal-styled code block
-with a copy button.
-
-#### Connection Status Modal (`components/Sidebar.tsx`)
-
-Click the **Live** / **Disconnected** pill in the sidebar footer to open a
-details panel about the WebSocket transport: the active `ws://` endpoint, how
-long the current socket has been up, total events received, top event types as a
-horizontal bar chart, a 60-second throughput sparkline, and the last 8 events as
-a recent-activity list. Cumulative stats (totals, type breakdown, recent list)
-persist across reloads via `localStorage` under `sidebar-connection-stats` (see
-[Browser storage keys](#browser-storage-keys)); the rolling sparkline and
-"connected since" timer are intentionally ephemeral. A **Reset** button in the
-footer clears everything on demand.
+Renders the hook payload for a single event inline below its row. Scalars appear as `key: value` pairs; objects and arrays render in a terminal-styled code block with a copy button.
 
 ---
 
@@ -996,18 +947,18 @@ The client keeps every user preference in the browser rather than the database,
 so preferences stay per-machine and no settings round-trip is needed. There is
 no central store — each feature owns its own key — so this is the inventory:
 
-| Key                                  | Storage     | Owner                           | Holds                                                                             |
-| ------------------------------------ | ----------- | ------------------------------- | --------------------------------------------------------------------------------- |
-| `agent-monitor-sound`                | local       | `lib/sound.ts`                  | Audio-cue preferences: master switch, volume, per-cue flags. Defaults to enabled  |
-| `agent-monitor-notifications`        | local       | `hooks/useNotifications.ts`     | Browser-notification preferences. Defaults to disabled (opt-in, needs permission) |
-| `agent-monitor-update-dismissed-sha` | local       | `components/UpdateNotifier.tsx` | Upstream SHA the user dismissed, so a new commit re-surfaces the notice           |
-| `agent-dashboard-tabby-enabled`      | local       | `components/Tabby/prefs.ts`     | Whether the Tabby companion is shown                                              |
-| `agent-dashboard-tabby-muted`        | local       | `components/Tabby/prefs.ts`     | Whether Tabby's speech bubbles are muted                                          |
-| `agent-dashboard-tabby-pos`          | local       | `components/Tabby/prefs.ts`     | Tabby's docked edge and vertical offset, as a viewport fraction                   |
-| `cam-data-scope`                     | local       | `lib/dataScope.ts`              | App-wide data scope — selected remote sources and providers                       |
-| `sidebar-collapsed`                  | local       | `components/Sidebar.tsx`        | Sidebar collapsed state                                                           |
-| `sidebar-connection-stats`           | local       | `components/Sidebar.tsx`        | Cumulative WebSocket stats for the connection modal                               |
-| `provider-onboarding-shown-v1`       | **session** | `components/SplashScreen.tsx`   | Splash shown once per browser session, not once ever                              |
+| Key | Storage | Owner | Holds |
+| --- | --- | --- | --- |
+| `agent-monitor-sound` | local | `lib/sound.ts` | Audio-cue preferences: master switch, volume, per-cue flags. Defaults to enabled |
+| `agent-monitor-notifications` | local | `hooks/useNotifications.ts` | Browser-notification preferences. Defaults to disabled (opt-in, needs permission) |
+| `agent-monitor-update-dismissed-sha` | local | `components/UpdateNotifier.tsx` | Upstream SHA the user dismissed, so a new commit re-surfaces the notice |
+| `agent-dashboard-tabby-enabled` | local | `components/Tabby/prefs.ts` | Whether the Tabby companion is shown |
+| `agent-dashboard-tabby-muted` | local | `components/Tabby/prefs.ts` | Whether Tabby's speech bubbles are muted |
+| `agent-dashboard-tabby-pos` | local | `components/Tabby/prefs.ts` | Tabby's docked edge and vertical offset, as a viewport fraction |
+| `ccam-data-scope` | local | `lib/dataScope.ts` | App-wide data scope — selected remote sources and providers |
+| `sidebar-collapsed` | local | `components/Sidebar.tsx` | Sidebar collapsed state |
+| `sidebar-connection-stats` | local | `components/Sidebar.tsx` | Cumulative WebSocket stats for the connection modal |
+| `provider-onboarding-shown-v1` | **session** | `components/SplashScreen.tsx` | Splash shown once per browser session, not once ever |
 
 Conventions worth keeping:
 
@@ -1022,55 +973,21 @@ Conventions worth keeping:
 
 ### Audio cues (lib/sound.ts + hooks/useSoundCues.ts)
 
-`lib/sound.ts` is a self-contained audio-cue engine. It ships **no audio files
-and no third-party dependency** — every cue is synthesized at play time with the
-Web Audio API from a declarative list of partials (frequency, offset, duration,
-peak gain, oscillator type), routed through a master gain node and a low-pass
-filter.
+`lib/sound.ts` is a self-contained audio-cue engine. It ships **no audio files and no third-party dependency** — every cue is synthesized at play time with the Web Audio API from a declarative list of partials (frequency, offset, duration, peak gain, oscillator type), routed through a master gain node and a low-pass filter.
 
-| Export                                     | Purpose                                                                                                                                                                                                                                                                      |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `playCue(cue, { force })`                  | Plays one of `sessionStart`, `sessionComplete`, `sessionError`, `subagentSpawn`, `notification`, `connected`, `disconnected`, `click`. Returns whether audio was actually scheduled. `force` bypasses the per-cue flag and the rate limiter (used by the Settings previews). |
-| `getSoundPrefs()` / `setSoundPrefs(patch)` | Read / merge-write the `SoundPrefs` object persisted to `localStorage` under `agent-monitor-sound`. Defaults have `enabled: true`.                                                                                                                                           |
-| `subscribeToSoundPrefs(handler)`           | Subscribe to preference changes within the tab; returns an unsubscribe function.                                                                                                                                                                                             |
-| `installSoundUnlock()` / `unlockSound()`   | Satisfy browser autoplay policy — cues stay silent until the first pointer / key / touch gesture.                                                                                                                                                                            |
-| `DEFAULT_SOUND_PREFS`                      | The shipped defaults, also used as the merge base for partial saved objects.                                                                                                                                                                                                 |
+| Export | Purpose |
+| --- | --- |
+| `playCue(cue, { force })` | Plays one of `sessionStart`, `sessionComplete`, `sessionError`, `subagentSpawn`, `notification`, `connected`, `disconnected`, `click`. Returns whether audio was actually scheduled. `force` bypasses the per-cue flag and the rate limiter (used by the Settings previews). |
+| `getSoundPrefs()` / `setSoundPrefs(patch)` | Read / merge-write the `SoundPrefs` object persisted to `localStorage` under `agent-monitor-sound`. Defaults have `enabled: true`. |
+| `subscribeToSoundPrefs(handler)` | Subscribe to preference changes within the tab; returns an unsubscribe function. |
+| `installSoundUnlock()` / `unlockSound()` | Satisfy browser autoplay policy — cues stay silent until the first pointer / key / touch gesture. |
+| `DEFAULT_SOUND_PREFS` | The shipped defaults, also used as the merge base for partial saved objects. |
 
-`hooks/useSoundCues.ts` is the automatic, event-driven consumer of the engine
-(the Settings page is the other caller, driving `playCue(..., { force: true })`
-for its previews). Mounted once in `App.tsx`, it subscribes to `eventBus`
-(mapping `session_created`, `session_updated` with `status: "error"`,
-`agent_created` for subagents, and `new_event` for `Stop` / `SessionEnd` /
-`Notification`), to `eventBus.onConnection`, and installs a single delegated
-`pointerdown` listener for the interaction tick. It adds **no new WebSocket
-message types** and no server-side code.
+`hooks/useSoundCues.ts` is the automatic, event-driven consumer of the engine (the Settings page is the other caller, driving `playCue(..., { force: true })` for its previews). Mounted once in `App.tsx`, it subscribes to `eventBus` (mapping `session_created`, `session_updated` with `status: "error"`, `agent_created` for subagents, and `new_event` for `Stop` / `SessionEnd` / `Notification`), to `eventBus.onConnection`, and installs a single delegated `pointerdown` listener for the interaction tick. It adds **no new WebSocket message types** and no server-side code.
 
-Playback is throttled by a per-cue cooldown (~350 ms; 45 ms for `click`) plus a
-global budget of 4 cues per 1.2 s, so a burst of WebSocket traffic never becomes
-a burst of sound. Every call degrades to a silent no-op when sound is disabled,
-the volume is zero, the cue's own toggle is off, no gesture has happened yet, or
-Web Audio is unavailable.
+Playback is throttled by a per-cue cooldown (~350 ms; 45 ms for `click`) plus a global budget of 4 cues per 1.2 s, so a burst of WebSocket traffic never becomes a burst of sound. Every call degrades to a silent no-op when sound is disabled, the volume is zero, the cue's own toggle is off, no gesture has happened yet, or Web Audio is unavailable.
 
-Users control all of this from **Settings → Sound** (master toggle, volume
-slider, per-cue switches, preview button).
-
-**What each cue sounds like:**
-
-| Cue                          | When it fires                                                   | What it sounds like                                                    |
-| ---------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `sessionStart`               | A new session appears                                           | Rising perfect fifth (C5 → G5)                                         |
-| `sessionComplete`            | A session finishes responding (`Stop`) or closes (`SessionEnd`) | Resolving major arpeggio (E5 → G5 → C6)                                |
-| `sessionError`               | A session enters the `error` state                              | Soft falling minor third on a triangle wave — noticeable, not alarming |
-| `subagentSpawn`              | A subagent spawns                                               | Single short pluck                                                     |
-| `notification`               | Claude Code emits a `Notification` event                        | Detuned pair ringing like a small bell                                 |
-| `connected` / `disconnected` | The dashboard WebSocket returns or drops                        | Two-note lift / drop                                                   |
-| `click`                      | You press a button, link, tab, or switch                        | Barely-audible tick                                                    |
-
-Cues live inside a C-major set so overlapping tails never sound dissonant, and
-every envelope decays exponentially rather than cutting off, which avoids the
-click of a hard stop. By default, session start, session complete, session
-error, Claude Code notifications, and the interaction tick are on; subagent
-spawns and connection changes are off (they are the chattiest).
+Users control all of this from **Settings → Sound** (master toggle, volume slider, per-cue switches, preview button).
 
 ### Type Definitions (lib/types.ts)
 
@@ -1081,7 +998,7 @@ interface Session {
   id: string;
   session_id: string;
   model: string;
-  status: "active" | "completed" | "error" | "abandoned";
+  status: 'active' | 'completed' | 'error' | 'abandoned';
   total_cost: number;
   created_at: string;
   updated_at: string;
@@ -1092,7 +1009,7 @@ interface Agent {
   agent_id: string;
   session_id: string;
   agent_type: string;
-  status: "working" | "waiting" | "completed" | "error";
+  status: 'working' | 'waiting' | 'completed' | 'error';
   input_tokens: number;
   output_tokens: number;
   cost: number;
@@ -1155,23 +1072,23 @@ npm run test:coverage
 
 ```tsx
 // components/__tests__/SessionCard.test.tsx
-import { render, screen } from "@testing-library/react";
-import { SessionCard } from "../SessionCard";
+import { render, screen } from '@testing-library/react';
+import { SessionCard } from '../SessionCard';
 
-test("renders session title and cost", () => {
+test('renders session title and cost', () => {
   const session = {
-    id: "1",
-    session_id: "sess_123",
-    model: "claude-sonnet-4",
+    id: '1',
+    session_id: 'sess_123',
+    model: 'claude-sonnet-4',
     total_cost: 1.23,
-    status: "active",
-    created_at: "2024-03-18T12:00:00Z",
+    status: 'active',
+    created_at: '2024-03-18T12:00:00Z'
   };
-
+  
   render(<SessionCard session={session} />);
-
-  expect(screen.getByText("sess_123")).toBeInTheDocument();
-  expect(screen.getByText("$1.23")).toBeInTheDocument();
+  
+  expect(screen.getByText('sess_123')).toBeInTheDocument();
+  expect(screen.getByText('$1.23')).toBeInTheDocument();
 });
 ```
 
@@ -1187,10 +1104,10 @@ localized copy.
 To keep snapshots **deterministic** across machines and CI, the suite:
 
 - mocks the API layer (`vi.mock("../../lib/api", …)`) to a loaded-empty state
-  (empty collections + zeroed scalars), so no live data or noisy chart DOM leaks
-  in — `importOriginal` keeps non-`api` exports real;
-- stubs `eventBus`, push notifications, and the jsdom-missing `ResizeObserver` /
-  `IntersectionObserver` / `matchMedia` / `scroll*` APIs;
+  (empty collections + zeroed scalars), so no live data or noisy chart DOM
+  leaks in — `importOriginal` keeps non-`api` exports real;
+- stubs `eventBus`, push notifications, and the jsdom-missing
+  `ResizeObserver` / `IntersectionObserver` / `matchMedia` / `scroll*` APIs;
 - pins the clock (`vi.useFakeTimers`) and timezone (`TZ=UTC`) so any rendered
   timestamps are stable.
 
@@ -1279,11 +1196,10 @@ npm run dev
 
 ### Environment Variables
 
-The client uses hardcoded API URL (`http://localhost:4820`). For custom
-configuration, update `lib/api.ts`:
+The client uses hardcoded API URL (`http://localhost:4820`). For custom configuration, update `lib/api.ts`:
 
 ```typescript
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4820";
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4820';
 ```
 
 Then create `.env`:
@@ -1363,7 +1279,7 @@ graph TB
 For large lists (100+ sessions), implement virtual scrolling:
 
 ```tsx
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 function SessionList({ sessions }) {
   const parentRef = useRef(null);
@@ -1372,11 +1288,11 @@ function SessionList({ sessions }) {
     getScrollElement: () => parentRef.current,
     estimateSize: () => 100, // estimated row height
   });
-
+  
   return (
-    <div ref={parentRef} style={{ height: "600px", overflow: "auto" }}>
+    <div ref={parentRef} style={{ height: '600px', overflow: 'auto' }}>
       <div style={{ height: `${virtualizer.getTotalSize()}px` }}>
-        {virtualizer.getVirtualItems().map((virtualRow) => (
+        {virtualizer.getVirtualItems().map(virtualRow => (
           <SessionCard
             key={sessions[virtualRow.index].id}
             session={sessions[virtualRow.index]}
@@ -1434,7 +1350,7 @@ graph TB
   className="focus:outline-blue-500"
 >
   <Trash2 aria-hidden="true" />
-</button>;
+</button>
 ```
 
 ---

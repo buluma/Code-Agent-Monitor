@@ -11,12 +11,12 @@
  * Single-instance is enforced on every platform via `requestSingleInstanceLock`
  * so double-launching (a second Dock click, or the Windows Start-Menu shortcut)
  * just focuses the existing window instead of spawning a second tray + server.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/desktop/src/main.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/desktop/src/main.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -38,14 +38,12 @@
  *
  * ## Internal dependencies
  * - `./constants`
- * - `./gatekeeper`
  * - `./login-item`
  * - `./logger`
  * - `./menu`
  * - `./server-host`
  * - `./shell-path`
  * - `./tray`
- * - `./updater`
  * - `./window`
  *
  * ## Testing pointers
@@ -61,9 +59,7 @@
 
 import { BrowserWindow, Notification, app, dialog, shell } from "electron";
 
-import { BUILD_DATE } from "./build-info";
-import { APP_NAME } from "./constants";
-import { stripOwnQuarantineAttribute } from "./gatekeeper";
+import { APP_ID, APP_NAME } from "./constants";
 import { isOpenAtLogin, launchedAtLogin, toggleOpenAtLogin } from "./login-item";
 import { log } from "./logger";
 import { focusOrCreateWindow, installApplicationMenu } from "./menu";
@@ -77,14 +73,6 @@ import {
 } from "./server-host";
 import { ensureUserPath } from "./shell-path";
 import { createTray } from "./tray";
-import {
-  checkForUpdates,
-  configureUpdater,
-  downloadUpdate,
-  getUpdaterState,
-  installUpdateAndRestart,
-  onUpdaterStateChange,
-} from "./updater";
 import { appIconPath, createDashboardWindow } from "./window";
 
 /** Single mutable record of process-wide state, held in the module-level
@@ -97,7 +85,7 @@ interface AppState {
   /** `null` when hidden/not-yet-created; a live window still counts even
    * while hidden by a `close` — see the `win.on("close", ...)` handler. */
   win: BrowserWindow | null;
-  // Hold a reference to the tray so the GC doesn't collect it (electron quirk).
+  /** Tray icon. A reference is kept here so Electron's garbage collector does not destroy it. */
   tray: Electron.Tray | null;
   /** Set once teardown has begun (inside `requestQuit`'s confirm callback or
    * the bypass path in `before-quit`); gates re-entrant quit handling. */
@@ -107,6 +95,10 @@ interface AppState {
   confirmingQuit: boolean;
 }
 
+/**
+ * Mutable app-wide state for the desktop main process: the server, the window, the tray, and the
+ * quit flags.
+ */
 const state: AppState = {
   serverHandle: null,
   win: null,
@@ -116,7 +108,7 @@ const state: AppState = {
 };
 
 /**
- * Show the "Quit Code Agent Monitor?" confirmation dialog. Clicking Quit
+ * Show the "Quit Claude Code Monitor?" confirmation dialog. Clicking Quit
  * runs the synchronous teardown and exits. Pressing ⌘Q again while the
  * dialog is open is caught by `before-quit` below and skips this prompt.
  */
@@ -132,7 +124,7 @@ function requestQuit(): void {
     defaultId: 0,
     cancelId: 1,
     title: APP_NAME,
-    message: "Quit Code Agent Monitor?",
+    message: "Quit Claude Code Monitor?",
     detail:
       "The embedded server will stop and your dashboard window will close. " +
       `Press ${quitAccel} again to skip this prompt and quit immediately.`,
@@ -231,7 +223,11 @@ function openInBrowser(): void {
 
 /** Show a blocking native error dialog. Used only for conditions the user
  * must see immediately and cannot recover from without restarting the app
- * (e.g. the embedded server failing to boot at all). */
+ * (e.g. the embedded server failing to boot at all).
+ *
+ * @param message - Headline of the error.
+ * @param detail - Optional details shown under it.
+ */
 function showFatalDialog(message: string, detail?: string): void {
   dialog.showErrorBox(`${APP_NAME} — Error`, detail ? `${message}\n\n${detail}` : message);
 }
@@ -267,10 +263,6 @@ async function boot(): Promise<void> {
   // "Run Claude" feature unable to find the `claude` CLI.
   ensureUserPath();
 
-  // Best-effort Gatekeeper self-heal for this ad-hoc signed build — see
-  // gatekeeper.ts's file header for exactly what this does and does not fix.
-  stripOwnQuarantineAttribute();
-
   try {
     state.serverHandle = await startEmbeddedServer();
   } catch (err) {
@@ -282,22 +274,6 @@ async function boot(): Promise<void> {
     app.exit(1);
     return;
   }
-
-  // Customize the native About panel (macOS: app menu ▸ About Code Agent
-  // Monitor). Electron's default fills `version` from app.getVersion() too,
-  // which duplicates the semver on the "Version X (Y)" line — override it
-  // with the build date instead, so the panel actually answers "when was
-  // this DMG built" for support/bug-report purposes.
-  app.setAboutPanelOptions({
-    applicationName: APP_NAME,
-    applicationVersion: app.getVersion(),
-    version: `Built ${new Date(BUILD_DATE).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })}`,
-    copyright: `Copyright (c) ${new Date(BUILD_DATE).getFullYear()} Michael Buluma. MIT License.`,
-  });
 
   installApplicationMenu({
     showDashboard: () => ensureWindow(),
@@ -313,7 +289,6 @@ async function boot(): Promise<void> {
       log.info("open-at-login set to", next);
     },
     isOpenAtLogin,
-    checkForUpdates: () => void checkForUpdates("menu"),
   });
 
   state.tray = createTray({
@@ -331,35 +306,11 @@ async function boot(): Promise<void> {
     getSnapshot: () => getServerSnapshot(),
     refreshSnapshot: () => void refreshServerSnapshot(state.serverHandle?.port ?? null),
     requestQuit,
-    getUpdaterState,
-    checkForUpdates: () => void checkForUpdates("tray"),
-    downloadUpdate: () => void downloadUpdate(),
-    installUpdateAndRestart,
   });
 
   // Keep the tray's live counts fresh by polling the running server's stats
   // API on an interval (and on each menu open via refreshSnapshot above).
   startSnapshotPolling(() => state.serverHandle?.port ?? null);
-
-  // Auto-check + auto-download-on-user-click only — install still requires
-  // the explicit tray/menu "Restart to update" click (installUpdateAndRestart
-  // above). Configure after the tray exists so the very first startup check's
-  // "available" transition (15s later) already has a menu to render into.
-  configureUpdater();
-  let notifiedForVersion: string | null = null;
-  onUpdaterStateChange((updaterState) => {
-    if (
-      updaterState.status === "downloaded" &&
-      updaterState.availableVersion !== null &&
-      updaterState.availableVersion !== notifiedForVersion
-    ) {
-      notifiedForVersion = updaterState.availableVersion;
-      new Notification({
-        title: APP_NAME,
-        body: `Update v${updaterState.availableVersion} downloaded — click "Restart to update" in the tray menu to install it.`,
-      }).show();
-    }
-  });
 
   // Skip the dashboard window when macOS launched us at login — the user just
   // logged in, they don't want a window jumping in their face. Tray only.
@@ -419,6 +370,11 @@ function wireLifecycle(): void {
 }
 
 app.setName(APP_NAME);
+// Windows: associate this process with the installed app's AppUserModelID so
+// `new Notification()` toasts (e.g. "Server restarted") render under the app's
+// name/icon and taskbar windows group correctly. Must be set before any window
+// or notification is created. No-op on macOS/Linux.
+if (process.platform === "win32") app.setAppUserModelId(APP_ID);
 wireLifecycle();
 app
   .whenReady()

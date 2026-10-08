@@ -1,7 +1,7 @@
 /**
  * @file Integration tests for task-progress summaries on the Sessions list
  * and full owner-attributed snapshots on Session Detail.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { after, before, describe, it } = require("node:test");
@@ -11,7 +11,7 @@ const http = require("node:http");
 const os = require("node:os");
 const path = require("node:path");
 
-const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "cam-task-progress-api-"));
+const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-task-progress-api-"));
 const TEST_DB = path.join(ROOT, "test.db");
 process.env.DASHBOARD_DB_PATH = TEST_DB;
 process.env.DASHBOARD_REMOTE_SYNC_MS = "0";
@@ -263,6 +263,95 @@ describe("session task progress API", () => {
     assert.equal(latest.todo_summary, null);
     assert.equal(detailResponse.status, 200);
     assert.equal(detailResponse.body.session.todo_snapshot, null);
+  });
+
+  it("derives task state from persisted task events without loading lifecycle payloads", async () => {
+    const id = "task-progress-persisted-events";
+    insertSession(id, "claude", null);
+    stmts.insertAgent.run(
+      `${id}-worker`,
+      id,
+      "Worker",
+      "subagent",
+      null,
+      "working",
+      null,
+      null,
+      null
+    );
+    stmts.insertEventAt.run(
+      id,
+      `${id}-worker`,
+      "TaskCreated",
+      null,
+      "Task created",
+      JSON.stringify({ task_id: "t-1", task_subject: "Persisted task", status: "in_progress" }),
+      "2026-08-07T14:00:00.000Z"
+    );
+    stmts.insertEventAt.run(
+      id,
+      `${id}-main`,
+      "Stop",
+      null,
+      "Turn completed",
+      JSON.stringify({
+        session_id: id,
+        background_tasks: Array(500).fill({ id: "bg", status: "running" }),
+      }),
+      "2026-08-07T14:00:01.000Z"
+    );
+    stmts.insertEventAt.run(
+      id,
+      `${id}-worker`,
+      "TaskCompleted",
+      null,
+      "Task completed",
+      JSON.stringify({ task_id: "t-1", task_subject: "Persisted task" }),
+      "2026-08-07T14:00:02.000Z"
+    );
+
+    stmts.insertEventAt.run(
+      id,
+      `${id}-worker`,
+      "SubagentStop",
+      null,
+      "Subagent stopped",
+      JSON.stringify({ agent_type: "researcher", last_assistant_message: "x".repeat(20000) }),
+      "2026-08-07T14:00:03.000Z"
+    );
+    stmts.insertEventAt.run(
+      id,
+      `${id}-worker`,
+      "SubagentStop",
+      null,
+      "Subagent stopped",
+      "not json {",
+      "2026-08-07T14:00:04.000Z"
+    );
+
+    const rows = stmts.listTaskEventsBySession.all(id);
+    assert.deepEqual(
+      rows.map((row) => [row.event_type, row.data === null ? null : JSON.parse(row.data)]),
+      [
+        ["TaskCreated", { task_id: "t-1", task_subject: "Persisted task", status: "in_progress" }],
+        ["Stop", null],
+        ["TaskCompleted", { task_id: "t-1", task_subject: "Persisted task" }],
+        ["SubagentStop", null],
+        ["SubagentStop", null],
+      ]
+    );
+
+    const listResponse = await requestJson("/api/sessions?limit=20&include_task_progress=true");
+    assert.equal(listResponse.status, 200);
+    const listed = listResponse.body.sessions.find((session) => session.id === id);
+    assert.equal(listed.todo_summary.total, 1);
+    assert.equal(listed.todo_summary.completed, 1);
+
+    const response = await requestJson(`/api/sessions/${id}`);
+    assert.equal(response.status, 200);
+    assert.equal(response.body.session.todo_snapshot.total, 1);
+    assert.equal(response.body.session.todo_snapshot.completed, 1);
+    assert.equal(response.body.session.todo_snapshot.items[0].text, "Persisted task");
   });
 
   it("caps task-progress enrichment on large list requests", async () => {

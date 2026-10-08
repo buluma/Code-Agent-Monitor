@@ -21,8 +21,8 @@
   "filterCompleted": "Completed",
   "filterError": "Error",
   "filterAbandoned": "Abandoned",
-  "sessionCount": "{{count}} session recorded",
-  "sessionCount_plural": "{{count}} sessions recorded",
+  "sessionCount_one": "{{count}} session recorded",
+  "sessionCount_other": "{{count}} sessions recorded",
   "noSessions": "No sessions found",
   "noSessionsDesc": "Try adjusting your search or filters.",
   "noSessionsHint": "Start a monitored agent session with hooks installed to begin tracking.",
@@ -84,13 +84,5 @@
       "loadOlder": "↑ Load older messages"
     }
   },
-  "remoteSourceBadgeTitle": "Collected from a remote machine",
-  "linear": {
-    "notConfigured": "Linear isn't connected.",
-    "configureLink": "Add an API key in Settings",
-    "pastePlaceholder": "Paste a Linear issue URL",
-    "link": "Link",
-    "unlink": "Unlink",
-    "autoDetect": "Detect from branch"
-  }
+  "remoteSourceBadgeTitle": "Collected from a remote machine"
 }

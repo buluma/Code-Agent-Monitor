@@ -30,7 +30,7 @@
  *   - GET   /api/agents/{id}                     (getAgent)
  *   - PATCH /api/agents/{id}                     (updateAgent)
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const tags = [];
@@ -167,7 +167,7 @@ const paths = {
       tags: ["Sessions"],
       summary: "List sessions",
       description:
-        "Returns a paginated list of durable sessions, newest real activity first, each enriched with agent count, durable last activity, prompt preview, and calculated cost. Set `include_task_progress=true` to attach a nullable owner-aware `todo_summary` derived from Claude Task*/TodoWrite or Codex update_plan state for the latest top-level work item, with up to five preview items. A new Claude human turn or Codex task with no tracker clears older state; a completed or aborted turn drops unfinished tracker state while retaining fully completed history. Task progress is computed for at most the first 100 returned rows, and each transcript read scans only its newest 32 MiB. The opt-in keeps high-volume Dashboard/Kanban calls from parsing transcripts. The persisted `status`, `q`, and repeatable `cwd` filters compose. `total` remains independent of `limit`/`offset`.",
+        "Returns a paginated list of durable sessions, newest real activity first, each enriched with agent count, durable last activity, prompt preview, and calculated cost. Set `include_task_progress=true` to attach a nullable owner-aware `todo_summary` derived from Claude Task*/TodoWrite or Codex update_plan state for the latest top-level work item, with up to five preview items. A new Claude human turn or Codex task with no tracker clears older state; a completed or aborted turn drops unfinished tracker state while retaining fully completed history. Task progress is computed for at most the first 100 returned rows, and each transcript is read incrementally after a first 32 MiB scan, retaining state from its newest 32 MiB. The opt-in keeps high-volume Dashboard/Kanban calls from parsing transcripts. The persisted `status`, `q`, and repeatable `cwd` filters compose. `total` remains independent of `limit`/`offset`.",
       operationId: "listSessions",
       parameters: [
         { $ref: "#/components/parameters/SessionStatusQuery", example: "active" },
@@ -220,7 +220,7 @@ const paths = {
           in: "query",
           schema: { type: "boolean", default: false },
           description:
-            "Attach owner-aware `todo_summary` objects for the latest top-level work item to at most the first 100 returned rows. A newer work item with no tracker, or a finished/aborted turn with unfinished tracker state, returns null; fully completed history remains available. Each transcript scan reads only the newest 32 MiB. Intended for the Sessions table; omitted by high-volume Dashboard/Kanban calls.",
+            "Attach owner-aware `todo_summary` objects for the latest top-level work item to at most the first 100 returned rows. A newer work item with no tracker, or a finished/aborted turn with unfinished tracker state, returns null; fully completed history remains available. Each transcript is read incrementally after a first 32 MiB scan, retaining state from its newest 32 MiB. Intended for the Sessions table; omitted by high-volume Dashboard/Kanban calls.",
           example: true,
         },
         { $ref: "#/components/parameters/LimitQuery", example: 50 },
@@ -315,7 +315,7 @@ const paths = {
       tags: ["Sessions"],
       summary: "Get session details",
       description:
-        "Returns a single session together with its agents, persisted events, workflow runs, and a nullable full `todo_snapshot`. Task state is reduced from Claude TaskCreate/TaskGet/TaskUpdate/TaskList and lifecycle events, legacy TodoWrite snapshots, or Codex update_plan snapshots; subagent ownership remains visible on items and owner summaries. Real top-level Claude human turns and Codex task_started records clear every older owner snapshot, while a subagent's next turn clears only that owner. Claude turn-end records and Codex task_complete/turn_aborted drop owner snapshots with unfinished work but retain fully completed/cancelled history, so stale in-progress state returns null. Persisted Claude prompt/terminal events apply the same boundary before a matching transcript marker flushes. Transcript parsing scans only the newest 32 MiB and the snapshot contains at most 200 tasks. Read-only, no side effects. Returns 404 with code `NOT_FOUND` when no session matches the path `id`.",
+        "Returns a single session together with its agents, persisted events, workflow runs, and a nullable full `todo_snapshot`. Task state is reduced from Claude TaskCreate/TaskGet/TaskUpdate/TaskList and lifecycle events, legacy TodoWrite snapshots, or Codex update_plan snapshots; subagent ownership remains visible on items and owner summaries. Real top-level Claude human turns and Codex task_started records clear every older owner snapshot, while a subagent's next turn clears only that owner. Claude turn-end records and Codex task_complete/turn_aborted drop owner snapshots with unfinished work but retain fully completed/cancelled history, so stale in-progress state returns null. Persisted Claude prompt/terminal events apply the same boundary before a matching transcript marker flushes. Transcript parsing is incremental after a first 32 MiB scan and reduces state from the newest 32 MiB; the snapshot contains at most 200 tasks. Read-only, no side effects. Returns 404 with code `NOT_FOUND` when no session matches the path `id`.",
       operationId: "getSession",
       parameters: [
         {
@@ -563,7 +563,7 @@ const paths = {
       tags: ["Sessions"],
       summary: "Stream messages from a specific transcript",
       description:
-        "Returns parsed, renderable messages from a JSONL transcript with cursor-based pagination, reading the live file under ~/.claude/projects and falling back to the durable import-time snapshot. Pass `agent_id` to select a specific subagent or compaction transcript (default is the session's main transcript). Pagination cursors are mutually exclusive: `after` returns messages strictly newer than a JSONL line number (incremental live updates on `new_event`), `before` returns messages strictly older than a line (load-on-scroll-up), and `offset` is legacy start-offset paging. `last_line`/`first_line` are the JSONL line numbers of the newest/oldest returned message — feed them back as `after`/`before`. When the session, transcript file, or path cannot be found the endpoint degrades gracefully to an empty result (`messages: []`, `total: 0`, `has_more: false`) rather than erroring. Read-only, no side effects.",
+        "Returns parsed, renderable messages from a provider transcript with cursor-based pagination, reading the live file and falling back to the durable import-time snapshot. Cursor main sessions additionally expose prompt history before JSONL exists; an incremental response with `refresh: true` is a latest window whose stable message ids should be merged in place during prompt-to-transcript hand-off. Pass `agent_id` to select a specific subagent or compaction transcript (default is the session's main transcript). Pagination cursors are mutually exclusive: `after` reads live updates, `before` returns messages older than a line (load-on-scroll-up), and `offset` is legacy start-offset paging. `last_line`/`first_line` are the newest/oldest returned cursors. When the session, transcript file, or path cannot be found the endpoint degrades gracefully to an empty result (`messages: []`, `total: 0`, `has_more: false`) rather than erroring. Read-only, no side effects.",
       operationId: "getSessionTranscript",
       parameters: [
         {

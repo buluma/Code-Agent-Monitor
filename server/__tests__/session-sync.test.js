@@ -8,7 +8,7 @@
  * Runs in its own process (node --test isolates files), so pointing CLAUDE_HOME
  * and DASHBOARD_DB_PATH at temp locations before requiring the modules gives a
  * clean, isolated projects dir + database without touching the real ones.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { describe, it, before, after } = require("node:test");
@@ -17,7 +17,7 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 
-const TMP_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "cam-sync-home-"));
+const TMP_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-sync-home-"));
 process.env.CLAUDE_HOME = TMP_HOME;
 process.env.DASHBOARD_DB_PATH = path.join(TMP_HOME, "dashboard.db");
 process.env.DASHBOARD_DATA_DIR = path.join(TMP_HOME, "data");

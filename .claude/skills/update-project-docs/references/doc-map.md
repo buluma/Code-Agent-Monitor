@@ -12,6 +12,12 @@ The source of truth most other docs mirror. Key sections:
 - **Hook Events table** — `| Hook Type | Trigger | Dashboard Action |`. Lists `SessionStart`…`SessionEnd`, plus synthetic `Compaction`, `APIError`, `TurnDuration`, `ToolError`, `Interrupted`. Grep `## Hook Events`.
 - **Configuration / Environment Variables table** — `| Environment Variable | Default | Description |`. Grep `DASHBOARD_PORT` or `DASHBOARD_HOST`.
 
+### `README-CN.md` / `README-VN.md` / `README-KO.md` / `README-ES.md` (full translations)
+Standalone full translations of `README.md` — zh, vi, ko, es. **Every** README change must be mirrored into **all four** at the corresponding section. Terminology, glossary, and the never-translate list live in [`.claude/skills/i18n-parity/references/translation-style.md`](../../i18n-parity/references/translation-style.md); verify with `bash .claude/skills/i18n-parity/scripts/i18n-audit.sh`. Conventions:
+- Keep in English/code: identifiers, env-var names, event-type names, `awaiting_input_since`, `pendingInterrupt`, "watchdog", `fs.watch`, model IDs, mermaid transition labels.
+- Translate prose. "Waiting" → **等待中** (zh) / **Đang chờ** (vi) / **대기 중** (ko) / **En espera** (es). "watchdog" often kept; in zh sometimes 看门狗.
+- The second (update-checker) env table exists in EN but may be absent in VN/CN — don't invent rows that aren't there.
+
 ### `ARCHITECTURE.md`
 - **Module responsibility table** — one row per source file (`scripts/import-history.js`, `lib/transcript-cache.js`, `routes/hooks.js`, `server/index.js`, …). Update the row whose file you changed. Grep the file path.
 - **Data-flow + sequence diagrams**, **state machines**, **Continuous background sync** prose block (grep `Continuous background sync`).
@@ -21,8 +27,11 @@ The source of truth most other docs mirror. Key sections:
 ### `index.html` (root landing / marketing)
 Feature cards (`<div class="feature-card">`) with concise marketing copy. Light touch only — one sentence in the most relevant existing card. Grep an existing feature headline (e.g. `History import`, `Kanban`).
 
-### `wiki/index.html` + `wiki/script.js` + `wiki/sw.js`
-Detailed wiki, English only. Add prose/tables/diagrams directly in `wiki/index.html` (Hook table `<th>Hook Type</th>`, Environment Variables `<th>Variable</th>`, mermaid `stateDiagram-v2` blocks). **Bump the cache** whenever `index.html` or `script.js` changes: increment `CACHE_NAME` in `wiki/sw.js` (e.g. `wiki-v107` → `wiki-v108`) and, if `script.js` changed, its `?v=N` query string in `index.html`. Without this, returning visitors get stale cached content.
+### `wiki/index.html` + `wiki/i18n-content.js` + `wiki/sw.js`
+Detailed wiki. Governed by `.claude/rules/wiki-i18n.md`:
+- Add prose/tables/diagrams in `wiki/index.html` (Hook table `<th>Hook Type</th>`, Environment Variables `<th>Variable</th>`, mermaid `stateDiagram-v2` blocks).
+- For **every new English string**, add a `zh`, `vi`, `ko`, and `es` entry in `wiki/i18n-content.js` (keyed by the exact English text). See `.claude/skills/i18n-parity/` for the full wiki mechanism.
+- **Bump the cache**: increment `CACHE_NAME` in `wiki/sw.js` (e.g. `wiki-v24` → `wiki-v25`) AND the `i18n-content.js?v=N` query in `wiki/index.html`. Without this, returning visitors get stale cached content.
 
 ## Tier 2 — area-specific
 
@@ -44,24 +53,23 @@ REST API reference (endpoints, params, example responses). Update for route/resp
 ### `docs/PLUGINS.md`
 Plugin/marketplace docs incl. an **Event Types** enumeration line — keep it in sync with the canonical event-type list.
 
-### `mcp/README.md` (canonical)
-MCP server + tool reference. Update for new/changed MCP tools. `docs/MCP.md`
-is a one-line stub pointing here — do not duplicate content into it.
+### `docs/MCP.md` + `mcp/README.md`
+MCP server + tool reference. Update for new/changed MCP tools.
 
 ### `docs/I18N.md`
-i18n architecture: `supportedLngs` (English only), the active namespaces. Update when adding a namespace. Client UI strings live in `client/src/i18n/locales/en/*.json` (code).
+i18n architecture: **Supported languages** list, `supportedLngs`, the 15 namespaces. Update when adding a language or namespace. Client UI strings live in `client/src/i18n/locales/{en,zh,vi,ko,es}/*.json` (code).
 
 ## Tier 3 — situational
 
 - `.env.example` — every env var belongs here with a sane default + comment.
-- `INSTALL.md`, `DEPLOYMENT.md` (canonical) — install/run/deploy commands. `SETUP.md` and `docs/DEPLOYMENT.md` are one-line stubs pointing at these — do not duplicate content into them.
+- `INSTALL.md`, `SETUP.md`, `DEPLOYMENT.md`, `docs/DEPLOYMENT.md` — install/run/deploy commands.
 - `CLAUDE.md`, `AGENTS.md` — agent working guides; update when commands, file locations, or workflows change.
 - `docs/README.md` — docs index; add a link when a new `docs/*.md` is created.
 - `desktop/README.md`, `vscode-extension/README.md`, `statusline/README.md` — surface-specific; update only when that surface changes.
 
 ## Consistency invariants
 
-- The **event-type set** must match across: `README` hook table, `ARCHITECTURE` Event types line, `docs/PLUGINS.md`, `wiki`. When adding one, grep the existing set (e.g. `TurnDuration`) across all and add everywhere it appears.
-- **Env-var set** must match across: `README` table, `server/README.md`, `wiki`, `.env.example`, and any inline `ARCHITECTURE` mention.
-- **State-machine diagrams** are duplicated across `README`, `server/README.md`, `docs/DATABASE.md`, `wiki`. A transition change touches all of them.
+- The **event-type set** must match across: `README` hook table (+CN/VN/KO/ES), `ARCHITECTURE` Event types line, `docs/PLUGINS.md`, `wiki`. When adding one, grep the existing set (e.g. `TurnDuration`) across all and add everywhere it appears.
+- **Env-var set** must match across: README (+CN/VN/KO/ES) tables, `server/README.md`, `wiki`, `.env.example`, and any inline `ARCHITECTURE` mention.
+- **State-machine diagrams** are duplicated across README (+CN/VN/KO/ES), `server/README.md`, `docs/DATABASE.md`, `wiki`. A transition change touches all of them.
 - Run `scripts/doc-coverage.sh <term>` to confirm a new identifier/var/event reached every doc that should mention it.

@@ -11,22 +11,28 @@
 # Run from the repo root. Exit code is non-zero if any term is missing from a
 # doc that the change-type mapping (see references/doc-map.md) says it belongs
 # in — but treat the matrix as advisory: not every term belongs in every file.
-# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+# @author Son Nguyen <hoangson091104@gmail.com>
 
 set -u
 
-# The canonical doc set kept in sync. HTML + per-area READMEs.
+# The canonical doc set kept in sync. Translations + HTML + per-area READMEs.
 DOCS=(
   "README.md"
+  "README-VN.md"
+  "README-CN.md"
+  "README-KO.md"
+  "README-ES.md"
   "ARCHITECTURE.md"
   "index.html"
   "wiki/index.html"
+  "wiki/i18n-content.js"
   "server/README.md"
   "client/README.md"
   "docs/HOOKS.md"
   "docs/DATABASE.md"
   "docs/API.md"
   "docs/PLUGINS.md"
+  "docs/MCP.md"
   "mcp/README.md"
   "docs/I18N.md"
   ".env.example"

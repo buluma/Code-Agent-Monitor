@@ -1,12 +1,12 @@
 /**
  * @file provider-filter.js
- * @description Shared SQL filters for the dashboard-wide Claude/Codex/Helm Code
- * provider scope. Provider scope composes with machine source scope; neither
- * replaces it.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @description Shared SQL filters for the dashboard-wide Claude/Cursor/Codex
+ * scope. The Claude product choice intentionally includes Cursor sessions,
+ * matching onboarding, while direct `cursor` API scopes remain available.
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
-const VALID_PROVIDERS = new Set(["claude", "codex", "helmcode", "t3"]);
+const VALID_PROVIDERS = new Set(["claude", "cursor", "codex"]);
 
 /** Parse `?providers=claude,codex`; absent means every provider. */
 function parseProviders(req) {
@@ -20,7 +20,12 @@ function parseProviders(req) {
         .filter((v) => VALID_PROVIDERS.has(v))
     ),
   ];
-  return providers.length > 0 ? providers : null;
+  if (providers.length === 0) return null;
+  // Cursor uses Claude-compatible lifecycle hooks but has its own transcript
+  // store and rate card. Product scope keeps the existing two-choice UX:
+  // "Claude Code" means the Claude-compatible family (Claude + Cursor).
+  if (providers.includes("claude") && !providers.includes("cursor")) providers.push("cursor");
+  return providers;
 }
 
 /** SQL predicate for a query that already aliases sessions. */

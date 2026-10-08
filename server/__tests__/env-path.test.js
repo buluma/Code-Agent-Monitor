@@ -1,7 +1,7 @@
 /**
  * @file Verifies that dashboard-owned settings persist to DASHBOARD_ENV_PATH,
  * which lets non-root container deployments use a dedicated writable volume.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { after, describe, it } = require("node:test");
@@ -10,7 +10,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
-const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cam-env-path-"));
+const directory = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-env-path-"));
 const envPath = path.join(directory, "config", ".env");
 process.env.DASHBOARD_ENV_PATH = envPath;
 

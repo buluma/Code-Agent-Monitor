@@ -10,12 +10,12 @@
  * `pointer-events-none` so moving the pointer toward it does not accidentally
  * close the trigger's hover state mid-read.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/FieldHelp.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/FieldHelp.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -92,6 +92,7 @@ export function FieldHelp({ title, description, examples, note }: FieldHelpProps
   const popRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ left: number; top: number }>({ left: 0, top: 0 });
 
+  /** Place the help popover next to its button, kept inside the viewport. */
   const place = useCallback(() => {
     const btn = btnRef.current;
     const pop = popRef.current;
@@ -111,9 +112,11 @@ export function FieldHelp({ title, description, examples, note }: FieldHelpProps
   useEffect(() => {
     if (!open) return;
     place();
+    /** Reposition while the page scrolls. */
     const onScroll = () => place();
     window.addEventListener("scroll", onScroll, true);
     window.addEventListener("resize", onScroll);
+    /** Close on Escape. */
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     document.addEventListener("keydown", onKey);
     return () => {

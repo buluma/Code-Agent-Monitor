@@ -1,6 +1,6 @@
 /**
  * @file App.tsx
- * @description Top-level React tree for the Code Agent Monitor dashboard.
+ * @description Top-level React tree for the Claude Code Agent Monitor dashboard.
  * Wires together routing, real-time WebSocket ingestion, browser notifications,
  * and the splash screen shown on cold load.
  *
@@ -18,12 +18,12 @@
  * passes `wsConnected` for the connection badge. Unknown paths fall through to
  * {@link NotFound}.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/App.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/App.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -95,6 +95,9 @@ import type { WSMessage } from "./lib/types";
  * API reference pages are served by Express, not the React dashboard. Keep
  * this guard for a stale shell or an unsupported API URL that reaches the SPA
  * fallback: developer documentation must never be obscured by onboarding.
+ *
+ * @param pathname - Current location path.
+ * @returns False for API reference paths, true elsewhere.
  */
 export function shouldShowOnboarding(pathname: string): boolean {
   return !pathname.startsWith("/api/");
@@ -111,6 +114,7 @@ function DashboardOnboarding() {
  * @returns Routed dashboard UI inside `BrowserRouter`.
  */
 export default function App() {
+  /** Forward every WebSocket message to the app-wide event bus. */
   const onMessage = useCallback((msg: WSMessage) => {
     eventBus.publish(msg);
   }, []);

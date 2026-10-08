@@ -1,12 +1,12 @@
 /**
  * @file DateTimePicker.tsx
  * @description A React component that provides a user-friendly interface for selecting both date and time. The component displays a button that shows the currently selected date and time in a human-readable format. When the button is clicked, a dropdown appears containing a calendar for date selection and an input for time selection. The component handles edge cases such as invalid dates and ensures that the dropdown is positioned correctly within the viewport. It also allows users to clear their selection easily. This component is designed to be reusable across the application wherever date and time input is required.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/DateTimePicker.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/DateTimePicker.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -52,15 +52,30 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Calendar, Clock, ChevronLeft, ChevronRight, X } from "lucide-react";
 
+/** Props for {@link DateTimePicker}. */
 interface DateTimePickerProps {
+  /**
+   * Selected local date and time as `YYYY-MM-DDTHH:mm` (the `datetime-local` format), or an empty
+   * string for none.
+   */
   value: string; // Expected format: YYYY-MM-DDTHH:mm
+  /** Called with the new value in the same format, or an empty string when cleared. */
   onChange: (value: string) => void;
+  /** Text shown when no value is selected. */
   placeholder?: string;
+  /** Extra classes for the trigger button. */
   className?: string;
+  /** Accessible label for the trigger button. */
   "aria-label"?: string;
+  /** Tooltip for the trigger button. */
   title?: string;
 }
 
+/**
+ * Compact date and time picker with a month calendar and a time field in a popover, styled to match
+ * the dashboard instead of the browser's native control. Values stay in local time and the
+ * `datetime-local` string format, so they drop into the event filters unchanged.
+ */
 export function DateTimePicker({
   value,
   onChange,
@@ -104,6 +119,12 @@ export function DateTimePicker({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  /**
+   * Short localized label for the trigger, or an empty string for an invalid date.
+   *
+   * @param d - Selected date, or null.
+   * @returns The label.
+   */
   const formatDisplay = (d: Date | null) => {
     if (!d || isNaN(d.getTime())) return "";
     return d.toLocaleString(undefined, {
@@ -114,6 +135,11 @@ export function DateTimePicker({
     });
   };
 
+  /**
+   * Pick a calendar day, keeping the current time of day (midnight when nothing was selected yet).
+   *
+   * @param day - Day of the month in the viewed month.
+   */
   const handleDateClick = (day: number) => {
     const newDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
     if (dateObj && !isNaN(dateObj.getTime())) {
@@ -124,6 +150,10 @@ export function DateTimePicker({
     updateValue(newDate);
   };
 
+  /**
+   * Apply a typed `HH:mm` time to the selected day (today when nothing was selected). Ignores
+   * incomplete input.
+   */
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const timeStr = e.target.value;
     if (!timeStr) return;
@@ -136,6 +166,11 @@ export function DateTimePicker({
     updateValue(newDate);
   };
 
+  /**
+   * Report a date to the parent in `YYYY-MM-DDTHH:mm` local time.
+   *
+   * @param d - Date to report.
+   */
   const updateValue = (d: Date) => {
     const y = d.getFullYear();
     const mo = String(d.getMonth() + 1).padStart(2, "0");
@@ -145,6 +180,7 @@ export function DateTimePicker({
     onChange(`${y}-${mo}-${day}T${h}:${mi}`);
   };
 
+  /** Clear the value and close the popover without toggling it open again. */
   const clearValue = (e: React.MouseEvent) => {
     e.stopPropagation();
     onChange("");

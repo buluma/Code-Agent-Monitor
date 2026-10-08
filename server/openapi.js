@@ -1,6 +1,6 @@
 /**
  * @file Central OpenAPI 3.0 specification for the dashboard HTTP API.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const pkg = require("../package.json");
@@ -47,13 +47,13 @@ function createOpenApiSpec() {
   const spec = {
     openapi: "3.0.3",
     info: {
-      title: "Code Agent Monitor API",
+      title: "Agent Dashboard for Claude Code, Cursor, and Codex API",
       version: pkg.version || "1.0.0",
       description:
-        "HTTP API for real-time code agent session monitoring, agent lifecycle tracking, analytics, pricing, hooks ingestion, and workflow intelligence.",
+        "HTTP API for real-time Claude Code, Cursor, and Codex session monitoring, agent lifecycle tracking, analytics, provider-specific pricing, hooks ingestion, and workflow intelligence.",
       contact: {
-        name: "Michael Buluma",
-        email: "1452922+buluma@users.noreply.github.com",
+        name: "Son Nguyen",
+        email: "hoangson091104@gmail.com",
         ...(repositoryUrl ? { url: repositoryUrl } : {}),
       },
       license: {
@@ -80,7 +80,7 @@ function createOpenApiSpec() {
     tags: [
       { name: "Health", description: "Service liveness checks" },
       { name: "Metrics", description: "Prometheus / OpenMetrics scrape endpoint" },
-      { name: "Sessions", description: "Claude Code and Codex session lifecycle" },
+      { name: "Sessions", description: "Claude Code, Cursor, and Codex session lifecycle" },
       { name: "Agents", description: "Main/subagent records and status" },
       { name: "Events", description: "Event stream persistence" },
       { name: "Stats", description: "High-level dashboard counters" },
@@ -107,11 +107,6 @@ function createOpenApiSpec() {
         name: "Remote Sources",
         description:
           "Config for remote SSH machines the dashboard pulls Claude Code history from. No secrets are stored — SSH auth defers to the host's SSH stack (agent, ~/.ssh/config, keys).",
-      },
-      {
-        name: "Linear",
-        description:
-          "Read-only Linear ticket linking: API key config and per-session issue links (URL paste or git-branch auto-detect). No Jira or GitHub Issues support.",
       },
       { name: "Documentation", description: "OpenAPI/Swagger endpoints" },
     ],
@@ -201,9 +196,9 @@ function createOpenApiSpec() {
           name: "providers",
           in: "query",
           required: false,
-          schema: { type: "string", example: "claude,codex,helmcode,t3" },
+          schema: { type: "string", example: "claude,codex" },
           description:
-            "Comma-separated product providers to include: `claude`, `codex`, `helmcode`, `t3`, or both. Omit to include every provider.",
+            "Comma-separated stored providers to include: `claude`, `cursor`, and/or `codex`. Requesting `claude` also includes Cursor because the product scope groups their local workflows. Omit to include every provider.",
         },
       },
       schemas: {
@@ -319,7 +314,7 @@ function createOpenApiSpec() {
             "ownerBreakdown",
           ],
           properties: {
-            provider: { type: "string", enum: ["claude", "codex", "helmcode", "t3"] },
+            provider: { type: "string", enum: ["claude", "codex"] },
             source: { type: "string", enum: ["transcript", "mixed"] },
             sourceTool: { type: "string", nullable: true },
             sourceLine: { type: "integer", nullable: true },
@@ -358,7 +353,14 @@ function createOpenApiSpec() {
               enum: ["active", "completed", "error", "abandoned"],
             },
             cwd: { type: "string", nullable: true },
+            repo_remote_url: {
+              type: "string",
+              nullable: true,
+              description:
+                "Credential-free Git remote URL first observed by an authenticated collector. Consumers may canonicalize it to match a repository across machine-local working-directory paths.",
+            },
             model: { type: "string", nullable: true },
+            provider: { type: "string", enum: ["claude", "cursor", "codex"] },
             started_at: { type: "string", format: "date-time" },
             ended_at: { type: "string", format: "date-time", nullable: true },
             metadata: {
@@ -382,6 +384,12 @@ function createOpenApiSpec() {
                 "Timestamp of the latest durable session event, falling back to lifecycle timestamps only for eventless historical rows. Unlike updated_at, metadata bookkeeping does not change this value.",
             },
             cost: { type: "number", nullable: true },
+            has_token_usage: {
+              type: "boolean",
+              nullable: true,
+              description:
+                "True when durable token-usage buckets exist for this session. It is independent of cost, which may be zero for genuinely empty or unpriced usage.",
+            },
             awaiting_input_since: {
               type: "string",
               format: "date-time",
@@ -483,7 +491,7 @@ function createOpenApiSpec() {
             version: {
               type: "string",
               description: "Dashboard release version from package.json",
-              example: "4.2.1",
+              example: "2.2.6",
             },
             timestamp: { type: "string", format: "date-time" },
           },
@@ -599,6 +607,11 @@ function createOpenApiSpec() {
           type: "object",
           required: ["type", "content"],
           properties: {
+            id: {
+              type: "string",
+              description:
+                "Stable provider-local message identity when available. Cursor uses it while prompt history hands off to canonical JSONL.",
+            },
             type: {
               type: "string",
               enum: ["user", "assistant", "session_event"],
@@ -671,80 +684,11 @@ function createOpenApiSpec() {
               description:
                 "JSONL line number of the oldest returned message — pass back as `before` to page backwards.",
             },
-          },
-        },
-        FocusTerminalResponse: {
-          type: "object",
-          description:
-            "Result of a best-effort attempt to raise the OS terminal window running a session. macOS only (Terminal.app / iTerm2); every other platform, or no matching window, resolves with focused: false rather than an error.",
-          required: ["focused", "app"],
-          properties: {
-            focused: { type: "boolean" },
-            app: { type: "string", nullable: true, enum: ["Ghostty", "iTerm2", null] },
-            reason: {
-              type: "string",
-              enum: ["unsupported_platform", "no_cwd", "no_matching_window"],
-              description: "Present only when focused is false.",
-            },
-          },
-        },
-        LinearConfigResponse: {
-          type: "object",
-          required: ["configured"],
-          properties: {
-            configured: {
+            refresh: {
               type: "boolean",
-              description: "Whether a Linear API key is currently stored.",
+              description:
+                "When true, messages are a latest-window refresh to merge by message id rather than a strict append-only page.",
             },
-          },
-        },
-        LinearConfigRequest: {
-          type: "object",
-          required: ["apiKey"],
-          properties: {
-            apiKey: { type: "string", description: "Linear personal API key." },
-          },
-        },
-        LinearLink: {
-          type: "object",
-          description: "A session's linked Linear issue, cached from the last successful lookup.",
-          required: [
-            "session_id",
-            "issue_id",
-            "identifier",
-            "url",
-            "source",
-            "linked_at",
-            "synced_at",
-          ],
-          properties: {
-            session_id: { type: "string" },
-            issue_id: { type: "string", description: "Linear's internal issue UUID." },
-            identifier: { type: "string", example: "ENG-123" },
-            title: { type: "string", nullable: true },
-            url: { type: "string" },
-            state: { type: "string", nullable: true, description: "Linear workflow state name." },
-            source: { type: "string", enum: ["url", "branch"] },
-            linked_at: { type: "string", format: "date-time" },
-            synced_at: { type: "string", format: "date-time" },
-          },
-        },
-        LinearLinkResponse: {
-          type: "object",
-          required: ["link"],
-          properties: {
-            link: {
-              oneOf: [{ $ref: "#/components/schemas/LinearLink" }, { type: "null" }],
-            },
-          },
-        },
-        LinearLinkRequest: {
-          type: "object",
-          description:
-            "Either a pasted Linear issue URL, or auto: true to detect the issue identifier from the session's current git branch name.",
-          properties: {
-            url: { type: "string" },
-            auto: { type: "boolean" },
           },
         },
         SessionStatsResponse: {
@@ -1148,11 +1092,59 @@ function createOpenApiSpec() {
           required: ["pricing"],
           properties: { pricing: { $ref: "#/components/schemas/PricingRule" } },
         },
+        CursorPricingRule: {
+          type: "object",
+          required: [
+            "model_pattern",
+            "display_name",
+            "input_per_mtok",
+            "cache_write_per_mtok",
+            "cache_read_per_mtok",
+            "output_per_mtok",
+            "updated_at",
+          ],
+          properties: {
+            model_pattern: { type: "string" },
+            display_name: { type: "string" },
+            input_per_mtok: { type: "number", minimum: 0 },
+            cache_write_per_mtok: { type: "number", minimum: 0 },
+            cache_read_per_mtok: { type: "number", minimum: 0 },
+            output_per_mtok: { type: "number", minimum: 0 },
+            updated_at: { type: "string", format: "date-time" },
+          },
+        },
+        CursorPricingUpsertRequest: {
+          type: "object",
+          required: ["model_pattern", "display_name"],
+          properties: {
+            model_pattern: { type: "string" },
+            display_name: { type: "string" },
+            input_per_mtok: { type: "number", minimum: 0 },
+            cache_write_per_mtok: { type: "number", minimum: 0 },
+            cache_read_per_mtok: { type: "number", minimum: 0 },
+            output_per_mtok: { type: "number", minimum: 0 },
+          },
+        },
+        CursorPricingListResponse: {
+          type: "object",
+          required: ["pricing"],
+          properties: {
+            pricing: {
+              type: "array",
+              items: { $ref: "#/components/schemas/CursorPricingRule" },
+            },
+          },
+        },
+        CursorPricingUpsertResponse: {
+          type: "object",
+          required: ["pricing"],
+          properties: { pricing: { $ref: "#/components/schemas/CursorPricingRule" } },
+        },
         GptPricingRule: {
           type: "object",
           required: ["model_pattern", "display_name", "updated_at"],
           description:
-            "OpenAI/Codex token pricing. Standard requests use short rates at or below 272K input tokens and long rates above that; Fast requests use the explicit fast rate card.",
+            "OpenAI/Codex token pricing. Standard requests use short rates at or below 272K input tokens and long rates above that; Fast requests use fast_* short rates or fast_long_* long rates at the same boundary.",
           properties: {
             model_pattern: { type: "string" },
             display_name: { type: "string" },
@@ -1165,6 +1157,10 @@ function createOpenApiSpec() {
             long_cache_write_per_mtok: { type: "number" },
             long_output_per_mtok: { type: "number" },
             fast_input_per_mtok: { type: "number" },
+            fast_long_input_per_mtok: { type: "number" },
+            fast_long_cached_input_per_mtok: { type: "number" },
+            fast_long_cache_write_per_mtok: { type: "number" },
+            fast_long_output_per_mtok: { type: "number" },
             fast_cached_input_per_mtok: { type: "number" },
             fast_cache_write_per_mtok: { type: "number" },
             fast_output_per_mtok: { type: "number" },
@@ -1186,6 +1182,10 @@ function createOpenApiSpec() {
             long_cache_write_per_mtok: { type: "number" },
             long_output_per_mtok: { type: "number" },
             fast_input_per_mtok: { type: "number" },
+            fast_long_input_per_mtok: { type: "number" },
+            fast_long_cached_input_per_mtok: { type: "number" },
+            fast_long_cache_write_per_mtok: { type: "number" },
+            fast_long_output_per_mtok: { type: "number" },
             fast_cached_input_per_mtok: { type: "number" },
             fast_cache_write_per_mtok: { type: "number" },
             fast_output_per_mtok: { type: "number" },
@@ -1453,6 +1453,7 @@ function createOpenApiSpec() {
                 paths: { type: "array", items: { type: "string" } },
               },
             },
+            snapshots: { $ref: "#/components/schemas/SettingsSnapshotStorage" },
           },
         },
         ClearDataResponse: {
@@ -1479,7 +1480,7 @@ function createOpenApiSpec() {
         ImportGuideResponse: {
           type: "object",
           properties: {
-            provider: { type: "string", enum: ["claude", "codex", "helmcode"] },
+            provider: { type: "string", enum: ["claude", "codex"] },
             platform: { type: "string" },
             default_projects_dir: { type: "string" },
             default_projects_dir_display: { type: "string" },
@@ -1513,7 +1514,7 @@ function createOpenApiSpec() {
           required: ["ok", "source", "imported", "skipped", "errors"],
           properties: {
             ok: { type: "boolean", enum: [true] },
-            provider: { type: "string", enum: ["claude", "codex", "helmcode"] },
+            provider: { type: "string", enum: ["claude", "codex"] },
             source: { type: "string", enum: ["default", "path", "upload"] },
             path: { type: "string", nullable: true },
             imported: { type: "integer" },
@@ -1549,11 +1550,15 @@ function createOpenApiSpec() {
         },
         ResetPricingResponse: {
           type: "object",
-          required: ["ok", "provider", "pricing", "gpt_pricing"],
+          required: ["ok", "provider", "pricing", "cursor_pricing", "gpt_pricing"],
           properties: {
             ok: { type: "boolean", enum: [true] },
-            provider: { type: "string", enum: ["claude", "codex", "helmcode", "both"] },
+            provider: { type: "string", enum: ["claude", "cursor", "codex", "both"] },
             pricing: { type: "array", items: { $ref: "#/components/schemas/PricingRule" } },
+            cursor_pricing: {
+              type: "array",
+              items: { $ref: "#/components/schemas/CursorPricingRule" },
+            },
             gpt_pricing: {
               type: "array",
               items: { $ref: "#/components/schemas/GptPricingRule" },
@@ -1571,16 +1576,17 @@ function createOpenApiSpec() {
             "events",
             "token_usage",
             "model_pricing",
+            "cursor_model_pricing",
             "gpt_model_pricing",
           ],
           properties: {
             format: {
               type: "string",
               description:
-                'Bundle format marker (always "cam-export" for exports from this version).',
-              example: "cam-export",
+                'Bundle format marker (always "ccam-export" for exports from this version).',
+              example: "ccam-export",
             },
-            version: { type: "integer", description: "Bundle schema version.", example: 2 },
+            version: { type: "integer", description: "Bundle schema version.", example: 3 },
             exported_at: { type: "string", format: "date-time" },
             sessions: { type: "array", items: { $ref: "#/components/schemas/Session" } },
             agents: { type: "array", items: { $ref: "#/components/schemas/Agent" } },
@@ -1599,6 +1605,10 @@ function createOpenApiSpec() {
             },
             alert_rules: { type: "array", items: { type: "object", additionalProperties: true } },
             model_pricing: { type: "array", items: { $ref: "#/components/schemas/PricingRule" } },
+            cursor_model_pricing: {
+              type: "array",
+              items: { $ref: "#/components/schemas/CursorPricingRule" },
+            },
             gpt_model_pricing: {
               type: "array",
               items: { $ref: "#/components/schemas/GptPricingRule" },
@@ -1618,6 +1628,7 @@ function createOpenApiSpec() {
             "dashboard_runs",
             "alert_rules",
             "model_pricing",
+            "cursor_model_pricing",
             "gpt_model_pricing",
             "errors",
           ],
@@ -1640,6 +1651,7 @@ function createOpenApiSpec() {
             dashboard_runs: { type: "integer" },
             alert_rules: { type: "integer" },
             model_pricing: { type: "integer" },
+            cursor_model_pricing: { type: "integer" },
             gpt_model_pricing: { type: "integer" },
             errors: { type: "integer" },
           },
@@ -1669,6 +1681,14 @@ function createOpenApiSpec() {
             purged_sessions: { type: "integer" },
             purged_events: { type: "integer" },
             purged_agents: { type: "integer" },
+            purged_snapshot_files: {
+              type: "integer",
+              description: "Transcript snapshot files deleted with the purged sessions.",
+            },
+            purged_snapshot_bytes: {
+              type: "integer",
+              description: "Bytes reclaimed from the purged sessions' transcript snapshots.",
+            },
           },
         },
       },
@@ -1865,34 +1885,6 @@ function createOpenApiSpec() {
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/SessionStatsResponse" },
-                },
-              },
-            },
-            404: {
-              description: "Session not found",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
-                },
-              },
-            },
-          },
-        },
-      },
-      "/api/sessions/{id}/focus-terminal": {
-        post: {
-          tags: ["Sessions"],
-          summary: "Raise the terminal window running this session",
-          description:
-            "Best-effort, macOS-only: matches the session's working directory against open Ghostty / iTerm2 windows and brings the matching one to the front. Always returns 200 — a platform without a scriptable terminal, or no matching window, is reported as focused: false rather than an error.",
-          operationId: "focusSessionTerminal",
-          parameters: [{ $ref: "#/components/parameters/SessionIdPath" }],
-          responses: {
-            200: {
-              description: "Focus attempt result",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/FocusTerminalResponse" },
                 },
               },
             },
@@ -2225,157 +2217,6 @@ function createOpenApiSpec() {
           },
         },
       },
-      "/api/linear/config": {
-        get: {
-          tags: ["Linear"],
-          summary: "Check whether a Linear API key is configured",
-          operationId: "getLinearConfig",
-          responses: {
-            200: {
-              description: "Configuration status",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/LinearConfigResponse" },
-                },
-              },
-            },
-          },
-        },
-        put: {
-          tags: ["Linear"],
-          summary: "Set the Linear API key",
-          operationId: "setLinearConfig",
-          requestBody: {
-            required: true,
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/LinearConfigRequest" },
-              },
-            },
-          },
-          responses: {
-            200: {
-              description: "Key stored",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/LinearConfigResponse" },
-                },
-              },
-            },
-            400: {
-              description: "Missing apiKey",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
-                },
-              },
-            },
-          },
-        },
-        delete: {
-          tags: ["Linear"],
-          summary: "Clear the stored Linear API key",
-          operationId: "clearLinearConfig",
-          responses: {
-            200: {
-              description: "Key cleared",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/LinearConfigResponse" },
-                },
-              },
-            },
-          },
-        },
-      },
-      "/api/linear/sessions/{id}/link": {
-        get: {
-          tags: ["Linear"],
-          summary: "Get a session's linked Linear issue",
-          operationId: "getLinearLink",
-          parameters: [{ $ref: "#/components/parameters/SessionIdPath" }],
-          responses: {
-            200: {
-              description: "Linked issue, or null if unlinked",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/LinearLinkResponse" },
-                },
-              },
-            },
-          },
-        },
-        post: {
-          tags: ["Linear"],
-          summary: "Link a session to a Linear issue",
-          description:
-            "Resolves either a pasted issue URL or (with auto: true) the Linear identifier embedded in the session's current git branch name, then caches the resolved title/state/url alongside the session.",
-          operationId: "createLinearLink",
-          parameters: [{ $ref: "#/components/parameters/SessionIdPath" }],
-          requestBody: {
-            required: true,
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/LinearLinkRequest" },
-              },
-            },
-          },
-          responses: {
-            200: {
-              description: "Link created/updated",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/LinearLinkResponse" },
-                },
-              },
-            },
-            400: {
-              description: "Invalid URL, missing config, or neither url nor auto given",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
-                },
-              },
-            },
-            404: {
-              description: "Session not found, or the issue/branch identifier couldn't be resolved",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
-                },
-              },
-            },
-            502: {
-              description: "Linear API request failed",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
-                },
-              },
-            },
-          },
-        },
-        delete: {
-          tags: ["Linear"],
-          summary: "Unlink a session's Linear issue",
-          operationId: "deleteLinearLink",
-          parameters: [{ $ref: "#/components/parameters/SessionIdPath" }],
-          responses: {
-            200: {
-              description: "Unlinked",
-              content: {
-                "application/json": {
-                  schema: {
-                    type: "object",
-                    required: ["ok"],
-                    properties: { ok: { type: "boolean" } },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
       "/api/metrics": {
         get: {
           tags: ["Metrics"],
@@ -2396,12 +2237,12 @@ function createOpenApiSpec() {
                 "text/plain": {
                   schema: { type: "string" },
                   example:
-                    "# HELP cam_up 1 when the dashboard API is serving this scrape.\n" +
-                    "# TYPE cam_up gauge\n" +
-                    "cam_up 1\n" +
-                    "# HELP cam_sessions Number of sessions by lifecycle status.\n" +
-                    "# TYPE cam_sessions gauge\n" +
-                    'cam_sessions{status="active"} 3\n',
+                    "# HELP ccam_up 1 when the dashboard API is serving this scrape.\n" +
+                    "# TYPE ccam_up gauge\n" +
+                    "ccam_up 1\n" +
+                    "# HELP ccam_sessions Number of sessions by lifecycle status.\n" +
+                    "# TYPE ccam_sessions gauge\n" +
+                    'ccam_sessions{status="active"} 3\n',
                 },
               },
             },
@@ -2512,6 +2353,174 @@ function createOpenApiSpec() {
           },
         },
       },
+      "/api/hooks/ingest-batch": {
+        post: {
+          tags: ["Hooks"],
+          summary: "Push a batch of session data from a roaming/NAT'd machine",
+          description:
+            "Third session-data ingestion path, alongside the local hook routes above and the SSH-pull remote-sync path (see /api/remote-sources). For a machine the dashboard can never reach to pull FROM, it pushes its own session data over HTTPS instead. Reachable from the public internet and disabled by default -- gated by its own REMOTE_PUSH_TOKEN, deliberately independent of DASHBOARD_HOOK_TOKEN (which protects the loopback-only routes above; setting that one must not also open this route as a side effect). Send the token as `Authorization: Bearer <token>` or `X-Dashboard-Token` -- deliberately not `?token=`, which would end up in access/proxy logs on a public-internet route.",
+          operationId: "ingestRemotePushBatch",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["session_id", "provider"],
+                  properties: {
+                    schema_version: {
+                      type: "integer",
+                      description:
+                        "Must equal this server's current wire-format version (1) when present. A mismatch is a whole-request 409, not a per-item soft-fail.",
+                    },
+                    session_id: { type: "string" },
+                    provider: { type: "string", enum: ["claude", "codex"] },
+                    session_name: {
+                      type: "string",
+                      description:
+                        "Defaults to 'Session <first 8 chars of session_id>' for a brand-new session.",
+                    },
+                    cwd: { type: "string" },
+                    repo_remote_url: {
+                      type: "string",
+                      description:
+                        "Optional Git remote URL. Userinfo is removed, then the authenticated collector's first non-empty value is retained for cross-machine repository matching.",
+                    },
+                    model: { type: "string" },
+                    tokens: {
+                      type: "array",
+                      description:
+                        "Each entry is a bucket's FULL current total (like a transcript re-parse), not a delta.",
+                      items: {
+                        type: "object",
+                        required: ["model"],
+                        properties: {
+                          model: { type: "string" },
+                          speed: { type: "string" },
+                          inference_geo: { type: "string" },
+                          service_tier: { type: "string" },
+                          input: { type: "integer", minimum: 0 },
+                          output: { type: "integer", minimum: 0 },
+                          cacheRead: { type: "integer", minimum: 0 },
+                          cacheWrite: { type: "integer", minimum: 0 },
+                          cacheWrite1h: {
+                            type: "integer",
+                            minimum: 0,
+                            description: "Must be <= cacheWrite.",
+                          },
+                          webSearch: { type: "integer", minimum: 0 },
+                          webFetch: { type: "integer", minimum: 0 },
+                          codeExec: { type: "integer", minimum: 0 },
+                        },
+                      },
+                    },
+                    tool_events: {
+                      type: "array",
+                      description:
+                        "Deduped by (session_id, event_type, uuid), across requests and within one batch.",
+                      items: {
+                        type: "object",
+                        required: ["uuid"],
+                        properties: {
+                          uuid: { type: "string" },
+                          agent_id: {
+                            type: "string",
+                            description: "Defaults to this session's main agent.",
+                          },
+                          tool_name: { type: "string" },
+                          status: { type: "string" },
+                          timestamp: {
+                            type: "string",
+                            format: "date-time",
+                            description: "Defaults to server 'now'.",
+                          },
+                        },
+                      },
+                    },
+                    turns: {
+                      type: "array",
+                      description: "Deduped the same way as tool_events.",
+                      items: {
+                        type: "object",
+                        required: ["uuid"],
+                        properties: {
+                          uuid: { type: "string" },
+                          agent_id: { type: "string" },
+                          duration_ms: { type: "integer", minimum: 0 },
+                          timestamp: { type: "string", format: "date-time" },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            200: {
+              description:
+                "Batch processed (even when individual items were skipped/rejected -- see errors[]/skipped for partial-failure detail; the request itself still succeeds).",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["ok", "written", "skipped", "errors"],
+                    properties: {
+                      ok: { type: "boolean" },
+                      written: { type: "integer" },
+                      skipped: { type: "integer" },
+                      errors: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            item: { type: "string" },
+                            code: { type: "string" },
+                            message: { type: "string" },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            400: {
+              description:
+                "Missing session_id, invalid provider, or a per-item validation failure surfaced at the request level",
+              content: {
+                "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+              },
+            },
+            401: {
+              description:
+                "REMOTE_PUSH_TOKEN is configured but the request's token is missing or wrong",
+              content: {
+                "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+              },
+            },
+            403: { description: "Host header not allowed (see hostGuard)" },
+            409: {
+              description: "schema_version in the request doesn't match this server's",
+              content: {
+                "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+              },
+            },
+            413: {
+              description: "tokens.length + tool_events.length + turns.length exceeds 1000",
+              content: {
+                "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+              },
+            },
+            503: {
+              description: "REMOTE_PUSH_TOKEN is not configured at all -- the route is disabled",
+              content: {
+                "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+              },
+            },
+          },
+        },
+      },
       "/api/pricing": {
         get: {
           tags: ["Pricing"],
@@ -2599,6 +2608,74 @@ function createOpenApiSpec() {
             },
             400: {
               description: "Invalid request body",
+              content: {
+                "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+              },
+            },
+          },
+        },
+      },
+      "/api/pricing/cursor": {
+        get: {
+          tags: ["Pricing"],
+          summary: "List Cursor pricing rules",
+          operationId: "listCursorPricingRules",
+          responses: {
+            200: {
+              description: "Cursor pricing rules",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/CursorPricingListResponse" },
+                },
+              },
+            },
+          },
+        },
+        put: {
+          tags: ["Pricing"],
+          summary: "Create or update a Cursor pricing rule",
+          operationId: "upsertCursorPricingRule",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/CursorPricingUpsertRequest" },
+              },
+            },
+          },
+          responses: {
+            200: {
+              description: "Cursor pricing rule stored",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/CursorPricingUpsertResponse" },
+                },
+              },
+            },
+            400: {
+              description: "Invalid request body",
+              content: {
+                "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+              },
+            },
+          },
+        },
+      },
+      "/api/pricing/cursor/{pattern}": {
+        delete: {
+          tags: ["Pricing"],
+          summary: "Delete a Cursor pricing rule",
+          operationId: "deleteCursorPricingRule",
+          parameters: [{ $ref: "#/components/parameters/PatternPath" }],
+          responses: {
+            200: {
+              description: "Rule deleted",
+              content: {
+                "application/json": { schema: { $ref: "#/components/schemas/DeleteOkResponse" } },
+              },
+            },
+            404: {
+              description: "Rule not found",
               content: {
                 "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } },
               },
@@ -2863,7 +2940,7 @@ function createOpenApiSpec() {
                       type: "array",
                       minItems: 1,
                       uniqueItems: true,
-                      items: { type: "string", enum: ["claude", "codex", "helmcode"] },
+                      items: { type: "string", enum: ["claude", "codex"] },
                     },
                   },
                 },
@@ -2910,7 +2987,7 @@ function createOpenApiSpec() {
                 schema: {
                   type: "object",
                   properties: {
-                    provider: { type: "string", enum: ["claude", "codex", "helmcode"] },
+                    provider: { type: "string", enum: ["claude", "cursor", "codex"] },
                   },
                 },
               },

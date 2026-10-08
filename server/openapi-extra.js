@@ -6,14 +6,12 @@
  * and schemas OVERRIDE base entries with the same key, so a comprehensive
  * entry here can supersede a terser one in the base literal; tags are appended
  * only when their `name` is not already present.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 // New endpoint groups (previously-undocumented gaps in the base spec).
 const ccConfig = require("./openapi-extra/cc-config");
 const codexConfig = require("./openapi-extra/codex-config");
-const helmcodeConfig = require("./openapi-extra/helmcode-config");
-const t3Config = require("./openapi-extra/t3-config");
 const run = require("./openapi-extra/run");
 const push = require("./openapi-extra/push");
 const misc = require("./openapi-extra/misc");
@@ -47,8 +45,6 @@ function combine(...fragments) {
 module.exports = combine(
   ccConfig,
   codexConfig,
-  helmcodeConfig,
-  t3Config,
   run,
   push,
   misc,

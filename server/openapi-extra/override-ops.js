@@ -44,7 +44,7 @@
  * message } }) where the base had it (and keep the base's content-less 4xx
  * descriptions where it had none); Workflows use the SHORT `MessageErrorResponse`
  * ({ error: { message } }).
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const tags = [];
@@ -154,6 +154,37 @@ const SETTINGS_INFO_EXAMPLE = {
       "/Users/son/.claude/projects/-Users-son-code-bar/def456.jsonl",
     ],
   },
+  snapshots: {
+    total_bytes: 734003200,
+    total_files: 1840,
+    roots: {
+      claude: {
+        path: "/Users/son/.claude/agent-dashboard/transcripts",
+        files: 1702,
+        bytes: 692060160,
+        compressed_files: 1210,
+        compressed_bytes: 211812352,
+        sessions: 512,
+      },
+      codex: {
+        path: "/Users/son/.claude/agent-dashboard/codex-transcripts",
+        files: 96,
+        bytes: 31457280,
+        compressed_files: 0,
+        compressed_bytes: 0,
+        sessions: 96,
+      },
+      cursor: {
+        path: "/Users/son/.claude/agent-dashboard/cursor-transcripts",
+        files: 42,
+        bytes: 10485760,
+        compressed_files: 18,
+        compressed_bytes: 2097152,
+        sessions: 21,
+      },
+    },
+    policy: { compress: true, max_age_days: null, max_bytes: null },
+  },
 };
 
 const CLEAR_DATA_EXAMPLE = {
@@ -213,7 +244,7 @@ const RESET_PRICING_EXAMPLE = {
 };
 
 const EXPORT_EXAMPLE = {
-  format: "cam-export",
+  format: "ccam-export",
   version: 2,
   exported_at: "2026-06-26T01:12:44.913Z",
   sessions: [
@@ -295,6 +326,8 @@ const CLEANUP_EXAMPLE = {
   purged_sessions: 57,
   purged_events: 14820,
   purged_agents: 241,
+  purged_snapshot_files: 212,
+  purged_snapshot_bytes: 48234496,
 };
 
 const IMPORT_GUIDE_EXAMPLE = {
@@ -991,7 +1024,7 @@ const paths = {
       tags: ["Settings"],
       summary: "Get system/database/hook diagnostics",
       description:
-        "Returns a diagnostics snapshot used by the Settings page: `db` (database file path, on-disk size in bytes, per-table row counts, SQLite pragmas, and recent event load over the last 5/15/60 minutes), `hooks` (whether the Claude Code hook-handler is installed in `settings.json`, the settings path, and a per-hook-type installed map), `server` (process uptime, Node version, platform, live WebSocket connection count, memory/CPU/host stats), and `transcript_cache` (number of cached transcript entries and the cached paths). Read-only and cheap to poll.",
+        "Returns a diagnostics snapshot used by the Settings page: `db` (database file path, on-disk size in bytes, per-table row counts, SQLite pragmas, and recent event load over the last 5/15/60 minutes), `hooks` (whether the Claude Code hook-handler is installed in `settings.json`, the settings path, and a per-hook-type installed map), `server` (process uptime, Node version, platform, live WebSocket connection count, memory/CPU/host stats), `transcript_cache` (number of cached transcript entries and the cached paths), and `snapshots` (durable transcript snapshot storage per provider plus the retention policy; cached for 5 min). Read-only and cheap to poll.",
       operationId: "getSettingsInfo",
       responses: {
         200: {
@@ -1113,7 +1146,7 @@ const paths = {
             schema: {
               type: "object",
               properties: {
-                provider: { type: "string", enum: ["claude", "codex", "helmcode"] },
+                provider: { type: "string", enum: ["claude", "codex"] },
               },
             },
             examples: {
@@ -1148,7 +1181,7 @@ const paths = {
       tags: ["Settings"],
       summary: "Export all dashboard data as JSON",
       description:
-        'Exports the entire dataset as a single versioned JSON document — all sessions, agents, events, token_usage rows, workflows, dashboard_runs, alert_rules, model_pricing, and gpt_model_pricing — stamped with `format: "cam-export"`, `version`, and `exported_at`. Served with a `Content-Disposition: attachment` header (filename `agent-monitor-export-YYYY-MM-DD.json`) so browsers download it. Use it to back up before a destructive operation (clear-data / cleanup with purge_days) or to migrate/consolidate data across machines — the bundle is re-importable via POST /api/settings/import. Read-only; nothing is modified.',
+        'Exports the entire dataset as a single versioned JSON document — all sessions, agents, events, token_usage rows, workflows, dashboard_runs, alert_rules, model_pricing, and gpt_model_pricing — stamped with `format: "ccam-export"`, `version`, and `exported_at`. Served with a `Content-Disposition: attachment` header (filename `agent-monitor-export-YYYY-MM-DD.json`) so browsers download it. Use it to back up before a destructive operation (clear-data / cleanup with purge_days) or to migrate/consolidate data across machines — the bundle is re-importable via POST /api/settings/import. Read-only; nothing is modified.',
       operationId: "exportData",
       responses: {
         200: {
@@ -1169,7 +1202,7 @@ const paths = {
       tags: ["Settings"],
       summary: "Restore (import) a previously exported data bundle",
       description:
-        'Restores one bundle up to 25 MiB produced by GET /api/settings/export. Supply it either as `multipart/form-data` with a single `file` field (browser upload) or as a JSON body `{ "path": "<absolute path>" }` (the server reads the file from disk — used by the `cam import-data` CLI, and it also sidesteps the global 1 MB JSON body cap for large bundles). The restore is idempotent and NON-DESTRUCTIVE: it is session-atomic, so a session already present (matched by its UUID) is skipped whole together with its agents/events/token_usage/workflows, and independent config rows (dashboard_runs, alert_rules, model_pricing, gpt_model_pricing) are inserted only when absent. Nothing existing is overwritten — ideal for consolidating several machines into one dashboard. The response reports per-table counts.',
+        'Restores one bundle up to 25 MiB produced by GET /api/settings/export. Supply it either as `multipart/form-data` with a single `file` field (browser upload) or as a JSON body `{ "path": "<absolute path>" }` (the server reads the file from disk — used by the `ccam import-data` CLI, and it also sidesteps the global 1 MB JSON body cap for large bundles). The restore is idempotent and NON-DESTRUCTIVE: it is session-atomic, so a session already present (matched by its UUID) is skipped whole together with its agents/events/token_usage/workflows, and independent config rows (dashboard_runs, alert_rules, model_pricing, gpt_model_pricing) are inserted only when absent. Nothing existing is overwritten — ideal for consolidating several machines into one dashboard. The response reports per-table counts.',
       operationId: "importData",
       requestBody: {
         required: true,
@@ -1194,7 +1227,7 @@ const paths = {
                 },
               },
             },
-            example: { path: "/Users/you/cam-export-2026-06-26.json" },
+            example: { path: "/Users/you/ccam-export-2026-06-26.json" },
           },
         },
       },
@@ -1207,7 +1240,7 @@ const paths = {
               example: {
                 ok: true,
                 source: "agent-monitor-export-2026-06-26.json",
-                format: "cam-export",
+                format: "ccam-export",
                 sessions_imported: 42,
                 sessions_skipped: 3,
                 agents: 96,
@@ -1238,7 +1271,7 @@ const paths = {
       tags: ["Settings"],
       summary: "Abandon stale sessions and optionally purge old history",
       description:
-        "Two-phase maintenance. Phase 1 (`abandon_hours`, non-destructive): marks any still-`active` session with no events newer than that many hours as `abandoned`, and completes its lingering agents — a tidy-up of crashed/orphaned sessions. Phase 2 (`purge_days`) is ⚠ DESTRUCTIVE and IRREVERSIBLE: it permanently DELETES completed/error/abandoned sessions (and their events, agents, and token_usage) whose `started_at` is older than that many days. Active sessions are NEVER purged. Both fields are optional and independent — send only `abandon_hours` for a safe tidy-up, or include `purge_days` to also reclaim disk. Export first if the purged history matters. The response reports counts for each phase.",
+        "Two-phase maintenance. Phase 1 (`abandon_hours`, non-destructive): marks any still-`active` session with no events newer than that many hours as `abandoned`, and completes its lingering agents — a tidy-up of crashed/orphaned sessions. Phase 2 (`purge_days`) is ⚠ DESTRUCTIVE and IRREVERSIBLE: it permanently DELETES completed/error/abandoned sessions (and their events, agents, and token_usage) whose `started_at` is older than that many days. Active sessions are NEVER purged. Purged sessions' transcript snapshots (all three provider snapshot dirs) are deleted with them and reported as `purged_snapshot_files` / `purged_snapshot_bytes`. Both fields are optional and independent — send only `abandon_hours` for a safe tidy-up, or include `purge_days` to also reclaim disk. Export first if the purged history matters. The response reports counts for each phase.",
       operationId: "cleanupData",
       requestBody: {
         required: true,
@@ -1285,7 +1318,7 @@ const paths = {
           name: "provider",
           in: "query",
           required: false,
-          schema: { type: "string", enum: ["claude", "codex", "helmcode"], default: "claude" },
+          schema: { type: "string", enum: ["claude", "codex"], default: "claude" },
           description: "History provider to describe.",
         },
       ],
@@ -1317,11 +1350,7 @@ const paths = {
             schema: {
               type: "object",
               properties: {
-                provider: {
-                  type: "string",
-                  enum: ["claude", "codex", "helmcode"],
-                  default: "claude",
-                },
+                provider: { type: "string", enum: ["claude", "codex"], default: "claude" },
               },
             },
           },
@@ -1374,7 +1403,7 @@ const paths = {
                 },
                 provider: {
                   type: "string",
-                  enum: ["claude", "codex", "helmcode"],
+                  enum: ["claude", "codex"],
                   default: "claude",
                   description: "Transcript format and ingestion pipeline to use.",
                 },
@@ -1475,7 +1504,7 @@ const paths = {
                 },
                 provider: {
                   type: "string",
-                  enum: ["claude", "codex", "helmcode"],
+                  enum: ["claude", "codex"],
                   default: "claude",
                   description: "Transcript provider for the uploaded files.",
                 },

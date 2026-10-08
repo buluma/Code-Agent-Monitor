@@ -3,7 +3,7 @@
  * @description Verifies provider-aware onboarding skips setup for ready
  * selections and offers installation only for selected providers whose
  * dashboard hooks are missing.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -66,7 +66,7 @@ describe("SplashScreen", () => {
     expect(info).toHaveBeenCalledTimes(1);
     expect(installHooks).not.toHaveBeenCalled();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(sessionStorage.getItem("provider-onboarding-shown-v1")).toBe("1");
+    expect(localStorage.getItem("provider-onboarding-shown-v2")).toBe("1");
   });
 
   it("skips setup when Codex is selected and its hooks are installed", async () => {
@@ -87,7 +87,7 @@ describe("SplashScreen", () => {
     info.mockResolvedValue(hookInfo(true, true));
 
     render(<SplashScreen />);
-    await user.click(screen.getByRole("radio", { name: /all/i }));
+    await user.click(screen.getByRole("radio", { name: /both/i }));
     await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
 
     expect(info).toHaveBeenCalledTimes(1);
@@ -120,7 +120,7 @@ describe("SplashScreen", () => {
 
     render(<SplashScreen />);
 
-    await user.click(screen.getByRole("radio", { name: /all/i }));
+    await user.click(screen.getByRole("radio", { name: /both/i }));
     await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
 
     const hookDialog = await screen.findByRole("dialog", { name: "Set up live monitoring" });
@@ -136,7 +136,7 @@ describe("SplashScreen", () => {
     await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(sessionStorage.getItem("provider-onboarding-shown-v1")).toBe("1");
+    expect(localStorage.getItem("provider-onboarding-shown-v2")).toBe("1");
   });
 
   it("offers Claude only when Both is selected and only Codex is installed", async () => {
@@ -144,7 +144,7 @@ describe("SplashScreen", () => {
     info.mockResolvedValue(hookInfo(false, true));
 
     render(<SplashScreen />);
-    await user.click(screen.getByRole("radio", { name: /all/i }));
+    await user.click(screen.getByRole("radio", { name: /both/i }));
     await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
 
     const hookDialog = await screen.findByRole("dialog", { name: "Set up live monitoring" });
@@ -176,7 +176,7 @@ describe("SplashScreen", () => {
 
     expect(installHooks).not.toHaveBeenCalled();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(sessionStorage.getItem("provider-onboarding-shown-v1")).toBe("1");
+    expect(localStorage.getItem("provider-onboarding-shown-v2")).toBe("1");
   });
 
   it("keeps setup available when hook status cannot be checked", async () => {
@@ -191,29 +191,15 @@ describe("SplashScreen", () => {
       "We could not check your current hook setup"
     );
   });
+  it("stays dismissed in a new tab, where sessionStorage is empty", () => {
+    // ⌘/Ctrl-clicking a link opens a tab with fresh `sessionStorage` but the
+    // same `localStorage`. Onboarding is a per-browser event, so only the
+    // latter may gate it.
+    localStorage.setItem("provider-onboarding-shown-v2", "1");
+    sessionStorage.clear();
 
-  it("skips setup for Helm Code without checking hook status, since it needs none", async () => {
-    const user = userEvent.setup();
+    const { container } = render(<SplashScreen />);
 
-    render(<SplashScreen />);
-    await user.click(screen.getByRole("radio", { name: /^helm code/i }));
-    await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
-
-    expect(info).not.toHaveBeenCalled();
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(sessionStorage.getItem("provider-onboarding-shown-v1")).toBe("1");
-  });
-
-  it("skips setup for Helm Code even when the hook status check would fail", async () => {
-    const user = userEvent.setup();
-    info.mockRejectedValue(new Error("offline"));
-
-    render(<SplashScreen />);
-    await user.click(screen.getByRole("radio", { name: /^helm code/i }));
-    await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
-
-    expect(info).not.toHaveBeenCalled();
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(sessionStorage.getItem("provider-onboarding-shown-v1")).toBe("1");
+    expect(container).toBeEmptyDOMElement();
   });
 });

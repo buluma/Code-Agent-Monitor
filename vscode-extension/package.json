@@ -1,9 +1,9 @@
 {
-  "name": "code-agent-monitor",
-  "displayName": "Code Agent Monitor",
-  "description": "Professional integrated dashboard for monitoring code agent activity, token usage, and costs directly in VS Code.",
+  "name": "claude-code-agent-monitor",
+  "displayName": "Claude Code Agent Monitor",
+  "description": "Professional integrated dashboard for monitoring Claude Code AI agent activity, token usage, and costs directly in VS Code.",
   "version": "1.2.4",
-  "publisher": "buluma",
+  "publisher": "hoangsonw",
   "engines": {
     "vscode": "^1.75.0"
   },
@@ -14,7 +14,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:code-agent-monitor-view"
+    "onView:claude-code-monitor-view"
   ],
   "main": "./extension.js",
   "icon": "apple-touch-icon.png",
@@ -24,49 +24,49 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/buluma/Code-Agent-Monitor"
+    "url": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor"
   },
-  "homepage": "https://github.com/buluma/Code-Agent-Monitor/blob/master/vscode-extension/README.md",
+  "homepage": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor/blob/master/vscode-extension/README.md",
   "contributes": {
     "commands": [
       {
-        "command": "code-agent-monitor.openDashboard",
-        "title": "Open Dashboard",
-        "category": "Code Agent Monitor",
+        "command": "claude-code-agent-monitor.openDashboard",
+        "title": "Open Agent Dashboard",
+        "category": "Claude Code",
         "icon": "$(dashboard)"
       },
       {
-        "command": "code-agent-monitor.refreshStatus",
+        "command": "claude-code-agent-monitor.refreshStatus",
         "title": "Refresh Dashboard Status",
-        "category": "Code Agent Monitor",
+        "category": "Claude Code",
         "icon": "$(refresh)"
       },
       {
-        "command": "code-agent-monitor.clearHistory",
+        "command": "claude-code-agent-monitor.clearHistory",
         "title": "Clear Monitor History",
-        "category": "Code Agent Monitor",
+        "category": "Claude Code",
         "icon": "$(trash)"
       },
       {
-        "command": "code-agent-monitor.openInBrowser",
+        "command": "claude-code-agent-monitor.openInBrowser",
         "title": "Open Dashboard in Browser",
-        "category": "Code Agent Monitor",
+        "category": "Claude Code",
         "icon": "$(globe)"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "code-agent-monitor",
-          "title": "Code Agent Monitor",
+          "id": "claude-code-monitor",
+          "title": "Claude Code Agent Monitor",
           "icon": "icon.svg"
         }
       ]
     },
     "views": {
-      "code-agent-monitor": [
+      "claude-code-monitor": [
         {
-          "id": "code-agent-monitor-view",
+          "id": "claude-code-monitor-view",
           "name": "Monitor Control Center",
           "type": "webview"
         }
@@ -75,18 +75,18 @@
     "menus": {
       "view/title": [
         {
-          "command": "code-agent-monitor.openDashboard",
-          "when": "view == code-agent-monitor-view",
+          "command": "claude-code-agent-monitor.openDashboard",
+          "when": "view == claude-code-monitor-view",
           "group": "navigation@1"
         },
         {
-          "command": "code-agent-monitor.refreshStatus",
-          "when": "view == code-agent-monitor-view",
+          "command": "claude-code-agent-monitor.refreshStatus",
+          "when": "view == claude-code-monitor-view",
           "group": "navigation@2"
         },
         {
-          "command": "code-agent-monitor.openInBrowser",
-          "when": "view == code-agent-monitor-view",
+          "command": "claude-code-agent-monitor.openInBrowser",
+          "when": "view == claude-code-monitor-view",
           "group": "navigation@3"
         }
       ]
@@ -94,7 +94,7 @@
   },
   "devDependencies": {
     "@types/vscode": "^1.75.0",
-    "@vscode/vsce": "^3.9.2"
+    "vsce": "^2.15.0"
   },
   "scripts": {
     "package": "vsce package",
@@ -110,6 +110,6 @@
     "tokens",
     "llm"
   ],
-  "author": "Michael Buluma",
+  "author": "Son Nguyen",
   "license": "MIT"
 }

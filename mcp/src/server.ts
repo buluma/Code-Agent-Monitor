@@ -1,12 +1,12 @@
 /**
  * @file server.ts
  * @description Main entry point for building the MCP server. This module defines the buildServer function, which initializes a new MCP server instance with the provided configuration, API client, and logger. It also registers all tools by calling the registerAllTools function, which sets up the tool handlers for the server. The buildServer function returns the configured MCP server instance, ready to be started and handle incoming requests from the MCP client. This module serves as the central place for assembling the server components and ensuring that all necessary tools are registered before the server starts.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/server.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/server.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -69,6 +69,10 @@ import { registerAllTools } from "./tools/index.js";
  * same {@link AppConfig}/{@link DashboardApiClient}.
  * @returns A new `McpServer` with all six tool domains registered, ready to
  *   `connect()` to a transport.
+ *
+ * @param config - Resolved configuration.
+ * @param api - Dashboard API client the tools call.
+ * @param logger - Logger for tool calls.
  */
 export function buildServer(config: AppConfig, api: DashboardApiClient, logger: Logger): McpServer {
   const server = new McpServer({

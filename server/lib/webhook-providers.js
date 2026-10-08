@@ -8,7 +8,7 @@
  * for the redacted provider metadata exposed to the UI.
  *
  * Adding a provider = one entry here (+ a formatter). No delivery/route changes.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 // ── Shared helpers ──────────────────────────────────────────────────────────
@@ -85,7 +85,7 @@ function formatDiscord(alert) {
         description: truncate(alert.message, 4000),
         color: ACCENT_INT,
         fields,
-        footer: { text: "Code Agent Monitor" },
+        footer: { text: "Claude Code Agent Monitor" },
         timestamp: alert.triggered_at,
       },
     ],
@@ -152,7 +152,7 @@ function formatMattermost(alert) {
         color: ACCENT_HEX,
         text: truncate(alert.message, 3000),
         fields: attachmentFields(alert),
-        footer: "Code Agent Monitor",
+        footer: "Claude Code Agent Monitor",
       },
     ],
   };
@@ -196,7 +196,7 @@ function formatPagerDuty(alert, config) {
   return {
     routing_key: config.routing_key,
     event_action: "trigger",
-    dedup_key: `cam:${alert.rule_id || "test"}:${alert.session_id || ""}`,
+    dedup_key: `ccam:${alert.rule_id || "test"}:${alert.session_id || ""}`,
     payload: {
       summary: truncate(`${alert.rule_name}: ${alert.message}`, 1024),
       source: alert.session_id || "claude-code-agent-monitor",
@@ -219,7 +219,7 @@ function formatPagerDuty(alert, config) {
 function formatOpsgenie(alert) {
   return {
     message: truncate(`${alert.rule_name}: ${alert.message}`, 130),
-    alias: `cam:${alert.rule_id || "test"}:${alert.session_id || ""}`,
+    alias: `ccam:${alert.rule_id || "test"}:${alert.session_id || ""}`,
     description: truncate(alert.message, 15000),
     source: "claude-code-agent-monitor",
     tags: ["claude-code", alert.rule_type].filter(Boolean),
@@ -238,7 +238,7 @@ function formatOpsgenie(alert) {
 function formatSplunkOnCall(alert, config) {
   return {
     message_type: config.severity || "WARNING",
-    entity_id: `cam:${alert.rule_id || "test"}:${alert.session_id || ""}`,
+    entity_id: `ccam:${alert.rule_id || "test"}:${alert.session_id || ""}`,
     entity_display_name: truncate(alert.rule_name, 256),
     state_message: truncate(
       `${alert.message}\n\ntype: ${alert.rule_type}${alert.session_id ? `\nsession: ${alert.session_id}` : ""}`,

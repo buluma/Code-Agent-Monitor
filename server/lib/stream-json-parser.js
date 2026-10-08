@@ -4,7 +4,7 @@
  * --output-format stream-json` output. Reassembles arbitrarily chunked stdout
  * into discrete JSON envelopes (one per line). Robust to partial writes;
  * malformed lines are reported via onError but never throw.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 function createLineParser(onObject, onError) {

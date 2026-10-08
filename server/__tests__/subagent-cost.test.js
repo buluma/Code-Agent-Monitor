@@ -14,7 +14,7 @@
  *   3. A main agent (no per-agent tokens) gets cost 0 (its cost is the session
  *      total, shown separately).
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { describe, it, before, after } = require("node:test");

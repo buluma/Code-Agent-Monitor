@@ -3,12 +3,12 @@
  * @description Tabby's personality: pools of short phrases keyed by pulse/mood,
  *   plus a deterministic-by-injection picker. Pure data + a pure function so it
  *   can be unit-tested without randomness leaking in.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/Tabby/quips.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/Tabby/quips.ts`
  * **Purpose:** Tabby is the optional on-screen cat assistant — quips, intents, and lightweight event reactions layered above the dashboard chrome.
  *
  * ## Design constraints
@@ -68,8 +68,10 @@
 
 import type { Mood, TabbyPulse } from "./brain";
 
+/** What a quip responds to: an event pulse or a mood. */
 export type QuipKey = NonNullable<TabbyPulse> | Mood;
 
+/** Lines Tabby can say for each pulse and mood; one is picked at random. */
 const QUIPS: Record<QuipKey, string[]> = {
   // Pulses (event-driven, transient bubbles)
   session_done: [
@@ -130,6 +132,10 @@ const QUIPS: Record<QuipKey, string[]> = {
 /**
  * Pick a quip for a key. `rand` is injectable for deterministic tests; defaults
  * to Math.random. Returns "" only for an unknown key (never throws).
+ *
+ * @param key - Pulse or mood to respond to.
+ * @param rand - Random source in [0, 1); injectable for tests.
+ * @returns One of the lines for that key.
  */
 export function pickQuip(key: QuipKey, rand: () => number = Math.random): string {
   const pool = QUIPS[key];
@@ -138,4 +144,5 @@ export function pickQuip(key: QuipKey, rand: () => number = Math.random): string
   return pool[i] ?? "";
 }
 
+/** Every quip key, used by tests to check each one has lines. */
 export const ALL_QUIP_KEYS = Object.keys(QUIPS) as QuipKey[];

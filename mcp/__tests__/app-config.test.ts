@@ -1,7 +1,7 @@
 /**
  * @file app-config.test.ts
  * @description Unit tests for the app configuration loader, which reads environment variables and constructs a configuration object for the MCP server. The tests cover default values, parsing of different transport modes, HTTP port and host parsing with validation, boolean parsing for mutation/destructive flags, timeout and retry parsing with clamping, log level parsing with fallback, dashboard URL validation to ensure it targets a local host and uses http/https, and custom server name/version parsing. The tests use Node's built-in test runner and assert module for assertions.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 import { describe, it } from "node:test";
@@ -21,7 +21,7 @@ function env(overrides: Record<string, string> = {}): NodeJS.ProcessEnv {
 describe("loadConfig", () => {
   it("returns sane defaults when no env vars set", () => {
     const cfg = loadConfig(env());
-    assert.equal(cfg.serverName, "code-agent-monitor-mcp");
+    assert.equal(cfg.serverName, "agent-dashboard-mcp");
     assert.equal(cfg.serverVersion, "1.0.0");
     assert.equal(cfg.dashboardBaseUrl.toString(), "http://127.0.0.1:4820/");
     assert.equal(cfg.dashboardApiToken, undefined);
@@ -205,7 +205,7 @@ describe("loadConfig", () => {
   });
 
   it("loads the dashboard bearer token from a mounted secret file", () => {
-    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cam-mcp-token-"));
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-mcp-token-"));
     const tokenPath = path.join(directory, "dashboard-token");
     try {
       fs.writeFileSync(tokenPath, "file-token\n");
@@ -217,7 +217,7 @@ describe("loadConfig", () => {
   });
 
   it("loads the MCP HTTP bearer token from a mounted secret file", () => {
-    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cam-mcp-http-token-"));
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-mcp-http-token-"));
     const tokenPath = path.join(directory, "mcp-token");
     try {
       fs.writeFileSync(tokenPath, "mcp-file-token\n");

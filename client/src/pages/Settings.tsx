@@ -1,12 +1,12 @@
 /**
  * @file Settings.tsx
  * @description Provides product-scoped dashboard display controls, Claude and GPT pricing editors, live hook setup, session storage locations, notification preferences, and system management actions.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/pages/Settings.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/pages/Settings.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -112,7 +112,10 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import { api } from "../lib/api";
+import { useLocation } from "react-router";
+import { api, type SnapshotStorage as SnapshotStorageInfo } from "../lib/api";
+import { usePaletteAction } from "../components/PaletteActionProvider";
+
 import { eventBus } from "../lib/eventBus";
 import { isRemoteDataRefreshMessage } from "../lib/remoteDataEvents";
 import { tabbyPrefs } from "../components/Tabby/prefs";
@@ -128,14 +131,18 @@ import { subscribeToPush, unsubscribeFromPush } from "../lib/push";
 import { Tip } from "../components/Tip";
 import { ImportHistory } from "../components/ImportHistory";
 import { RemoteSources } from "../components/RemoteSources";
-import { LinearSettings } from "../components/LinearSettings";
 import { Skeleton } from "../components/Skeleton";
 import { AlertsNotifications } from "../components/AlertsNotifications";
-import type { GptModelPricing, ModelPricing, WSMessage } from "../lib/types";
+import { SnapshotStorage, formatStorageBytes } from "../components/SnapshotStorage";
+import type { CursorModelPricing, GptModelPricing, ModelPricing, WSMessage } from "../lib/types";
 import { useDataScope, type ProviderScope } from "../lib/dataScope";
 
-// In-page navigation for the (dense) Settings screen. Each entry maps to a
-// `<section id>` rendered below; the TOC scroll-spies the active one.
+/**
+ * In-page navigation for the dense Settings screen. Each entry maps to a `<section id>` rendered
+ * below, in page order (data display, the three pricing tables, hooks, session homes, import,
+ * remote sources, Tabby, sound, notifications, alerts, data, and about); the table of contents
+ * scroll-spies the active one.
+ */
 const SETTINGS_SECTIONS: {
   id: string;
   labelKey: string;
@@ -144,6 +151,7 @@ const SETTINGS_SECTIONS: {
 }[] = [
   { id: "data-display", labelKey: "display.title", Icon: Layers },
   { id: "claude-pricing", labelKey: "pricing.navClaude", Icon: DollarSign },
+  { id: "cursor-pricing", labelKey: "pricing.navCursor", Icon: DollarSign },
   { id: "gpt-pricing", labelKey: "pricing.navGpt", Icon: DollarSign },
   { id: "hooks", labelKey: "hooks.title", Icon: Plug },
   { id: "session-homes", labelKey: "homes.title", Icon: FolderOpen },
@@ -154,7 +162,6 @@ const SETTINGS_SECTIONS: {
     fallback: "Remote Data Sources",
     Icon: Cloud,
   },
-  { id: "linear", labelKey: "linear.title", fallback: "Linear", Icon: GitBranch },
   { id: "tabby", labelKey: "tabby.title", fallback: "Tabby", Icon: Cat },
   { id: "sound", labelKey: "sound.title", fallback: "Sound", Icon: Volume2 },
   { id: "notifications", labelKey: "notifications.title", Icon: Bell },
@@ -163,8 +170,10 @@ const SETTINGS_SECTIONS: {
   { id: "about", labelKey: "about.title", Icon: Server },
 ];
 
-// Keys that change a range input's value - the only ones that should trigger a
-// volume preview cue (Tab / Enter / character keys must stay silent).
+/**
+ * Keys that change a range input's value. Only these trigger a volume preview cue, so Tab, Enter,
+ * and character keys stay silent while the user navigates the sound settings.
+ */
 const VOLUME_PREVIEW_KEYS = new Set([
   "ArrowUp",
   "ArrowDown",
@@ -178,16 +187,36 @@ const VOLUME_PREVIEW_KEYS = new Set([
 
 // ─── Notification preferences ───
 
+/**
+ * localStorage key for the browser-notification preferences. Shared with `useNotifications`, which
+ * reads it to decide what to notify about, and with the command palette, which reads the master
+ * toggle.
+ */
 const NOTIF_KEY = "agent-monitor-notifications";
 
+/**
+ * Browser-notification preferences edited in the Notifications section and stored under {@link
+ * NOTIF_KEY}.
+ */
 interface NotifPrefs {
+  /**
+   * Master switch; when false no browser notifications are shown regardless of the options below.
+   */
   enabled: boolean;
+  /** Notify when a new session starts. */
   onNewSession: boolean;
+  /** Notify when a session ends in an error. */
   onSessionError: boolean;
+  /** Notify when a session completes. */
   onSessionComplete: boolean;
+  /** Notify when a subagent is spawned. */
   onSubagentSpawn: boolean;
 }
 
+/**
+ * Defaults for a browser that has no stored preferences: notifications off, and once enabled, only
+ * new sessions and session errors notify.
+ */
 const defaultNotif: NotifPrefs = {
   enabled: false,
   onNewSession: true,
@@ -196,6 +225,13 @@ const defaultNotif: NotifPrefs = {
   onSubagentSpawn: false,
 };
 
+/**
+ * Read notification preferences from localStorage, filling any missing keys from {@link
+ * defaultNotif} so preferences saved by older versions keep working.
+ *
+ * @returns The stored preferences, or the defaults when nothing is stored or storage is
+ * unavailable.
+ */
 function loadNotifPrefs(): NotifPrefs {
   try {
     const raw = localStorage.getItem(NOTIF_KEY);
@@ -206,32 +242,59 @@ function loadNotifPrefs(): NotifPrefs {
   }
 }
 
+/**
+ * Persist notification preferences to localStorage.
+ *
+ * @param prefs - Preferences to store.
+ */
 function saveNotifPrefs(prefs: NotifPrefs) {
   localStorage.setItem(NOTIF_KEY, JSON.stringify(prefs));
 }
 
 // ─── Helpers ───
 
+/**
+ * Form state for one row of the Anthropic Claude pricing table while it is being added or edited.
+ * Every rate is kept as the raw input string (USD per million tokens) so partially typed values
+ * survive re-renders; they are converted to numbers on save.
+ */
 interface EditRow {
+  /** Model id pattern the rule prices; `%` is an SQL-style wildcard. */
   model_pattern: string;
+  /** Name shown in the table and cost breakdowns. */
   display_name: string;
+  /** Standard input rate. */
   input_per_mtok: string;
+  /** Standard output rate. */
   output_per_mtok: string;
+  /** Cache read rate. */
   cache_read_per_mtok: string;
+  /** 5-minute cache write rate. */
   cache_write_per_mtok: string;
+  /** 1-hour cache write rate. */
   cache_write_1h_per_mtok: string;
+  /** Fast-mode input rate. */
   fast_input_per_mtok: string;
+  /** Fast-mode output rate. */
   fast_output_per_mtok: string;
-  // Time-limited introductory rates. intro_until empty ⇒ no promo (the intro_*
-  // values are ignored). Generic: any model can carry a promo window.
+  /**
+   * Last day (YYYY-MM-DD, inclusive) of a time-limited introductory rate window. Empty means no
+   * promo and the `intro_*` values are ignored. Any model can carry a promo window.
+   */
   intro_until: string;
+  /** Introductory input rate. */
   intro_input_per_mtok: string;
+  /** Introductory output rate. */
   intro_output_per_mtok: string;
+  /** Introductory cache read rate. */
   intro_cache_read_per_mtok: string;
+  /** Introductory 5-minute cache write rate. */
   intro_cache_write_per_mtok: string;
+  /** Introductory 1-hour cache write rate. */
   intro_cache_write_1h_per_mtok: string;
 }
 
+/** Blank {@link EditRow} used when adding a rule: empty names, zero rates, and no promo window. */
 const emptyRow: EditRow = {
   model_pattern: "",
   display_name: "",
@@ -250,22 +313,46 @@ const emptyRow: EditRow = {
   intro_cache_write_1h_per_mtok: "0",
 };
 
+/** Hook installation status for one provider (Claude Code or Codex), from `/api/settings/info`. */
 interface HookProviderStatus {
+  /** True when every hook event the dashboard needs points at its hook handler. */
   installed: boolean;
+  /**
+   * True when at least one dashboard hook is present, so an install will update rather than add
+   * entries.
+   */
   has_dashboard_hooks?: boolean;
+  /**
+   * True when the config file has any hooks at all, including other tools' hooks, which an install
+   * preserves.
+   */
   has_existing_hooks?: boolean;
+  /**
+   * Path of the settings file the status was read from (`~/.claude/settings.json` or
+   * `~/.codex/hooks.json`).
+   */
   path: string;
+  /** For each hook event, whether the dashboard's handler is registered. */
   hooks: Record<string, boolean>;
 }
 
+/** Response of `/api/settings/info`, shown across the Hooks, Data, and About sections. */
 interface SystemInfo {
+  /** SQLite database path, file size in bytes, and row counts per table. */
   db: { path: string; size: number; counts: Record<string, number> };
+  /**
+   * Claude Code hook status (legacy top-level fields), plus per-provider status under `providers`.
+   */
   hooks: {
     installed: boolean;
     path: string;
     hooks: Record<string, boolean>;
     providers?: Record<"claude" | "codex", HookProviderStatus>;
   };
+  /**
+   * Dashboard version, uptime in seconds, Node.js version, platform, and the number of open
+   * WebSocket connections.
+   */
   server: {
     version: string;
     uptime: number;
@@ -273,8 +360,18 @@ interface SystemInfo {
     platform: string;
     ws_connections: number;
   };
+  /** Transcript snapshot storage and retention policy; absent from older servers. */
+  snapshots?: SnapshotStorageInfo;
 }
 
+/**
+ * Format a database timestamp for display in the current UI locale. SQLite `datetime('now')` values
+ * have no zone marker and are UTC, so a bare `YYYY-MM-DD HH:MM:SS` is treated as UTC; ISO strings
+ * with `Z` or an offset are used as-is.
+ *
+ * @param iso - Timestamp from the API.
+ * @returns Localized date and time.
+ */
 function formatTimestamp(iso: string): string {
   const normalized =
     /[Zz]$/.test(iso) || /[+-]\d{2}:\d{2}$/.test(iso) ? iso : iso.replace(" ", "T") + "Z";
@@ -288,12 +385,17 @@ function formatTimestamp(iso: string): string {
   });
 }
 
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
+/**
+ * Byte formatter shared with the snapshot storage panel, so sizes read the same across Settings.
+ */
+const formatBytes = formatStorageBytes;
 
+/**
+ * Compact uptime, for example `3d 4h 12m`, `5h 2m`, or `17m`.
+ *
+ * @param seconds - Uptime in seconds.
+ * @returns The formatted duration.
+ */
 function formatUptime(seconds: number): string {
   const d = Math.floor(seconds / 86400);
   const h = Math.floor((seconds % 86400) / 3600);
@@ -303,7 +405,12 @@ function formatUptime(seconds: number): string {
   return `${m}m`;
 }
 
-/** Format a published USD-per-million-token rate without exposing float noise. */
+/**
+ * Format a published USD-per-million-token rate without exposing float noise.
+ *
+ * @param rate - USD per million tokens.
+ * @returns The rate without trailing float noise.
+ */
 function formatUsdRate(rate: number): string {
   if (!Number.isFinite(rate) || rate <= 0) return "—";
   return new Intl.NumberFormat(getCurrentLocale(), {
@@ -314,6 +421,15 @@ function formatUsdRate(rate: number): string {
   }).format(rate);
 }
 
+/**
+ * Animate a number toward `end` with an ease-out curve over `durationMs`, starting from the
+ * currently displayed value, using requestAnimationFrame. Used for the stat counters so a refresh
+ * glides to the new value instead of jumping. Resets to 0 when `end` is null.
+ *
+ * @param end - Target value, or null to reset.
+ * @param durationMs - Animation length; defaults to 1 second.
+ * @returns The value to render for the current frame.
+ */
 function useCountUp(end: number | null, durationMs = 1000) {
   const [count, setCount] = useState(0);
 
@@ -327,6 +443,12 @@ function useCountUp(end: number | null, durationMs = 1000) {
     let animationFrameId: number;
     const startValue = count;
 
+    /**
+     * One animation frame: move toward the target along an ease-out-quart curve and schedule the
+     * next frame until done.
+     *
+     * @param timestamp - Frame time from `requestAnimationFrame`.
+     */
     const step = (timestamp: number) => {
       if (!startTimestamp) startTimestamp = timestamp;
       const progress = Math.min((timestamp - startTimestamp) / durationMs, 1);
@@ -350,15 +472,23 @@ function useCountUp(end: number | null, durationMs = 1000) {
 
 // ─── Toggle component ───
 
+/**
+ * Labelled on/off switch with an optional description, exposed to assistive technology as
+ * `role="switch"` with `aria-checked`.
+ */
 function Toggle({
   checked,
   onChange,
   label,
   description,
 }: {
+  /** Whether the switch is on. */
   checked: boolean;
+  /** Called with the new state. */
   onChange: (v: boolean) => void;
+  /** Label shown beside the switch. */
   label: string;
+  /** Optional helper text under the label. */
   description?: string;
 }) {
   return (
@@ -395,14 +525,23 @@ function Toggle({
  * gets clipped by the sidebar or screen edges, mirroring the pattern used by
  * the Workflows stat tooltips.
  */
-function PricingInfoTooltip({ provider = "claude" }: { provider?: "claude" | "gpt" }) {
+function PricingInfoTooltip({ provider = "claude" }: { provider?: "claude" | "cursor" | "gpt" }) {
   const { t } = useTranslation("settings");
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ left: number; top: number }>({ left: 0, top: 0 });
-  const key = provider === "gpt" ? "pricing.gpt.tooltip" : "pricing.tooltip";
+  const key =
+    provider === "gpt"
+      ? "pricing.gpt.tooltip"
+      : provider === "cursor"
+        ? "pricing.cursor.tooltip"
+        : "pricing.tooltip";
 
+  /**
+   * Place the popover below the info button, or above it when there is no room, clamped inside the
+   * viewport.
+   */
   const positionPopover = useCallback(() => {
     const btn = buttonRef.current;
     const pop = popoverRef.current;
@@ -485,6 +624,10 @@ function PricingInfoTooltip({ provider = "claude" }: { provider?: "claude" | "gp
   );
 }
 
+/**
+ * Editable rate columns of the OpenAI GPT pricing table, in display order: standard short context
+ * (input at most 272K tokens), standard long context, then Fast mode short and long.
+ */
 const GPT_RATE_FIELDS = [
   "short_input_per_mtok",
   "short_cached_input_per_mtok",
@@ -498,10 +641,24 @@ const GPT_RATE_FIELDS = [
   "fast_cached_input_per_mtok",
   "fast_cache_write_per_mtok",
   "fast_output_per_mtok",
+  "fast_long_input_per_mtok",
+  "fast_long_cached_input_per_mtok",
+  "fast_long_cache_write_per_mtok",
+  "fast_long_output_per_mtok",
 ] as const;
+/** One rate column of the GPT pricing table. */
 type GptRateField = (typeof GPT_RATE_FIELDS)[number];
+/**
+ * Form state for adding or editing a GPT pricing rule; rates are kept as raw input strings until
+ * saved.
+ */
 type GptDraft = Record<"model_pattern" | "display_name" | GptRateField, string>;
 
+/**
+ * Blank GPT draft with empty names and every rate at 0.
+ *
+ * @returns A new draft object.
+ */
 function emptyGptDraft(): GptDraft {
   return Object.fromEntries([
     ["model_pattern", ""],
@@ -510,15 +667,24 @@ function emptyGptDraft(): GptDraft {
   ]) as GptDraft;
 }
 
+/**
+ * OpenAI GPT pricing table (used for Codex sessions). Lists, adds, edits, and deletes rules through
+ * `api.pricing` GPT endpoints and reloads whenever `resetRevision` changes. When the server
+ * predates the GPT endpoints, it stays empty instead of breaking the rest of Settings.
+ */
 function GptPricingTable({
   resetRevision,
   resetConfirming,
   resetLoading,
   onReset,
 }: {
+  /** Increments when pricing is reset elsewhere, which makes the table reload. */
   resetRevision: number;
+  /** Whether the reset button is waiting for its confirming click. */
   resetConfirming: boolean;
+  /** True while the reset is in flight. */
   resetLoading: boolean;
+  /** Resets the GPT pricing table to its defaults (two clicks). */
   onReset: () => void;
 }) {
   const { t } = useTranslation("settings");
@@ -529,6 +695,10 @@ function GptPricingTable({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const addRowRef = useRef<HTMLTableRowElement>(null);
+  /**
+   * Reload the GPT rules. Servers that predate the GPT endpoints are tolerated, so the rest of
+   * Settings keeps working during a rolling upgrade.
+   */
   const reload = useCallback(() => {
     // Older embedded/test API facades can predate the Codex endpoint. Keep the
     // rest of Settings usable during a rolling upgrade; production API always
@@ -554,21 +724,31 @@ function GptPricingTable({
     return () => cancelAnimationFrame(frame);
   }, [adding]);
 
+  /**
+   * Start editing a GPT rule, copying its values into the draft.
+   *
+   * @param rule - Rule to edit.
+   */
   const edit = (rule: GptModelPricing) => {
     const next = emptyGptDraft();
     next.model_pattern = rule.model_pattern;
     next.display_name = rule.display_name;
-    for (const field of GPT_RATE_FIELDS) next[field] = String(rule[field]);
+    for (const field of GPT_RATE_FIELDS) next[field] = String(rule[field] ?? 0);
     setDraft(next);
     setEditing(rule.model_pattern);
     setAdding(false);
     setError(null);
   };
+  /** Leave edit or add mode and clear the error. */
   const cancel = () => {
     setEditing(null);
     setAdding(false);
     setError(null);
   };
+  /**
+   * Save the draft as a new or updated GPT rule. Requires a model pattern and display name; rates
+   * that are negative or not numbers are saved as 0.
+   */
   const save = async () => {
     if (!draft.model_pattern.trim() || !draft.display_name.trim()) {
       setError(t("pricing.validationRequired"));
@@ -592,6 +772,11 @@ function GptPricingTable({
       setBusy(false);
     }
   };
+  /**
+   * Delete a GPT rule after a browser confirmation, then reload.
+   *
+   * @param pattern - Model pattern of the rule to delete.
+   */
   const remove = async (pattern: string) => {
     if (!window.confirm(t("pricing.gpt.deleteConfirm"))) return;
     try {
@@ -601,6 +786,13 @@ function GptPricingTable({
       setError(err instanceof Error ? err.message : t("messages.failedDelete"));
     }
   };
+  /**
+   * Render the input for one draft field; rate fields get a `$` prefix.
+   *
+   * @param field - Draft field to render.
+   * @param className - Extra classes for the input.
+   * @returns The input element.
+   */
   const input = (field: keyof GptDraft, className = "") => {
     const isRate = field.endsWith("_mtok");
     return (
@@ -665,7 +857,7 @@ function GptPricingTable({
       </div>
       {error && <p className="mb-3 rounded bg-red-500/10 p-2 text-xs text-red-300">{error}</p>}
       <div className="card overflow-x-auto">
-        <table className="w-full min-w-[1260px] text-left text-xs">
+        <table className="w-full min-w-[1560px] text-left text-xs">
           <thead className="bg-surface-3 text-[10px] uppercase tracking-wide text-gray-500">
             <tr>
               <th rowSpan={2} className="px-3 py-2">
@@ -683,12 +875,15 @@ function GptPricingTable({
               <th colSpan={4} className="border-l border-border px-2 py-2 text-center">
                 {t("pricing.gpt.fast")}
               </th>
+              <th colSpan={4} className="border-l border-border px-2 py-2 text-center">
+                {t("pricing.gpt.fastLong")}
+              </th>
               <th rowSpan={2} className="px-3 py-2">
                 {t("common:actions")}
               </th>
             </tr>
             <tr>
-              {Array.from({ length: 3 }).flatMap((_, group) =>
+              {Array.from({ length: 4 }).flatMap((_, group) =>
                 ["input", "cached", "write", "output"].map((label) => (
                   <th
                     key={`${group}-${label}`}
@@ -799,15 +994,315 @@ function GptPricingTable({
   );
 }
 
+/** Editable rate columns of the Cursor pricing table. */
+const CURSOR_RATE_FIELDS = [
+  "input_per_mtok",
+  "cache_write_per_mtok",
+  "cache_read_per_mtok",
+  "output_per_mtok",
+] as const;
+/** One rate column of the Cursor pricing table. */
+type CursorRateField = (typeof CURSOR_RATE_FIELDS)[number];
+/**
+ * Form state for adding or editing a Cursor pricing rule; rates are kept as raw input strings until
+ * saved.
+ */
+type CursorDraft = Record<"model_pattern" | "display_name" | CursorRateField, string>;
+
+/**
+ * Blank Cursor draft with empty names and every rate at 0.
+ *
+ * @returns A new draft object.
+ */
+function emptyCursorDraft(): CursorDraft {
+  return Object.fromEntries([
+    ["model_pattern", ""],
+    ["display_name", ""],
+    ...CURSOR_RATE_FIELDS.map((field) => [field, "0"]),
+  ]) as CursorDraft;
+}
+
+/**
+ * Cursor pricing table. Lists, adds, edits, and deletes Cursor rate rules through the `api.pricing`
+ * Cursor endpoints and reloads whenever `resetRevision` changes. Cursor sessions are priced only
+ * from this table, never from Claude or GPT rates.
+ */
+function CursorPricingTable({
+  resetRevision,
+  resetConfirming,
+  resetLoading,
+  onReset,
+}: {
+  /** Increments when pricing is reset elsewhere, which makes the table reload. */
+  resetRevision: number;
+  /** Whether the reset button is waiting for its confirming click. */
+  resetConfirming: boolean;
+  /** True while the reset is in flight. */
+  resetLoading: boolean;
+  /** Resets the Cursor pricing table to its defaults (two clicks). */
+  onReset: () => void;
+}) {
+  const { t } = useTranslation("settings");
+  const [rules, setRules] = useState<CursorModelPricing[]>([]);
+  const [draft, setDraft] = useState<CursorDraft>(emptyCursorDraft);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  /** Reload the Cursor rules. */
+  const reload = useCallback(
+    () => api.pricing.listCursor().then((result) => setRules(result.pricing)),
+    []
+  );
+
+  useEffect(() => {
+    reload().catch((err) =>
+      setError(err instanceof Error ? err.message : t("messages.failedLoad"))
+    );
+  }, [reload, resetRevision, t]);
+
+  /** Leave edit or add mode and clear the error. */
+  const cancel = () => {
+    setEditing(null);
+    setAdding(false);
+    setError(null);
+  };
+  /**
+   * Start editing a Cursor rule, copying its values into the draft.
+   *
+   * @param rule - Rule to edit.
+   */
+  const edit = (rule: CursorModelPricing) => {
+    const next = emptyCursorDraft();
+    next.model_pattern = rule.model_pattern;
+    next.display_name = rule.display_name;
+    for (const field of CURSOR_RATE_FIELDS) next[field] = String(rule[field] ?? 0);
+    setDraft(next);
+    setEditing(rule.model_pattern);
+    setAdding(false);
+    setError(null);
+  };
+  /**
+   * Save the draft as a new or updated Cursor rule. Requires a model pattern and display name;
+   * rates that are negative or not numbers are saved as 0.
+   */
+  const save = async () => {
+    if (!draft.model_pattern.trim() || !draft.display_name.trim()) {
+      setError(t("pricing.validationRequired"));
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await api.pricing.upsertCursor({
+        model_pattern: draft.model_pattern.trim(),
+        display_name: draft.display_name.trim(),
+        ...Object.fromEntries(
+          CURSOR_RATE_FIELDS.map((field) => [field, Math.max(0, Number(draft[field]) || 0)])
+        ),
+      } as Omit<CursorModelPricing, "updated_at">);
+      await reload();
+      cancel();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("messages.failedSave"));
+    } finally {
+      setBusy(false);
+    }
+  };
+  /**
+   * Delete a Cursor rule after a browser confirmation, then reload.
+   *
+   * @param pattern - Model pattern of the rule to delete.
+   */
+  const remove = async (pattern: string) => {
+    if (!window.confirm(t("pricing.cursor.deleteConfirm"))) return;
+    try {
+      await api.pricing.deleteCursor(pattern);
+      await reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("messages.failedDelete"));
+    }
+  };
+  /**
+   * Render the input for one draft field; rate fields get a `$` prefix.
+   *
+   * @param field - Draft field to render.
+   * @returns The input element.
+   */
+  const input = (field: keyof CursorDraft) => {
+    const isRate = field.endsWith("_mtok");
+    return (
+      <div className={isRate ? "relative min-w-[5.5rem]" : undefined}>
+        {isRate && (
+          <span className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-xs text-gray-500">
+            $
+          </span>
+        )}
+        <input
+          value={draft[field]}
+          onChange={(event) => setDraft((current) => ({ ...current, [field]: event.target.value }))}
+          className={`w-full rounded border border-border bg-surface-1 px-2 py-1 text-xs text-gray-200 ${isRate ? "pl-5 text-right font-mono" : ""}`}
+          type={isRate ? "number" : "text"}
+          min={isRate ? 0 : undefined}
+          step={isRate ? "any" : undefined}
+          autoFocus={adding && field === "model_pattern"}
+        />
+      </div>
+    );
+  };
+  /** Table cells for the row being added or edited. */
+  const editCells = () => (
+    <>
+      <td className="px-2 py-2">{input("model_pattern")}</td>
+      <td className="px-2 py-2">{input("display_name")}</td>
+      {CURSOR_RATE_FIELDS.map((field) => (
+        <td key={field} className="px-1 py-2">
+          {input(field)}
+        </td>
+      ))}
+      <td className="px-2 py-2 whitespace-nowrap">
+        <button type="button" className="btn-primary mr-1 text-xs" onClick={save} disabled={busy}>
+          <Check className="h-3 w-3" />
+        </button>
+        <button type="button" className="btn-ghost text-xs" onClick={cancel} disabled={busy}>
+          <X className="h-3 w-3" />
+        </button>
+      </td>
+    </>
+  );
+  const editingRow = adding || !!editing;
+
+  return (
+    <div>
+      <div className="mb-4">
+        <h3 className="flex items-center gap-2 text-sm font-medium text-gray-300">
+          <DollarSign className="h-4 w-4 text-gray-500" />
+          {t("pricing.cursor.title")}
+          <PricingInfoTooltip provider="cursor" />
+        </h3>
+        <p className="mt-0.5 text-xs text-gray-500">{t("pricing.cursor.description")}</p>
+        <a
+          href="https://cursor.com/docs/models-and-pricing"
+          target="_blank"
+          rel="noreferrer"
+          className="mt-1 inline-block text-[11px] text-accent hover:underline"
+        >
+          {t("pricing.cursor.source")}
+        </a>
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onReset}
+            disabled={editingRow || resetLoading}
+            className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs transition-colors disabled:opacity-50 ${
+              resetConfirming
+                ? "border border-amber-500/30 bg-amber-500/20 text-amber-400"
+                : "text-gray-400 hover:bg-surface-4 hover:text-gray-300"
+            }`}
+          >
+            <RotateCcw className="h-3 w-3" />
+            {resetConfirming ? t("pricing.resetConfirm") : t("pricing.resetDefaults")}
+          </button>
+          <button
+            type="button"
+            className="btn-primary text-xs disabled:opacity-50"
+            disabled={editingRow}
+            onClick={() => {
+              setDraft(emptyCursorDraft());
+              setAdding(true);
+            }}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {t("pricing.addModel")}
+          </button>
+        </div>
+      </div>
+      {error && <p className="mb-3 rounded bg-red-500/10 p-2 text-xs text-red-300">{error}</p>}
+      <div className="card overflow-x-auto">
+        <table className="w-full min-w-[780px] text-left text-xs">
+          <thead className="bg-surface-3 text-[10px] uppercase tracking-wide text-gray-500">
+            <tr>
+              <th className="px-3 py-2">{t("pricing.pattern")}</th>
+              <th className="px-3 py-2">{t("pricing.cursor.name")}</th>
+              {(["input", "write", "cached", "output"] as const).map((label) => (
+                <th key={label} className="border-l border-border px-2 py-2 text-right">
+                  {t(`pricing.cursor.${label}`)}
+                </th>
+              ))}
+              <th className="px-3 py-2">{t("common:actions")}</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border/60">
+            {rules.map((rule) =>
+              editing === rule.model_pattern ? (
+                <tr key={rule.model_pattern} className="bg-surface-2">
+                  {editCells()}
+                </tr>
+              ) : (
+                <tr key={rule.model_pattern} className="text-gray-400 hover:bg-surface-2/60">
+                  <td className="px-3 py-2 font-mono text-gray-300">{rule.model_pattern}</td>
+                  <td className="px-3 py-2 text-gray-200">{rule.display_name}</td>
+                  {CURSOR_RATE_FIELDS.map((field) => (
+                    <td
+                      key={field}
+                      className="border-l border-border/50 px-2 py-2 text-right font-mono"
+                    >
+                      {rule[field] === 0 ? "—" : formatUsdRate(rule[field])}
+                    </td>
+                  ))}
+                  <td className="px-2 py-2 whitespace-nowrap">
+                    <button
+                      type="button"
+                      className="p-1 text-gray-400 hover:text-gray-100"
+                      onClick={() => edit(rule)}
+                      disabled={editingRow}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      className="p-1 text-gray-400 hover:text-red-400"
+                      onClick={() => remove(rule.model_pattern)}
+                      disabled={editingRow}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </td>
+                </tr>
+              )
+            )}
+            {adding && <tr className="bg-surface-2">{editCells()}</tr>}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-3 text-[11px] leading-relaxed text-gray-600">
+        {t("pricing.cursor.planNote")}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Modal for installing hooks. The user picks Claude Code, Codex, or both (Claude Code is
+ * preselected each time it opens); installing calls `api.settings.installHooks` and shows the
+ * installer output. Existing hooks from other tools are preserved, and `onInstalled` refreshes the
+ * status afterwards.
+ */
 function HookInstallModal({
   open,
   status,
   onClose,
   onInstalled,
 }: {
+  /** Whether the modal is shown. */
   open: boolean;
+  /**
+   * Current hook status, used to label already-installed providers and warn about existing hooks.
+   */
   status?: SystemInfo["hooks"];
+  /** Closes the modal. */
   onClose: () => void;
+  /** Called after a successful install, to refresh the status. */
   onInstalled: () => void;
 }) {
   const { t } = useTranslation("settings");
@@ -824,6 +1319,11 @@ function HookInstallModal({
   }, [open]);
 
   if (!open) return null;
+  /**
+   * Add or remove a provider from the install selection.
+   *
+   * @param provider - Provider to toggle.
+   */
   const toggle = (provider: "claude" | "codex") => {
     setSelected((current) =>
       current.includes(provider)
@@ -831,9 +1331,23 @@ function HookInstallModal({
         : [...current, provider]
     );
   };
+  /**
+   * Whether the dashboard's hooks are already fully installed for a provider.
+   *
+   * @param provider - Provider to check.
+   * @returns True when fully installed.
+   */
   const installed = (provider: "claude" | "codex") => status?.providers?.[provider]?.installed;
+  /**
+   * Whether a provider's config already has hooks, ours or another tool's, so the modal can say
+   * they will be preserved.
+   *
+   * @param provider - Provider to check.
+   * @returns True when the config has any hooks.
+   */
   const hasExistingHooks = (provider: "claude" | "codex") =>
     status?.providers?.[provider]?.has_existing_hooks || installed(provider);
+  /** Install hooks for the selected providers and show the installer output, or the failure. */
   const install = async () => {
     if (selected.length === 0) return;
     setBusy(true);
@@ -968,6 +1482,23 @@ function HookInstallModal({
 
 // ─── Main component ───
 
+/**
+ * Settings page. One long page with a scroll-spy table of contents, covering:
+ *
+ * - Dashboard data scope.
+ * - The Claude, Cursor, and GPT pricing tables, with total cost.
+ * - Hook status and installation.
+ * - Claude Code and Codex home directories.
+ * - History import and backup restore.
+ * - Remote SSH sources.
+ * - Tabby, sound cues, and browser notifications.
+ * - Alert rules and webhooks.
+ * - Data export, snapshot storage, and cleanup.
+ * - System information.
+ *
+ * Destructive actions (resetting a pricing table, cleanup, and clearing data) require a second
+ * confirming click.
+ */
 export function Settings() {
   const { t } = useTranslation("settings");
   const [pricing, setPricing] = useState<ModelPricing[]>([]);
@@ -989,6 +1520,7 @@ export function Settings() {
   const [pricingResetRevision, setPricingResetRevision] = useState(0);
   const [notifPrefs, setNotifPrefs] = useState<NotifPrefs>(loadNotifPrefs);
   const [tabbyEnabled, setTabbyEnabled] = useState(() => tabbyPrefs.getEnabled());
+  /** Show or hide Tabby, persisting the choice. */
   const setTabby = useCallback((v: boolean) => {
     tabbyPrefs.setEnabled(v);
     setTabbyEnabled(v);
@@ -1021,6 +1553,30 @@ export function Settings() {
   const wsConnected = useSyncExternalStore(eventBus.onConnection, () => eventBus.connected);
   const [dataScope, setDataScope] = useDataScope();
   const animatedTotalCost = useCountUp(totalCost);
+
+  // Deep links (`/settings#alerts`) are how the command palette reaches an
+  // individual section. React Router does not scroll to a hash on its own, and
+  // the sections only exist once the page has loaded, so resolve it here — after
+  // `loading` clears and after a frame, so the target has been laid out.
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (loading || !hash) return;
+    let id: string;
+    try {
+      id = decodeURIComponent(hash.slice(1));
+    } catch {
+      // A malformed percent-encoding (`#%zz`, often from a link mangled in
+      // transit) throws URIError. An unusable hash is not worth taking the
+      // Settings page down for — ignore it and leave the scroll position alone.
+      return;
+    }
+    if (!SETTINGS_SECTIONS.some((section) => section.id === id)) return;
+    const frame = requestAnimationFrame(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveSection(id);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [hash, loading]);
 
   // Scroll-spy: highlight the TOC entry for the section nearest the top.
   useEffect(() => {
@@ -1080,10 +1636,15 @@ export function Settings() {
     active?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
   }, [activeSection]);
 
+  /** Scroll the table of contents horizontally by `delta` pixels. */
   const scrollTocBy = useCallback((delta: number) => {
     tocRef.current?.scrollBy({ left: delta, behavior: "smooth" });
   }, []);
 
+  /**
+   * Load everything the page needs in parallel: Claude pricing, total cost, system info, and the
+   * Claude and Codex home directories.
+   */
   const load = useCallback(async () => {
     try {
       const [pricingRes, costRes, infoRes, claudeHomeRes, codexHomeRes] = await Promise.all([
@@ -1108,11 +1669,16 @@ export function Settings() {
     }
   }, [t, dataScope]);
 
+  usePaletteAction("page.refresh", () => {
+    void load();
+  });
+
   useEffect(() => {
     load();
   }, [load]);
 
   useEffect(() => {
+    /** Refresh system info only, used by the periodic poll. */
     const refreshInfo = () =>
       api.settings
         .info()
@@ -1151,6 +1717,11 @@ export function Settings() {
     return () => clearTimeout(timeout);
   }, [actionResult]);
 
+  /**
+   * Apply a change to the notification preferences and persist it.
+   *
+   * @param patch - Preferences to change.
+   */
   const updateNotifPrefs = (patch: Partial<NotifPrefs>) => {
     setNotifPrefs((prev) => {
       const next = { ...prev, ...patch };
@@ -1159,6 +1730,10 @@ export function Settings() {
     });
   };
 
+  /**
+   * Ask the browser for notification permission; when granted, enable notifications and subscribe
+   * to push.
+   */
   const requestNotifPermission = async () => {
     if (!("Notification" in window)) return;
     const perm = await Notification.requestPermission();
@@ -1168,6 +1743,11 @@ export function Settings() {
     }
   };
 
+  /**
+   * Start editing a Claude pricing rule, copying its values into the form.
+   *
+   * @param rule - Rule to edit.
+   */
   const startEdit = (rule: ModelPricing) => {
     setAdding(false);
     setEditingPattern(rule.model_pattern);
@@ -1190,18 +1770,25 @@ export function Settings() {
     });
   };
 
+  /** Start adding a Claude pricing rule from a blank form. */
   const startAdd = () => {
     setEditingPattern(null);
     setAdding(true);
     setEditRow({ ...emptyRow });
   };
 
+  /** Leave edit or add mode and clear the error. */
   const cancelEdit = () => {
     setEditingPattern(null);
     setAdding(false);
     setError(null);
   };
 
+  /**
+   * Save the Claude pricing form. Requires a pattern and display name, and an intro end date in
+   * `YYYY-MM-DD` form when one is given. The intro block is always sent, so clearing the date
+   * removes the promo.
+   */
   const saveEdit = async () => {
     if (!editRow.model_pattern.trim() || !editRow.display_name.trim()) {
       setError(t("pricing.validationRequired"));
@@ -1244,6 +1831,11 @@ export function Settings() {
     }
   };
 
+  /**
+   * Delete a Claude pricing rule, then reload.
+   *
+   * @param pattern - Model pattern of the rule to delete.
+   */
   const deleteRule = async (pattern: string) => {
     try {
       await api.pricing.delete(pattern);
@@ -1253,6 +1845,13 @@ export function Settings() {
     }
   };
 
+  /**
+   * Run a Settings action with a loading state, clearing any pending confirmation and showing the
+   * result or error in that section's banner.
+   *
+   * @param key - Action key, which picks the banner that shows the result.
+   * @param fn - Performs the action and returns the success message.
+   */
   const runAction = async (key: string, fn: () => Promise<string>) => {
     setActionLoading(key);
     setActionResult(null);
@@ -1274,6 +1873,7 @@ export function Settings() {
     }
   };
 
+  /** Delete all stored session data and report how many rows were removed. */
   const handleClearData = () =>
     runAction("clear", async () => {
       const res = await api.settings.clearData();
@@ -1281,17 +1881,34 @@ export function Settings() {
       return t("danger.clearedResult", { count: total });
     });
 
+  /**
+   * Reset one provider's pricing table to its defaults, bump the reset revision so the tables
+   * reload, and report how many rules it now has.
+   *
+   * @param actionKey - Action key for the result banner; defaults to the Claude table's.
+   * @param provider - Table to reset; defaults to Claude.
+   */
   const handleResetPricing = (
     actionKey = "reset-pricing",
-    provider: "claude" | "codex" = "claude"
+    provider: "claude" | "cursor" | "codex" = "claude"
   ) =>
     runAction(actionKey, async () => {
       const res = await api.settings.resetPricing(provider);
       setPricingResetRevision((revision) => revision + 1);
-      const count = provider === "codex" ? res.gpt_pricing.length : res.pricing.length;
+      const count =
+        provider === "codex"
+          ? res.gpt_pricing.length
+          : provider === "cursor"
+            ? res.cursor_pricing.length
+            : res.pricing.length;
       return t("pricing.resetResult", { count });
     });
 
+  /**
+   * Run cleanup with the entered thresholds: mark idle sessions abandoned after the given hours and
+   * purge sessions older than the given days, then report what was abandoned, purged, and how much
+   * snapshot space was freed.
+   */
   const handleCleanup = () =>
     runAction("cleanup", async () => {
       const params: { abandon_hours?: number; purge_days?: number } = {};
@@ -1306,9 +1923,17 @@ export function Settings() {
         parts.push(
           `${res.purged_sessions}${t("data.purgedResult", { events: res.purged_events, agents: res.purged_agents })}`
         );
+      if ((res.purged_snapshot_bytes ?? 0) > 0)
+        parts.push(
+          t("data.purgedSnapshots", { size: formatStorageBytes(res.purged_snapshot_bytes ?? 0) })
+        );
       return parts.length > 0 ? parts.join(". ") : t("data.nothingToClean");
     });
 
+  /**
+   * Save the Claude home directory override; the server applies it without a restart and returns
+   * the resolved path.
+   */
   const handleSaveClaudeHome = async () => {
     if (claudeHomeInput === claudeHome) return;
     setClaudeHomeSaving(true);
@@ -1324,6 +1949,10 @@ export function Settings() {
     }
   };
 
+  /**
+   * Save the Codex home directory override; the server applies it without a restart, re-arms
+   * rollout watching, and returns the resolved path.
+   */
   const handleSaveCodexHome = async () => {
     if (codexHomeInput === codexHome) return;
     setCodexHomeSaving(true);
@@ -1353,6 +1982,7 @@ export function Settings() {
 
   const isEditing = editingPattern !== null || adding;
 
+  /** Table cells for the Claude pricing row being added or edited. */
   const renderEditCells = () => (
     <>
       <td className="px-4 py-3">
@@ -1485,6 +2115,7 @@ export function Settings() {
     </label>
   );
 
+  /** Extra row under the edited Claude rule for its introductory rates and end date. */
   const renderIntroEditRow = () => (
     <tr className="bg-surface-3">
       <td colSpan={10} className="px-4 pb-3 pt-2">
@@ -1508,6 +2139,13 @@ export function Settings() {
     </tr>
   );
 
+  /**
+   * Result banner for the action keys given, or null when the latest result belongs to another
+   * section.
+   *
+   * @param keys - Action keys owned by the section.
+   * @returns The banner, or null.
+   */
   const actionBanner = (keys: string[]) => {
     const match = actionResult && keys.includes(actionResult.key) ? actionResult : null;
     if (!match) return null;
@@ -1689,22 +2327,18 @@ export function Settings() {
         </div>
         <div className="card p-4">
           <div
-            className="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:grid-cols-5"
+            className="grid grid-cols-1 gap-2 sm:grid-cols-3"
             role="radiogroup"
             aria-label={t("display.title")}
           >
-            {(["claude", "codex", "helmcode", "t3", "both"] as ProviderScope[]).map((provider) => {
+            {(["claude", "codex", "both"] as ProviderScope[]).map((provider) => {
               const selected = (dataScope.provider || "claude") === provider;
               const title =
                 provider === "claude"
                   ? "Claude Code"
                   : provider === "codex"
                     ? "Codex"
-                    : provider === "helmcode"
-                      ? "Helm Code"
-                      : provider === "t3"
-                        ? "T3"
-                        : t("display.both");
+                    : t("display.both");
               return (
                 <button
                   key={provider}
@@ -1938,6 +2572,21 @@ export function Settings() {
         )}
       </section>
 
+      {/* ─── CURSOR PRICING ─── */}
+      <section id="cursor-pricing" className="scroll-mt-24">
+        <CursorPricingTable
+          resetRevision={pricingResetRevision}
+          resetConfirming={confirmAction === "reset-pricing-cursor"}
+          resetLoading={actionLoading !== null}
+          onReset={() =>
+            confirmAction === "reset-pricing-cursor"
+              ? handleResetPricing("reset-pricing-cursor", "cursor")
+              : setConfirmAction("reset-pricing-cursor")
+          }
+        />
+        {actionBanner(["reset-pricing-cursor"])}
+      </section>
+
       {/* ─── OPENAI GPT PRICING ─── */}
       <section id="gpt-pricing" className="scroll-mt-24">
         <GptPricingTable
@@ -2105,11 +2754,6 @@ export function Settings() {
       {/* ─── REMOTE DATA SOURCES ─── */}
       <section id="remote-sources" className="scroll-mt-24">
         <RemoteSources />
-      </section>
-
-      {/* ─── LINEAR TICKET LINKING ─── */}
-      <section id="linear" className="scroll-mt-24">
-        <LinearSettings />
       </section>
 
       {/* ─── TABBY COMPANION ─── */}
@@ -2514,6 +3158,7 @@ export function Settings() {
                     events: <Activity className="w-4 h-4 text-violet-400" />,
                     token_usage: <Coins className="w-4 h-4 text-amber-400" />,
                     model_pricing: <BarChart3 className="w-4 h-4 text-cyan-400" />,
+                    cursor_model_pricing: <BarChart3 className="w-4 h-4 text-emerald-400" />,
                   };
                   const tableLabels: Record<string, string> = {
                     sessions: t("tables.sessions"),
@@ -2521,6 +3166,7 @@ export function Settings() {
                     events: t("tables.events"),
                     token_usage: t("tables.sessionsWithCost"),
                     model_pricing: t("tables.pricingRules"),
+                    cursor_model_pricing: t("tables.cursorPricingRules"),
                   };
                   const tableColors: Record<string, string> = {
                     sessions: "border-blue-500/20",
@@ -2528,6 +3174,7 @@ export function Settings() {
                     events: "border-violet-500/20",
                     token_usage: "border-amber-500/20",
                     model_pricing: "border-cyan-500/20",
+                    cursor_model_pricing: "border-emerald-500/20",
                   };
                   return Object.entries(sysInfo.db.counts).map(([table, count]) => (
                     <div
@@ -2562,6 +3209,17 @@ export function Settings() {
               <p className="text-xs text-gray-500">{t("data.loadingDb")}</p>
             )}
           </div>
+
+          {/* Transcript snapshot storage + retention (issue #358) */}
+          <SnapshotStorage
+            storage={sysInfo?.snapshots}
+            onChanged={() =>
+              api.settings
+                .info()
+                .then(setSysInfo)
+                .catch(() => {})
+            }
+          />
 
           {/* Session Cleanup */}
           <div className="card p-5 space-y-4">

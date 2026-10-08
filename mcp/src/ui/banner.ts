@@ -4,12 +4,12 @@
  * the ASCII-art wordmark, a boxed server-info panel (version, transport, dashboard URL, port,
  * tool count, mutation/destructive policy state), a "ready" line, and a shutdown message. The
  * stdio transport never calls any of these, since stdout there is the MCP JSON-RPC channel.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/ui/banner.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/ui/banner.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -99,23 +99,34 @@ export function printBanner(): void {
 /** Prints a boxed config summary beneath the banner, shared by HTTP (`port`
  * set) and REPL (`port` omitted). Mutations/Destructive rows mirror the
  * `policy/tool-guards.ts` flags, warning-colored when enabled. Ends with a
- * reminder that the dashboard must already be running at the printed URL. */
+ * reminder that the dashboard must already be running at the printed URL.
+ *
+ * @param info - Values to show in the panel.
+ */
 export function printServerInfo(info: {
+  /** Transport description, for example `http (sse + streamable)`. */
   transport: string;
+  /** MCP server version. */
   version: string;
+  /** Dashboard base URL the tools call. */
   dashboard: string;
+  /** Listening port, for the HTTP transport. */
   port?: number;
+  /** Whether tools that change dashboard data are enabled (`allowMutations`). */
   mutations: boolean;
+  /** Whether destructive tools are enabled (`MCP_DASHBOARD_ALLOW_DESTRUCTIVE`, off by default). */
   destructive: boolean;
+  /** Number of registered tools. */
   tools: number;
 }): void {
   const divider = c.dim(c.cyan("─".repeat(62)));
+  /** Format one label/value line of the startup panel. */
   const line = (label: string, value: string) =>
     `  ${c.dim(c.cyan("│"))} ${c.label(label.padEnd(18))} ${value}`;
 
   process.stdout.write(divider + "\n");
   process.stdout.write(
-    `  ${c.dim(c.cyan("│"))} ${c.bold(c.brightWhite("Code Agent Monitor MCP Server"))}\n`
+    `  ${c.dim(c.cyan("│"))} ${c.bold(c.brightWhite("Agent Dashboard MCP Server"))}\n`
   );
   process.stdout.write(divider + "\n");
   process.stdout.write(line("Version", c.brightCyan(info.version)) + "\n");
@@ -142,7 +153,10 @@ export function printServerInfo(info: {
 }
 
 /** Prints "Server ready" once the HTTP server has bound to its port; not
- * used by the REPL transport. */
+ * used by the REPL transport.
+ *
+ * @param transport - Transport description shown after the message.
+ */
 export function printReady(transport: string): void {
   const icon = "✔";
   process.stdout.write(

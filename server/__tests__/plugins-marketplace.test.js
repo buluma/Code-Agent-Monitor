@@ -5,7 +5,7 @@
  * every marketplace entry resolves to a real plugin dir with a valid
  * plugin.json, that names line up, and that every agent / skill / command
  * file carries the frontmatter Claude Code requires. Pure file reads.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { describe, it } = require("node:test");
@@ -24,28 +24,52 @@ const COUNTED_DOCS = [
     file: path.join(REPO_ROOT, "README.md"),
     plugin: /\b14 plugins\b/,
     pluginSkills: /\b66 plugin skills\b/,
-    repositorySkills: /\b76 total repository skills\b/,
+    repositorySkills: /\b77 total repository skills\b/,
+  },
+  {
+    file: path.join(REPO_ROOT, "README-CN.md"),
+    plugin: /14 个共享插件/,
+    pluginSkills: /66 个插件技能/,
+    repositorySkills: /77 个仓库技能/,
+  },
+  {
+    file: path.join(REPO_ROOT, "README-ES.md"),
+    plugin: /14 plugins compartidos/,
+    pluginSkills: /66 habilidades empaquetadas/,
+    repositorySkills: /77 habilidades/,
+  },
+  {
+    file: path.join(REPO_ROOT, "README-KO.md"),
+    plugin: /14개 플러그인/,
+    pluginSkills: /66개 번들 스킬/,
+    repositorySkills: /77개 스킬/,
+  },
+  {
+    file: path.join(REPO_ROOT, "README-VN.md"),
+    plugin: /14 plugin/,
+    pluginSkills: /66 skill/,
+    repositorySkills: /77 skill/,
   },
   {
     file: path.join(REPO_ROOT, "docs", "PLUGINS.md"),
     plugin: /\b14 plugins\b/,
     pluginSkills: /\b66 bundled plugin skills\b/,
-    repositorySkills: /\b76 total repository skills\b/,
+    repositorySkills: /\b77 total repository skills\b/,
   },
   {
     file: path.join(REPO_ROOT, ".codex", "README.md"),
     plugin: /\b14 shared plugins\b/,
     pluginSkills: /\b66 bundled skills\b/,
-    repositorySkills: /\b76 repository skills\b/,
+    repositorySkills: /\b77 repository skills\b/,
   },
 ];
 const WRITE_CAPABLE = new Set([
-  "cam-config",
-  "cam-cost-guard",
-  "cam-integrations",
-  "cam-platform",
-  "cam-runner",
-  "cam-sessions",
+  "ccam-config",
+  "ccam-cost-guard",
+  "ccam-integrations",
+  "ccam-platform",
+  "ccam-runner",
+  "ccam-sessions",
 ]);
 
 function readJson(p) {
@@ -120,7 +144,7 @@ describe("plugin marketplace", () => {
     };
 
     assert.equal(pluginSkillCount, 66);
-    assert.equal(repositorySkillCount, 76);
+    assert.equal(repositorySkillCount, 77);
     for (const { file, plugin, pluginSkills, repositorySkills } of COUNTED_DOCS) {
       const text = fs.readFileSync(file, "utf8");
       assert.ok(
@@ -209,7 +233,7 @@ describe("plugin marketplace", () => {
         if (manifest.interface.shortDescription.endsWith("...")) {
           assert.match(manifest.interface.shortDescription, /\S\.\.\.$/);
         }
-        if (dir === "cam-dashboard" || WRITE_CAPABLE.has(dir)) {
+        if (dir === "ccam-dashboard" || WRITE_CAPABLE.has(dir)) {
           assert.deepEqual(manifest.interface.capabilities, ["Read", "Write"]);
         }
       });

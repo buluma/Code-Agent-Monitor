@@ -1,6 +1,6 @@
 /**
  * @file Tests for the Dashboard API endpoints, covering session and agent management, event recording, stats aggregation, and hook event processing. Uses Node's built-in test runner and assertions to validate API behavior and edge cases.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { describe, it, before, after } = require("node:test");
@@ -9,6 +9,7 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 const http = require("http");
+const WebSocket = require("ws");
 const pkg = require("../../package.json");
 
 // Set up test database BEFORE requiring any server modules
@@ -31,7 +32,6 @@ const EXPECTED_API_PATHS = [
   "/api/sessions/{id}",
   "/api/sessions/facets",
   "/api/sessions/{id}/stats",
-  "/api/sessions/{id}/focus-terminal",
   "/api/sessions/{id}/transcripts",
   "/api/sessions/{id}/transcript",
   "/api/sessions/{id}/transcript-image",
@@ -45,6 +45,8 @@ const EXPECTED_API_PATHS = [
   "/api/hooks/event",
   "/api/hooks/codex",
   "/api/pricing",
+  "/api/pricing/cursor",
+  "/api/pricing/cursor/{pattern}",
   "/api/pricing/gpt",
   "/api/pricing/gpt/{pattern}",
   "/api/pricing/{pattern}",
@@ -111,8 +113,6 @@ const EXPECTED_API_PATHS = [
   "/api/webhooks/{id}",
   "/api/webhooks/{id}/test",
   "/api/webhooks/{id}/deliveries",
-  "/api/linear/config",
-  "/api/linear/sessions/{id}/link",
   "/api/openapi.json",
   "/api/docs",
   "/api/redoc",
@@ -151,6 +151,10 @@ function fetch(urlPath, options = {}) {
 
 function post(urlPath, body) {
   return fetch(urlPath, { method: "POST", body });
+}
+
+function put(urlPath, body) {
+  return fetch(urlPath, { method: "PUT", body });
 }
 
 function patch(urlPath, body) {
@@ -197,35 +201,14 @@ describe("OpenAPI / Swagger", () => {
     assert.equal(res.body.info.version, pkg.version);
     assert.equal(res.body.info.license.name, pkg.license);
     assert.equal(res.body["x-issues-url"], pkg.bugs.url);
-    assert.match(res.body.info.contact.url, /github\.com\/buluma\/Code-Agent-Monitor/);
+    assert.match(res.body.info.contact.url, /github\.com\/hoangsonww\/Claude-Code-Agent-Monitor/);
 
     for (const pathName of EXPECTED_API_PATHS) {
       assert.ok(res.body.paths[pathName], `Expected path ${pathName} to be documented`);
     }
-
-    assert.deepEqual(res.body.components.schemas.ImportGuideResponse.properties.provider.enum, [
-      "claude",
-      "codex",
-      "helmcode",
-    ]);
-    assert.deepEqual(res.body.components.schemas.ImportResultResponse.properties.provider.enum, [
-      "claude",
-      "codex",
-      "helmcode",
-    ]);
-    assert.ok(
-      !res.body.components.schemas.ResetPricingResponse.properties.provider.enum.includes("t3")
-    );
-    assert.ok(
-      !res.body.paths["/api/settings/install-hooks"].post.requestBody.content[
-        "application/json"
-      ].schema.properties.providers.items.enum.includes("t3")
-    );
-    assert.ok(
-      !res.body.paths["/api/settings/reset-pricing"].post.requestBody.content[
-        "application/json"
-      ].schema.properties.provider.enum.includes("t3")
-    );
+    const importResponse = res.body.components.schemas.ImportResponse;
+    assert.ok(importResponse.required.includes("cursor_model_pricing"));
+    assert.equal(importResponse.properties.cursor_model_pricing.type, "integer");
   });
 
   it("should serve Swagger UI", async () => {
@@ -316,6 +299,53 @@ describe("Sessions API", () => {
     const res = await fetch("/api/sessions");
     assert.equal(res.status, 200);
     assert.ok(res.body.sessions.length >= 2);
+  });
+
+  it("reports repository identity and durable-token coverage independently of cost in both list orderings", async () => {
+    // Keep this regression independently runnable under --test-name-pattern;
+    // the ordinary CRUD setup tests may be skipped in that mode.
+    if (!stmts.getSession.get("sess-1")) {
+      stmts.insertSession.run(
+        "sess-1",
+        "Test Session",
+        "active",
+        "/home/test",
+        "gpt-6-astra",
+        null
+      );
+    }
+    if (!stmts.getSession.get("sess-2")) {
+      stmts.insertSession.run("sess-2", "Session Two", "active", null, null, null);
+    }
+    db.prepare("UPDATE sessions SET repo_remote_url = ? WHERE id = ?").run(
+      "ssh://git@example.internal:2222/team/project.git",
+      "sess-1"
+    );
+    stmts.replaceTokenUsage.run(
+      "sess-1",
+      "gpt-6-astra",
+      "standard",
+      "global",
+      "standard",
+      100,
+      10,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    );
+
+    for (const query of ["", "?sort_by=price"]) {
+      const res = await fetch(`/api/sessions${query}`);
+      assert.equal(res.status, 200);
+      const withUsage = res.body.sessions.find((session) => session.id === "sess-1");
+      const withoutUsage = res.body.sessions.find((session) => session.id === "sess-2");
+      assert.equal(withUsage.repo_remote_url, "ssh://git@example.internal:2222/team/project.git");
+      assert.equal(withUsage.has_token_usage, true);
+      assert.equal(withoutUsage.has_token_usage, false);
+    }
   });
 
   it("should filter sessions by status", async () => {
@@ -641,20 +671,14 @@ describe("Stats API", () => {
 });
 
 // ============================================================
-// Settings and GPT pricing API
+// Settings, Cursor, and GPT pricing API
 // ============================================================
-describe("Settings and GPT pricing API", () => {
+describe("Settings, Cursor, and GPT pricing API", () => {
   it("returns the active Codex home without exposing a raw environment override", async () => {
     const res = await fetch("/api/settings/codex-home");
     assert.equal(res.status, 200);
     assert.equal(typeof res.body.codex_home, "string");
     assert.ok(path.isAbsolute(res.body.codex_home));
-  });
-
-  it("returns INVALID_PATH when the T3 home request has no JSON body", async () => {
-    const res = await fetch("/api/settings/t3-home", { method: "PUT" });
-    assert.equal(res.status, 400);
-    assert.equal(res.body.error.code, "INVALID_PATH");
   });
 
   it("seeds the supplied GPT card with explicit long-context availability", async () => {
@@ -697,10 +721,73 @@ describe("Settings and GPT pricing API", () => {
     }
   });
 
+  it("round-trips Fast long prices, preserves omitted fields, and rejects invalid rates atomically", async () => {
+    const rule = stmts.getGptPricing.get("gpt-6-astra%");
+    const response = await put("/api/pricing/gpt", { ...rule, fast_long_input_per_mtok: 41 });
+    assert.equal(response.status, 200);
+    assert.equal(response.body.pricing.fast_long_input_per_mtok, 41);
+    const legacy = { ...rule };
+    for (const key of Object.keys(legacy)) if (key.startsWith("fast_long_")) delete legacy[key];
+    assert.equal((await put("/api/pricing/gpt", legacy)).status, 200);
+    assert.equal(stmts.getGptPricing.get(rule.model_pattern).fast_long_input_per_mtok, 41);
+    const invalid = await put("/api/pricing/gpt", {
+      ...rule,
+      fast_long_input_per_mtok: -1,
+      short_input_per_mtok: 999,
+    });
+    assert.equal(invalid.status, 400);
+    assert.equal(stmts.getGptPricing.get(rule.model_pattern).short_input_per_mtok, 10);
+    await put("/api/pricing/gpt", rule);
+  });
+
+  it("seeds and validates the independent Cursor pricing card", async () => {
+    const seeded = await fetch("/api/pricing/cursor");
+    assert.equal(seeded.status, 200);
+    const grok = seeded.body.pricing.find((rule) => rule.model_pattern === "grok-4.6%");
+    assert.deepEqual(
+      [
+        grok.input_per_mtok,
+        grok.cache_write_per_mtok,
+        grok.cache_read_per_mtok,
+        grok.output_per_mtok,
+      ],
+      [2, 0, 0.5, 6]
+    );
+
+    const pattern = "cursor-test-model%";
+    const created = await put("/api/pricing/cursor", {
+      model_pattern: pattern,
+      display_name: "Cursor Test Model",
+      input_per_mtok: 1,
+      cache_write_per_mtok: 2,
+      cache_read_per_mtok: 0.25,
+      output_per_mtok: 4,
+    });
+    assert.equal(created.status, 200);
+    assert.equal(created.body.pricing.output_per_mtok, 4);
+
+    const invalid = await put("/api/pricing/cursor", {
+      model_pattern: pattern,
+      display_name: "Cursor Test Model",
+      input_per_mtok: -1,
+      output_per_mtok: 999,
+    });
+    assert.equal(invalid.status, 400);
+    assert.equal(stmts.getCursorPricing.get(pattern).output_per_mtok, 4);
+
+    const removed = await fetch(`/api/pricing/cursor/${encodeURIComponent(pattern)}`, {
+      method: "DELETE",
+    });
+    assert.equal(removed.status, 200);
+    assert.equal(stmts.getCursorPricing.get(pattern), undefined);
+  });
+
   it("resets one provider without overwriting the other provider's custom rules", async () => {
     const claudePattern = "test-claude-custom%";
+    const cursorPattern = "test-cursor-custom%";
     const gptPattern = "test-gpt-custom%";
     stmts.upsertPricing.run(claudePattern, "Custom Claude", 1, 2, 0.1, 1.25, 2, 0, 0);
+    stmts.upsertCursorPricing.run(cursorPattern, "Custom Cursor", 1, 1.25, 0.1, 2);
     stmts.upsertGptPricing.run(
       gptPattern,
       "Custom GPT",
@@ -722,6 +809,10 @@ describe("Settings and GPT pricing API", () => {
     assert.equal(codexReset.status, 200);
     assert.equal(codexReset.body.provider, "codex");
     assert.ok(stmts.getPricing.get(claudePattern), "Claude custom rule must survive a GPT reset");
+    assert.ok(
+      stmts.getCursorPricing.get(cursorPattern),
+      "Cursor custom rule must survive a GPT reset"
+    );
     assert.equal(stmts.getGptPricing.get(gptPattern), undefined);
 
     stmts.upsertGptPricing.run(
@@ -744,7 +835,17 @@ describe("Settings and GPT pricing API", () => {
     assert.equal(claudeReset.status, 200);
     assert.equal(claudeReset.body.provider, "claude");
     assert.equal(stmts.getPricing.get(claudePattern), undefined);
+    assert.ok(
+      stmts.getCursorPricing.get(cursorPattern),
+      "Cursor custom rule must survive a Claude reset"
+    );
     assert.ok(stmts.getGptPricing.get(gptPattern), "GPT custom rule must survive a Claude reset");
+
+    const cursorReset = await post("/api/settings/reset-pricing", { provider: "cursor" });
+    assert.equal(cursorReset.status, 200);
+    assert.equal(cursorReset.body.provider, "cursor");
+    assert.equal(stmts.getCursorPricing.get(cursorPattern), undefined);
+    assert.ok(stmts.getGptPricing.get(gptPattern), "GPT custom rule must survive a Cursor reset");
 
     const invalid = await post("/api/settings/reset-pricing", { provider: "other" });
     assert.equal(invalid.status, 400);
@@ -783,6 +884,7 @@ describe("Hook Event Processing", () => {
       hook_type: "PreToolUse",
       data: {
         session_id: "hook-sess-1",
+        repo_remote_url: "collector@example.internal:team/hook-project.git?ref=fixture#readme",
         tool_name: "Read",
         tool_input: { file_path: "/test.ts" },
       },
@@ -796,6 +898,15 @@ describe("Hook Event Processing", () => {
     const sessRes = await fetch("/api/sessions/hook-sess-1");
     assert.equal(sessRes.status, 200);
     assert.equal(sessRes.body.session.status, "active");
+    assert.equal(sessRes.body.session.repo_remote_url, "example.internal:team/hook-project.git");
+    const storedEvent = db
+      .prepare("SELECT data FROM events WHERE session_id = ? ORDER BY id DESC LIMIT 1")
+      .get("hook-sess-1");
+    assert.equal(
+      JSON.parse(storedEvent.data).repo_remote_url,
+      "example.internal:team/hook-project.git",
+      "the persisted event envelope must not retain collector userinfo"
+    );
 
     // Verify main agent was created
     const agentRes = await fetch("/api/agents/hook-sess-1-main");
@@ -803,6 +914,71 @@ describe("Hook Event Processing", () => {
     assert.equal(agentRes.body.agent.type, "main");
     assert.equal(agentRes.body.agent.status, "working");
     assert.equal(agentRes.body.agent.current_tool, "Read");
+  });
+
+  it("discards malformed credential-bearing remotes before persisting sessions or events", async () => {
+    const sessionId = "malformed-remote";
+    await post("/api/hooks/event", {
+      hook_type: "PreToolUse",
+      data: {
+        session_id: sessionId,
+        tool_name: "Read",
+        repo_remote_url: "https://fixture-user:fixture-secret@example.internal:invalid/repo.git",
+      },
+    });
+    assert.equal(stmts.getSession.get(sessionId).repo_remote_url, null);
+    const event = db.prepare("SELECT data FROM events WHERE session_id = ?").get(sessionId);
+    assert.equal(JSON.parse(event.data).repo_remote_url, undefined);
+    await post("/api/hooks/event", {
+      hook_type: "PreToolUse",
+      data: {
+        session_id: sessionId,
+        tool_name: "Read",
+        repo_remote_url: "https://example.internal/original.git",
+      },
+    });
+    await post("/api/hooks/event", {
+      hook_type: "PreToolUse",
+      data: {
+        session_id: sessionId,
+        tool_name: "Read",
+        repo_remote_url: "https://example.internal/changed.git",
+      },
+    });
+    assert.equal(
+      stmts.getSession.get(sessionId).repo_remote_url,
+      "https://example.internal/original.git"
+    );
+  });
+
+  it("broadcasts local-hook repo identity only after it is persisted", async () => {
+    const ws = new WebSocket(BASE.replace("http", "ws") + "/ws");
+    await new Promise((resolve, reject) => {
+      ws.once("open", resolve);
+      ws.once("error", reject);
+    });
+    const frames = [];
+    ws.on("message", (raw) => frames.push(JSON.parse(raw.toString())));
+
+    const sessionId = `hook-ws-${Date.now()}`;
+    const response = await post("/api/hooks/event", {
+      hook_type: "PreToolUse",
+      data: {
+        session_id: sessionId,
+        repo_remote_url: "ssh://collector@example.internal:2222/team/live-project.git",
+        tool_name: "Read",
+      },
+    });
+    assert.equal(response.status, 200);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    ws.close();
+
+    const created = frames.find(
+      (frame) => frame.type === "session_created" && frame.data?.id === sessionId
+    );
+    assert.ok(created, "the real WebSocket receives session_created");
+    assert.equal(created.data.repo_remote_url, "ssh://example.internal:2222/team/live-project.git");
+    assert.equal(stmts.getSession.get(sessionId).repo_remote_url, created.data.repo_remote_url);
   });
 
   it("should keep main agent working on PostToolUse and clear current_tool", async () => {
@@ -1004,6 +1180,98 @@ describe("Hook Event Processing", () => {
     const main = agentsRes.body.agents.find((a) => a.type === "main");
     assert.ok(main.awaiting_input_since, "main agent should be flagged as awaiting input");
     assert.equal(main.awaiting_reason, "notification");
+  });
+
+  it("should NOT flag waiting for an idle_prompt notification, even though its text says 'waiting for your input'", async () => {
+    // No SessionStart first: it stamps its own awaiting reason ('session_start').
+    await post("/api/hooks/event", {
+      hook_type: "Notification",
+      data: {
+        session_id: "hook-sess-idle-prompt",
+        notification_type: "idle_prompt",
+        message: "Claude is waiting for your input",
+      },
+    });
+    const sessRes = await fetch("/api/sessions/hook-sess-idle-prompt");
+    assert.notEqual(sessRes.body.session.awaiting_reason, "notification");
+    assert.equal(sessRes.body.session.awaiting_input_since, null);
+  });
+
+  it("should flag waiting for a permission_prompt notification regardless of its text", async () => {
+    await post("/api/hooks/event", {
+      hook_type: "SessionStart",
+      data: { session_id: "hook-sess-perm-prompt" },
+    });
+    await post("/api/hooks/event", {
+      hook_type: "Notification",
+      data: {
+        session_id: "hook-sess-perm-prompt",
+        notification_type: "permission_prompt",
+        message: "Bash",
+      },
+    });
+    const sessRes = await fetch("/api/sessions/hook-sess-perm-prompt");
+    assert.ok(sessRes.body.session.awaiting_input_since);
+    assert.equal(sessRes.body.session.awaiting_reason, "notification");
+  });
+
+  it("should flag waiting for a permission_prompt even when its text looks like compaction", async () => {
+    await post("/api/hooks/event", {
+      hook_type: "Notification",
+      data: {
+        session_id: "hook-sess-perm-compress",
+        notification_type: "permission_prompt",
+        message: "Claude needs your permission to use compress_logs",
+      },
+    });
+    const sessRes = await fetch("/api/sessions/hook-sess-perm-compress");
+    assert.ok(sessRes.body.session.awaiting_input_since);
+    assert.equal(sessRes.body.session.awaiting_reason, "notification");
+  });
+
+  it("should flag waiting for quota_auto_resume_stale (it waits for Enter)", async () => {
+    await post("/api/hooks/event", {
+      hook_type: "Notification",
+      data: {
+        session_id: "hook-sess-quota-stale",
+        notification_type: "quota_auto_resume_stale",
+        message: "Claude is waiting for your input. Press Enter to resume.",
+      },
+    });
+    const sessRes = await fetch("/api/sessions/hook-sess-quota-stale");
+    assert.ok(sessRes.body.session.awaiting_input_since);
+    assert.equal(sessRes.body.session.awaiting_reason, "notification");
+  });
+
+  it("should keep the compaction exclusion for an unknown or empty notification_type", async () => {
+    for (const [sid, type] of [
+      ["hook-sess-compact-future", "future_type"],
+      ["hook-sess-compact-empty", ""],
+      ["hook-sess-compact-none", undefined],
+    ]) {
+      const data = { session_id: sid, message: "Context compression is waiting for your input" };
+      if (type !== undefined) data.notification_type = type;
+      await post("/api/hooks/event", { hook_type: "Notification", data });
+      const sessRes = await fetch(`/api/sessions/${sid}`);
+      assert.notEqual(sessRes.body.session.awaiting_reason, "notification", `type=${type}`);
+    }
+  });
+
+  it("should fall back to the message text for an unknown notification_type", async () => {
+    await post("/api/hooks/event", {
+      hook_type: "SessionStart",
+      data: { session_id: "hook-sess-unknown-type" },
+    });
+    await post("/api/hooks/event", {
+      hook_type: "Notification",
+      data: {
+        session_id: "hook-sess-unknown-type",
+        notification_type: "some_future_type",
+        message: "Claude needs your permission to use Bash",
+      },
+    });
+    const sessRes = await fetch("/api/sessions/hook-sess-unknown-type");
+    assert.ok(sessRes.body.session.awaiting_input_since);
   });
 
   it("should clear awaiting_input_since when the user resumes (next PreToolUse)", async () => {
@@ -1809,6 +2077,120 @@ describe("Hook Event Processing", () => {
     assert.equal(updatedSonnet.output_tokens, 130);
 
     fs.unlinkSync(transcriptPath);
+  });
+
+  it("should include growing same-model flat subagents but exclude workflow agents", async () => {
+    const sid = `hook-same-model-subagent-${Date.now()}`;
+    const projectDir = fs.mkdtempSync(path.join(os.tmpdir(), "hook-subagent-tokens-"));
+    const transcriptPath = path.join(projectDir, `${sid}.jsonl`);
+    const subagentDir = path.join(projectDir, sid, "subagents");
+    const workflowDir = path.join(subagentDir, "workflows", "run-1");
+    const subagentPath = path.join(subagentDir, "agent-flat.jsonl");
+    fs.mkdirSync(workflowDir, { recursive: true });
+
+    const usageLine = (id, input, output) =>
+      JSON.stringify({
+        type: "assistant",
+        message: {
+          id,
+          model: "claude-sonnet-4-6",
+          role: "assistant",
+          usage: {
+            input_tokens: input,
+            output_tokens: output,
+            cache_read_input_tokens: 0,
+            cache_creation_input_tokens: 0,
+          },
+        },
+      });
+
+    fs.writeFileSync(transcriptPath, usageLine("main-1", 100, 10) + "\n");
+    fs.writeFileSync(subagentPath, usageLine("sub-1", 50, 5) + "\n");
+    fs.writeFileSync(
+      path.join(workflowDir, "agent-workflow.jsonl"),
+      usageLine("workflow-1", 1000, 100) + "\n"
+    );
+
+    try {
+      let res = await post("/api/hooks/event", {
+        hook_type: "PreToolUse",
+        data: { session_id: sid, tool_name: "Read", transcript_path: transcriptPath },
+      });
+      assert.equal(res.status, 200);
+
+      let cost = await fetch(`/api/pricing/cost/${sid}`);
+      let bucket = cost.body.breakdown.find((row) => row.model === "claude-sonnet-4-6");
+      assert.equal(bucket.input_tokens, 150, "main and flat same-model subagent are combined");
+      assert.equal(bucket.output_tokens, 15);
+
+      fs.writeFileSync(subagentPath, "");
+      for (let attempt = 0; attempt < 2; attempt++) {
+        res = await post("/api/hooks/event", {
+          hook_type: "PostToolUse",
+          data: { session_id: sid, tool_name: "Read", transcript_path: transcriptPath },
+        });
+        assert.equal(res.status, 200);
+      }
+      const stable = db
+        .prepare(
+          `SELECT input_tokens, baseline_input FROM token_usage
+           WHERE session_id = ? AND model = ?`
+        )
+        .get(sid, "claude-sonnet-4-6");
+      assert.equal(stable.input_tokens, 150, "a transient null read keeps the last full total");
+      assert.equal(stable.baseline_input, 0, "a transient null read must not shift the baseline");
+
+      fs.writeFileSync(
+        subagentPath,
+        usageLine("sub-1", 50, 5) + "\n" + usageLine("sub-2", 25, 3) + "\n"
+      );
+      res = await post("/api/hooks/event", {
+        hook_type: "PostToolUse",
+        data: { session_id: sid, tool_name: "Read", transcript_path: transcriptPath },
+      });
+      assert.equal(res.status, 200);
+
+      cost = await fetch(`/api/pricing/cost/${sid}`);
+      bucket = cost.body.breakdown.find((row) => row.model === "claude-sonnet-4-6");
+      assert.equal(bucket.input_tokens, 175, "later hooks pick up subagent transcript growth");
+      assert.equal(bucket.output_tokens, 18);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+
+  it("should write subagent usage when the main transcript has no token records", async () => {
+    const sid = `hook-subagent-only-${Date.now()}`;
+    const projectDir = fs.mkdtempSync(path.join(os.tmpdir(), "hook-subagent-only-"));
+    const transcriptPath = path.join(projectDir, `${sid}.jsonl`);
+    const subagentDir = path.join(projectDir, sid, "subagents");
+    fs.mkdirSync(subagentDir, { recursive: true });
+    fs.writeFileSync(transcriptPath, "");
+    fs.writeFileSync(
+      path.join(subagentDir, "agent-only.jsonl"),
+      JSON.stringify({
+        type: "assistant",
+        message: {
+          id: "sub-only-1",
+          model: "claude-haiku-4-5-20251001",
+          usage: { input_tokens: 80, output_tokens: 8 },
+        },
+      }) + "\n"
+    );
+
+    try {
+      const res = await post("/api/hooks/event", {
+        hook_type: "PreToolUse",
+        data: { session_id: sid, tool_name: "Read", transcript_path: transcriptPath },
+      });
+      assert.equal(res.status, 200);
+      const cost = await fetch(`/api/pricing/cost/${sid}`);
+      const bucket = cost.body.breakdown.find((row) => row.model === "claude-haiku-4-5-20251001");
+      assert.equal(bucket.input_tokens, 80);
+      assert.equal(bucket.output_tokens, 8);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
   });
 });
 
@@ -3153,121 +3535,5 @@ describe("Nested Agent Spawning", () => {
       byName["UW-L3"].id,
       "After unwinding to L3, new spawn should parent to L3"
     );
-  });
-});
-
-describe("Terminal focus API", () => {
-  it("returns 404 for a nonexistent session", async () => {
-    const res = await post("/api/sessions/nonexistent/focus-terminal", {});
-    assert.equal(res.status, 404);
-  });
-
-  it("returns a focus result without erroring for a real session", async () => {
-    const res = await post("/api/sessions/sess-1/focus-terminal", {});
-    assert.equal(res.status, 200);
-    assert.equal(typeof res.body.focused, "boolean");
-  });
-});
-
-describe("Linear API", () => {
-  // linear-config.js persists the API key to a file under the real Claude
-  // home data dir (same pattern as vapid-keys.json), not the test SQLite DB —
-  // save/restore whatever was already there so this suite leaves the
-  // machine's real configuration exactly as it found it.
-  const linearConfig = require("../lib/linear-config");
-  let originalFetch;
-  let preexistingKey;
-
-  before(() => {
-    originalFetch = global.fetch;
-    preexistingKey = linearConfig.getApiKey();
-    linearConfig.clearApiKey();
-  });
-
-  after(() => {
-    global.fetch = originalFetch;
-    if (preexistingKey) linearConfig.setApiKey(preexistingKey);
-    else linearConfig.clearApiKey();
-  });
-
-  it("reports not configured by default", async () => {
-    const res = await fetch("/api/linear/config");
-    assert.equal(res.status, 200);
-    assert.equal(res.body.configured, false);
-  });
-
-  it("rejects setting an empty API key", async () => {
-    const res = await fetch("/api/linear/config", { method: "PUT", body: { apiKey: "" } });
-    assert.equal(res.status, 400);
-  });
-
-  it("stores and reports a configured API key", async () => {
-    const putRes = await fetch("/api/linear/config", {
-      method: "PUT",
-      body: { apiKey: "lin_api_test_key" },
-    });
-    assert.equal(putRes.status, 200);
-    assert.equal(putRes.body.configured, true);
-
-    const getRes = await fetch("/api/linear/config");
-    assert.equal(getRes.body.configured, true);
-  });
-
-  it("returns null for a session with no link", async () => {
-    const res = await fetch("/api/linear/sessions/sess-1/link");
-    assert.equal(res.status, 200);
-    assert.equal(res.body.link, null);
-  });
-
-  it("rejects a non-Linear URL", async () => {
-    const res = await post("/api/linear/sessions/sess-1/link", {
-      url: "https://github.com/acme/repo/issues/1",
-    });
-    assert.equal(res.status, 400);
-  });
-
-  it("links a session to an issue by pasted URL", async () => {
-    global.fetch = async () => ({
-      ok: true,
-      status: 200,
-      json: async () => ({
-        data: {
-          issue: {
-            id: "issue-uuid-1",
-            identifier: "ENG-123",
-            title: "Fix the thing",
-            url: "https://linear.app/acme/issue/ENG-123/fix-the-thing",
-            state: { name: "In Progress" },
-          },
-        },
-      }),
-    });
-
-    const res = await post("/api/linear/sessions/sess-1/link", {
-      url: "https://linear.app/acme/issue/ENG-123/fix-the-thing",
-    });
-    assert.equal(res.status, 200);
-    assert.equal(res.body.link.identifier, "ENG-123");
-    assert.equal(res.body.link.title, "Fix the thing");
-    assert.equal(res.body.link.state, "In Progress");
-    assert.equal(res.body.link.source, "url");
-
-    const getRes = await fetch("/api/linear/sessions/sess-1/link");
-    assert.equal(getRes.body.link.identifier, "ENG-123");
-  });
-
-  it("404s when auto-detection finds no branch identifier", async () => {
-    // sess-1's cwd ("/home/test") is not a git repo in the test environment.
-    const res = await post("/api/linear/sessions/sess-1/link", { auto: true });
-    assert.equal(res.status, 404);
-  });
-
-  it("unlinks a session", async () => {
-    const res = await fetch("/api/linear/sessions/sess-1/link", { method: "DELETE" });
-    assert.equal(res.status, 200);
-    assert.equal(res.body.ok, true);
-
-    const getRes = await fetch("/api/linear/sessions/sess-1/link");
-    assert.equal(getRes.body.link, null);
   });
 });

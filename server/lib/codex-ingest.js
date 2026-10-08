@@ -5,11 +5,12 @@
  * live-thread state, resume-picker reactivation, and dashboard card lifecycle.
  * Independent byte cursors make watcher/hook notifications idempotent and
  * real-time safe.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const fs = require("fs");
 const path = require("path");
+const { constants: bufferConstants } = require("buffer");
 const { db, stmts } = require("../db");
 const {
   getCodexSessionsDir,
@@ -41,6 +42,7 @@ const LIFECYCLE_EVENT_TYPES = new Set([
 ]);
 const DEFAULT_WORKING_IDLE_MS = 90_000;
 const LIVE_THREAD_MAX_AGE_MS = 15 * 60 * 1_000;
+const CARD_CONTEXT_VERSION = 1;
 // Tags every event reconstructed from a lifecycle hook rather than read from a
 // rollout. A rollout that appears later is authoritative, so these rows are
 // removed the moment one is linked to the session (see `dropHookOnlyHistory`).
@@ -85,26 +87,96 @@ function rememberTranscriptPath(transcriptPath) {
 }
 
 /**
- * Read `[offset, offset + length)` from a file as UTF-8, closing the descriptor
- * on EVERY exit path.
+ * Default bytes decoded per read. Long Codex sessions write rollouts larger
+ * than V8's maximum string length (~512 MiB), and decoding such a file in one
+ * `toString` throws ERR_STRING_TOO_LONG on every attempt, so the rollout could
+ * never be ingested. Reading in bounded windows also caps peak memory for
+ * ordinary large rollouts.
+ */
+const DEFAULT_READ_WINDOW_BYTES = 64 * 1024 * 1024;
+
+/**
+ * Hard ceiling for one window. A single JSONL record longer than the default
+ * window grows the window up to this size; UTF-8 never decodes to more
+ * characters than bytes, so staying at or under the string limit in bytes
+ * guarantees the decode succeeds.
+ */
+const MAX_READ_WINDOW_BYTES = bufferConstants.MAX_STRING_LENGTH;
+
+let readWindowBytes = DEFAULT_READ_WINDOW_BYTES;
+
+/**
+ * Test hook: shrink the read window so chunk boundaries can be exercised with
+ * small fixtures. Returns the previous value. Not for production use.
+ */
+function setReadWindowBytesForTests(bytes) {
+  const previous = readWindowBytes;
+  readWindowBytes = Number.isInteger(bytes) && bytes > 0 ? bytes : DEFAULT_READ_WINDOW_BYTES;
+  return previous;
+}
+
+/**
+ * Read `[offset, offset + length)` from a file as raw bytes, closing the
+ * descriptor on EVERY exit path.
  *
  * `Buffer.alloc` and `fs.readSync` can both throw after the open, and callers
  * retry a failed rollout on every subsequent sweep — so an fd leaked here does
  * not leak once, it leaks once per sweep and will eventually exhaust the
  * process descriptor limit on a file with a persistent read error.
  */
-function readRangeUtf8(filePath, offset, length) {
+function readRangeBuffer(filePath, offset, length) {
   const fd = fs.openSync(filePath, "r");
   try {
     const buffer = Buffer.alloc(length);
-    fs.readSync(fd, buffer, 0, length, offset);
-    return buffer.toString("utf8");
+    const read = fs.readSync(fd, buffer, 0, length, offset);
+    return read < length ? buffer.subarray(0, read) : buffer;
   } finally {
     try {
       fs.closeSync(fd);
     } catch {
       // Already closed or otherwise invalid — there is nothing left to release.
     }
+  }
+}
+
+/**
+ * Read the complete JSONL lines that start at `offset`, stopping at `end` or
+ * after one bounded window, whichever comes first.
+ *
+ * The cut is made on the raw bytes at the last newline, never inside a
+ * record: 0x0A cannot occur inside a multi-byte UTF-8 sequence, so every
+ * returned line decodes intact and `bytes` is an exact cursor advance. If a
+ * window holds no newline but the range continues, the window grows (one
+ * oversized record) up to the string limit; a record beyond even that throws,
+ * which callers already report as a retryable failure.
+ *
+ * @returns {{ text: string, bytes: number, capped: boolean, tail: string }}
+ *   `text` is whole lines (ending in "\n"); `bytes` is its byte length;
+ *   `capped` is true when unread bytes remain before `end`; `tail` is the
+ *   unterminated end of the range, only when the range was read to `end`.
+ */
+function readCompleteLines(filePath, offset, end) {
+  let window = Math.min(readWindowBytes, MAX_READ_WINDOW_BYTES);
+  for (;;) {
+    const length = Math.max(0, Math.min(end - offset, window));
+    const buffer = length > 0 ? readRangeBuffer(filePath, offset, length) : Buffer.alloc(0);
+    const capped = offset + buffer.length < end;
+    const lastNewline = buffer.lastIndexOf(0x0a);
+    if (lastNewline >= 0) {
+      return {
+        text: buffer.toString("utf8", 0, lastNewline + 1),
+        bytes: lastNewline + 1,
+        capped,
+        tail: capped ? "" : buffer.toString("utf8", lastNewline + 1),
+      };
+    }
+    if (!capped) return { text: "", bytes: 0, capped: false, tail: buffer.toString("utf8") };
+    if (window >= MAX_READ_WINDOW_BYTES) {
+      throw new Error(
+        `Codex rollout record at byte ${offset} exceeds ${MAX_READ_WINDOW_BYTES} bytes`
+      );
+    }
+    window = Math.min(window * 2, MAX_READ_WINDOW_BYTES);
   }
 }
 
@@ -196,6 +268,48 @@ function truncate(value) {
  */
 function userMessagePreview(payload) {
   return truncate(extractText(payload?.message));
+}
+
+/**
+ * Codex 0.153+ writes human prompts as response-item messages instead of the
+ * older event_msg/user_message pair. The content-kind marker is essential:
+ * Codex also serializes AGENTS.md and environment context with role=user, but
+ * those records are injected instructions rather than dashboard turns.
+ */
+function responseItemUserMessage(record) {
+  const item = record?.type === "response_item" ? record.payload : null;
+  if (item?.type !== "message" || item.role !== "user") return null;
+  const metadata = item.internal_chat_message_metadata_passthrough;
+  if (
+    !Array.isArray(metadata?.content_item_kinds) ||
+    !metadata.content_item_kinds.includes("user.text")
+  ) {
+    return null;
+  }
+  const prompt = truncate(extractText(item.content));
+  if (!prompt) return null;
+  return {
+    prompt,
+    turnId: typeof metadata.turn_id === "string" ? metadata.turn_id : null,
+  };
+}
+
+function codexUserMessage(record) {
+  if (record?.type === "event_msg" && record.payload?.type === "user_message") {
+    const prompt = userMessagePreview(record.payload);
+    return prompt
+      ? {
+          prompt,
+          turnId: typeof record.payload.turn_id === "string" ? record.payload.turn_id : null,
+        }
+      : null;
+  }
+  return responseItemUserMessage(record);
+}
+
+function codexUserMessageKey(record, userMessage) {
+  if (!userMessage?.prompt || !Date.parse(record?.timestamp || "")) return null;
+  return `${new Date(record.timestamp).toISOString()}\u0000${userMessage.prompt}`;
 }
 
 function eventDetails(record) {
@@ -291,6 +405,7 @@ function persistEvent(sessionId, agentId, record) {
   let tool;
   let summary;
   let data;
+  const userMessage = codexUserMessage(record);
   if (record.type === "event_msg" && EVENT_TYPES.has(record.payload?.type)) {
     ({ summary, tool } = eventDetails(record));
     eventType = `codex_${record.payload.type}`;
@@ -301,6 +416,16 @@ function persistEvent(sessionId, agentId, record) {
       tool = null;
     }
     data = { provider: "codex", event: record.payload.type, timestamp: record.timestamp };
+  } else if (userMessage) {
+    eventType = "codex_user_message";
+    tool = null;
+    summary = userMessage.prompt;
+    data = {
+      provider: "codex",
+      event: "user_message",
+      turn_id: userMessage.turnId,
+      timestamp: record.timestamp,
+    };
   } else {
     const details = responseToolDetails(record);
     if (!details) return null;
@@ -329,6 +454,111 @@ function persistEvent(sessionId, agentId, record) {
     timestamp
   );
   return db.prepare("SELECT * FROM events WHERE id = ?").get(info.lastInsertRowid);
+}
+
+/** Keep the Codex main card's prompt preview and turn total durable. */
+function syncCodexCardContext(sessionId, agentId) {
+  const prompts = db
+    .prepare(
+      `SELECT summary
+       FROM events
+       WHERE session_id = ? AND event_type = 'codex_user_message'
+         AND summary IS NOT NULL AND trim(summary) != ''
+       ORDER BY created_at DESC, id DESC
+       LIMIT 2`
+    )
+    .all(sessionId);
+  let changed = false;
+  if (prompts.length) {
+    const latestPrompt = prompts[0].summary;
+    const preview = prompts
+      .map((row) => row.summary)
+      .reverse()
+      .join("\n");
+    changed = stmts.updateSessionCardPromptPreview.run(preview, sessionId, preview).changes > 0;
+    const agent = stmts.getAgent.get(agentId);
+    if (agent && agent.task !== latestPrompt) {
+      stmts.updateAgent.run(null, null, latestPrompt, agent.current_tool, null, null, agentId);
+      changed = true;
+    }
+  }
+
+  const totals = db
+    .prepare(
+      `SELECT
+         SUM(CASE WHEN event_type = 'codex_task_started' THEN 1 ELSE 0 END) AS started,
+         COUNT(DISTINCT CASE WHEN event_type = 'codex_user_message'
+           THEN COALESCE(json_extract(data, '$.turn_id'), 'event:' || id) END) AS prompts
+       FROM events WHERE session_id = ?`
+    )
+    .get(sessionId);
+  const turnCount = Math.max(asNumber(totals?.started), asNumber(totals?.prompts));
+  if (turnCount > 0)
+    changed = setSessionMetadataFlag(sessionId, "turn_count", turnCount) || changed;
+  return changed;
+}
+
+/**
+ * One-time repair for rollouts whose old byte cursor already passed modern
+ * response-item prompts before this dashboard version learned their shape.
+ */
+function backfillCodexCardContext(transcriptPath, session, consumedBytes) {
+  if (!session || consumedBytes <= 0) return false;
+  let metadata = {};
+  try {
+    metadata = JSON.parse(session.metadata || "{}") || {};
+  } catch {
+    /* malformed metadata is repaired by setSessionMetadataFlag below */
+  }
+  if (metadata.card_context_version === CARD_CONTEXT_VERSION) return false;
+
+  const agentId = `codex:${session.id}`;
+  const existing = new Set(
+    db
+      .prepare(
+        `SELECT created_at, summary FROM events
+         WHERE session_id = ? AND event_type = 'codex_user_message'`
+      )
+      .all(session.id)
+      .map((row) => `${row.created_at}\u0000${row.summary}`)
+  );
+  let changed = false;
+  db.transaction(() => {
+    // Walk the consumed range in bounded windows; the cursor always sits on a
+    // line boundary, so every record here is complete.
+    let position = 0;
+    while (position < consumedBytes) {
+      const { text, bytes, capped } = readCompleteLines(transcriptPath, position, consumedBytes);
+      if (bytes === 0) break;
+      position += bytes;
+      for (const line of text.split("\n")) {
+        if (!line) continue;
+        let record;
+        try {
+          record = JSON.parse(line);
+        } catch {
+          continue;
+        }
+        const message = responseItemUserMessage(record);
+        if (!message) continue;
+        const timestamp = Date.parse(record.timestamp || "")
+          ? new Date(record.timestamp).toISOString()
+          : "";
+        const key = `${timestamp}\u0000${message.prompt}`;
+        if (existing.has(key)) continue;
+        const event = persistEvent(session.id, agentId, record);
+        if (event) {
+          existing.add(`${event.created_at}\u0000${event.summary}`);
+          changed = true;
+        }
+      }
+      if (!capped) break;
+    }
+  })();
+  changed = syncCodexCardContext(session.id, agentId) || changed;
+  changed =
+    setSessionMetadataFlag(session.id, "card_context_version", CARD_CONTEXT_VERSION) || changed;
+  return changed;
 }
 
 /** Keep dashboard cards aligned with the title chosen in Codex's `/rename` UI. */
@@ -588,6 +818,18 @@ function setCodexWaiting(sessionId, reason = "stop") {
   return changed;
 }
 
+/**
+ * A live process holding a thread's rollout or writer lock proves the thread is
+ * OPEN, never that it is idle. Only a thread the durable record already shows
+ * as finished may be adopted back as Waiting; anything the rollout is still
+ * driving owns its own lifecycle.
+ */
+function isFinishedCodexSession(session, agent) {
+  if (session.status !== "active" || session.ended_at) return true;
+  if (!agent) return true;
+  return agent.status === "completed" || agent.status === "error" || Boolean(agent.ended_at);
+}
+
 function resumeCodexSessionAtPrompt(sessionId) {
   const session = stmts.getSession.get(sessionId);
   if (
@@ -597,11 +839,20 @@ function resumeCodexSessionAtPrompt(sessionId) {
   ) {
     return null;
   }
+  const agentId = `codex:${sessionId}`;
+  const agent = stmts.getAgent.get(agentId);
+  // Without this guard the probe demoted every working Codex turn to Waiting
+  // and reset `awaiting_input_since` on each tick, so a busy session rendered
+  // as idle and an already-waiting one lost the real reason it is waiting
+  // ("stop" / "interrupted" overwritten by "session_start").
+  if (!isFinishedCodexSession(session, agent)) {
+    return { changed: false, session, agent: agent || null };
+  }
   const changed = setCodexWaiting(sessionId, "session_start");
   return {
     changed,
     session: stmts.getSession.get(sessionId),
-    agent: stmts.getAgent.get(`codex:${sessionId}`),
+    agent: stmts.getAgent.get(agentId),
   };
 }
 
@@ -678,37 +929,51 @@ function ingestCodexToolEvents(transcriptPath, options = {}) {
   const length = stat.size - offset;
   if (length <= 0) return { changed: false, events: [] };
 
-  let body;
-  try {
-    body = readRangeUtf8(transcriptPath, offset, length);
-  } catch {
-    // Same as the stat failure above — a read error must stay retryable.
-    return { changed: false, events: [], failed: true };
-  }
-  const lastNewline = body.lastIndexOf("\n");
-  if (lastNewline < 0) return { changed: false, events: [] };
-  const complete = body.slice(0, lastNewline + 1);
-  const nextOffset = offset + Buffer.byteLength(complete);
-  const records = [];
-  for (const line of complete.split("\n")) {
-    if (!line) continue;
-    let record;
-    try {
-      record = JSON.parse(line);
-    } catch {
-      continue;
-    }
-    if (record.type === "response_item") records.push(record);
-  }
   const agentId = `codex:${session.id}`;
-  // A historical rollout can contain thousands of calls. Commit the whole
-  // file atomically so a crash never advances the cursor past only part of its
-  // analytics, and so cold backfill does not pay one SQLite transaction per
-  // call.
-  const events = db.transaction((responseItems) =>
-    responseItems.map((record) => persistEvent(session.id, agentId, record)).filter(Boolean)
-  )(records);
-  stmts.upsertCodexToolIngestState.run(transcriptPath, session.id, nextOffset);
+  const events = [];
+  let cursor = offset;
+  let failed = false;
+  // Bounded windows (see readCompleteLines): a rollout past the string limit
+  // must still index. Each window's events AND its cursor advance commit in one
+  // transaction, so a crash can never advance the cursor past uncommitted
+  // analytics or replay committed ones, and cold backfill still pays one
+  // SQLite transaction per window rather than per call.
+  for (;;) {
+    let window;
+    try {
+      window = readCompleteLines(transcriptPath, cursor, stat.size);
+    } catch {
+      // Same as the stat failure above — a read error must stay retryable.
+      // Windows already committed keep their progress.
+      failed = true;
+      break;
+    }
+    if (window.bytes === 0) break;
+    const records = [];
+    for (const line of window.text.split("\n")) {
+      if (!line) continue;
+      let record;
+      try {
+        record = JSON.parse(line);
+      } catch {
+        continue;
+      }
+      if (record.type === "response_item" && responseToolDetails(record)) records.push(record);
+    }
+    const nextOffset = cursor + window.bytes;
+    events.push(
+      ...db.transaction((responseItems) => {
+        const persisted = responseItems
+          .map((record) => persistEvent(session.id, agentId, record))
+          .filter(Boolean);
+        stmts.upsertCodexToolIngestState.run(transcriptPath, session.id, nextOffset);
+        return persisted;
+      })(records)
+    );
+    cursor = nextOffset;
+    if (!window.capped) break;
+  }
+  if (failed && events.length === 0) return { changed: false, events: [], failed: true };
   // Do not touch `sessions.updated_at` for a historical analytics backfill:
   // that timestamp drives card freshness and must remain the session's actual
   // activity time. A live append reaches the main ingest path too, which
@@ -719,15 +984,55 @@ function ingestCodexToolEvents(transcriptPath, options = {}) {
     session: events.length > 0 ? stmts.getSession.get(session.id) : session,
     agent: events.length > 0 ? stmts.getAgent.get(agentId) : null,
     events,
+    ...(failed ? { failed: true } : {}),
   };
 }
 
 /**
- * Ingest one append-only rollout file. Calling it repeatedly without appended
- * bytes produces no writes and no broadcasts, even when hooks and fs.watch
- * report the same change.
+ * Ingest one append-only rollout file. Apart from the versioned card-context
+ * repair, calling it repeatedly without appended bytes produces no writes or
+ * broadcasts, even when hooks and fs.watch report the same change.
+ *
+ * The file is consumed in bounded windows (see readCompleteLines) until its
+ * last complete line, so every caller still gets the whole unread range in
+ * one call — including rollouts too large to decode as a single string.
  */
 function ingestCodexTranscript(transcriptPath, options = {}) {
+  const result = ingestCodexTranscriptWindow(transcriptPath, options, null);
+  let window = result;
+  while (window.more && !window.failed) {
+    window = ingestCodexTranscriptWindow(transcriptPath, options, window.carry);
+    mergeIngestWindow(result, window);
+  }
+  if (!result.failed) mergeIngestWindow(result, ingestCodexToolEvents(transcriptPath, options));
+  delete result.more;
+  delete result.carry;
+  return result;
+}
+
+/** Fold one later window's outcome into the accumulated result, in place. */
+function mergeIngestWindow(result, window) {
+  result.changed = Boolean(result.changed || window.changed);
+  if (window.created) result.created = true;
+  if (window.session) result.session = window.session;
+  if (window.agent) result.agent = window.agent;
+  if (window.events?.length) {
+    result.events = result.events || [];
+    for (const event of window.events) result.events.push(event);
+  }
+  if (window.failed) result.failed = true;
+  result.more = window.more;
+  result.carry = window.carry || result.carry;
+}
+
+/**
+ * Ingest at most one bounded window of a rollout, starting at its cursor.
+ * `carry` hands the previous window's running state forward: token snapshots
+ * are priced by the latest turn context's `model`/`speed`, which may sit in an
+ * earlier window (restarting at "standard" would misprice them), and naming
+ * must behave as it would over the whole range.
+ */
+function ingestCodexTranscriptWindow(transcriptPath, options, carry) {
   if (!isCodexTranscript(transcriptPath, options)) return { changed: false, events: [] };
   rememberTranscriptPath(transcriptPath);
   let stat;
@@ -738,12 +1043,32 @@ function ingestCodexTranscript(transcriptPath, options = {}) {
     return { changed: false, events: [], failed: true };
   }
   const state = stmts.getCodexIngestState.get(transcriptPath);
-  const offset = !state || stat.size < state.byte_offset ? 0 : state.byte_offset;
-  let body;
+  const storedOffset = !state || stat.size < state.byte_offset ? 0 : state.byte_offset;
+  const offset = Number.isInteger(carry?.readOffset) ? carry.readOffset : storedOffset;
+  const repairSession = state?.session_id ? stmts.getSession.get(state.session_id) : null;
+  let repairedCardContext = false;
   try {
-    const length = stat.size - offset;
-    if (length <= 0) return { changed: false, events: [] };
-    body = readRangeUtf8(transcriptPath, offset, length);
+    repairedCardContext =
+      repairSession?.status === "active"
+        ? backfillCodexCardContext(transcriptPath, repairSession, Math.min(offset, stat.size))
+        : false;
+  } catch {
+    return { changed: false, events: [], failed: true };
+  }
+  const cardRepairResult = () =>
+    repairedCardContext
+      ? {
+          changed: true,
+          created: false,
+          session: stmts.getSession.get(repairSession.id),
+          agent: stmts.getAgent.get(`codex:${repairSession.id}`),
+          events: [],
+        }
+      : { changed: false, events: [] };
+  let window;
+  try {
+    if (stat.size - offset <= 0) return cardRepairResult();
+    window = readCompleteLines(transcriptPath, offset, stat.size);
   } catch {
     // An I/O failure is NOT a completed no-op. The sweep records this file's
     // size+mtime fingerprint after any non-throwing return, so reporting a read
@@ -753,11 +1078,12 @@ function ingestCodexTranscript(transcriptPath, options = {}) {
     return { changed: false, events: [], failed: true };
   }
 
-  const lastNewline = body.lastIndexOf("\n");
-  if (lastNewline < 0) return { changed: false, events: [] };
-  const complete = body.slice(0, lastNewline + 1);
-  const remainder = body.slice(lastNewline + 1);
-  const nextOffset = offset + Buffer.byteLength(complete);
+  if (window.bytes === 0) return cardRepairResult();
+  const complete = window.text;
+  // Only a window that reached end-of-file has a real unterminated tail; a
+  // capped window stops at a line boundary, so its remainder is empty.
+  const remainder = window.tail;
+  const nextOffset = offset + window.bytes;
   const records = complete
     .split("\n")
     .filter(Boolean)
@@ -768,7 +1094,26 @@ function ingestCodexTranscript(transcriptPath, options = {}) {
         return [];
       }
     });
-  if (!records.length) return { changed: false, events: [] };
+  if (!records.length) {
+    if (state?.session_id) {
+      stmts.upsertCodexIngestState.run(
+        transcriptPath,
+        state.session_id,
+        nextOffset,
+        remainder,
+        asNumber(state.input_tokens),
+        asNumber(state.cached_input_tokens),
+        asNumber(state.cache_write_input_tokens),
+        asNumber(state.output_tokens),
+        asNumber(state.reasoning_output_tokens)
+      );
+    }
+    return {
+      ...cardRepairResult(),
+      more: window.capped,
+      carry: state?.session_id ? carry : { ...carry, readOffset: nextOffset },
+    };
+  }
 
   let meta = records.find((record) => record.type === "session_meta")?.payload;
   const resolvedSessionId = state?.session_id || meta?.id || sessionIdFromPath(transcriptPath);
@@ -843,8 +1188,8 @@ function ingestCodexTranscript(transcriptPath, options = {}) {
     stmts.updateAgent.run(null, "completed", null, null, endedAt, null, agentId);
     session = stmts.getSession.get(session.id);
   }
-  let model = session.model || "unknown";
-  let speed = "standard";
+  let model = carry?.model || session.model || "unknown";
+  let speed = carry?.speed || "standard";
   let counters = {
     input_tokens: asNumber(state?.input_tokens),
     cached_input_tokens: asNumber(state?.cached_input_tokens),
@@ -854,7 +1199,21 @@ function ingestCodexTranscript(transcriptPath, options = {}) {
   };
   const events = [];
   let latestLifecycleRecord = null;
+  const seenPromptKeys = new Set(
+    db
+      .prepare(
+        `SELECT created_at, summary FROM events
+         WHERE session_id = ? AND event_type = 'codex_user_message'`
+      )
+      .all(session.id)
+      .map((row) => `${row.created_at}\u0000${row.summary}`)
+  );
 
+  // Whether prompts may still set the session name. Evaluated once per call
+  // against the session as loaded (the loop never refreshes it), and carried
+  // across windows so a windowed read names the session exactly as a single
+  // pass would.
+  const nameOpen = carry?.nameOpen ?? (!session.name || session.name === "Codex session");
   for (const record of records) {
     if (record.type === "session_meta") {
       meta = record.payload;
@@ -875,10 +1234,12 @@ function ingestCodexTranscript(transcriptPath, options = {}) {
     if (record.type === "event_msg" && record.payload?.type === "token_count") {
       counters = applyTokenSnapshot(session.id, model, speed, record.payload.info || {}, counters);
     }
-    if (record.type === "event_msg" && record.payload?.type === "user_message") {
-      const prompt = userMessagePreview(record.payload);
+    const userMessage = codexUserMessage(record);
+    const promptKey = codexUserMessageKey(record, userMessage);
+    if (userMessage) {
+      const prompt = userMessage.prompt;
       if (prompt) {
-        if (!session.name || session.name === "Codex session") {
+        if (nameOpen) {
           stmts.updateSessionName.run(prompt, session.id, prompt);
         }
         // Claude main agents already receive their task through hooks. Codex
@@ -893,12 +1254,23 @@ function ingestCodexTranscript(transcriptPath, options = {}) {
     if (record.type === "event_msg" && LIFECYCLE_EVENT_TYPES.has(record.payload?.type)) {
       latestLifecycleRecord = record;
     }
-    // Tool invocations are owned by `ingestCodexToolEvents` below. The primary
+    // Tool invocations are owned by `ingestCodexToolEvents`. The primary
     // cursor records lifecycle, message, and token events only, which keeps a
     // watcher/hook append from creating a duplicate tool row.
-    const event = record.type === "event_msg" ? persistEvent(session.id, agentId, record) : null;
-    if (event) events.push(event);
+    const duplicatePrompt = promptKey && seenPromptKeys.has(promptKey);
+    const event =
+      (record.type === "event_msg" && !(userMessage && duplicatePrompt)) ||
+      (userMessage && !duplicatePrompt)
+        ? persistEvent(session.id, agentId, record)
+        : null;
+    if (event) {
+      events.push(event);
+      if (promptKey) seenPromptKeys.add(promptKey);
+    }
   }
+
+  syncCodexCardContext(session.id, agentId);
+  setSessionMetadataFlag(session.id, "card_context_version", CARD_CONTEXT_VERSION);
 
   stmts.upsertCodexIngestState.run(
     transcriptPath,
@@ -918,11 +1290,6 @@ function ingestCodexTranscript(transcriptPath, options = {}) {
   // marker. Replaying an old task_started record must never reactivate and
   // broadcast a dead session merely because it shares a cwd with a live one.
   if (confirmedLive !== false) applyCodexTranscriptLifecycle(session.id, latestLifecycleRecord);
-  // Tool invocations are stored through an independent cursor so initial
-  // rollout imports and all subsequent real-time appends preserve their exact
-  // order without double-counting lifecycle/token records.
-  const toolResult = ingestCodexToolEvents(transcriptPath, options);
-  events.push(...(toolResult.events || []));
   stmts.touchSession.run(session.id);
   // A native `/rename` lives outside the rollout, so it wins over the first
   // user prompt even when both files changed around the same time.
@@ -933,6 +1300,8 @@ function ingestCodexTranscript(transcriptPath, options = {}) {
     session,
     agent: stmts.getAgent.get(agentId),
     events,
+    more: window.capped,
+    carry: { model, speed, nameOpen },
   };
 }
 
@@ -1141,6 +1510,7 @@ function applyCodexHookLifecycle(result, hookType, hookData = null) {
     if (synthesized.length) {
       events.push(...synthesized);
       changed = true;
+      changed = syncCodexCardContext(sessionId, agentId) || changed;
     }
     changed = setSessionMetadataFlag(sessionId, "hook_only", true) || changed;
     // The reconciler measures a hook-only session's idle window from
@@ -1322,4 +1692,5 @@ module.exports = {
   refreshCodexSessionTitles,
   syncCodexStateSessions,
   isCodexTranscript,
+  setReadWindowBytesForTests,
 };

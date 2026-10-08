@@ -1,6 +1,6 @@
 /**
  * @file format.ts
- * @description Provides utility functions for formatting dates, times, durations, and numbers in the Code Agent Monitor application. It includes functions to parse ISO timestamp strings while normalizing UTC, format time and date-time strings for display, calculate and format durations between timestamps, and format large numbers with appropriate suffixes (K/M/B) for better readability. These utilities help ensure consistent and user-friendly presentation of temporal and numerical data throughout the application.
+ * @description Provides utility functions for formatting dates, times, durations, and numbers in the agent dashboard application. It includes functions to parse ISO timestamp strings while normalizing UTC, format time and date-time strings for display, calculate and format durations between timestamps, and format large numbers with appropriate suffixes (K/M/B) for better readability. These utilities help ensure consistent and user-friendly presentation of temporal and numerical data throughout the application.
  *
  * ## Two cross-cutting concerns
  * 1. **UTC normalization.** The backend stores timestamps via SQLite's
@@ -11,22 +11,23 @@
  *    value is unambiguously UTC, then relies on `toLocale*` to render it back in the
  *    viewer's local zone. Timestamps that already carry a `Z` or `±HH:MM` offset are
  *    parsed as-is.
- * 2. **Locale awareness.** The dashboard is English-only. {@link getCurrentLocale} maps the
- *    active i18next language to a BCP-47 tag (`en-US`) that the `Intl`/`toLocale*` APIs
+ * 2. **Locale awareness.** The dashboard ships five UI languages (English, Chinese,
+ *    Vietnamese, Korean, Spanish). {@link getCurrentLocale} maps the active i18next language to a
+ *    BCP-47 tag (`en-US`, `zh-CN`, `vi-VN`, `ko-KR`, `es-ES`) that the `Intl`/`toLocale*` APIs
  *    understand, so month names, AM/PM vs. 24-hour clocks, digit grouping and currency
- *    punctuation all follow English conventions. Relative-time strings ("5m ago") are
- *    produced from translated i18next keys rather than `Intl.RelativeTimeFormat`.
+ *    punctuation all follow the chosen language. Relative-time strings ("5m ago") are
+ *    instead produced from translated i18next keys rather than `Intl.RelativeTimeFormat`.
  *
  * Number/cost helpers ({@link fmt}, {@link fmtCost}, {@link fmtCostFull}) guard against
  * non-finite and negative input, and abbreviate large magnitudes with K/M/B suffixes for
  * compact stat tiles while a full comma-grouped form is available for tooltips.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/lib/format.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/lib/format.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -187,17 +188,48 @@ function parseDate(iso: string): Date {
   return new Date(iso.replace(" ", "T") + "Z");
 }
 
+/** The five UI languages the dashboard localizes formatting for. */
+type SupportedLanguage = "en" | "zh" | "vi" | "ko" | "es";
+
+/**
+ * Resolve the active i18next language down to one of the five {@link SupportedLanguage}
+ * codes, defaulting to English for anything unrecognized.
+ * @returns `"en" | "zh" | "vi" | "ko" | "es"`.
+ * @remarks Reads `resolvedLanguage` first (the language i18next actually settled on after
+ *   detection/fallback), then `language`, then `"en"`. The value is lowercased and its
+ *   region subtag stripped (`split("-")[0]`), so `"en-US"`, `"zh-Hans-CN"` etc. collapse
+ *   to their base language before the whitelist check.
+ */
+function getCurrentLanguage(): SupportedLanguage {
+  const language = (i18n.resolvedLanguage ?? i18n.language ?? "en").toLowerCase().split("-")[0];
+  if (
+    language === "zh" ||
+    language === "vi" ||
+    language === "ko" ||
+    language === "es" ||
+    language === "en"
+  ) {
+    return language;
+  }
+  return "en"; // any other/undetected language -> English
+}
+
 /**
  * Maps the active i18next language to a `toLocaleString` BCP-47 locale tag,
  * so date/number formatting matches the UI's chosen language. Falls back to
  * "en-US" for any language not explicitly supported.
- * @returns `"en-US"`.
- * @remarks The region subtag matters: it drives clock convention (12-hour AM/PM
- *   via the `hour: "2-digit"` options), month-name localization, and
- *   digit-group/decimal separators used by {@link fmtCostFull}.
+ * @returns One of `"zh-CN" | "vi-VN" | "ko-KR" | "es-ES" | "en-US"`.
+ * @remarks The region subtag matters: it drives clock convention (English/Korean use
+ *   12-hour AM/PM here via the `hour: "2-digit"` options, Chinese/Vietnamese lean 24-hour),
+ *   month-name localization, and digit-group/decimal separators used by {@link fmtCostFull}.
  */
 export function getCurrentLocale(): string {
-  return "en-US"; // English only
+  const language = getCurrentLanguage();
+  if (language === "zh") return "zh-CN"; // Simplified Chinese (mainland)
+  if (language === "vi") return "vi-VN"; // Vietnamese
+  if (language === "ko") return "ko-KR"; // Korean
+  if (language === "es") return "es-ES"; // Spanish (Spain)
+  return "en-US"; // default: US English
 }
 
 // ===========================================================================

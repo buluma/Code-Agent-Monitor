@@ -13,12 +13,12 @@
  * When `raw` is omitted the component returns `children` unchanged — callers
  * do not need conditional wrappers.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/Tip.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/Tip.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -85,6 +85,7 @@ export function Tip({ raw, children, maxWidth = 320, block = false }: TipProps) 
   const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const tipRef = useRef<HTMLDivElement>(null);
 
+  /** Follow the pointer with the tooltip. */
   const updatePos = useCallback((e: React.MouseEvent) => {
     setPos({ x: e.clientX, y: e.clientY });
   }, []);

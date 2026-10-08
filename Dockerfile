@@ -1,10 +1,10 @@
-# Multi-stage OCI image for the complete CAM dashboard runtime. It builds the
+# Multi-stage OCI image for the complete CCAM dashboard runtime. It builds the
 # React client, installs production server dependencies, includes Git and
 # OpenSSH for update checks and Remote Data Sources, and runs the application
 # as a non-root user with explicit writable data and configuration paths.
 # Compatible with Docker, Podman, Kubernetes, and other OCI runtimes.
 #
-# Author: Michael Buluma <1452922+buluma@users.noreply.github.com>
+# Author: Son Nguyen <hoangson091104@gmail.com>
 
 ARG NODE_IMAGE=node:24.19.0-alpine3.24@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43
 
@@ -12,13 +12,13 @@ ARG NODE_IMAGE=node:24.19.0-alpine3.24@sha256:d32cdf619f63fe0471182d08996dd516c6
 FROM ${NODE_IMAGE} AS server-deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-# The root `postinstall` hook (scripts/postinstall.js) fires during `npm ci`, so
-# the file must exist here or npm aborts with MODULE_NOT_FOUND before installing
-# anything. It self-skips when client/ is absent (as it is in this stage), so
-# copying just the one script keeps this deps-cache layer from busting on
-# unrelated scripts/ edits. Do NOT use --ignore-scripts: that would also skip
-# better-sqlite3's prebuild fetch and silently drop the native SQLite driver.
-COPY scripts/postinstall.js ./scripts/postinstall.js
+# The root `postinstall` hook fires during `npm ci`, so it and its dependency-free
+# npm launcher must exist here or npm aborts with MODULE_NOT_FOUND. The hook
+# self-skips when client/ is absent (as it is in this stage). Copying only these
+# lifecycle files keeps the deps-cache layer from busting on unrelated scripts/
+# edits. Do NOT use --ignore-scripts: that would also skip better-sqlite3's
+# prebuild fetch and silently drop the native SQLite driver.
+COPY scripts/postinstall.js scripts/run-npm.js ./scripts/
 RUN npm ci --omit=dev
 
 # ── Stage 2: Build React client ───────────────────────────────────────

@@ -2,8 +2,59 @@
  * @file config-tools.ts
  * @description MCP tools for comprehensive Claude Code and Codex configuration
  * discovery plus the same backup-backed, allowlisted edits exposed by the app.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
+/* =============================================================================
+ * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
+ * =============================================================================
+ * **Path:** `mcp/src/tools/domains/config-tools.ts`
+ * **Purpose:** Part of the local MCP server (`npm run mcp:start`) that exposes dashboard operations as MCP tools for Claude Code and other hosts.
+ *
+ * ## Design constraints
+ * - Local-first: no telemetry leaves the machine unless the user configures webhooks.
+ * - Fail-safe hooks path on the server must never block Claude Code; UI mirrors that
+ *   philosophy by degrading gracefully (empty states, stale badges, reconnect loops).
+ * - Destructive flows stay behind explicit confirmation modals and server-side gates.
+ * - Internationalization: user-visible strings belong in i18n JSON, not literals here.
+ *
+ * ## Remote data & SSH
+ * Remote Data Sources let operators aggregate multiple machines. SSH entries describe
+ * how to reach a peer dashboard; the global data scope (`dataScope.ts`) narrows every
+ * scoped GET via `?sources=`. Health checks and import history surface in Settings.
+ *
+ * ## Observability
+ * Prometheus scrapes `GET /api/metrics` (see `monitoring/`). Grafana ships four
+ * provisioned boards (overview, sessions, tools, alerts). Native npm scripts and
+ * Docker Compose profiles are documented in `monitoring/README.md`.
+ *
+ * ## Internal dependencies
+ * - `../../core/tool-registry.js`
+ * - `../../policy/tool-guards.js`
+ * - `../schemas.js`
+ * - `../../types/tool-context.js`
+ *
+ * ## Public surface
+ * - `registerConfigTools` — exported API; see TSDoc on the symbol for behavior.
+ *
+ * ## Testing pointers
+ * - Prefer colocated `__tests__` with Vitest + Testing Library for UI.
+ * - Server contract changes require `npm run test:server` and OpenAPI sync.
+ * - MCP edits: `npm run mcp:typecheck` and `npm run mcp:build`.
+ *
+ * ## Related docs
+ * - `ARCHITECTURE.md` — hooks → API → SQLite → WebSocket → UI pipeline.
+ * - `docs/API.md` — REST reference.
+ * - `.claude/skills/file-headers/` — mandatory `@author` header policy.
+ * ============================================================================= */
+/* -----------------------------------------------------------------------------
+ * EXPORT CATALOG — quick index of symbols defined below (documentation only).
+ * -----------------------------------------------------------------------------
+ * **registerConfigTools**
+ *   Part of this module's public contract. Downstream imports should treat
+ *   the signature and return type as stable unless release notes say otherwise.
+ *   When behavior changes, update the `@file` overview and relevant tests.
+ *
+ * ----------------------------------------------------------------------------- */
 
 import { z } from "zod";
 import { registrarFor } from "../../core/tool-registry.js";
@@ -11,7 +62,9 @@ import { assertMutationsEnabled } from "../../policy/tool-guards.js";
 import { JsonObjectSchema } from "../schemas.js";
 import type { ToolContext } from "../../types/tool-context.js";
 
+/** Scope filter for listing Claude Code config artifacts. */
 const ClaudeScopeSchema = z.enum(["all", "user", "project"]);
+/** Kinds of Claude Code config artifact the write and delete tools accept. */
 const ClaudeArtifactTypeSchema = z.enum([
   "skills",
   "agents",
@@ -20,6 +73,7 @@ const ClaudeArtifactTypeSchema = z.enum([
   "memory",
   "auto-memory",
 ]);
+/** Config surfaces `dashboard_get_claude_config` can read. */
 const ClaudeSurfaceSchema = z.enum([
   "overview",
   "skills",
@@ -37,6 +91,13 @@ const ClaudeSurfaceSchema = z.enum([
   "hook-scripts",
 ]);
 
+/**
+ * Register the agent-configuration tools: reading, writing, and deleting Claude Code config
+ * artifacts and keybindings, listing their backups, and reading, editing, and creating Codex config
+ * files and profiles. Writes and deletes always take a server-side backup first.
+ *
+ * @param context - Shared tool context.
+ */
 export function registerConfigTools(context: ToolContext): void {
   const { api, config } = context;
   const register = registrarFor(context);

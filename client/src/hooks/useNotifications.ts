@@ -1,12 +1,12 @@
 /**
  * @file useNotifications.ts
- * @description Defines a custom React hook for managing browser notifications in the Code Agent Monitor application. The hook subscribes to the event bus to listen for specific events such as new sessions, session errors, session completions, and subagent spawns. Based on user preferences stored in localStorage, it triggers browser notifications to keep users informed of important updates without needing to actively monitor the dashboard. The hook should be called once at the root level of the application to ensure notifications are handled globally.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @description Defines a custom React hook for managing browser notifications in the agent dashboard application. The hook subscribes to the event bus to listen for specific events such as new sessions, session errors, session completions, and subagent spawns. Based on user preferences stored in localStorage, it triggers browser notifications to keep users informed of important updates without needing to actively monitor the dashboard. The hook should be called once at the root level of the application to ensure notifications are handled globally.
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/hooks/useNotifications.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/hooks/useNotifications.ts`
  * **Purpose:** React hook: isolates side effects and subscription wiring so presentational components stay declarative.
  *
  * ## Design constraints
@@ -61,6 +61,7 @@ import { eventBus } from "../lib/eventBus";
 import { subscribeToPush } from "../lib/push";
 import type { WSMessage, Session, Agent, DashboardEvent } from "../lib/types";
 
+/** localStorage key for notification preferences, shared with the Settings page. */
 const NOTIF_KEY = "agent-monitor-notifications";
 
 /** User's browser-notification preferences, persisted to `localStorage` under
@@ -69,9 +70,13 @@ interface NotifPrefs {
   /** Master switch; when false, no notification types fire regardless of the
    *  per-event flags below. */
   enabled: boolean;
+  /** Notify when a new session starts. */
   onNewSession: boolean;
+  /** Notify when a session ends in an error. */
   onSessionError: boolean;
+  /** Notify when a session completes. */
   onSessionComplete: boolean;
+  /** Notify when a subagent is spawned. */
   onSubagentSpawn: boolean;
 }
 

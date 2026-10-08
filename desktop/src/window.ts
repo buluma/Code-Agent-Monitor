@@ -3,12 +3,12 @@
  *
  * We persist size/position to a JSON file under `app.getPath('userData')`.
  * Avoids the `electron-window-state` dependency for ~30 lines of code.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/desktop/src/window.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/desktop/src/window.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -72,33 +72,38 @@ import { log } from "./logger";
  * moved at least once — a fresh install lets Electron pick the OS default
  * placement rather than forcing `(0, 0)`. */
 interface WindowState {
+  /** Window width in pixels. */
   width: number;
+  /** Window height in pixels. */
   height: number;
+  /** Left edge; omitted to let the OS place the window. */
   x?: number;
+  /** Top edge; omitted to let the OS place the window. */
   y?: number;
 }
 
 /** Absolute path to the JSON file geometry is persisted to, under this
- * platform's `userData` directory (`~/Library/Application Support/…` on
- * macOS). */
+ * platform's `userData` directory (e.g. `~/Library/Application Support/…`
+ * on macOS, `%APPDATA%` on Windows). */
 function statePath(): string {
   return path.join(app.getPath("userData"), "window-state.json");
 }
 
 /**
  * Absolute path to the colored application icon used for the window title bar
- * — the same logo the macOS app shows in its Dock (rendered from
- * `assets/icon.svg`). Without this, an unpackaged `electron out/main.js` run
- * falls back to the generic Electron icon.
+ * and the Windows taskbar / Linux launcher — the same logo the macOS app shows
+ * in its Dock (rendered from `assets/icon.svg`). Without this, an unpackaged
+ * `electron out/main.js` run falls back to the generic Electron icon.
  *
- * macOS ignores `BrowserWindow#icon` entirely (its window has no icon and the
- * Dock uses the bundle's `.icns`), so the value is harmless there. Resolves
- * dev (`desktop/assets`) vs packaged (`Resources/assets`, shipped via
- * `extraResources`); returns `undefined` if the file is absent so we cleanly
- * fall back instead of throwing.
+ * Windows wants the multi-size `.ico` (crisp at every taskbar scale); other
+ * platforms take the `.png`. macOS ignores `BrowserWindow#icon` entirely (its
+ * window has no icon and the Dock uses the bundle's `.icns`), so the value is
+ * harmless there. Resolves dev (`desktop/assets`) vs packaged
+ * (`Resources/assets`, shipped via `extraResources`); returns `undefined` if
+ * the file is absent so we cleanly fall back instead of throwing.
  */
 export function appIconPath(): string | undefined {
-  const file = "icon.png";
+  const file = process.platform === "win32" ? "icon.ico" : "icon.png";
   const base = app.isPackaged
     ? path.join(process.resourcesPath, "assets")
     : path.join(__dirname, "..", "assets");
@@ -135,6 +140,8 @@ function loadState(): WindowState {
  * would silently discard the user's last real resize/move. Failures (e.g.
  * a read-only `userData` dir) are logged, not thrown — losing the saved
  * geometry is cosmetic, not fatal.
+ *
+ * @param win - Window whose bounds to save.
  */
 function saveState(win: BrowserWindow): void {
   if (win.isDestroyed() || win.isMinimized()) return;
@@ -194,6 +201,7 @@ export function createDashboardWindow(targetUrl: string): BrowserWindow {
 
   // Persist size/position on resize/move (debounced via the close handler too).
   let saveTimer: NodeJS.Timeout | null = null;
+  /** Save the window bounds 400 ms after the last move or resize. */
   const debounced = () => {
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(() => saveState(win), 400);

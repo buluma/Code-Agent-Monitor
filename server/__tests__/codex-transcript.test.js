@@ -1,7 +1,7 @@
 /**
  * @file Verifies Codex rollout transcript parsing for human turns, persisted
  * images, custom exec tool calls, paired outputs, and backward pagination.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { after, describe, it } = require("node:test");
@@ -10,7 +10,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "cam-codex-transcript-"));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-codex-transcript-"));
 process.env.DASHBOARD_DB_PATH = path.join(TMP, "dashboard.db");
 
 const { db } = require("../db");

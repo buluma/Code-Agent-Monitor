@@ -1,7 +1,7 @@
 /**
  * @file vitest.config.ts
  * @description Vitest configuration for the client test suite — jsdom environment, React plugin, test globals, and the same build-time `__APP_VERSION__` injection as vite.config.ts so version-dependent components render identically under test.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 import { readFileSync } from "node:fs";
@@ -9,9 +9,13 @@ import { resolve } from "node:path";
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
-// Mirror vite.config.ts: inject the repo-root project version as `__APP_VERSION__`
-// so components that render it (e.g. the sidebar footer) behave the same in tests.
-// Fail-safe resolution (root -> client -> placeholder) matches vite.config.ts.
+/**
+ * Resolve the version injected as `__APP_VERSION__` in tests, mirroring `vite.config.ts` so
+ * components that render it (such as the sidebar footer) behave the same as in the app. Same
+ * fail-safe order: repo root, then client, then a placeholder.
+ *
+ * @returns The version string.
+ */
 function resolveAppVersion(): string {
   for (const rel of ["../package.json", "package.json"]) {
     try {
@@ -23,6 +27,7 @@ function resolveAppVersion(): string {
   }
   return "0.0.0";
 }
+/** Version injected as `__APP_VERSION__` in tests. */
 const APP_VERSION = resolveAppVersion();
 
 export default defineConfig({
@@ -35,15 +40,5 @@ export default defineConfig({
     setupFiles: ["./src/test-setup.ts"],
     include: ["src/**/*.test.{ts,tsx}", "tests/**/*.test.ts"],
     css: false,
-    // Reports only (SHA-169) — no thresholds. `text` for local runs, `html`
-    // for a browsable report, `json-summary` for tooling to read the numbers
-    // later without re-running coverage.
-    coverage: {
-      provider: "v8",
-      reporter: ["text", "html", "json-summary"],
-      reportsDirectory: "./coverage",
-      include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/**/*.test.{ts,tsx}", "src/test-setup.ts"],
-    },
   },
 });

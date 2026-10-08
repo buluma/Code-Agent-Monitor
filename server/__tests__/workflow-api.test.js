@@ -3,7 +3,7 @@
  * hook with a transcript_path triggers on-disk journal ingestion off the
  * response path, and the run then surfaces via GET /api/workflows/runs,
  * GET /api/workflows/runs/:runId, and the session-detail `workflows[]` field.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { describe, it, before, after } = require("node:test");

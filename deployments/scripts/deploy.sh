@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# deploy.sh – Main deployment orchestrator for Code Agent Monitor
+# deploy.sh – Main deployment orchestrator for Claude Code Agent Monitor
 #
 # Usage:
 #   ./deploy.sh --env dev|staging|production --method helm|kustomize
 #   ./deploy.sh --env staging --method helm --dry-run
 #   ./deploy.sh --help
 # ─────────────────────────────────────────────────────────────────────────────
-# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+# @author Son Nguyen <hoangson091104@gmail.com>
 set -euo pipefail
 
 # ── Constants ───────────────────────────────────────────────────────────────
@@ -38,7 +38,7 @@ fatal() { err "$@"; exit 1; }
 banner() {
   echo ""
   echo -e "${BOLD}${BLUE}╔══════════════════════════════════════════════════╗${NC}"
-  echo -e "${BOLD}${BLUE}║   Code Agent Monitor – Deploy                   ║${NC}"
+  echo -e "${BOLD}${BLUE}║   Claude Code Agent Monitor – Deploy            ║${NC}"
   echo -e "${BOLD}${BLUE}╚══════════════════════════════════════════════════╝${NC}"
   echo ""
 }
@@ -85,7 +85,7 @@ ${BOLD}Options:${NC}
 
 ${BOLD}Examples:${NC}
   $(basename "$0") --env dev --method helm
-  $(basename "$0") --env production --method helm --tag 4.2.1
+  $(basename "$0") --env production --method helm --tag 2.2.6
   $(basename "$0") --env staging --method kustomize --dry-run
 
 EOF
@@ -299,8 +299,8 @@ deploy_kustomize() {
 
   local rendered
   rendered="$(mktemp)"
-  kubectl kustomize "${overlay_dir}" | sed "s|cam-dashboard:4.2.1|${FULL_IMAGE}|g" > "${rendered}"
-  if ! kubectl apply -f "${rendered}" --server-side --field-manager=cam-deployer; then
+  kubectl kustomize "${overlay_dir}" | sed "s|ccam-dashboard:2.2.6|${FULL_IMAGE}|g" > "${rendered}"
+  if ! kubectl apply -f "${rendered}" --server-side --field-manager=ccam-deployer; then
     rm -f "${rendered}"
     err "Kustomize deployment failed!"
     warn "Run: kubectl rollout undo deployment/${APP_NAME} -n ${NAMESPACE}"
@@ -337,8 +337,8 @@ run_health_check() {
   service_name=$(kubectl get service -n "${NAMESPACE}" \
     -l "app.kubernetes.io/name=${APP_NAME}" \
     -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
-  [[ -n "$deployment_name" ]] || fatal "No CAM Deployment found in ${NAMESPACE}"
-  [[ -n "$service_name" ]] || fatal "No CAM Service found in ${NAMESPACE}"
+  [[ -n "$deployment_name" ]] || fatal "No CCAM Deployment found in ${NAMESPACE}"
+  [[ -n "$service_name" ]] || fatal "No CCAM Service found in ${NAMESPACE}"
 
   # Determine health check URL
   local health_url=""

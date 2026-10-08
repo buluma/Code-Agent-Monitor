@@ -2,7 +2,7 @@
  * @file MessageList.sender.test.tsx
  * @description Verifies true transcript sender labels plus safe persisted-image
  * rendering, avoiding blanket user attribution and raw image-path exposure.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";

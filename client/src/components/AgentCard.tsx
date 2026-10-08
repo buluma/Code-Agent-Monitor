@@ -1,16 +1,19 @@
 /**
  * @file AgentCard.tsx
  * @description Defines the AgentCard component that displays a summary of an
- * agent's name, status, task, current tool, timestamps, and native Codex
- * title plus a latest-two-human-turn context. Cards reuse session task-progress
- * donuts beside status when available. Durable cards navigate to session
+ * agent's name, status, task, current tool, timestamps, and latest-two-human-turn
+ * context. Provider-owned main cards show the session's own title (clamped to
+ * three lines) with the tool name leading the subtitle, so Claude Code, Cursor,
+ * and Codex cards read the same. Cards reuse session task-progress donuts
+ * beside status when available, and can render status as a dot where the
+ * layout already names it (Kanban columns). Durable cards navigate to session
  * details while the brief pre-identity Codex process card stays non-navigable.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/AgentCard.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/AgentCard.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -67,24 +70,13 @@ import { effectiveAgentStatus, isAgentAwaitingInput, agentAwaitingReason } from 
 import type { Agent, Session } from "../lib/types";
 import { formatDuration, timeAgo, formatModelName, pathBasename, fmtCost } from "../lib/format";
 
-/**
- * Display name for a main agent, swapping its auto-generated placeholder for the
- * real session title when one exists. Main agents are created as
- * `<prefix> - <placeholder>`, where the placeholder is either `Session <id8>`
- * (live hooks) or `<cwd-folder> - <id8>` (import / background sync). Replacing
- * everything after the first ` - ` covers BOTH formats — the older
- * `replace(/Session [0-9a-f]{8}/)` only matched the hook form, so imported
- * sessions kept showing `<folder> - <id8>` even after their title was known.
- */
-function mainAgentDisplayName(agentName: string, realSessionName: string): string {
-  if (!realSessionName) return agentName;
-  const sep = agentName.indexOf(" - ");
-  return sep >= 0 ? `${agentName.slice(0, sep)} - ${realSessionName}` : agentName;
-}
-
 /** Keep a compact card's history legible: at most two distinct human turns,
  * one visual row each. This intentionally preserves a title-matching first
- * request when a terse follow-up depends on it for context. */
+ * request when a terse follow-up depends on it for context.
+ *
+ * @param value - Stored prompt context, possibly empty.
+ * @returns Up to two display lines.
+ */
 function promptPreviewLines(value: string | null | undefined): string[] {
   const seen = new Set<string>();
   return String(value || "")
@@ -99,16 +91,31 @@ function promptPreviewLines(value: string | null | undefined): string[] {
     .slice(-2);
 }
 
+/** Props for {@link AgentCard}. */
 interface AgentCardProps {
+  /** Agent to show. */
   agent: Agent;
   /** Optional session data for richer main-agent rendering (model, cwd,
    *  cost). Subagent display ignores this. When omitted, the card falls
    *  back to the original minimal layout. */
   session?: Session;
+  /** Subtitle override, shown in place of the subagent type. */
   label?: string;
+  /** Click handler; defaults to opening the agent's session. */
   onClick?: () => void;
+  /** `dot` shrinks the status badge to its colored dot (tooltip + screen-reader
+   *  label kept) for surfaces where the layout already shows the status, such
+   *  as a Kanban column. Defaults to the full badge. */
+  statusDisplay?: "badge" | "dot";
 }
 
+/**
+ * Whether a card is a transient placeholder for a Codex TUI process that has not written a session
+ * id yet. Such cards are not clickable, since there is no session page to open.
+ *
+ * @param metadata - The row's JSON metadata.
+ * @returns True when `pre_identity_process` is set.
+ */
 function isTransientProcessCard(metadata: string | null | undefined): boolean {
   if (!metadata) return false;
   try {
@@ -118,7 +125,18 @@ function isTransientProcessCard(metadata: string | null | undefined): boolean {
   }
 }
 
-export function AgentCard({ agent, session, label, onClick }: AgentCardProps) {
+/**
+ * Kanban card for an agent: name, status badge, and what it is working on. Main-agent cards use the
+ * session for model, working directory, and cost; subagent cards show their type. Clicking opens
+ * the session, except for transient Codex placeholders, which have no page yet.
+ */
+export function AgentCard({
+  agent,
+  session,
+  label,
+  onClick,
+  statusDisplay = "badge",
+}: AgentCardProps) {
   const navigate = useNavigate();
   const { t } = useTranslation("kanban");
   const isWaiting = agent.status === "waiting" || isAgentAwaitingInput(agent);
@@ -146,29 +164,33 @@ export function AgentCard({ agent, session, label, onClick }: AgentCardProps) {
     : typeof agent.cost === "number"
       ? agent.cost
       : 0;
-  // Real (user-given) session name - auto-generated Claude/Codex/Helm Code
-  // fallbacks carry no extra info next to the ID, so they are suppressed.
+  // Real (user-given) session name - auto-generated Claude/Codex fallbacks
+  // carry no extra info next to the ID, so they are suppressed.
   const sessionName = session?.name?.trim() || "";
-  const realSessionName = /^(Session [0-9a-f]{8}|Codex session|New session - .*)$/i.test(
-    sessionName
-  )
+  const realSessionName = /^(Session [0-9a-f]{8}|Codex session)$/i.test(sessionName)
     ? ""
     : sessionName;
   const isCodexMain = isMain && session?.provider === "codex" && agent.name.trim() === "Codex";
-  const isHelmcodeMain =
-    isMain && session?.provider === "helmcode" && agent.name.trim() === "Helm Code";
-  const isT3Main = isMain && session?.provider === "t3" && agent.name.trim() === "T3";
-  const displayName = isCodexMain
-    ? `Codex · ${realSessionName || agent.session_id.slice(0, 8)}`
-    : isHelmcodeMain
-      ? `Helm Code · ${realSessionName || agent.session_id.slice(0, 8)}`
-      : isT3Main
-        ? `T3 · ${realSessionName || agent.session_id.slice(0, 8)}`
-        : isMain
-          ? mainAgentDisplayName(agent.name, realSessionName)
-          : agent.name;
-  // Session titles and requests are intentionally independent: Claude and
-  // Codex both persist two recent real human turns on the session, while a
+  const isCursorMain = isMain && session?.provider === "cursor";
+  const isClaudeMain =
+    isMain &&
+    session?.provider !== "cursor" &&
+    session?.provider !== "codex" &&
+    /^Main Agent(?:\s*-|$)/i.test(agent.name.trim());
+  // Provider-owned main cards title themselves with the session's own title;
+  // the tool name moves to the start of the subtitle instead of eating the
+  // title row. Custom (non-placeholder) agent names and subagents keep their
+  // agent name.
+  const providerLabel = isCodexMain
+    ? "Codex"
+    : isCursorMain
+      ? "Cursor"
+      : isClaudeMain
+        ? "Claude Code"
+        : null;
+  const displayName = providerLabel ? realSessionName || t("session.anonymous") : agent.name;
+  // Session titles and requests are intentionally independent: Claude,
+  // Cursor, and Codex persist two recent real human turns on the session, while a
   // main-agent task remains the truthful fallback for pre-preview history.
   // Subagents keep their own assigned task instead of inheriting the parent.
   const taskPreview = isMain
@@ -215,6 +237,7 @@ export function AgentCard({ agent, session, label, onClick }: AgentCardProps) {
   }
   const subtitle = isMain
     ? [
+        providerLabel,
         cwdBase,
         subagentCount > 0 ? t("kanban:session.subagentSummary", { count: subagentCount }) : null,
         sessionTurns > 0 ? t("kanban:session.turnSummary", { count: sessionTurns }) : null,
@@ -245,7 +268,7 @@ export function AgentCard({ agent, session, label, onClick }: AgentCardProps) {
       }`}
     >
       <div className="flex items-start justify-between gap-2 mb-3 min-w-0">
-        <div className="flex items-center gap-2.5 min-w-0 overflow-hidden">
+        <div className="flex items-start gap-2.5 min-w-0 overflow-hidden">
           <div
             className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${
               isMain ? "bg-accent/15 text-accent" : "bg-violet-500/15 text-violet-400"
@@ -254,15 +277,22 @@ export function AgentCard({ agent, session, label, onClick }: AgentCardProps) {
             {isMain ? <Bot className="w-3.5 h-3.5" /> : <GitBranch className="w-3.5 h-3.5" />}
           </div>
           <div className="min-w-0 overflow-hidden">
-            <p className="text-sm font-medium text-gray-200 truncate">
-              {/* Auto-generated main-agent titles (e.g. "Main Agent - Session
-                  229d93fd" or "Main Agent - work - e3f8e613") swap the
-                  placeholder for the real session name when one exists. Codex
-                  main agents use their native renamed title (or short ID) so
-                  a board never shows a bare, indistinguishable "Codex". */}
+            {/* Wraps to at most three lines (long unbroken tokens such as
+                paths break anywhere) so a long title never blows up the
+                card; the full title stays available on hover. */}
+            <p
+              className="text-sm font-medium leading-snug text-gray-200 line-clamp-3 [overflow-wrap:anywhere]"
+              title={displayName}
+            >
               {displayName}
             </p>
-            {subtitle && <p className="text-[11px] text-gray-500 truncate">{subtitle}</p>}
+            {/* Single line; the full subtitle (tool · project · counts) stays
+                available on hover when the column is too narrow for it. */}
+            {subtitle && (
+              <p className="text-[11px] text-gray-500 truncate" title={subtitle}>
+                {subtitle}
+              </p>
+            )}
           </div>
         </div>
         {/* compact: cards are narrow — inline reason chip would squeeze the
@@ -276,6 +306,7 @@ export function AgentCard({ agent, session, label, onClick }: AgentCardProps) {
             reason={agentAwaitingReason(agent)}
             provider={session?.provider}
             compact
+            variant={statusDisplay}
           />
         </div>
       </div>
@@ -332,9 +363,14 @@ export function AgentCard({ agent, session, label, onClick }: AgentCardProps) {
             {timeAgo(agent.last_activity || agent.updated_at || agent.started_at)}
           </span>
         )}
+        {/* Main cards already carry the session title as their own title, so
+            the footer keeps only the short ID; a subagent card's title is the
+            subagent, so its session name stays here as context. */}
         <span className="ml-auto flex items-center gap-1 min-w-0 opacity-50">
-          {realSessionName && !isCodexMain && (
-            <span className="truncate max-w-[10rem]">{realSessionName} ·</span>
+          {realSessionName && !providerLabel && (
+            <span className="truncate max-w-[10rem]" title={realSessionName}>
+              {realSessionName} ·
+            </span>
           )}
           <span className="font-mono flex-shrink-0">{agent.session_id.slice(0, 8)}</span>
         </span>

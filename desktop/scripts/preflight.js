@@ -12,7 +12,7 @@
  * This module is shared by `install.js` (wraps the dependency install) and
  * `prebuild.js` (gates every `desktop:*` build/dev script) so both surfaces
  * print the same guidance.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const fs = require("node:fs");
@@ -47,7 +47,7 @@ function printNativeDepHelp(reason) {
   const out = (s) => process.stderr.write(s + "\n");
   out("");
   out(line);
-  out("  Code Agent Monitor — desktop native dependency setup did not complete");
+  out("  Claude Code Monitor — desktop native dependency setup did not complete");
   out(line);
   if (reason) {
     out(`  ${reason}`);
@@ -58,7 +58,10 @@ function printNativeDepHelp(reason) {
   out("  fails for one of two reasons:");
   out("");
   out("    1. No C++ build toolchain, so the module can't compile from source:");
-  out("       • macOS: xcode-select --install");
+  out('       • Windows: install "Visual Studio Build Tools" with the');
+  out('                  "Desktop development with C++" workload.');
+  out("       • macOS:   xcode-select --install");
+  out("       • Linux:   install build-essential + python3.");
   out("");
   out("    2. Your Node.js is newer than any published better-sqlite3 prebuilt");
   out(`       binary (you are on Node ${process.version}). A Node LTS (20 or 22)`);

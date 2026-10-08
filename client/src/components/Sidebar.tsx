@@ -1,12 +1,12 @@
 /**
  * @file Sidebar.tsx
  * @description Defines the Sidebar component that provides navigation links to different sections of the application, displays the connection status, and includes a toggle button for collapsing or expanding the sidebar. The component uses React Router's NavLink for navigation and Lucide icons for visual representation, including a portal-backed language picker that stays usable when the sidebar is collapsed. The collapsed state of the sidebar is stored in localStorage to persist user preferences across sessions.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/Sidebar.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/Sidebar.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -54,7 +54,7 @@
  *
  * ----------------------------------------------------------------------------- */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { NavLink } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -79,6 +79,7 @@ import {
   Plug,
   Clock,
   Gauge,
+  Check,
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
@@ -86,14 +87,21 @@ import type { LucideIcon } from "lucide-react";
 import { api } from "../lib/api";
 import { eventBus } from "../lib/eventBus";
 import type { UpdateStatusPayload, WSMessage } from "../lib/types";
+import { Select } from "./Select";
+import { UPDATE_CHECK_EVENT } from "../lib/appEvents";
 
+/**
+ * Type guard for an `update_status` WebSocket payload.
+ *
+ * @param x - Message data.
+ * @returns True when it carries the `git_repo` and `update_available` fields.
+ */
 function isUpdatePayload(x: unknown): x is UpdateStatusPayload {
   return typeof x === "object" && x !== null && "git_repo" in x && "update_available" in x;
 }
 
-/** Static primary navigation, reused by the command palette (CommandPalette.tsx)
- *  so its "jump to page" results stay in sync with the sidebar. */
-export const NAV_KEYS = [
+/** Primary navigation entries in sidebar order: route, icon, and translation key. */
+const NAV_KEYS = [
   { to: "/", icon: LayoutDashboard, key: "nav:dashboard" },
   { to: "/kanban", icon: Columns3, key: "nav:agentBoard" },
   { to: "/sessions", icon: FolderOpen, key: "nav:sessions" },
@@ -105,18 +113,54 @@ export const NAV_KEYS = [
   { to: "/settings", icon: Settings, key: "nav:settings" },
 ] as const;
 
+/** localStorage key remembering whether the sidebar is collapsed. */
 const STORAGE_KEY = "sidebar-collapsed";
+/**
+ * localStorage key holding the connection-status statistics, so the cumulative counters survive
+ * reloads.
+ */
 const STATS_STORAGE_KEY = "sidebar-connection-stats";
+/** How many recent events the connection status modal keeps and persists. */
 const RECENT_EVENTS_CAP = 8;
+/** UI languages offered by the language switcher. Must match `supportedLngs` in the i18n setup. */
+const SUPPORTED_LANGUAGES = ["en", "zh", "vi", "ko", "es"] as const;
+/** One supported UI language code. */
+type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
+/** Width of the language menu opened from the collapsed rail, in pixels. */
+const COLLAPSED_LANGUAGE_MENU_WIDTH = 240;
+/** Minimum distance kept between the language menu and the viewport edge, in pixels. */
+const VIEWPORT_GUTTER = 12;
+/** Maximum height of the language menu before it scrolls, in pixels. */
+const LANGUAGE_MENU_MAX_HEIGHT = 288;
+
+/**
+ * Connection statistics persisted to localStorage. The rolling one-minute event buffer behind the
+ * sparkline is deliberately not persisted, since it is only meaningful relative to now.
+ */
 interface PersistedStats {
+  /** Total WebSocket events received. */
   eventCount: number;
+  /**
+   * Highest events-per-second rate seen, kept across reloads so a one-off burst stays visible after
+   * it rolls out of the one-minute window.
+   */
   peakPerSec: number;
+  /**
+   * Type and arrival time (epoch milliseconds) of the most recent event, or null before any event.
+   */
   lastEvent: { type: string; at: number } | null;
+  /** Event counts per message type, as `[type, count]` pairs. */
   typeCount: [string, number][];
+  /** Most recent events, newest last, capped at {@link RECENT_EVENTS_CAP}. */
   recentEvents: { type: string; at: number }[];
 }
 
+/**
+ * Read the persisted collapsed state.
+ *
+ * @returns True when the sidebar was collapsed; false when unset or storage is unavailable.
+ */
 function loadCollapsed(): boolean {
   try {
     return localStorage.getItem(STORAGE_KEY) === "true";
@@ -125,6 +169,12 @@ function loadCollapsed(): boolean {
   }
 }
 
+/**
+ * Read persisted connection statistics, validating each field so a corrupt or outdated entry cannot
+ * break the sidebar.
+ *
+ * @returns The stored statistics, or zeroed statistics when nothing valid is stored.
+ */
 function loadStats(): PersistedStats {
   const empty: PersistedStats = {
     eventCount: 0,
@@ -166,15 +216,207 @@ function loadStats(): PersistedStats {
   }
 }
 
+/**
+ * Map an i18next language code (for example `zh-CN` or `es-419`) to a supported UI language by its
+ * base code.
+ *
+ * @param language - Detected or stored language code.
+ * @returns The matching supported language, or `en` as the fallback.
+ */
+function normalizeLanguage(language: string): SupportedLanguage {
+  const base = language.toLowerCase().split("-")[0];
+  if (base === "zh" || base === "vi" || base === "en" || base === "ko" || base === "es") {
+    return base;
+  }
+  return "en";
+}
+
+/** Props for {@link Sidebar}. */
 interface SidebarProps {
+  /** Live WebSocket state; drives the connection indicator. */
   wsConnected: boolean;
+  /** Whether the sidebar is shown as a narrow icon rail. */
   collapsed: boolean;
+  /** Toggles the collapsed state. */
   onToggle: () => void;
 }
 
+/** Props for {@link CollapsedLanguagePicker}. */
+interface CollapsedLanguagePickerProps {
+  /** Current language. */
+  value: SupportedLanguage;
+  /** Languages to offer, each with its native label and a hint. */
+  options: Array<{ value: SupportedLanguage; label: string; hint: string }>;
+  /** Accessible label for the trigger button. */
+  label: string;
+  /** Called with the chosen language. */
+  onChange: (language: SupportedLanguage) => void;
+}
+
+/**
+ * Keeps the collapsed-sidebar language control compact without forcing the
+ * full option list into the narrow rail. The list is portalled to the body so
+ * the sidebar's intentional overflow clipping cannot constrain it.
+ */
+function CollapsedLanguagePicker({
+  value,
+  options,
+  label,
+  onChange,
+}: CollapsedLanguagePickerProps) {
+  const [open, setOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<{ left: number; top?: number; bottom?: number }>(
+    {
+      left: VIEWPORT_GUTTER,
+      top: VIEWPORT_GUTTER,
+    }
+  );
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const menuId = useId();
+
+  /**
+   * Place the language menu next to the collapsed rail's trigger, at most 240px wide, opening
+   * upward or downward to fit and clamped inside the viewport.
+   */
+  const positionMenu = useCallback(() => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const width = Math.min(COLLAPSED_LANGUAGE_MENU_WIDTH, window.innerWidth - VIEWPORT_GUTTER * 2);
+    const left = Math.min(
+      Math.max(VIEWPORT_GUTTER, rect.left),
+      Math.max(VIEWPORT_GUTTER, window.innerWidth - width - VIEWPORT_GUTTER)
+    );
+    const opensAbove =
+      window.innerHeight - rect.bottom < LANGUAGE_MENU_MAX_HEIGHT &&
+      rect.top > window.innerHeight - rect.bottom;
+
+    setMenuPosition(
+      opensAbove
+        ? { left, bottom: Math.max(VIEWPORT_GUTTER, window.innerHeight - rect.top + 8) }
+        : { left, top: Math.min(window.innerHeight - VIEWPORT_GUTTER, rect.bottom + 8) }
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+
+    positionMenu();
+    /** Close the menu on a press outside both the trigger and the menu. */
+    const closeOnOutsidePress = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (triggerRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+    /** Close the menu on Escape and return focus to the trigger. */
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("mousedown", closeOnOutsidePress);
+    document.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("resize", positionMenu);
+    window.addEventListener("scroll", positionMenu, true);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsidePress);
+      document.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("resize", positionMenu);
+      window.removeEventListener("scroll", positionMenu, true);
+    };
+  }, [open, positionMenu]);
+
+  /**
+   * Pick a language, close the menu, and return focus to the trigger.
+   *
+   * @param language - Chosen language.
+   */
+  const chooseLanguage = (language: SupportedLanguage) => {
+    onChange(language);
+    setOpen(false);
+    triggerRef.current?.focus();
+  };
+
+  const menu = open && typeof document !== "undefined" && (
+    <div
+      ref={menuRef}
+      id={menuId}
+      role="listbox"
+      aria-label={label}
+      className="fixed z-[80] max-h-72 overflow-auto rounded-lg border border-border bg-surface-1 py-1 shadow-xl shadow-black/40 animate-fade-in"
+      style={{
+        ...menuPosition,
+        width: `min(${COLLAPSED_LANGUAGE_MENU_WIDTH}px, calc(100vw - ${VIEWPORT_GUTTER * 2}px))`,
+      }}
+    >
+      {options.map((option) => {
+        const selected = option.value === value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            role="option"
+            aria-selected={selected}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => chooseLanguage(option.value)}
+            className={`w-full px-3 py-2 text-left transition-colors hover:bg-surface-3 ${
+              selected ? "bg-accent/10" : ""
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <span
+                className={`min-w-0 flex-1 truncate text-xs ${
+                  selected ? "font-medium text-accent" : "text-gray-200"
+                }`}
+              >
+                {option.label}
+              </span>
+              {selected && <Check className="h-3.5 w-3.5 flex-shrink-0 text-accent" aria-hidden />}
+            </span>
+            <div className="mt-0.5 truncate text-[10px] text-gray-500">{option.hint}</div>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-label={label}
+        title={label}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={menuId}
+        onClick={() => setOpen((wasOpen) => !wasOpen)}
+        className="flex h-10 w-full items-center justify-center rounded-lg border border-border bg-surface-2 text-gray-400 transition-colors hover:bg-surface-3 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent/30"
+      >
+        <Globe className="h-4 w-4" aria-hidden />
+      </button>
+      {menu && createPortal(menu, document.body)}
+    </>
+  );
+}
+
+/**
+ * App sidebar: primary navigation (with overflow chevrons when items are clipped), the language
+ * switcher, the connection indicator, and the update notifier.
+ *
+ * It counts every WebSocket message into ref-based buffers, so live traffic never re-renders the
+ * sidebar. The cumulative counters are written to localStorage at most every 2 seconds and flushed
+ * when the page is hidden. Clicking the connection indicator opens {@link ConnectionStatusModal}.
+ * The update check can be triggered from here or from the command palette; a manual check clears
+ * any earlier dismissal of the update notice.
+ */
 export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
-  const { t } = useTranslation();
-  const websiteLabel = "buluma.github.io";
+  const { t, i18n } = useTranslation();
+  const websiteLabel = "sonnguyenhoang.com";
   // Track whether nav items are clipped by overflow so we can render
   // chevron affordances pointing toward the hidden items. Recomputed on
   // scroll, resize, and any structural change (e.g. collapse toggle).
@@ -200,6 +442,10 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
   const recentEventsRef = useRef<Array<{ type: string; at: number }>>([]);
   const persistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  /**
+   * Recompute whether nav items are hidden above or below, skipping the state update when nothing
+   * changed.
+   */
   const recomputeNavOverflow = useCallback(() => {
     const el = navRef.current;
     if (!el) return;
@@ -225,6 +471,7 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
     };
   }, [recomputeNavOverflow, collapsed]);
 
+  /** Scroll the nav list vertically by `delta` pixels. */
   const scrollNavBy = useCallback((delta: number) => {
     navRef.current?.scrollBy({ top: delta, behavior: "smooth" });
   }, []);
@@ -239,6 +486,7 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
     recentEventsRef.current = stats.recentEvents;
   }, []);
 
+  /** Write the cumulative connection statistics to localStorage. Storage failures are ignored. */
   const persistStats = useCallback(() => {
     try {
       const payload: PersistedStats = {
@@ -254,6 +502,7 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
     }
   }, []);
 
+  /** Persist the statistics at most once every 2 seconds. */
   const schedulePersist = useCallback(() => {
     if (persistTimerRef.current) return;
     persistTimerRef.current = setTimeout(() => {
@@ -265,6 +514,7 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
   // Flush pending writes when the page is being hidden / unloaded so the very
   // latest events aren't lost to the throttle window.
   useEffect(() => {
+    /** Write any pending statistics immediately, used when the page is hidden or unloaded. */
     const flush = () => {
       if (persistTimerRef.current) {
         clearTimeout(persistTimerRef.current);
@@ -332,6 +582,10 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
     }
   }, [wsConnected]);
 
+  /**
+   * Check for updates on request. Clears any earlier dismissal of the update notice first, so it
+   * can show again if this check still finds an update.
+   */
   const onCheckUpdates = async () => {
     if (checking) return;
     setChecking(true);
@@ -355,6 +609,21 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
     }
   };
 
+  // The palette can ask for a check, but the check itself stays here: it owns the
+  // spinner, the failure state, the dismissal reset, and the modal that reports
+  // the result. A ref keeps the listener bound once while still calling the
+  // current closure, so a check in flight is never restarted by a re-render.
+  const checkUpdatesRef = useRef(onCheckUpdates);
+  checkUpdatesRef.current = onCheckUpdates;
+  useEffect(() => {
+    /** Run the update check when the command palette asks for one. */
+    const onRequest = () => {
+      void checkUpdatesRef.current();
+    };
+    window.addEventListener(UPDATE_CHECK_EVENT, onRequest);
+    return () => window.removeEventListener(UPDATE_CHECK_EVENT, onRequest);
+  }, []);
+
   const updateAvailable = Boolean(updateStatus?.update_available);
   const checkTitle = checking
     ? t("nav:checkingForUpdates")
@@ -365,6 +634,23 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
         : updateStatus
           ? t("nav:upToDate")
           : t("nav:checkForUpdates");
+  const currentLanguage = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
+  const languageOptions = SUPPORTED_LANGUAGES.map((language) => ({
+    value: language,
+    label: t(`nav:languageNames.${language}`),
+    hint: t(`nav:languageShort.${language}`),
+  }));
+
+  /**
+   * Switch the UI language, skipping the change when it is already active.
+   *
+   * @param language - Language to switch to.
+   */
+  const changeLanguage = (language: SupportedLanguage) => {
+    if (language !== currentLanguage) {
+      i18n.changeLanguage(language);
+    }
+  };
 
   return (
     <aside
@@ -402,7 +688,7 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
                 end={to === "/"}
                 title={collapsed ? label : undefined}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-lg text-sm font-medium transition-colors duration-150 ${
+                  `relative flex items-center gap-3 rounded-lg text-sm font-medium transition-colors duration-150 ${
                     collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2.5"
                   } ${
                     isActive
@@ -438,6 +724,31 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
           >
             <ChevronDown className="w-3.5 h-3.5" aria-hidden />
           </button>
+        )}
+      </div>
+
+      {/* Language controls */}
+      <div className="px-2 pb-2 flex-shrink-0">
+        {collapsed ? (
+          <CollapsedLanguagePicker
+            value={currentLanguage}
+            options={languageOptions}
+            label={t("nav:language")}
+            onChange={changeLanguage}
+          />
+        ) : (
+          <div className="rounded-lg border border-border bg-surface-2 p-2">
+            <p className="px-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+              {t("nav:language")}
+            </p>
+            <div className="mt-2">
+              <Select<SupportedLanguage>
+                value={currentLanguage}
+                onChange={changeLanguage}
+                options={languageOptions}
+              />
+            </div>
+          </div>
         )}
       </div>
 
@@ -554,7 +865,7 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
         {!collapsed && (
           <div className="space-y-1.5">
             <a
-              href="https://github.com/buluma/Code-Agent-Monitor"
+              href="https://github.com/hoangsonww"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center gap-2.5 rounded-lg border border-transparent px-2.5 py-2 text-xs text-gray-300 hover:text-gray-200 hover:bg-surface-3 hover:border-border transition-colors"
@@ -566,10 +877,10 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
               <span className="font-medium">{t("nav:github")}</span>
             </a>
             <a
-              href="https://buluma.github.io"
+              href="https://sonnguyenhoang.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden group flex items-center gap-2.5 rounded-lg border border-transparent px-2.5 py-2 text-xs text-gray-300 hover:text-gray-200 hover:bg-surface-3 hover:border-border transition-colors"
+              className="group flex items-center gap-2.5 rounded-lg border border-transparent px-2.5 py-2 text-xs text-gray-300 hover:text-gray-200 hover:bg-surface-3 hover:border-border transition-colors"
               title={websiteLabel}
             >
               <span className="w-6 h-6 rounded-md bg-surface-3 flex items-center justify-center">
@@ -582,7 +893,7 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
         {collapsed && (
           <div className="flex flex-col items-center gap-2 pt-0.5">
             <a
-              href="https://github.com/buluma/Code-Agent-Monitor"
+              href="https://github.com/hoangsonww"
               target="_blank"
               rel="noopener noreferrer"
               className="w-8 h-8 rounded-md border border-transparent flex items-center justify-center text-gray-400 hover:text-gray-300 hover:bg-surface-3 hover:border-border transition-colors"
@@ -592,10 +903,10 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
               <Github className="w-3.5 h-3.5" />
             </a>
             <a
-              href="https://buluma.github.io"
+              href="https://sonnguyenhoang.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden w-8 h-8 rounded-md border border-transparent flex items-center justify-center text-gray-400 hover:text-gray-300 hover:bg-surface-3 hover:border-border transition-colors"
+              className="w-8 h-8 rounded-md border border-transparent flex items-center justify-center text-gray-400 hover:text-gray-300 hover:bg-surface-3 hover:border-border transition-colors"
               title={websiteLabel}
               aria-label={websiteLabel}
             >
@@ -638,20 +949,41 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
   );
 }
 
+/**
+ * Props for {@link ConnectionStatusModal}. The statistics are passed as refs owned by the sidebar,
+ * so the modal samples them on its own timer instead of re-rendering the sidebar.
+ */
 interface ConnectionStatusModalProps {
+  /** Whether the modal is shown. */
   open: boolean;
+  /** Closes the modal. */
   onClose: () => void;
+  /** Live WebSocket state. */
   wsConnected: boolean;
+  /** Epoch milliseconds when the current connection came up, or null while disconnected. */
   connectedSince: number | null;
+  /** Total events received. */
   eventCountRef: React.MutableRefObject<number>;
+  /** Highest events-per-second rate seen. */
   peakPerSecRef: React.MutableRefObject<number>;
+  /** Most recent event, or null. */
   lastEventRef: React.MutableRefObject<{ type: string; at: number } | null>;
+  /** Arrival times of recent events, used for the one-minute sparkline. */
   eventTimestampsRef: React.MutableRefObject<number[]>;
+  /** Event counts per message type. */
   typeCountRef: React.MutableRefObject<Map<string, number>>;
+  /** Most recent events for the activity list. */
   recentEventsRef: React.MutableRefObject<Array<{ type: string; at: number }>>;
+  /** Clears every statistic, including the persisted copy. */
   onResetStats: () => void;
 }
 
+/**
+ * Connection status modal: connection state, WebSocket endpoint, and uptime; KPIs for total events,
+ * events in the last minute, and peak rate; a one-minute events-per-second sparkline; the top event
+ * types; and recent activity, with a reset button. It re-renders once a second while open so rates
+ * and relative times stay current, stops ticking when closed, and closes on Escape.
+ */
 function ConnectionStatusModal({
   open,
   onClose,
@@ -681,6 +1013,7 @@ function ConnectionStatusModal({
 
   useEffect(() => {
     if (!open) return;
+    /** Close the modal on Escape. */
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
     };
@@ -688,6 +1021,7 @@ function ConnectionStatusModal({
     return () => window.removeEventListener("keydown", handler);
   }, [open, close]);
 
+  /** WebSocket endpoint for this page's origin, using `wss:` on HTTPS. */
   const wsUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -868,13 +1202,17 @@ function ConnectionStatusModal({
   );
 }
 
+/** Titled section inside the connection status modal. */
 function Section({
   title,
   icon: Icon,
   children,
 }: {
+  /** Section heading. */
   title: string;
+  /** Icon shown beside the heading. */
   icon: LucideIcon;
+  /** Section content. */
   children: React.ReactNode;
 }) {
   return (
@@ -890,6 +1228,7 @@ function Section({
   );
 }
 
+/** Small KPI tile with an uppercase label, a monospace value, and a unit. */
 function KpiTile({ label, value, unit }: { label: string; value: string; unit: string }) {
   return (
     <div className="rounded-lg border border-border bg-surface-2 px-2.5 py-2">
@@ -904,6 +1243,7 @@ function KpiTile({ label, value, unit }: { label: string; value: string; unit: s
   );
 }
 
+/** Label/value row in the connection details list, optionally monospace for ids and URLs. */
 function DetailRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex items-start justify-between gap-3 text-xs">
@@ -917,15 +1257,24 @@ function DetailRow({ label, value, mono }: { label: string; value: string; mono?
   );
 }
 
+/**
+ * Horizontal bar for one event type in the breakdown. The bar is scaled against the busiest type
+ * (with a 2% minimum so tiny counts stay visible), and the label shows the count and its share of
+ * all events.
+ */
 function TypeBar({
   type,
   count,
   max,
   total,
 }: {
+  /** Event type. */
   type: string;
+  /** Events of this type. */
   count: number;
+  /** Count of the busiest type, which fills the bar. */
   max: number;
+  /** Events of all types, for the share. */
   total: number;
 }) {
   const widthPct = max > 0 ? Math.max(2, (count / max) * 100) : 0;
@@ -948,13 +1297,20 @@ function TypeBar({
   );
 }
 
+/**
+ * SVG sparkline of events per second over the last minute, with a filled area, scaled to the
+ * busiest second. Drawn muted while disconnected.
+ */
 function Sparkline({
   buckets,
   connected,
   avgLabel,
 }: {
+  /** Events per second for each of the last 60 seconds, oldest first. */
   buckets: number[];
+  /** Live WebSocket state; the line is drawn muted while disconnected. */
   connected: boolean;
+  /** Localized label for the average rate. */
   avgLabel: string;
 }) {
   const W = 320;
@@ -1001,6 +1357,13 @@ function Sparkline({
   );
 }
 
+/**
+ * Bucket event timestamps into per-second counts over a trailing window.
+ *
+ * @param timestamps - Event arrival times in epoch milliseconds.
+ * @param windowSec - Window length in seconds.
+ * @returns `windowSec` counts, oldest first, with the last bucket covering the current second.
+ */
 function bucketEventsPerSecond(timestamps: number[], windowSec: number): number[] {
   const now = Date.now();
   const buckets = new Array<number>(windowSec).fill(0);
@@ -1014,6 +1377,13 @@ function bucketEventsPerSecond(timestamps: number[], windowSec: number): number[
   return buckets;
 }
 
+/**
+ * Localized relative time such as `just now`, `12s ago`, `5m ago`, `3h ago`, or `2d ago`.
+ *
+ * @param timestamp - Epoch milliseconds.
+ * @param t - Translation function.
+ * @returns The relative time label.
+ */
 function formatRelative(
   timestamp: number,
   t: (key: string, opts?: Record<string, unknown>) => string
