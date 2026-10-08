@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
 # ─────────────────────────────────────────────────────────────────────────────
 # deploy.sh – Main deployment orchestrator for Claude Code Agent Monitor
 #
@@ -85,7 +86,7 @@ ${BOLD}Options:${NC}
 
 ${BOLD}Examples:${NC}
   $(basename "$0") --env dev --method helm
-  $(basename "$0") --env production --method helm --tag 2.2.6
+  $(basename "$0") --env production --method helm --tag 2.2.7
   $(basename "$0") --env staging --method kustomize --dry-run
 
 EOF
@@ -299,7 +300,7 @@ deploy_kustomize() {
 
   local rendered
   rendered="$(mktemp)"
-  kubectl kustomize "${overlay_dir}" | sed "s|ccam-dashboard:2.2.6|${FULL_IMAGE}|g" > "${rendered}"
+  kubectl kustomize "${overlay_dir}" | sed "s|ccam-dashboard:2.2.7|${FULL_IMAGE}|g" > "${rendered}"
   if ! kubectl apply -f "${rendered}" --server-side --field-manager=ccam-deployer; then
     rm -f "${rendered}"
     err "Kustomize deployment failed!"
