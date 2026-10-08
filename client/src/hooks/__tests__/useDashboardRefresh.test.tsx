@@ -148,7 +148,8 @@ describe("dashboard refresh scheduling", () => {
     const fetch = vi.fn().mockRejectedValueOnce(new Error("offline")).mockResolvedValue(undefined);
     const { unmount } = renderHook(() => useDashboardRefresh(true, 10000, fetch));
     await advance(0);
-    await advance(10000);
+    // The poll queues a zero-delay batch; advance past its timer boundary.
+    await advance(10001);
     expect(fetch).toHaveBeenCalledTimes(2);
     unmount();
     await advance(30000);
