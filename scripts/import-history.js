@@ -1919,12 +1919,27 @@ async function syncDefaultProjects(dbModule, options = {}) {
   const changed = [];
   if (!fs.existsSync(PROJECTS_DIR)) return { changed };
 
+  const targeted = Array.isArray(options.filePaths)
+    ? options.filePaths
+        .map((file) => path.resolve(file))
+        .filter((file) => {
+          const relative = path.relative(PROJECTS_DIR, file);
+          return (
+            !relative.startsWith("..") &&
+            !path.isAbsolute(relative) &&
+            relative.split(path.sep).length === 2 &&
+            file.endsWith(".jsonl")
+          );
+        })
+    : null;
   let projectDirs;
   try {
-    projectDirs = fs
-      .readdirSync(PROJECTS_DIR, { withFileTypes: true })
-      .filter((d) => d.isDirectory())
-      .map((d) => d.name);
+    projectDirs = targeted
+      ? [...new Set(targeted.map((file) => path.basename(path.dirname(file))))]
+      : fs
+          .readdirSync(PROJECTS_DIR, { withFileTypes: true })
+          .filter((d) => d.isDirectory())
+          .map((d) => d.name);
   } catch {
     return { changed };
   }
@@ -1937,7 +1952,11 @@ async function syncDefaultProjects(dbModule, options = {}) {
     const projPath = path.join(PROJECTS_DIR, projDir);
     let files;
     try {
-      files = fs.readdirSync(projPath).filter((f) => f.endsWith(".jsonl"));
+      files = targeted
+        ? targeted
+            .filter((file) => path.dirname(file) === projPath)
+            .map((file) => path.basename(file))
+        : fs.readdirSync(projPath).filter((f) => f.endsWith(".jsonl"));
     } catch {
       continue;
     }

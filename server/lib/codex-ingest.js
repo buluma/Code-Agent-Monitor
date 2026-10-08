@@ -1159,7 +1159,13 @@ function ingestCodexTranscriptWindow(transcriptPath, options, carry) {
     return ingestCodexTranscript(transcriptPath, options);
   }
   const liveTranscripts = options.liveTranscripts instanceof Set ? options.liveTranscripts : null;
-  const confirmedLive = liveTranscripts ? liveTranscripts.has(path.resolve(transcriptPath)) : null;
+  const confirmedLive = liveTranscripts
+    ? liveTranscripts.has(path.resolve(transcriptPath))
+      ? true
+      : options.liveProbeFresh === false
+        ? null
+        : false
+    : null;
   const created = !knownSession;
   const createOptions = {
     confirmedLive,

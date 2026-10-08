@@ -259,6 +259,9 @@ export interface ServerSnapshot {
 /** Most recent stats snapshot for the tray menu, or null before the first successful fetch. */
 let lastSnapshot: ServerSnapshot | null = null;
 /** Timer for snapshot polling, or null when polling has not started. */
+let snapshotRunning: { port: number; promise: Promise<void> } | null = null;
+let snapshotPort: number | null = null;
+let snapshotGeneration = 0;
 let snapshotTimer: ReturnType<typeof setInterval> | null = null;
 
 /** Synchronous accessor for the tray menu's build step — always returns the
@@ -330,10 +333,28 @@ function fetchSnapshotOverHttp(port: number, timeoutMs = 2500): Promise<ServerSn
  * @param port - Port of the local server, or null when no server is running (the call is then a
  *   no-op).
  */
-export async function refreshServerSnapshot(port: number | null): Promise<void> {
-  if (!port) return;
-  const snap = await fetchSnapshotOverHttp(port);
-  if (snap) lastSnapshot = snap;
+export function refreshServerSnapshot(port: number | null): Promise<void> {
+  if (snapshotPort !== port) {
+    snapshotPort = port;
+    snapshotGeneration++;
+    snapshotRunning = null;
+    lastSnapshot = null;
+  }
+  const generation = snapshotGeneration;
+  if (!port) {
+    lastSnapshot = null;
+    return Promise.resolve();
+  }
+  if (snapshotRunning?.port === port) return snapshotRunning.promise;
+  const promise = fetchSnapshotOverHttp(port)
+    .then((snap) => {
+      if (snap && snapshotGeneration === generation) lastSnapshot = snap;
+    })
+    .finally(() => {
+      if (snapshotRunning?.promise === promise) snapshotRunning = null;
+    });
+  snapshotRunning = { port, promise };
+  return promise;
 }
 
 /**

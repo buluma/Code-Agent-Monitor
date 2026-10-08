@@ -97,10 +97,10 @@ export interface TrayActions {
   isOpenAtLogin: () => boolean;
   /** The embedded server's live port, or `null` before it has started. */
   serverPort: () => number | null;
-  /** Last cached status snapshot (refreshed by the background poller). */
+  /** Last cached status snapshot (refreshed when the menu opens). */
   getSnapshot: () => ServerSnapshot | null;
-  /** Kick an immediate async snapshot refresh (fire-and-forget on menu open). */
-  refreshSnapshot: () => void;
+  /** Refresh the snapshot before opening the menu, with a bounded cached fallback. */
+  refreshSnapshot: () => Promise<void> | void;
   /** Prompt the same quit-confirmation dialog ⌘Q triggers. */
   requestQuit: () => void;
 }
@@ -238,11 +238,26 @@ export function createTray(actions: TrayActions): Tray {
   // Single click (left or right) opens the menu — the conventional macOS
   // menu-bar utility pattern. Opening the dashboard is the first action in
   // the menu, so it's still one click + Enter to surface the window.
-  // We kick an async refresh on open so the next interaction reflects the
-  // very latest counts; this open renders the most recent cached snapshot.
-  const showMenu = (): void => {
-    actions.refreshSnapshot();
-    tray.popUpContextMenu(buildMenu());
+  // Fresh counts normally arrive quickly; never hold the menu for a slow server.
+  let opening = false;
+  const showMenu = async (): Promise<void> => {
+    if (opening) return;
+    opening = true;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      await Promise.race([
+        Promise.resolve()
+          .then(() => actions.refreshSnapshot())
+          .catch(() => {}),
+        new Promise<void>((resolve) => {
+          timeout = setTimeout(resolve, 150);
+        }),
+      ]);
+      if (!tray.isDestroyed()) tray.popUpContextMenu(buildMenu());
+    } finally {
+      if (timeout) clearTimeout(timeout);
+      opening = false;
+    }
   };
   tray.on("click", showMenu);
   tray.on("right-click", showMenu);

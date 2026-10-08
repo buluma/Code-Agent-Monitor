@@ -569,7 +569,7 @@ function startBackgroundServices() {
 function startCursorSessionSync(broadcast, options = {}) {
   const POLL_MS = process.env.DASHBOARD_CURSOR_SYNC_MS
     ? Number(process.env.DASHBOARD_CURSOR_SYNC_MS)
-    : 5_000;
+    : 60_000;
   const fs = require("fs");
   const path = require("path");
   const dbModule = options.dbModule || require("./db");
@@ -833,7 +833,7 @@ function codexHomeChangeTriggersSweep(filename) {
  * failure (SQLITE_BUSY, a half-written file) is retried on the next pass. That
  * retry has no upper bound, so a PERMANENT failure — a constraint violation, a
  * record the parser cannot represent — is retried for the life of the process:
- * at the 4s `DASHBOARD_CODEX_SYNC_MS` default that is ~21,600 attempts per file
+ * at the 30s `DASHBOARD_CODEX_SYNC_MS` default that is ~2,880 attempts per file
  * per day, each writing a log line.
  *
  * This keeps the transient behaviour and bounds the permanent one: a file gets
@@ -890,7 +890,7 @@ function startCodexSessionSync(broadcast) {
   // The response-item tool-call backfill (ingestCodexToolEvents) keeps its own
   // byte cursor, so semantically it is safe to call every sweep — but its
   // "no-op" early exit still costs a statSync plus two DB lookups per file.
-  // Across thousands of historical rollouts every 4s that is a constant CPU
+  // Across thousands of historical rollouts every few seconds that is a constant CPU
   // tax. Run it for every file once per process (backfill), then only for
   // files whose fingerprint changed — plus any file whose last tool-event
   // ingest threw, so a transient failure retries instead of being skipped
@@ -900,6 +900,10 @@ function startCodexSessionSync(broadcast) {
   const retryBudget = createIngestRetryBudget(Number(process.env.DASHBOARD_CODEX_MAX_ATTEMPTS));
   let running = false;
   let queued = false;
+  let queuedFull = false;
+  let pendingFull = false;
+  const dirtyPaths = new Set();
+  const retryPaths = new Set();
   let watcher = null;
   let watchedSessionsDir = null;
   let homeWatcher = null;
@@ -925,9 +929,10 @@ function startCodexSessionSync(broadcast) {
     }
   }
 
-  async function runSweep() {
+  async function runSweep(full = true) {
     if (running) {
       queued = true;
+      queuedFull ||= full;
       return;
     }
     running = true;
@@ -938,7 +943,9 @@ function startCodexSessionSync(broadcast) {
       // as soon as Codex creates the directory instead of polling forever.
       watchSessionsDir();
       watchCodexHome();
-      const rolloutProbe = liveness.probeLiveCodexRollouts();
+      full ||= !toolBackfillDone;
+      const rolloutProbe = await liveness.probeLiveCodexRolloutsAsync({ fresh: full });
+      if (getCodexSessionsDir() !== sessionsDir) return;
       const liveTranscripts = rolloutProbe.available ? rolloutProbe.paths : null;
       // Hooks are the lowest-latency signal, but Codex may delay a new hook
       // until the user approves it. Its local thread row is written at CLI
@@ -948,7 +955,10 @@ function startCodexSessionSync(broadcast) {
       // rollout line. Refresh those titles before evaluating transcript bytes
       // so cards change in real time even for an otherwise idle session.
       for (const result of refreshCodexSessionTitles()) publish(result);
-      const transcripts = findCodexTranscripts(sessionsDir);
+      const transcripts = full
+        ? findCodexTranscripts(sessionsDir)
+        : [...new Set([...dirtyPaths, ...retryPaths, ...toolIngestFailed])];
+      for (const transcript of transcripts) dirtyPaths.delete(transcript);
       for (let index = 0; index < transcripts.length; index++) {
         const transcriptPath = transcripts[index];
         let stat;
@@ -969,9 +979,13 @@ function startCodexSessionSync(broadcast) {
             // error, and an I/O error the ingestor swallows and reports as
             // `failed` (it returns `{changed:false}` for legitimate no-ops too,
             // so the flag is the only way to tell them apart).
-            const ingestResult = ingestCodexTranscript(transcriptPath, { liveTranscripts });
+            const ingestResult = ingestCodexTranscript(transcriptPath, {
+              liveTranscripts,
+              liveProbeFresh: rolloutProbe.fresh,
+            });
             publish(ingestResult);
             if (ingestResult?.failed) {
+              retryPaths.add(transcriptPath);
               noteIngestFailure(
                 ingestKey,
                 fingerprint,
@@ -979,10 +993,12 @@ function startCodexSessionSync(broadcast) {
                 "the ingestor reported a failure"
               );
             } else {
+              retryPaths.delete(transcriptPath);
               fingerprints.set(transcriptPath, fingerprint);
               retryBudget.succeed(ingestKey);
             }
           } catch (err) {
+            retryPaths.add(transcriptPath);
             noteIngestFailure(
               ingestKey,
               fingerprint,
@@ -1044,7 +1060,7 @@ function startCodexSessionSync(broadcast) {
       }
       // Only after one complete pass over every discovered transcript has the
       // backfill actually covered the full corpus.
-      toolBackfillDone = true;
+      if (full) toolBackfillDone = true;
       for (const result of reconcileCodexSessionLiveness()) publish(result);
     } catch {
       // Codex is optional; an unreadable/missing home must not affect startup.
@@ -1052,7 +1068,9 @@ function startCodexSessionSync(broadcast) {
       running = false;
       if (queued) {
         queued = false;
-        setImmediate(() => void runSweep());
+        const nextFull = queuedFull;
+        queuedFull = false;
+        setImmediate(() => void runSweep(nextFull));
       }
     }
   }
@@ -1062,23 +1080,33 @@ function startCodexSessionSync(broadcast) {
 
   const pollMs = process.env.DASHBOARD_CODEX_SYNC_MS
     ? Number(process.env.DASHBOARD_CODEX_SYNC_MS)
-    : 4_000;
+    : 30_000;
   if (Number.isFinite(pollMs) && pollMs > 0) {
     const timer = setInterval(() => void runSweep(), pollMs);
     if (timer.unref) timer.unref();
   }
 
   let debounce;
-  const schedule = () => {
+  const schedule = (filename, root = null) => {
+    if (root && filename) {
+      const candidate = path.resolve(root, String(filename));
+      const relative = path.relative(root, candidate);
+      if (
+        !relative.startsWith("..") &&
+        !path.isAbsolute(relative) &&
+        path.basename(candidate).startsWith("rollout-") &&
+        candidate.endsWith(".jsonl")
+      ) {
+        dirtyPaths.add(candidate);
+      } else pendingFull = true;
+    } else if (root) pendingFull = true;
     if (debounce) return;
-    // A live Codex process appends to its WAL near-continuously; each sweep is
-    // a full discovery pass (directory walk + state-DB read + `ps` probe), so
-    // coalesce watcher bursts to at most ~1 sweep/second rather than one per
-    // 150ms. Sub-second card latency isn't worth a background full scan loop.
     debounce = setTimeout(() => {
       debounce = null;
-      void runSweep();
-    }, 1_000);
+      const full = pendingFull;
+      pendingFull = false;
+      void runSweep(full);
+    }, 1000);
     if (debounce.unref) debounce.unref();
   };
   function watchSessionsDir() {
@@ -1096,7 +1124,9 @@ function startCodexSessionSync(broadcast) {
     try {
       if (fs.existsSync(sessionsDir)) {
         const recursive = process.platform === "darwin" || process.platform === "win32";
-        const nextWatcher = fs.watch(sessionsDir, { recursive }, schedule);
+        const nextWatcher = fs.watch(sessionsDir, { recursive }, (_event, filename) =>
+          schedule(filename, sessionsDir)
+        );
         watcher = nextWatcher;
         nextWatcher.on("error", () => {
           // Only retire this watcher: an error from a recently closed previous
@@ -1154,6 +1184,9 @@ function startCodexSessionSync(broadcast) {
   // response has been sent so a large history never delays the UI action.
   onCodexHomeChanged(() => {
     fingerprints.clear();
+    dirtyPaths.clear();
+    retryPaths.clear();
+    pendingFull = true;
     toolBackfillDone = false; // new home → new corpus needs one full backfill pass
     toolIngestFailed.clear();
     watchSessionsDir();
@@ -1197,15 +1230,21 @@ function startSessionSync(broadcast) {
   const projectsDir = getProjectsDir();
   const mtimeCache = new Map(); // filePath → newest mtime (ms) already imported
   let running = false;
-  let queued = false; // a trigger arrived mid-sweep → run exactly once more
+  let queued = false;
+  let queuedFull = false;
+  let discoveryNeeded = false;
+  const changedPaths = new Set(); // a trigger arrived mid-sweep → run exactly once more
 
-  function runSweep() {
+  function runSweep(full = true) {
     if (running) {
       queued = true;
+      queuedFull ||= full;
       return;
     }
     running = true;
-    syncDefaultProjects(dbModule, { mtimeCache })
+    const filePaths = full ? undefined : [...changedPaths];
+    changedPaths.clear();
+    syncDefaultProjects(dbModule, { mtimeCache, filePaths })
       .then(({ changed }) => {
         for (const { sessionId, isNew } of changed) {
           let row;
@@ -1234,7 +1273,9 @@ function startSessionSync(broadcast) {
         running = false;
         if (queued) {
           queued = false;
-          runSweep();
+          const nextFull = queuedFull;
+          queuedFull = false;
+          runSweep(nextFull);
         }
       });
   }
@@ -1267,7 +1308,9 @@ function startSessionSync(broadcast) {
     if (debounce) return;
     debounce = setTimeout(() => {
       debounce = null;
-      runSweep();
+      const full = discoveryNeeded;
+      discoveryNeeded = false;
+      runSweep(full);
     }, DEBOUNCE_MS);
     if (debounce.unref) debounce.unref();
   }
@@ -1276,6 +1319,11 @@ function startSessionSync(broadcast) {
   // poll, so the watcher never re-parses a busy session every write.
   function onFsEvent(fullPath) {
     if (fullPath && mtimeCache.has(fullPath)) return;
+    const relative = fullPath ? path.relative(projectsDir, fullPath) : "";
+    const parts = relative.split(path.sep);
+    if (parts.length === 2 && !relative.startsWith("..") && fullPath.endsWith(".jsonl")) {
+      changedPaths.add(fullPath);
+    } else discoveryNeeded = true;
     scheduleSweep();
   }
 

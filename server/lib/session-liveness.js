@@ -13,7 +13,7 @@
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
-const { execFileSync } = require("node:child_process");
+const { execFile, execFileSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 const { isInsideContainer } = require("../../scripts/install-hooks");
@@ -189,9 +189,80 @@ function probeLiveCodexRollouts() {
   return { available: true, paths };
 }
 
+// Positive evidence may be reused briefly; absence from a cached probe is unknown.
+let rolloutProbeCache = null;
+let rolloutProbeRunning = null;
+function runProbeCommand(binary, args, timeout, maxBuffer) {
+  return new Promise((resolve, reject) => {
+    execFile(binary, args, { encoding: "utf8", timeout, maxBuffer }, (error, stdout) => {
+      if (error && !(binary === "lsof" && stdout)) reject(error);
+      else resolve(stdout);
+    });
+  });
+}
+async function probeLiveCodexRolloutsAsync({ fresh = false } = {}) {
+  if (probeDisabledByEnv() || process.platform === "win32" || isInsideContainer()) {
+    rolloutProbeCache = null;
+    return { available: false, paths: new Set(), fresh: true };
+  }
+  if (rolloutProbeRunning) return rolloutProbeRunning;
+  if (!fresh && rolloutProbeCache && Date.now() - rolloutProbeCache.at < 5000) {
+    return { ...rolloutProbeCache.result, fresh: false };
+  }
+  rolloutProbeRunning = (async () => {
+    try {
+      const psOut = await runProbeCommand("ps", ["-Ao", "pid=,args="], 5000, 16 * 1024 * 1024);
+      const pids = [];
+      for (const line of psOut.split("\n")) {
+        const match = line.match(/^\s*(\d+)\s+(.*)$/);
+        if (match && isCodexCommand(match[2])) pids.push(match[1]);
+      }
+      const paths = new Set();
+      const remember = (candidate) => {
+        if (candidate.endsWith(".jsonl") && path.basename(candidate).startsWith("rollout-")) {
+          paths.add(path.resolve(candidate));
+        }
+      };
+      if (pids.length && process.platform === "linux") {
+        for (const pid of pids) {
+          let descriptors;
+          try {
+            descriptors = await fs.promises.readdir(`/proc/${pid}/fd`);
+          } catch {
+            return { available: false, paths: new Set(), fresh: true };
+          }
+          for (const descriptor of descriptors) {
+            try {
+              remember(await fs.promises.readlink(`/proc/${pid}/fd/${descriptor}`));
+            } catch {}
+          }
+        }
+      } else if (pids.length) {
+        const output = await runProbeCommand(
+          "lsof",
+          ["-a", "-p", pids.join(","), "-Fn"],
+          10000,
+          32 * 1024 * 1024
+        );
+        for (const line of output.split("\n")) if (line.startsWith("n")) remember(line.slice(1));
+      }
+      const result = { available: true, paths, fresh: true };
+      rolloutProbeCache = { at: Date.now(), result };
+      return result;
+    } catch {
+      rolloutProbeCache = null;
+      return { available: false, paths: new Set(), fresh: true };
+    } finally {
+      rolloutProbeRunning = null;
+    }
+  })();
+  return rolloutProbeRunning;
+}
+
 module.exports = {
   probeLiveCwds,
   probeLiveCodexRollouts,
+  probeLiveCodexRolloutsAsync,
   isAgentCommand,
   isClaudeCommand,
   isCodexCommand,

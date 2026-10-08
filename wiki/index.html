@@ -2147,7 +2147,7 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
                 </tr>
                 <tr>
                   <td><code>DASHBOARD_CURSOR_SYNC_MS</code></td>
-                  <td><code>5000</code></td>
+                  <td><code>60000</code></td>
                   <td>Cursor chat/transcript safety-net interval (ms). Filesystem watching still imports CLI startup and prompt changes immediately; <code>0</code> disables only periodic discovery.</td>
                 </tr>
                 <tr>
@@ -2157,8 +2157,8 @@ npm run mcp:start:repl         # interactive CLI with tab completion</code></pre
                 </tr>
                 <tr>
                   <td><code>DASHBOARD_CODEX_SYNC_MS</code></td>
-                  <td><code>4000</code></td>
-                  <td>Safety-net interval (ms) for incremental Codex rollout scanning. Default <code>4000</code>; <code>0</code> disables polling but keeps the watcher.</td>
+                  <td><code>30000</code></td>
+                  <td>Safety-net interval (ms) for incremental Codex rollout scanning. Default <code>30000</code>; <code>0</code> disables polling but keeps the watcher.</td>
                 </tr>
                 <tr>
                   <td><code>DASHBOARD_CODEX_MAX_ATTEMPTS</code></td>
@@ -7248,7 +7248,7 @@ npm run install-hooks</code></pre>
     <!-- Body-content translations — must load before script.js so the
          i18n engine sees window.__WIKI_CONTENT_I18N. Both are deferred, so they
          run in document order. -->
-    <script src="i18n-content.js?v=109" defer></script>
+    <script src="i18n-content.js?v=110" defer></script>
     <script src="script.js?v=59" defer></script>
     <script>
       (function () {

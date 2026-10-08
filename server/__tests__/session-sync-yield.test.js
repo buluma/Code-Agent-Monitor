@@ -119,4 +119,25 @@ describe("syncDefaultProjects cooperative yielding (#223)", () => {
       `sweep must yield to the event loop on the fast path (observed ${ticks} ticks across ${SESSION_COUNT} files)`
     );
   });
+  it("targets a notified file without walking unrelated projects", async () => {
+    const target = path.join(PROJECTS_DIR, "-w", "00000000-0000-4000-8000-000000000000.jsonl");
+    const mtimeCache = new Map();
+    const originalRead = fs.readdirSync;
+    fs.readdirSync = function (directory, ...args) {
+      assert.ok(
+        !String(directory).startsWith(PROJECTS_DIR),
+        "targeted sync must not discover history"
+      );
+      return originalRead.call(this, directory, ...args);
+    };
+    try {
+      await syncDefaultProjects(dbModule, {
+        mtimeCache,
+        filePaths: [target, path.join(TMP_HOME, "outside.jsonl")],
+      });
+      assert.deepEqual([...mtimeCache.keys()], [target]);
+    } finally {
+      fs.readdirSync = originalRead;
+    }
+  });
 });
