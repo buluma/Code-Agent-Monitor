@@ -2,7 +2,7 @@
  * @file Unit tests for mergeFreshestById, the helper that collapses rows a
  * status-scoped fan-out returned twice because the row changed status while the
  * requests were in flight.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect } from "vitest";

@@ -7,7 +7,7 @@
  * The GPT and Cursor PUT routes reset any omitted rate to 0, so flag-based
  * edits read the existing row first and merge onto it — a partial edit can
  * never silently zero the other rates.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

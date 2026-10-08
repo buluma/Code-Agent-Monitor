@@ -2,7 +2,7 @@
  * @file dashboard-api-client.test.ts
  * @description Contract tests for MCP dashboard HTTP requests, including
  * bearer-token propagation and DELETE request bodies used by config tools.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { afterEach, describe, it } from "node:test";

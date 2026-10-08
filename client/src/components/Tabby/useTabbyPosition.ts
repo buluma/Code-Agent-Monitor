@@ -6,7 +6,7 @@
  *   nearest left/right edge, remembering its vertical offset (persisted as a
  *   viewport fraction so it survives resizes). A small movement threshold tells
  *   a drag apart from a tap so dragging never opens the panel.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

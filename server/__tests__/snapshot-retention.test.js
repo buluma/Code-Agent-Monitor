@@ -6,7 +6,7 @@
  * task progress, purge cleanup, the dry-run-by-default prune API with its
  * confirm gate, tombstones that stop re-imports regrowing pruned snapshots,
  * and the storage report on /api/settings/info.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

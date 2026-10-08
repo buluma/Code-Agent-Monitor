@@ -6,7 +6,7 @@
  * compressed snapshots, the more-complete-copy pick, contained deletes that
  * never follow symlinks, and deletes while a reader holds the file open.
  * Pure filesystem (no database), so CI runs it on Linux, macOS and Windows.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

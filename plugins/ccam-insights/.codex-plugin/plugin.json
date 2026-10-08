@@ -3,12 +3,12 @@
   "version": "2.2.7",
   "description": "AI-powered insights for Claude Code — pattern detection, anomaly alerting, optimization recommendations, and session comparison using Agent Monitor analytics.",
   "author": {
-    "name": "Son Nguyen",
-    "email": "hoangson091104@gmail.com",
-    "url": "https://github.com/hoangsonww"
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
   },
-  "homepage": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
-  "repository": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
+  "homepage": "https://github.com/buluma/Claude-Code-Agent-Monitor",
+  "repository": "https://github.com/buluma/Claude-Code-Agent-Monitor",
   "license": "MIT",
   "keywords": [
     "insights",
@@ -23,10 +23,10 @@
     "displayName": "CCAM Insights",
     "shortDescription": "AI-powered insights for Claude Code — pattern detection, anomaly alerting, optimization...",
     "longDescription": "AI-powered insights for Claude Code — pattern detection, anomaly alerting, optimization recommendations, and session comparison using Agent Monitor analytics.",
-    "developerName": "Son Nguyen",
+    "developerName": "Michael Buluma",
     "category": "Productivity",
     "capabilities": ["Read"],
-    "websiteURL": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
+    "websiteURL": "https://github.com/buluma/Claude-Code-Agent-Monitor",
     "defaultPrompt": [
       "Use CCAM Insights to inspect the local CCAM dashboard.",
       "Use CCAM Insights to analyze recent agent activity."

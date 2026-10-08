@@ -77,7 +77,7 @@ flowchart LR
 `npm run setup` ends with a fail-soft `npm link` (the `link-cli` script), so after a normal local setup `ccam` is on your PATH from any directory:
 
 ```bash
-git clone https://github.com/hoangsonww/Claude-Code-Agent-Monitor.git
+git clone https://github.com/buluma/Claude-Code-Agent-Monitor.git
 cd Claude-Code-Agent-Monitor
 npm run setup     # installs deps (incl. commander) AND links ccam globally
 ccam help

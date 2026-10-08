@@ -3,7 +3,7 @@
  * @description Tiny localStorage-backed preference store for Tabby (enabled +
  *   muted). Broadcasts changes via a window CustomEvent so the Settings toggle
  *   and the live widget stay in sync within the same tab without a reload.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

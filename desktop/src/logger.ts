@@ -5,7 +5,7 @@
  * so all diagnostics go to a per-user log file under app.getPath('logs').
  * We deliberately avoid the `electron-log` dependency — the project keeps a
  * small dependency tree and this file does the only three things we need.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

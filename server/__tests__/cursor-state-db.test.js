@@ -4,7 +4,7 @@
  * (found, missing, absent file, wrong schema, corrupt, locked), that ingestion
  * prefers them over the short-id placeholder, and that sync repairs rows
  * imported earlier with the placeholder name.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { after, describe, it } = require("node:test");

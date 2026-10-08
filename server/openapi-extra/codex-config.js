@@ -2,7 +2,7 @@
  * @file OpenAPI fragments for the Codex configuration explorer at
  * `/api/codex-config`. It exposes redacted inspection, guarded profile
  * creation, and small explicit local edit/delete surfaces with automatic backups.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const tags = [

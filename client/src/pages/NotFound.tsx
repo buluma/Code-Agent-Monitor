@@ -7,7 +7,7 @@
  * Uses the `errors` i18n namespace (`notFound.*` keys) so the page stays
  * localized without hard-coded English strings.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

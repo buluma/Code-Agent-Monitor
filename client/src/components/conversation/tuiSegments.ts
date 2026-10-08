@@ -5,7 +5,7 @@
  * into a flat segment list the renderer can lay out inline. Also strips bare
  * ANSI/SGR escape sequences (e.g. "[1m...[22m") that survive the JSONL pipe
  * so messages render as plain text instead of leaking codes.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

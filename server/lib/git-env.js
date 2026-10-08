@@ -10,7 +10,7 @@
  * The identity variables (GIT_AUTHOR_*, GIT_COMMITTER_*) are stripped for the
  * same reason: git exports those to hooks as well, so any commit a child makes
  * inherits the outer commit's identity. See issue #323.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 /**

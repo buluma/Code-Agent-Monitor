@@ -16,7 +16,7 @@
         powershell -ExecutionPolicy Bypass -File desktop/scripts/build-win-icon.ps1
 
 .NOTES
-    Author: Son Nguyen <hoangson091104@gmail.com>
+    Author: Michael Buluma <1452922+buluma@users.noreply.github.com>
 #>
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing

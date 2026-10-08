@@ -1,6 +1,6 @@
 /**
  * @file JS functionality for wiki page index.html at root
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 /* ─── Mermaid initialisation ────────────────────────────────────────────── */

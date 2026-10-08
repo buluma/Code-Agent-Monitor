@@ -3,7 +3,7 @@
  * empty state, collapsed header, expand → phase chips + per-agent table +
  * results (phase markers excluded), phase-filter toggling, per-result expand to
  * full content, and the running-run indicator.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect } from "vitest";

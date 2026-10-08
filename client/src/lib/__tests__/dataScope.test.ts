@@ -5,7 +5,7 @@
  * localStorage → query-param mapping consumed by the API layer, subscriber
  * notification, and malformed / empty input handling. Each case re-imports the
  * module so the singleton starts clean.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";

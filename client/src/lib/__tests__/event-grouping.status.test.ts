@@ -6,7 +6,7 @@
  * Dashboard hand-rolled a mapping that knew only three types, and neither knew
  * any provider-native prompt type, so Cursor/Codex rows could render a
  * misleading yellow "Waiting" badge (issue #310).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect } from "vitest";

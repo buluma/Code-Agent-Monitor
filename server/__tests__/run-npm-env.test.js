@@ -6,7 +6,7 @@
  * (`setup`, `mcp:install`) plus the root `postinstall` must all route through
  * that single sanitized implementation. Pure Node — no bash or real network —
  * so it runs identically on Windows, macOS, and Linux CI.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it } = require("node:test");

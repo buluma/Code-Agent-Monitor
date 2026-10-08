@@ -3,7 +3,7 @@
  * hook operations, data maintenance (including transcript snapshot storage and
  * retention), and live-safe Claude Code/Cursor/Codex session home
  * configuration for the frontend Settings experience.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { Router } = require("express");

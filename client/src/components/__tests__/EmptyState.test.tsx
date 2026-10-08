@@ -1,7 +1,7 @@
 /**
  * @file EmptyState.test.tsx
  * @description Unit tests for the EmptyState component, which is a reusable React component that displays an empty state with an icon, title, description, and an optional action. The tests cover rendering of the title, description, icon, and action button when provided. The tests use React Testing Library and Vitest for assertions and mocking.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect } from "vitest";

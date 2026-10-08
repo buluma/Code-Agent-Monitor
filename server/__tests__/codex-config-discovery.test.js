@@ -4,7 +4,7 @@
  * safely, profiles follow Codex's overlay rules, plugins are resolved as real
  * manifests, previews redact secrets, and only intended local text files are
  * mutable.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, after } = require("node:test");

@@ -6,7 +6,7 @@
  * where the composer id is the agent-transcripts folder name and `name` is the
  * title shown in Cursor. Any failure (missing file, lock, unexpected schema,
  * no SQLite driver) yields no title so ingestion falls back to its defaults.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("fs");

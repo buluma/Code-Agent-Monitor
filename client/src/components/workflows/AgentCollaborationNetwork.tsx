@@ -1,7 +1,7 @@
 /**
  * @file AgentCollaborationNetwork.tsx
  * @description Defines the AgentCollaborationNetwork React component that visualizes the collaboration between different agent types in a directed graph format using D3.js. The component takes in effectiveness data and interaction edges, renders an interactive force-directed graph, and keeps data-driven legend labels bounded through pagination.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

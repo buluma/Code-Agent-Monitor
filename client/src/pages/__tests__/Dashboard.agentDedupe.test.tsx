@@ -5,7 +5,7 @@
  * that flipped status between the responses — routine for Codex, which toggles
  * working/waiting every turn — rendered twice, once per status. The merged list
  * must hold one card per agent id, showing the freshest status.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect, vi } from "vitest";

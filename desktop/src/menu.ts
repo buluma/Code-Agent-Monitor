@@ -1,6 +1,6 @@
 /**
  * @file Native application menu (the macOS top-bar menu).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
@@ -212,13 +212,13 @@ export function installApplicationMenu(actions: MenuActions): Menu {
         {
           label: "Project on GitHub",
           click: () =>
-            void shell.openExternal("https://github.com/hoangsonww/Claude-Code-Agent-Monitor"),
+            void shell.openExternal("https://github.com/buluma/Claude-Code-Agent-Monitor"),
         },
         {
           label: "Report an Issue",
           click: () =>
             void shell.openExternal(
-              "https://github.com/hoangsonww/Claude-Code-Agent-Monitor/issues/new/choose"
+              "https://github.com/buluma/Claude-Code-Agent-Monitor/issues/new/choose"
             ),
         },
         {

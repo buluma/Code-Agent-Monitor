@@ -16,7 +16,7 @@
  *     time. Anything else is rejected.
  *   - Concurrency cap (RUN_MAX_CONCURRENT, default 10) prevents runaway spawn.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { Router } = require("express");

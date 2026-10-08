@@ -1,6 +1,6 @@
 /**
  * @file Tests for dashboard self-update HTTP endpoints.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

@@ -6,7 +6,7 @@
  * log, and redacted provider metadata for the UI. Secrets are never returned —
  * URLs are masked and secret config / header values are redacted in every
  * response. Delivery + provider definitions live in server/lib/.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { Router } = require("express");

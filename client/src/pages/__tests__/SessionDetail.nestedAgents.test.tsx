@@ -1,7 +1,7 @@
 /**
  * @file SessionDetail.nestedAgents.test.tsx
  * @description Tests for SessionDetail page focusing on correct rendering of nested agent hierarchies, including edge cases like orphaned subagents and multiple main agents. Validates expand/collapse behavior and descendant counts in the UI.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";

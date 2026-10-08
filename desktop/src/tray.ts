@@ -9,7 +9,7 @@
  * tints it for light/dark menu bars; Windows uses the colored `icon.ico`,
  * because a black template glyph would be invisible on the (usually dark)
  * Windows taskbar notification area.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

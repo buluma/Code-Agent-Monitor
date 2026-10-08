@@ -14,27 +14,27 @@ Intended to be referenced from Claude Code's ``statusLine`` setting (see
 
 :file: statusline/statusline.py
 :module: Claude-Code-Agent-Monitor.statusline
-:author: Son Nguyen <hoangson091104@gmail.com>
-:maintainer: Son Nguyen (a.k.a. David Nguyen, hoangsonww)
-:copyright: (c) 2026 Son Nguyen
+:author: Michael Buluma <1452922+buluma@users.noreply.github.com>
+:maintainer: Michael Buluma (a.k.a. David Nguyen, buluma)
+:copyright: (c) 2026 Michael Buluma
 :license: MIT
-:repository: https://github.com/hoangsonww/Claude-Code-Agent-Monitor
+:repository: https://github.com/buluma/Claude-Code-Agent-Monitor
 :requires: Python 3.6+
 :encoding: utf-8
 
-@author Son Nguyen <hoangson091104@gmail.com>
+@author Michael Buluma <1452922+buluma@users.noreply.github.com>
 """
 
 __file_name__ = "statusline.py"
 __module__ = "Claude-Code-Agent-Monitor.statusline"
-__author__ = "Son Nguyen"
-__email__ = "hoangson091104@gmail.com"
-__maintainer__ = "Son Nguyen"
-__copyright__ = "Copyright (c) 2026 Son Nguyen"
+__author__ = "Michael Buluma"
+__email__ = "1452922+buluma@users.noreply.github.com"
+__maintainer__ = "Michael Buluma"
+__copyright__ = "Copyright (c) 2026 Michael Buluma"
 __license__ = "MIT"
 __version__ = "1.0.0"
 __status__ = "Production"
-__repository__ = "https://github.com/hoangsonww/Claude-Code-Agent-Monitor"
+__repository__ = "https://github.com/buluma/Claude-Code-Agent-Monitor"
 
 import sys
 import json

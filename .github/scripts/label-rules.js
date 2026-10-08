@@ -6,7 +6,7 @@
  * evolves — without ever touching a label a human applied. Pure and free of
  * network or filesystem access so `server/__tests__/label-rules.test.js` can
  * pin every rule.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 // Every label this module can apply, with the color and description used when

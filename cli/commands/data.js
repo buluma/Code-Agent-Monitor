@@ -5,7 +5,7 @@
  * write subcommands mirroring the REST API (and the MCP tool surface).
  * Legacy top-level forms — `session <id>`, `transcript <id>` (raw JSON), and
  * `transcript-image` — are kept verbatim for scripts.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

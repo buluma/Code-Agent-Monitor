@@ -4,7 +4,7 @@
  * is ordering, not raw scores, so every assertion compares two candidates
  * against the same query rather than pinning a number — the weights are meant to
  * be tunable without rewriting the suite.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, expect, it } from "vitest";

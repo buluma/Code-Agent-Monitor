@@ -3,7 +3,7 @@
  * Binaries are downloaded into monitoring/.bin/ by ensure-binaries.js so the
  * stack runs with plain npm on macOS, Linux, and Windows — no Homebrew, apt,
  * or global installs required.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 const path = require("node:path");
 

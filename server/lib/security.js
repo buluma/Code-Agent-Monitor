@@ -15,7 +15,7 @@
  *      WebSocket — for operators who deliberately bind to a LAN. Off by default
  *      so the zero-config loopback experience is unchanged.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 const crypto = require("node:crypto");
 const fs = require("node:fs");

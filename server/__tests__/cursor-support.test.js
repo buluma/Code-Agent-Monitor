@@ -3,7 +3,7 @@
  * @description Verifies chat-first Cursor discovery and prompt updates, native
  * history backfill, watcher latency, durable snapshots, subagent import, and
  * conversation rendering without duplicate prompt hand-off.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { before, after, describe, it } = require("node:test");

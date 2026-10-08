@@ -3,12 +3,12 @@
   "version": "2.2.7",
   "description": "Direct MCP integration with the Claude Code Agent Monitor dashboard — real-time session data access, quick stats, and dashboard health monitoring via Model Context Protocol.",
   "author": {
-    "name": "Son Nguyen",
-    "email": "hoangson091104@gmail.com",
-    "url": "https://github.com/hoangsonww"
+    "name": "Michael Buluma",
+    "email": "1452922+buluma@users.noreply.github.com",
+    "url": "https://github.com/buluma"
   },
-  "homepage": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
-  "repository": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
+  "homepage": "https://github.com/buluma/Claude-Code-Agent-Monitor",
+  "repository": "https://github.com/buluma/Claude-Code-Agent-Monitor",
   "license": "MIT",
   "keywords": ["dashboard", "mcp", "connector", "real-time", "monitoring", "claude-code"],
   "skills": "./skills/",
@@ -17,10 +17,10 @@
     "displayName": "CCAM Dashboard",
     "shortDescription": "Direct MCP integration with the Claude Code Agent Monitor dashboard — real-time session data...",
     "longDescription": "Direct MCP integration with the Claude Code Agent Monitor dashboard — real-time session data access, quick stats, and dashboard health monitoring via Model Context Protocol.",
-    "developerName": "Son Nguyen",
+    "developerName": "Michael Buluma",
     "category": "Developer Tools",
     "capabilities": ["Read", "Write"],
-    "websiteURL": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
+    "websiteURL": "https://github.com/buluma/Claude-Code-Agent-Monitor",
     "defaultPrompt": [
       "Use CCAM Dashboard to inspect the local CCAM dashboard.",
       "Use CCAM Dashboard to analyze recent agent activity."

@@ -19,7 +19,7 @@
  * Pure Node (fs/path/zlib/crypto) with no platform branches, so it behaves the
  * same on every OS Node runs on. Policy (what to compress or prune, and when)
  * lives in snapshot-retention.js; this module only knows how to do it safely.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("fs");

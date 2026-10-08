@@ -4,7 +4,7 @@
  * the source-scoped data filter threaded through the sessions/events/agents/
  * stats/analytics endpoints. The actual SSH/rsync transfer is not exercised
  * (that needs a live remote); everything up to and around it is.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

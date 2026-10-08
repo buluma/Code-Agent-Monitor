@@ -2,7 +2,7 @@
  * @file AgentCard.test.tsx
  * @description Unit tests for the AgentCard component, including consistent
  * Claude Code/Cursor/Codex titles, subtitles, and transcript-derived context.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect, vi } from "vitest";

@@ -1,7 +1,7 @@
 /**
  * @file Published OpenAI and Claude rate-card regression tests, including
  * upgrade corrections, custom-rate preservation, and real model-id matching.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 const { describe, it, after } = require("node:test");
 const assert = require("node:assert/strict");

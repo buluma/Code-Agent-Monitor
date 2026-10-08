@@ -6,7 +6,7 @@
  * `Push` to avoid collisions with the base component schemas. Error responses
  * reuse the base `MessageErrorResponse` schema (`{ error: { message } }`),
  * which is the short shape these routes actually emit.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const tags = [

@@ -16,7 +16,7 @@
  * Failures here are non-fatal — `fs.watch` is platform-quirky, and the
  * Config Explorer still has a manual Refresh button.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("fs");

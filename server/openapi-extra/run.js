@@ -10,7 +10,7 @@
  * `Run`. The shared error envelope `ErrorResponse` (`{ error: { code, message } }`)
  * is defined in the base spec and only referenced here — never redefined.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const tags = [

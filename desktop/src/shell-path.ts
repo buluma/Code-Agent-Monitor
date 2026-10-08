@@ -17,7 +17,7 @@
  * We run the user's login shell once at startup, capture its `PATH`, and merge
  * it into `process.env.PATH`. The embedded server runs in this same process,
  * so it (and every `claude` it spawns) inherits the corrected `PATH`.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

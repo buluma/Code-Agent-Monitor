@@ -18,7 +18,7 @@
 # Usage:
 #   npm run deploy:validate
 #   CCAM_DEPLOY_VALIDATE_STRICT=1 npm run deploy:validate   # hard gate
-# @author Son Nguyen <hoangson091104@gmail.com>
+# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
 
 set -uo pipefail
 

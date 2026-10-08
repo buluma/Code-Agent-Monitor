@@ -2,7 +2,7 @@
  * @file Shared fail-safe transport for Claude Code and Codex hook handlers.
  * It preserves loopback fan-out by default and supports an opt-in HTTPS remote
  * dashboard with a dedicated token for cloud deployments.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("node:fs");

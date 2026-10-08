@@ -6,7 +6,7 @@
  * misleading yellow "Waiting" badge. Each row must now carry the badge the
  * shared mapping produces, matching what Activity Feed and Session Detail show
  * for the same event.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";

@@ -16,7 +16,7 @@
  * visible `title` (`<h3>`) and `description` (`<p>`). Callers should pass
  * translated strings via `useTranslation`.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

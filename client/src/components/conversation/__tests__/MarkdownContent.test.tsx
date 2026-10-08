@@ -3,7 +3,7 @@
  * @description Tests for the lightweight markdown renderer used by the conversation viewer.
  * Focuses on the block parser since the inline parser is well-exercised by snapshot-style
  * DOM assertions.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect } from "vitest";

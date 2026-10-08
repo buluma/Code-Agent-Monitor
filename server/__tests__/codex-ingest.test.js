@@ -2,7 +2,7 @@
  * @file Verifies incremental Codex rollout ingestion: session metadata, token
  * deltas, context bands, duplicate safety, native live-thread startup cards,
  * transcript-derived prompt context, and transcript-driven card lifecycle.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { after, describe, it } = require("node:test");

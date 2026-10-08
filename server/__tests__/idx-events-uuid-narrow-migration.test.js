@@ -10,7 +10,7 @@
  * This simulates exactly that installation: an existing DB file whose
  * idx_events_session_type_uuid was built with the pre-narrowing definition,
  * created BEFORE server/db.js (and its migration) ever runs against it.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

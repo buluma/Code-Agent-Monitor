@@ -4,7 +4,7 @@
  * mirror Anthropic's published pricing page. Per-model token rates live in the
  * editable `model_pricing` table; the values here are feature/modifier rates
  * that are uniform across models and therefore kept as code constants.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 // ── Prompt-caching multipliers (relative to base input price) ───────────────

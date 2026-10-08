@@ -10,7 +10,7 @@
  * neither intercepts a click into the field nor adds a stop for keyboard and
  * screen-reader users, who reach the palette by the chord itself.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

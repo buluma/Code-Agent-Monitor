@@ -10,7 +10,7 @@
  *   node scripts/clear-data.js --demo-only --yes  Delete only seed-fixture rows
  *   node scripts/clear-data.js                    Dry run — print counts, do nothing
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 let Database;

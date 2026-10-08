@@ -5,7 +5,7 @@
  * synchronous the whole server stalls while it runs — measured at 45.7s on a
  * 3.9M-row table. This pins the query to a covering-index scan so a regression
  * shows up as a failing plan rather than as a slow dashboard.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it } = require("node:test");

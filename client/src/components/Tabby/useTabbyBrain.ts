@@ -4,7 +4,7 @@
  *   and to real timers. It is the only unit that subscribes to `eventBus`. It
  *   exposes the derived mood, a status summary, the current speech bubble, and
  *   imperative controls (mute, clear alerts, set thinking) for the UI shell.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

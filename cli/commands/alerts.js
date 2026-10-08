@@ -5,7 +5,7 @@
  * update / enable / disable / delete / test). Rules and webhooks can be
  * written with first-class flags or a raw --data JSON body; every write is
  * gated by confirm() (--yes, or an interactive y/N on a TTY).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

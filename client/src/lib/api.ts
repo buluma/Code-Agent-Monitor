@@ -59,7 +59,7 @@
  * imported from `./types`; the ones declared here are the client-only ones, e.g. the CC-config
  * explorer shapes, the Run-page process handles, and the import-result shape).
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

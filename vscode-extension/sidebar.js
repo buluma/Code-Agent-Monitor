@@ -8,7 +8,7 @@
  * (open dashboard, open session, refresh, browser, clear history) back from
  * the webview UI.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const vscode = require("vscode");

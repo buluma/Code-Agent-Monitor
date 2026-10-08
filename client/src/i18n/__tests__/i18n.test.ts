@@ -1,7 +1,7 @@
 /**
  * @file i18n.test.ts
  * @description Unit tests for i18n translation resources to ensure correct translations and locale handling in the agent dashboard application.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect } from "vitest";

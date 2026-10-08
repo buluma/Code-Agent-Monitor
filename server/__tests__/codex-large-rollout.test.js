@@ -8,7 +8,7 @@
  * hundred bytes and require the result to be IDENTICAL to a single-pass read:
  * same events, same token buckets (including the pricing speed carried across
  * windows), same cursors, and no duplicates on later appends.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { after, afterEach, describe, it } = require("node:test");

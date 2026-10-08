@@ -23,7 +23,7 @@
  * This script NEVER deletes non-fixture data. To wipe the DB, use
  * scripts/clear-data.js (which now requires --yes).
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { v4: uuidv4 } = require("uuid");

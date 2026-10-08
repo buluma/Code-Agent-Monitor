@@ -4,7 +4,7 @@
  * is real; the OS change notifications are injected through the watcher's
  * `watch` seam, because real ones are droppable and made this suite flaky (see
  * createWatchRecorder below).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { afterEach, describe, it } = require("node:test");

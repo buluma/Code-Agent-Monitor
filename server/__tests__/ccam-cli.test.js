@@ -12,7 +12,7 @@
  * spawn would block the event loop and deadlock every request the child
  * makes. Port targeting uses the DASHBOARD_PORT env override, which takes
  * precedence over ~/.claude/.agent-dashboard.json discovery.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

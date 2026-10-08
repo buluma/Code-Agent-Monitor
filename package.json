@@ -17,17 +17,17 @@
     "README.md",
     "LICENSE"
   ],
-  "author": "Son Nguyen",
-  "funding": "https://github.com/sponsors/hoangsonww",
+  "author": "Michael Buluma",
+  "funding": "https://github.com/sponsors/buluma",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hoangsonww/Claude-Code-Agent-Monitor.git"
+    "url": "git+https://github.com/buluma/Claude-Code-Agent-Monitor.git"
   },
   "bugs": {
-    "url": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor/issues"
+    "url": "https://github.com/buluma/Claude-Code-Agent-Monitor/issues"
   },
   "license": "MIT",
-  "homepage": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor#readme",
+  "homepage": "https://github.com/buluma/Claude-Code-Agent-Monitor#readme",
   "keywords": [
     "claude",
     "claude-code",

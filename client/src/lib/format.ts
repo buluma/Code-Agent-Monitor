@@ -22,7 +22,7 @@
  * non-finite and negative input, and abbreviate large magnitudes with K/M/B suffixes for
  * compact stat tiles while a full comma-grouped form is available for tooltips.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

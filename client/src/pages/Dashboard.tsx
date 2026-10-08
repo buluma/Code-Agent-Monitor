@@ -2,7 +2,7 @@
  * @file Dashboard.tsx
  * @description Main dashboard page showing real-time stats, active agents with
  * session task-progress indicators, and recent activity for Claude and Codex.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

@@ -3,7 +3,7 @@
  * @description Verifies provider-aware onboarding skips setup for ready
  * selections and offers installation only for selected providers whose
  * dashboard hooks are missing.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";

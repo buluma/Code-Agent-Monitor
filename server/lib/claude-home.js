@@ -5,7 +5,7 @@
  * and settings file location. Supports a custom root via the CLAUDE_HOME
  * environment variable (e.g. ~/.codefuse/engine/cc/) so the dashboard can
  * track non-default Claude Code installations.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 const path = require("path");
 const os = require("os");

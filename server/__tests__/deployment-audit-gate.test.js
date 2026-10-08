@@ -4,7 +4,7 @@
  * advisories is recorded as a finding without failing, malformed reports are
  * reported rather than passing as clean, and only
  * CCAM_DEPLOY_VALIDATE_STRICT=1 turns findings into a non-zero exit.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it } = require("node:test");

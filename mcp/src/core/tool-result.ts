@@ -1,7 +1,7 @@
 /**
  * @file tool-result.ts
  * @description Utility functions for formatting tool results in the MCP server. This module provides helper functions to create standardized result objects for successful tool calls (jsonResult) and error cases (errorResult). The jsonResult function formats the output with a title and pretty-printed JSON payload, while the errorResult function handles both known API errors and generic errors, ensuring that error information is consistently structured for the MCP client to display. These utilities help maintain a clear contract for tool handlers when returning results or errors.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

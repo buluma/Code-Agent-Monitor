@@ -46,7 +46,7 @@ Also reachable from the shared `.agents/skills/` tree:
 ## Plugin marketplace
 
 ```bash
-codex plugin marketplace add hoangsonww/Claude-Code-Agent-Monitor
+codex plugin marketplace add buluma/Claude-Code-Agent-Monitor
 codex plugin list --marketplace claude-code-agent-monitor-plugins --available --json
 codex plugin add ccam-platform@claude-code-agent-monitor-plugins
 ```
@@ -59,10 +59,10 @@ separate while skill instructions remain shared.
 
 ```bash
 # List all repository skills without installing
-npx skills add hoangsonww/Claude-Code-Agent-Monitor --list
+npx skills add buluma/Claude-Code-Agent-Monitor --list
 
 # Install mcp-server into the current project for Codex
-npx skills add hoangsonww/Claude-Code-Agent-Monitor \
+npx skills add buluma/Claude-Code-Agent-Monitor \
   --skill mcp-server \
   --agent codex \
   --yes
@@ -71,7 +71,7 @@ npx skills add hoangsonww/Claude-Code-Agent-Monitor \
 npx skills list --json
 
 # Install and verify globally
-npx skills add hoangsonww/Claude-Code-Agent-Monitor \
+npx skills add buluma/Claude-Code-Agent-Monitor \
   --skill mcp-server \
   --agent codex \
   --global \

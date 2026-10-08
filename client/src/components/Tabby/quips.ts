@@ -3,7 +3,7 @@
  * @description Tabby's personality: pools of short phrases keyed by pulse/mood,
  *   plus a deterministic-by-injection picker. Pure data + a pure function so it
  *   can be unit-tested without randomness leaking in.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

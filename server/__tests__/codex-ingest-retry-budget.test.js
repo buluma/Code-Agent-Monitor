@@ -6,7 +6,7 @@
  * each writing a log line. These tests pin the three properties that make the
  * bound safe: transient failures still retry, a permanent one stops, and new
  * bytes restore the full budget.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it } = require("node:test");

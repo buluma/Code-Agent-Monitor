@@ -1,7 +1,7 @@
 /**
  * @file intents.test.ts
  * @description Unit tests for Tabby's intent matcher — natural-language queries mapped to dashboard navigation and status intents.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect } from "vitest";

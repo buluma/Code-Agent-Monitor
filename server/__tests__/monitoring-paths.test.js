@@ -1,6 +1,6 @@
 /**
  * @file Unit tests for cross-platform monitoring binary URL/path resolution.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");

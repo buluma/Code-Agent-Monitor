@@ -2,7 +2,7 @@
 /**
  * @file Starts the npm-managed Prometheus + Grafana stack (no Docker / no Brew).
  * Downloads binaries on first run if monitoring:setup has not been run yet.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 const fs = require("node:fs");
 const { spawnSync } = require("node:child_process");

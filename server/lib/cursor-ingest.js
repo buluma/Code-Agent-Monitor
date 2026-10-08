@@ -5,7 +5,7 @@
  * transcript, so new sessions and submitted prompts reach the dashboard live;
  * later transcript data adds durable conversation and subagent detail. Titles
  * come from chat metadata, then Cursor's state.vscdb, then the first prompt.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("fs");

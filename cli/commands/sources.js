@@ -4,7 +4,7 @@
  * SSH remote data sources the dashboard mirrors Claude Code and Codex
  * history from (list / add / update / enable / disable / test / sync / rm).
  * No secrets are handled here; remote auth defers to the host's SSH stack.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

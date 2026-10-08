@@ -10,7 +10,7 @@
  * `pointer-events-none` so moving the pointer toward it does not accidentally
  * close the trigger's hover state mid-read.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

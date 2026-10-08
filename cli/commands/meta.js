@@ -4,7 +4,7 @@
  * every command, argument, and option for agents), completion (bash / zsh /
  * fish scripts driven by the hidden Cobra-style `__complete` protocol), and
  * repl (the interactive shell).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

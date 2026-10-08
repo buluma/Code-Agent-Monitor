@@ -3,7 +3,7 @@
  * a result row fetches the agent's complete prompt/result (the run journal only
  * carries truncated "…" previews), with a graceful fallback to the journal
  * teaser when the fetch fails. Also unit-tests extractPromptResult.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";

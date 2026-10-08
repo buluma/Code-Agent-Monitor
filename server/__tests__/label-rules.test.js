@@ -4,7 +4,7 @@
  * the only place a rules change is proven before it merges: every bucket,
  * precedence order, review signal, and the reconciliation that must never
  * remove a human's label.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it } = require("node:test");

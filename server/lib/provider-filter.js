@@ -3,7 +3,7 @@
  * @description Shared SQL filters for the dashboard-wide Claude/Cursor/Codex
  * scope. The Claude product choice intentionally includes Cursor sessions,
  * matching onboarding, while direct `cursor` API scopes remain available.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const VALID_PROVIDERS = new Set(["claude", "cursor", "codex"]);

@@ -2,7 +2,7 @@
  * @file Tests that TranscriptCache caps the size of each per-entry array
  * (turnDurations / errors / compaction.entries / usageExtras.*) so a long
  * session cannot grow a single cache entry without bound.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

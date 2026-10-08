@@ -4,7 +4,7 @@
 # as a non-root user with explicit writable data and configuration paths.
 # Compatible with Docker, Podman, Kubernetes, and other OCI runtimes.
 #
-# Author: Son Nguyen <hoangson091104@gmail.com>
+# Author: Michael Buluma <1452922+buluma@users.noreply.github.com>
 
 ARG NODE_IMAGE=node:24.19.0-alpine3.24@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43
 

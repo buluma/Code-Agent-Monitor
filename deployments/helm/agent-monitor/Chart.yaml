@@ -5,9 +5,9 @@ type: application
 version: 2.2.7
 appVersion: "2.2.7"
 
-home: https://github.com/hoangsonww/Claude-Code-Agent-Monitor
+home: https://github.com/buluma/Claude-Code-Agent-Monitor
 sources:
-  - https://github.com/hoangsonww/Claude-Code-Agent-Monitor
+  - https://github.com/buluma/Claude-Code-Agent-Monitor
 
 keywords:
   - claude
@@ -21,9 +21,9 @@ keywords:
 
 maintainers:
   - name: David Nguyen
-    url: https://github.com/hoangsonww
+    url: https://github.com/buluma
 
-icon: https://raw.githubusercontent.com/hoangsonww/Claude-Code-Agent-Monitor/master/favicon.svg
+icon: https://raw.githubusercontent.com/buluma/Claude-Code-Agent-Monitor/master/favicon.svg
 
 annotations:
   artifacthub.io/license: MIT

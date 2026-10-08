@@ -24,7 +24,7 @@
  * confirmation modals on purpose — the palette navigates to them instead of
  * performing them.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
@@ -735,7 +735,7 @@ export function buildPaletteCommands(ctx: PaletteContext): PaletteCommand[] {
       icon: Github,
       run: () =>
         window.open(
-          "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
+          "https://github.com/buluma/Claude-Code-Agent-Monitor",
           "_blank",
           "noopener,noreferrer"
         ),
@@ -766,7 +766,7 @@ export function buildPaletteCommands(ctx: PaletteContext): PaletteCommand[] {
       icon: Github,
       run: () =>
         window.open(
-          "https://github.com/hoangsonww/Claude-Code-Agent-Monitor/issues/new",
+          "https://github.com/buluma/Claude-Code-Agent-Monitor/issues/new",
           "_blank",
           "noopener,noreferrer"
         ),
@@ -780,7 +780,7 @@ export function buildPaletteCommands(ctx: PaletteContext): PaletteCommand[] {
       icon: History,
       run: () =>
         window.open(
-          "https://github.com/hoangsonww/Claude-Code-Agent-Monitor/releases",
+          "https://github.com/buluma/Claude-Code-Agent-Monitor/releases",
           "_blank",
           "noopener,noreferrer"
         ),

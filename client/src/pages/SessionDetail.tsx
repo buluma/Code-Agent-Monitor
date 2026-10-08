@@ -2,7 +2,7 @@
  * @file SessionDetail.tsx
  * @description Displays session agents, owner-aware task progress, events, and
  * cost details with real-time updates and an expandable agent hierarchy.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

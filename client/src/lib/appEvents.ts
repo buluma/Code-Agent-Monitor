@@ -12,7 +12,7 @@
  * A window event is also the right coupling here regardless: no context provider,
  * no lifted state, and any component — or a test — can trigger the behavior.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

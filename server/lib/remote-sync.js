@@ -26,7 +26,7 @@
  * SSH default — an unknown host key fails the sync rather than being trusted
  * blindly, so the user must have connected once manually (host in known_hosts).
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("fs");

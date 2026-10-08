@@ -2,7 +2,7 @@
  * @file Small JSON-RPC client for Codex's local `app-server --stdio` bridge.
  * It intentionally owns no dashboard policy: callers start threads, turns,
  * and model discovery through the same protocol Codex's native app uses.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { EventEmitter } = require("node:events");
