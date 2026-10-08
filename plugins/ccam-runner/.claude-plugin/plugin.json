@@ -1,7 +1,7 @@
 {
   "name": "ccam-runner",
   "description": "Operate dashboard-launched Claude Code and Codex runs with safe launch, follow-up, stop, resume, model discovery, and persistent run-history workflows.",
-  "version": "2.2.7",
+  "version": "2.2.8",
   "author": { "name": "Michael Buluma", "url": "https://github.com/buluma" },
   "homepage": "https://github.com/buluma/Claude-Code-Agent-Monitor",
   "repository": "https://github.com/buluma/Claude-Code-Agent-Monitor",

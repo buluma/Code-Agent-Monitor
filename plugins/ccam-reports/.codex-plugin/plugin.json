@@ -1,6 +1,6 @@
 {
   "name": "ccam-reports",
-  "version": "2.2.7",
+  "version": "2.2.8",
   "description": "Generate stakeholder-ready CCAM reports from local session, cost, reliability, and workflow data with explicit scope, evidence, and export-friendly Markdown.",
   "author": {
     "name": "Michael Buluma",
