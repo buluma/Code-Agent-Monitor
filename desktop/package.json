@@ -1,6 +1,6 @@
 {
   "name": "agent-dashboard-desktop",
-  "version": "2.2.8",
+  "version": "2.2.9",
   "private": true,
   "description": "Native macOS and Windows desktop shell for Claude Code Agent Monitor.",
   "author": "Michael Buluma <1452922+buluma@users.noreply.github.com>",

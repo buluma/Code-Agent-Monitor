@@ -1,6 +1,6 @@
 {
   "name": "ccam-dashboard",
-  "version": "2.2.8",
+  "version": "2.2.9",
   "description": "Direct MCP integration with the Claude Code Agent Monitor dashboard — real-time session data access, quick stats, and dashboard health monitoring via Model Context Protocol.",
   "author": {
     "name": "Michael Buluma",
