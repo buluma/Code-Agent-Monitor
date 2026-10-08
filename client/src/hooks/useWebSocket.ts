@@ -1,12 +1,12 @@
 /**
  * @file useWebSocket.ts
- * @description Defines a custom React hook for managing WebSocket connections in the Code Agent Monitor application. The hook establishes a WebSocket connection to the server, handles incoming messages, manages connection status, and implements automatic reconnection logic. It provides a clean interface for components to receive real-time updates from the server and react to changes in connectivity.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @description Defines a custom React hook for managing WebSocket connections in the agent dashboard application. The hook establishes a WebSocket connection to the server, handles incoming messages, manages connection status, and implements automatic reconnection logic. It provides a clean interface for components to receive real-time updates from the server and react to changes in connectivity.
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/hooks/useWebSocket.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/hooks/useWebSocket.ts`
  * **Purpose:** React hook: isolates side effects and subscription wiring so presentational components stay declarative.
  *
  * ## Design constraints
@@ -86,6 +86,12 @@ export function useWebSocket(onMessage: MessageHandler) {
 
   handlersRef.current = onMessage;
 
+  /**
+   * Open the dashboard WebSocket unless one is already open or connecting, which avoids duplicate
+   * sockets (and doubled messages) under StrictMode remounts and reconnect races. Sends the
+   * optional dashboard token on the upgrade, resets the backoff when connected, ignores malformed
+   * messages, and reconnects with a short exponential backoff capped at 3 seconds.
+   */
   const connect = useCallback(() => {
     if (!mountedRef.current) return;
     // Don't open a second socket if one is already alive or in flight.
@@ -174,6 +180,9 @@ export function useWebSocket(onMessage: MessageHandler) {
   // don't sit out a long delay - e.g. after the dashboard server restarts, the
   // socket (and the Tabby eyes) recover the moment you look at the tab.
   useEffect(() => {
+    /**
+     * Reconnect immediately when the page needs it, unless a socket is already open or connecting.
+     */
     const reconnectNow = () => {
       if (!mountedRef.current) return;
       const ws = wsRef.current;
@@ -184,6 +193,7 @@ export function useWebSocket(onMessage: MessageHandler) {
       reconnectAttempts.current = 0;
       connect();
     };
+    /** Reconnect as soon as the tab becomes visible again. */
     const onVisible = () => {
       if (document.visibilityState === "visible") reconnectNow();
     };

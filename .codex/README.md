@@ -29,17 +29,26 @@ This directory contains all project-scoped Codex extensions:
 
 ## Included skills
 
+Under `.codex/skills/`:
+
 - `repo-onboarding` — architecture discovery and verification selection
 - `mcp-maintainer` — MCP server operations and troubleshooting
 - `release-guard` — release readiness checks
+- `push-to-forked-pr` — update a PR whose head branch lives on a fork
+- `i18n-parity` — keep every localization surface in parity across all supported
+  languages (mirrored from `.claude/skills/i18n-parity/`, which also holds
+  `i18n-audit.sh` and `sync-agent-mirrors.sh`)
+
+Also reachable from the shared `.agents/skills/` tree:
+
 - `version-release` — semantic version classification and synchronized release bumping
 
 ## Plugin marketplace
 
 ```bash
-codex plugin marketplace add buluma/Code-Agent-Monitor
+codex plugin marketplace add hoangsonww/Claude-Code-Agent-Monitor
 codex plugin list --marketplace claude-code-agent-monitor-plugins --available --json
-codex plugin add cam-platform@claude-code-agent-monitor-plugins
+codex plugin add ccam-platform@claude-code-agent-monitor-plugins
 ```
 
 The marketplace contains 14 plugins and 66 bundled skills. The same plugin
@@ -50,10 +59,10 @@ separate while skill instructions remain shared.
 
 ```bash
 # List all repository skills without installing
-npx skills add buluma/Code-Agent-Monitor --list
+npx skills add hoangsonww/Claude-Code-Agent-Monitor --list
 
 # Install mcp-server into the current project for Codex
-npx skills add buluma/Code-Agent-Monitor \
+npx skills add hoangsonww/Claude-Code-Agent-Monitor \
   --skill mcp-server \
   --agent codex \
   --yes
@@ -62,7 +71,7 @@ npx skills add buluma/Code-Agent-Monitor \
 npx skills list --json
 
 # Install and verify globally
-npx skills add buluma/Code-Agent-Monitor \
+npx skills add hoangsonww/Claude-Code-Agent-Monitor \
   --skill mcp-server \
   --agent codex \
   --global \
@@ -78,7 +87,7 @@ npx skills update --global --yes
 npx skills remove --global mcp-server --yes
 ```
 
-The skills CLI discovers 76 repository skills. Codex project installs use
+The skills CLI discovers 77 repository skills. Codex project installs use
 `.agents/skills/`; global installs use `${CODEX_HOME:-~/.codex}/skills/`.
 Multi-agent installs may deduplicate files through a shared store and create
 agent-specific links. Run `npm run extensions:sync`

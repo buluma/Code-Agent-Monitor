@@ -5,12 +5,12 @@
  * view; the "View session" Link navigates to the session page. Live events
  * trigger a debounced, filter-aware refetch that preserves the user's
  * accumulated page size.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/pages/ActivityFeed.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/pages/ActivityFeed.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -72,6 +72,8 @@ import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Activity, Pause, Play, RefreshCw, ChevronRight, ExternalLink } from "lucide-react";
 import { api } from "../lib/api";
+
+import { usePaletteAction } from "../components/PaletteActionProvider";
 import { eventBus } from "../lib/eventBus";
 import { isRemoteDataRefreshMessage } from "../lib/remoteDataEvents";
 import { useDataScope } from "../lib/dataScope";
@@ -99,14 +101,24 @@ import type { AgentInfo } from "../lib/event-grouping";
 import { formatTime, formatDateShort, timeAgo } from "../lib/format";
 import type { DashboardEvent } from "../lib/types";
 
+/** Events per page. */
 const PAGE_SIZE = 50;
-// Max rows a single /api/events request can return (server cap). Refreshes
-// triggered by live events are bounded by this.
+/**
+ * Most rows a single `/api/events` request can return (the server's cap). Refreshes triggered by
+ * live events are bounded by this.
+ */
 const MAX_REFRESH = 500;
-// Debounce live-event refreshes so a burst of hook events (e.g. a stream of
-// PostToolUse results) triggers one refetch instead of dozens.
+/**
+ * Debounce for live-event refreshes, so a burst of hook events (for example a stream of PostToolUse
+ * results) triggers one refetch instead of dozens.
+ */
 const REFRESH_DEBOUNCE_MS = 500;
 
+/**
+ * Activity Feed page (`/activity`): a paginated, filterable stream of every hook event with
+ * friendly session and agent names. Supports pausing, and refreshes on live events (debounced)
+ * while keeping the current page.
+ */
 export function ActivityFeed() {
   const { t } = useTranslation("activity");
   const [events, setEvents] = useState<DashboardEvent[]>([]);
@@ -172,6 +184,7 @@ export function ActivityFeed() {
   // Global data scope; a change re-runs `load` (api injects the `sources` param).
   const [scope] = useDataScope();
 
+  /** Load the current page for the active filters and data scope. */
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -190,6 +203,13 @@ export function ActivityFeed() {
       setLoading(false);
     }
   }, [apiParams, page, scope]);
+
+  usePaletteAction("page.refresh", () => {
+    void load();
+  });
+  // Palette-only actions for the two controls that otherwise need the toolbar.
+  usePaletteAction("activity.togglePause", () => (paused ? resume() : setPaused(true)));
+  usePaletteAction("activity.clearFilters", () => setFilters(EMPTY_FILTERS));
 
   useEffect(() => {
     load();

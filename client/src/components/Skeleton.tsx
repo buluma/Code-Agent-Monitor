@@ -5,12 +5,12 @@
  * placeholder values that the user might read as real zeros. All variants are
  * pure presentational and respect prefers-reduced-motion (animate-pulse is a
  * native Tailwind utility that already honors the OS setting).
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/Skeleton.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/Skeleton.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -79,8 +79,11 @@
 
 import type { CSSProperties } from "react";
 
+/** Props for {@link Skeleton}. */
 interface SkeletonProps {
+  /** Extra classes, typically width and height. */
   className?: string;
+  /** Inline styles, for sizes not covered by classes. */
   style?: CSSProperties;
   /** Rounded shape variant. Defaults to "md". */
   rounded?: "sm" | "md" | "lg" | "full";
@@ -88,6 +91,7 @@ interface SkeletonProps {
   label?: string;
 }
 
+/** Tailwind class for each corner style. */
 const ROUNDED_CLASS = {
   sm: "rounded",
   md: "rounded-md",
@@ -131,7 +135,9 @@ export function TextSkeleton({
   className = "",
   width = "w-16",
 }: {
+  /** Extra classes for the wrapper. */
   className?: string;
+  /** CSS width of the line; defaults to full width. */
   width?: string;
 }) {
   return <Skeleton className={`h-3 ${width} align-middle ${className}`} />;

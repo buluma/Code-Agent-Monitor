@@ -15,7 +15,7 @@
     "readyForInput": "Ready for input",
     "sessionCompleted": "Session Completed",
     "sessionClosed": "Session closed",
-    "defaultTitle": "Code Agent Monitor",
+    "defaultTitle": "Agent Dashboard",
     "defaultBody": "Notification"
   },
   "toolLegend": {

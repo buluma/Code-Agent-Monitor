@@ -1,12 +1,12 @@
 /**
  * @file StatusBadge.tsx
  * @description Defines reusable React components for displaying the status of agents and sessions in a visually distinct way using badges. The AgentStatusBadge component shows the current status of an agent with an optional pulsing effect for active states, while the SessionStatusBadge component indicates the status of a session. When a row is in the yellow "Waiting" overlay state, both badges can additionally render WHY it waits (the server's awaiting_reason: needs input / turn done / at prompt / interrupted) as a nested icon+label chip with a hover tooltip carrying the full explanation — or, in `compact` mode for tight card layouts, as the hover tooltip alone. Both components utilize predefined configurations for consistent styling across the application.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/StatusBadge.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/StatusBadge.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -66,6 +66,7 @@
  * ----------------------------------------------------------------------------- */
 
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { BellRing, MessageSquareReply, Terminal, OctagonPause } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { STATUS_CONFIG, SESSION_STATUS_CONFIG, AWAITING_REASON_CONFIG } from "../lib/types";
@@ -107,8 +108,63 @@ function ReasonChip({ reason }: { reason: AwaitingReason }) {
   );
 }
 
+/**
+ * Provider-aware explanation of a waiting reason (tooltip text).
+ *
+ * @param t - Translation function.
+ * @param reason - Why the agent or session is waiting.
+ * @param provider - Product, for provider-specific wording.
+ * @returns The tooltip description.
+ */
+function reasonDescription(
+  t: TFunction,
+  reason: AwaitingReason,
+  provider: "claude" | "cursor" | "codex" | undefined
+): string {
+  return t(AWAITING_REASON_CONFIG[reason].descKey, {
+    provider: provider === "codex" ? "Codex" : provider === "cursor" ? "Cursor" : "Claude",
+  });
+}
+
+/**
+ * Dot-only status for layouts where the surrounding context already names the
+ * status (a Kanban column): the colored dot keeps the pulse, the tooltip
+ * carries the status label (plus the waiting reason, when there is one), and
+ * screen readers still hear the label.
+ */
+function StatusDot({
+  label,
+  dotClass,
+  pulse,
+  tooltip,
+}: {
+  /** Status label, read by screen readers; the dot itself shows no text. */
+  label: string;
+  /** Classes for the colored dot. */
+  dotClass: string;
+  /** Whether the dot pulses. */
+  pulse: boolean;
+  /** Tooltip explaining the status. */
+  tooltip: string;
+}) {
+  return (
+    <Tip raw={tooltip}>
+      <span className="inline-flex h-5 w-5 items-center justify-center" data-status-dot="">
+        <span
+          className={`h-2.5 w-2.5 rounded-full ${dotClass} ${pulse ? "animate-pulse-dot" : ""}`}
+          aria-hidden="true"
+        />
+        <span className="sr-only">{label}</span>
+      </span>
+    </Tip>
+  );
+}
+
+/** Props for {@link AgentStatusBadge}. */
 interface AgentStatusBadgeProps {
+  /** Status to show, after transient states are folded in. */
   status: EffectiveAgentStatus;
+  /** Whether the status dot pulses, for live statuses. */
   pulse?: boolean;
   /** WHY the agent is waiting (from `agentAwaitingReason`); rendered as a
    *  nested icon+label chip with a tooltip. Ignored unless `status` is "waiting". */
@@ -118,23 +174,23 @@ interface AgentStatusBadgeProps {
    *  never squeezes the card title. */
   compact?: boolean;
   /** Product that owns the waiting row; drives provider wording in the tooltip. */
-  provider?: "claude" | "codex" | "helmcode" | "t3";
+  provider?: "claude" | "cursor" | "codex";
+  /** `dot` renders only the colored status dot (see {@link StatusDot}); for
+   *  surfaces whose layout already conveys the status, e.g. a Kanban column. */
+  variant?: "badge" | "dot";
 }
 
-/** Human product name for an awaiting-row tooltip. */
-function providerDisplayName(provider?: "claude" | "codex" | "helmcode" | "t3"): string {
-  if (provider === "codex") return "Codex";
-  if (provider === "helmcode") return "Helm Code";
-  if (provider === "t3") return "T3";
-  return "Claude";
-}
-
+/**
+ * Status badge for an agent: a colored badge or dot with the status label, a provider-aware
+ * tooltip, and, for waiting agents, a nested chip explaining what the agent is waiting for.
+ */
 export function AgentStatusBadge({
   status,
   pulse,
   reason,
   compact,
   provider,
+  variant = "badge",
 }: AgentStatusBadgeProps) {
   const { t } = useTranslation();
   const config = STATUS_CONFIG[status];
@@ -143,18 +199,23 @@ export function AgentStatusBadge({
   const shouldPulse = pulse ?? (status === "working" || status === "waiting");
   // Only decorate the Waiting overlay - a reason on any other status is stale.
   const shownReason = status === "waiting" && reason ? reason : null;
+  const reasonText = shownReason ? reasonDescription(t, shownReason, provider) : undefined;
+
+  if (variant === "dot") {
+    const label = t(config.labelKey);
+    return (
+      <StatusDot
+        label={label}
+        dotClass={config.dot}
+        pulse={shouldPulse}
+        tooltip={reasonText ? `${label} — ${reasonText}` : label}
+      />
+    );
+  }
 
   return (
     // Tip renders children unwrapped when raw is undefined (non-waiting rows).
-    <Tip
-      raw={
-        shownReason
-          ? t(AWAITING_REASON_CONFIG[shownReason].descKey, {
-              provider: providerDisplayName(provider),
-            })
-          : undefined
-      }
-    >
+    <Tip raw={reasonText}>
       <span className={`badge ${config.bg} ${config.color}`}>
         <span
           className={`w-1.5 h-1.5 rounded-full ${config.dot} ${
@@ -168,8 +229,11 @@ export function AgentStatusBadge({
   );
 }
 
+/** Props for {@link SessionStatusBadge}. */
 interface SessionStatusBadgeProps {
+  /** Status to show, after transient states are folded in. */
   status: EffectiveSessionStatus;
+  /** Whether the status dot pulses, for live statuses. */
   pulse?: boolean;
   /** WHY the session is waiting (from `sessionAwaitingReason`); rendered as a
    *  nested icon+label chip with a tooltip. Ignored unless `status` is "waiting". */
@@ -179,30 +243,44 @@ interface SessionStatusBadgeProps {
    *  never squeezes the card title. */
   compact?: boolean;
   /** Product that owns the waiting row; drives provider wording in the tooltip. */
-  provider?: "claude" | "codex" | "helmcode" | "t3";
+  provider?: "claude" | "cursor" | "codex";
+  /** `dot` renders only the colored status dot (see {@link StatusDot}); for
+   *  surfaces whose layout already conveys the status, e.g. a Kanban column. */
+  variant?: "badge" | "dot";
 }
 
+/**
+ * Status badge for a session: a colored badge or dot with the status label, a provider-aware
+ * tooltip, and, for waiting sessions, a nested chip explaining what the session is waiting for.
+ */
 export function SessionStatusBadge({
   status,
   pulse,
   reason,
   compact,
   provider,
+  variant = "badge",
 }: SessionStatusBadgeProps) {
   const { t } = useTranslation();
   const config = SESSION_STATUS_CONFIG[status];
   const shouldPulse = pulse ?? status === "waiting";
   const shownReason = status === "waiting" && reason ? reason : null;
+  const reasonText = shownReason ? reasonDescription(t, shownReason, provider) : undefined;
+
+  if (variant === "dot") {
+    const label = t(config.labelKey);
+    return (
+      <StatusDot
+        label={label}
+        dotClass={config.dot}
+        pulse={shouldPulse}
+        tooltip={reasonText ? `${label} — ${reasonText}` : label}
+      />
+    );
+  }
+
   return (
-    <Tip
-      raw={
-        shownReason
-          ? t(AWAITING_REASON_CONFIG[shownReason].descKey, {
-              provider: providerDisplayName(provider),
-            })
-          : undefined
-      }
-    >
+    <Tip raw={reasonText}>
       <span className={`badge ${config.bg} ${config.color}`}>
         {shouldPulse && (
           <span

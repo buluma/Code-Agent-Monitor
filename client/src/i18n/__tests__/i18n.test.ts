@@ -1,7 +1,7 @@
 /**
  * @file i18n.test.ts
- * @description Unit tests for i18n translation resources to ensure correct translations and locale handling in the Code Agent Monitor application.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @description Unit tests for i18n translation resources to ensure correct translations and locale handling in the agent dashboard application.
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 import { describe, it, expect } from "vitest";
@@ -35,27 +35,104 @@ const interpolationTokens = (value: unknown): string[] => {
 };
 
 describe("i18n resources", () => {
-  it("keeps every namespace's keys, value types, and interpolation tokens aligned", () => {
+  it("keeps every locale's keys, value types, and interpolation tokens aligned with English", () => {
     const namespaces = Object.keys(i18n.getDataByLanguage("en") ?? {});
 
     for (const namespace of namespaces) {
       const english = flattenResource(i18n.getResourceBundle("en", namespace));
 
-      for (const key of Object.keys(english)) {
-        expect(typeof english[key], `en/${namespace}:${key} type`).toBeDefined();
-        expect(
-          interpolationTokens(english[key]),
-          `en/${namespace}:${key} interpolation tokens`
-        ).toBeDefined();
+      for (const language of ["zh", "vi", "ko", "es"]) {
+        const locale = flattenResource(i18n.getResourceBundle(language, namespace));
+
+        expect(Object.keys(locale).sort(), `${language}/${namespace} keys`).toEqual(
+          Object.keys(english).sort()
+        );
+
+        for (const key of Object.keys(english)) {
+          expect(typeof locale[key], `${language}/${namespace}:${key} type`).toBe(
+            typeof english[key]
+          );
+          expect(
+            interpolationTokens(locale[key]),
+            `${language}/${namespace}:${key} interpolation tokens`
+          ).toEqual(interpolationTokens(english[key]));
+        }
       }
     }
   });
 
-  it("should provide English translations for navigation keys", async () => {
-    await i18n.changeLanguage("en");
+  it("should provide Vietnamese translations for navigation keys", async () => {
+    await i18n.changeLanguage("vi");
 
-    expect(i18n.t("nav:dashboard")).toBe("Dashboard");
-    expect(i18n.t("nav:agentBoard")).toBe("Kanban Board");
+    expect(i18n.t("nav:dashboard")).toBe("Tổng quan");
+    expect(i18n.t("nav:agentBoard")).toBe("Bảng Kanban");
+    expect(i18n.t("nav:languageShort.vi")).toBe("VI");
+  });
+
+  it("should keep Agent terminology untranslated in zh, vi, ko, and es locales", async () => {
+    await i18n.changeLanguage("zh");
+    expect(i18n.t("common:agent")).toBe("Agent");
+    expect(i18n.t("common:subagent")).toBe("Subagent");
+
+    await i18n.changeLanguage("vi");
+    expect(i18n.t("common:agent")).toBe("Agent");
+    expect(i18n.t("common:subagent")).toBe("Subagent");
+
+    await i18n.changeLanguage("ko");
+    expect(i18n.t("common:agent")).toBe("Agent");
+    expect(i18n.t("common:subagent")).toBe("Subagent");
+
+    await i18n.changeLanguage("es");
+    expect(i18n.t("common:agent")).toBe("agente");
+    expect(i18n.t("common:subagent")).toBe("subagente");
+  });
+
+  it("should provide Spanish translations for navigation keys", async () => {
+    await i18n.changeLanguage("es");
+
+    expect(i18n.t("nav:dashboard")).toBe("Panel");
+    expect(i18n.t("nav:agentBoard")).toBe("Tablero Kanban");
+    expect(i18n.t("nav:languageShort.es")).toBe("ES");
+  });
+
+  it("should provide Spanish translations across every feature namespace", async () => {
+    await i18n.changeLanguage("es");
+
+    expect(i18n.t("common:awaitingReason.session_start.label")).toBe("Esperando una instrucción");
+    expect(i18n.t("analytics:total30d")).toBe("Total (30 días)");
+    expect(i18n.t("ccConfig:tabs.skills")).toBe("Habilidades");
+    expect(i18n.t("run:fields.prompt")).toBe("Instrucción");
+    expect(i18n.t("settings:hooks.title")).toBe("Configuración de ganchos");
+    expect(i18n.t("workflows:runs.promptLabel")).toBe("Instrucción");
+  });
+
+  it("should support non-explicit Spanish locale tags", async () => {
+    await i18n.changeLanguage("es-ES");
+
+    expect(i18n.resolvedLanguage?.startsWith("es")).toBe(true);
+    expect(i18n.t("nav:dashboard")).toBe("Panel");
+  });
+
+  it("should support non-explicit Vietnamese locale tags", async () => {
+    await i18n.changeLanguage("vi-VN");
+
+    expect(i18n.resolvedLanguage?.startsWith("vi")).toBe(true);
+    expect(i18n.t("nav:dashboard")).toBe("Tổng quan");
+  });
+
+  it("should provide Korean translations for navigation keys", async () => {
+    await i18n.changeLanguage("ko");
+
+    expect(i18n.t("nav:dashboard")).toBe("대시보드");
+    expect(i18n.t("nav:agentBoard")).toBe("칸반 보드");
+    expect(i18n.t("nav:languageShort.ko")).toBe("한국어");
+  });
+
+  it("should support non-explicit Korean locale tags", async () => {
+    await i18n.changeLanguage("ko-KR");
+
+    expect(i18n.resolvedLanguage?.startsWith("ko")).toBe(true);
+    expect(i18n.t("nav:dashboard")).toBe("대시보드");
   });
 
   it("pluralizes the subagent count labels in English", async () => {
@@ -71,7 +148,23 @@ describe("i18n resources", () => {
     expect(i18n.t("kanban:session.subagentSummary", { count: 3 })).toBe("3 subagents");
   });
 
-  it("pluralizes task-progress counts in English", async () => {
+  it("pluralizes the Kanban and Sessions header counts", async () => {
+    // KanbanBoard and Sessions render these keys with a count. i18next v4 only
+    // resolves _one/_other suffixes; the legacy _plural suffix is ignored, which
+    // made every count fall back to the singular text ("2 agent tracked").
+    await i18n.changeLanguage("en");
+    expect(i18n.t("kanban:agentCount", { count: 1 })).toBe("1 agent tracked");
+    expect(i18n.t("kanban:agentCount", { count: 2 })).toBe("2 agents tracked");
+    expect(i18n.t("kanban:sessionCount", { count: 2 })).toBe("2 sessions tracked");
+    expect(i18n.t("sessions:sessionCount", { count: 1 })).toBe("1 session recorded");
+    expect(i18n.t("sessions:sessionCount", { count: 2 })).toBe("2 sessions recorded");
+
+    await i18n.changeLanguage("es");
+    expect(i18n.t("kanban:agentCount", { count: 2 })).toBe("2 agentes rastreados");
+    expect(i18n.t("sessions:sessionCount", { count: 2 })).toBe("2 sesiones registradas");
+  });
+
+  it("pluralizes task-progress counts in English and Spanish", async () => {
     await i18n.changeLanguage("en");
     expect(i18n.t("sessions:taskProgress.more", { count: 1 })).toBe(
       "+1 more task in Session Detail"
@@ -85,9 +178,15 @@ describe("i18n resources", () => {
     expect(i18n.t("sessions:taskProgress.hiddenTasks", { count: 2 })).toBe(
       "2 additional tasks are not shown."
     );
+
+    await i18n.changeLanguage("es");
+    expect(i18n.t("sessions:taskProgress.doneCount", { count: 1 })).toBe("1 completada");
+    expect(i18n.t("sessions:taskProgress.doneCount", { count: 2 })).toBe("2 completadas");
+    expect(i18n.t("sessions:taskProgress.remainingCount", { count: 1 })).toBe("1 pendiente");
+    expect(i18n.t("sessions:taskProgress.remainingCount", { count: 2 })).toBe("2 pendientes");
   });
 
-  it("ships every first-run hook setup control in English", () => {
+  it("ships every first-run hook setup control in each supported locale", () => {
     const keys = [
       "provider.both.label",
       "provider.both.description",
@@ -111,12 +210,14 @@ describe("i18n resources", () => {
       "hookGate.continue",
     ];
 
-    for (const key of keys) {
-      expect(i18n.getResource("en", "splash", key)).toBeTruthy();
+    for (const language of ["en", "zh", "vi", "ko", "es"]) {
+      for (const key of keys) {
+        expect(i18n.getResource(language, "splash", key)).toBeTruthy();
+      }
     }
   });
 
-  it("ships the global provider and session-home settings in English", () => {
+  it("ships the global provider and session-home settings in every supported locale", () => {
     const keys = [
       "display.title",
       "display.claude",
@@ -135,8 +236,10 @@ describe("i18n resources", () => {
       "pricing.gpt.tooltip.apiPricingBody",
     ];
 
-    for (const key of keys) {
-      expect(i18n.getResource("en", "settings", key)).toBeTruthy();
+    for (const language of ["en", "zh", "vi", "ko", "es"]) {
+      for (const key of keys) {
+        expect(i18n.getResource(language, "settings", key)).toBeTruthy();
+      }
     }
   });
 });

@@ -1,4 +1,4 @@
-# Optional dev-container image for Code Agent Monitor.
+# Optional dev-container image for Claude Code Agent Monitor.
 # Node 24 LTS to match the production Dockerfile and recommended toolchain.
 # Adds the native-addon toolchain (better-sqlite3 builds via node-gyp) plus
 # Python 3 (statusline.py and helper scripts) and the sqlite3 CLI.
@@ -6,7 +6,7 @@
 # This image is ONLY used by Dev Containers / Codespaces. Host-based development
 # (npm run dev / npm start) is unaffected.
 #
-# Author: Michael Buluma <1452922+buluma@users.noreply.github.com>
+# Author: Son Nguyen <hoangson091104@gmail.com>
 FROM mcr.microsoft.com/devcontainers/javascript-node:24
 
 # node-gyp needs python3 + a C/C++ toolchain to compile better-sqlite3.

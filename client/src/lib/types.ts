@@ -1,12 +1,12 @@
 /**
  * @file types.ts
- * @description Defines TypeScript types and interfaces for the Code Agent Monitor application, including data structures for sessions, agents, events, statistics, analytics, model pricing, cost breakdowns, WebSocket messages, and workflow-related data. These types provide a clear contract for the shape of data used throughout the application and facilitate type safety when interacting with the backend API and managing state within the frontend components.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @description Defines TypeScript types and interfaces for the agent dashboard application, including data structures for sessions, agents, events, statistics, analytics, model pricing, cost breakdowns, WebSocket messages, and workflow-related data. These types provide a clear contract for the shape of data used throughout the application and facilitate type safety when interacting with the backend API and managing state within the frontend components.
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/lib/types.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/lib/types.ts`
  * **Purpose:** Shared wire-format types for REST + WebSocket messages — keep in sync with `server/` serializers and OpenAPI.
  *
  * ## Design constraints
@@ -703,9 +703,8 @@ export interface Session {
    * Remote Data Sources feature / `remote_sources`). Maps to `sessions.source`. */
   source?: string;
   /** Product that created this session. Historical records default to Claude;
-   *  Codex rollouts are marked `codex` and use the GPT price card; Helm Code
-   *  sessions are marked `helmcode`; T3 sessions are marked `t3`. */
-  provider?: "claude" | "codex" | "helmcode" | "t3";
+   *  Codex rollouts are marked `codex` and use the GPT price card. */
+  provider?: "claude" | "cursor" | "codex";
   /** Compact latest task progress attached to Sessions-list rows. Null when the
    * provider never emitted task/checklist/plan state. */
   todo_summary?: SessionTodoSummary | null;
@@ -715,62 +714,134 @@ export interface Session {
 }
 
 /**
- * Body of the `session_removed` WebSocket frame. Broadcast when a session row
- * is deleted out-of-band — today only the Helm Code sweep wipe path (a thread
- * deleted/archived in Helm Code removes its card). Boards drop the matching
- * card on receipt instead of repainting it as completed.
+ * Normalized state of one task-progress item. Provider-specific spellings are folded server-side:
+ * `done`/`success` become `completed`, `active`/`running` become `in_progress`, `todo`/`queued`
+ * become `pending`, and `canceled`/`deleted`/`skipped` become `cancelled`. Anything unrecognized is
+ * `unknown`.
  */
-export interface SessionRemovedPayload {
-  id: string;
-  provider: string;
-}
-
 export type SessionTodoStatus = "pending" | "in_progress" | "completed" | "cancelled" | "unknown";
 
+/**
+ * One task, checklist, or plan step observed in a session, attributed to the agent that owns it.
+ * Sources are Claude `TaskCreate`/`TaskUpdate` and `TodoWrite` calls, and Codex `update_plan`
+ * calls.
+ */
 export interface SessionTodoItem {
+  /**
+   * Stable item id within its owner: the provider's task id when it has one, otherwise a positional
+   * id.
+   */
   id: string;
+  /** Task text as written by the agent, capped server-side at 500 characters. */
   text: string;
+  /** Normalized status. */
   status: SessionTodoStatus;
+  /**
+   * Raw status string as the provider wrote it, before normalization; null when the provider gave
+   * none.
+   */
   sourceStatus: string | null;
+  /** Position of the item in its owner's list, used to keep the provider's ordering. */
   order: number;
+  /** Id of the agent (main or subagent) that owns the item. */
   agentId: string;
+  /** Owner's agent type: `main` for the session's main agent, otherwise the subagent type. */
   agentType: string;
+  /** Optional longer description of the task, when the provider supplied one. */
   description: string | null;
 }
 
+/** Per-agent progress roll-up, so the UI can show how much of the work each agent has finished. */
 export interface SessionTodoOwnerSummary {
+  /** Agent id of the owner. */
   agentId: string;
+  /** Owner's agent type (`main` or a subagent type). */
   agentType: string;
+  /** Items this owner has completed. */
   completed: number;
+  /** Items this owner has in total. */
   total: number;
 }
 
+/**
+ * Compact task-progress summary attached to Sessions-list rows (`todo_summary`). A trimmed form of
+ * {@link SessionTodoSnapshot}: the counters are the same, but instead of the full list it carries a
+ * short preview.
+ */
 export interface SessionTodoSummary {
+  /** Total items across all owners. */
   total: number;
+  /** Items with status `completed`. */
   completed: number;
+  /** Items with status `in_progress`. */
   inProgress: number;
+  /** Items with status `pending`. */
   pending: number;
+  /** Items with status `cancelled`. */
   cancelled: number;
+  /** Items whose status could not be normalized. */
   unknown: number;
+  /** Whole-number percentage of items completed, or null when there are no items. */
   percentComplete: number | null;
+  /**
+   * Text of the first in-progress item, shown as the "currently working on" line; null when nothing
+   * is in progress.
+   */
   activeText: string | null;
+  /**
+   * Tool that produced the latest state (for example `TodoWrite`, `TaskUpdate`, or `update_plan`),
+   * or null when unknown.
+   */
   sourceTool: string | null;
+  /** ISO timestamp of the latest observation, or null when unknown. */
   updatedAt: string | null;
+  /**
+   * Up to five items for the row's preview, ordered in progress first, then pending, unknown,
+   * completed, and cancelled, keeping the provider's order within each status.
+   */
   previewItems: SessionTodoItem[];
+  /** How many items did not fit in `previewItems`, for a `+N more` hint. */
   overflowCount: number;
+  /** Per-owner progress roll-up. */
   ownerBreakdown: SessionTodoOwnerSummary[];
 }
 
+/**
+ * Full latest task state attached to Session Detail (`todo_snapshot`). Built by replaying every
+ * task observation in time order, per owner, from the transcript and persisted lifecycle events.
+ */
 export interface SessionTodoSnapshot extends Omit<
   SessionTodoSummary,
   "previewItems" | "overflowCount"
 > {
+  /**
+   * Provider whose transcript format the items were parsed from. Cursor sessions report `claude`
+   * because they use Claude's tool shapes.
+   */
   provider: "claude" | "codex";
+  /**
+   * `transcript` when every observation came from the transcript; `mixed` when some came from
+   * persisted hook events with no transcript line (for example after the transcript was cleaned
+   * up).
+   */
   source: "transcript" | "mixed";
+  /**
+   * Transcript line of the latest observation, for linking back to it; null when it came from an
+   * event.
+   */
   sourceLine: number | null;
+  /**
+   * Plan explanation the agent wrote alongside the latest update (Codex `update_plan`), or null.
+   */
   explanation: string | null;
+  /**
+   * `partial` when any owner's state was reconstructed from incremental task updates without a full
+   * list, so items may be missing; `full` when a complete list was observed.
+   */
   confidence: "full" | "partial";
+  /** Every item across owners in owner order, capped at 200. */
   items: SessionTodoItem[];
+  /** True when any item belongs to a subagent rather than the main agent. */
   includesSubagents: boolean;
 }
 
@@ -882,13 +953,21 @@ export function isAgentAwaitingInput(agent: Agent | undefined | null): boolean {
 }
 
 /** Overlays {@link AWAITING_STATUS} on top of `agent.status` when the agent is
- *  blocked on user input; otherwise passes the persisted status through unchanged. */
+ *  blocked on user input; otherwise passes the persisted status through unchanged.
+ *
+ * @param agent - Agent row.
+ * @returns `waiting` while awaiting input, otherwise the stored status.
+ */
 export function effectiveAgentStatus(agent: Agent): EffectiveAgentStatus {
   return isAgentAwaitingInput(agent) ? AWAITING_STATUS : agent.status;
 }
 
 /** Overlays {@link AWAITING_STATUS} on top of `session.status` when the session
- *  is blocked on user input; otherwise passes the persisted status through unchanged. */
+ *  is blocked on user input; otherwise passes the persisted status through unchanged.
+ *
+ * @param session - Session row.
+ * @returns `waiting` while awaiting input, otherwise the stored status.
+ */
 export function effectiveSessionStatus(session: Session): EffectiveSessionStatus {
   return isSessionAwaitingInput(session) ? AWAITING_STATUS : session.status;
 }
@@ -897,6 +976,9 @@ export function effectiveSessionStatus(session: Session): EffectiveSessionStatus
  * Validates the raw `awaiting_reason` string the server sent against the known
  * {@link AwaitingReason} set. Unknown/future values degrade to null so the UI
  * falls back to the plain "Waiting" badge instead of rendering a key miss.
+ *
+ * @param value - Raw reason from the server.
+ * @returns A known reason, or null.
  */
 export function normalizeAwaitingReason(value: string | null | undefined): AwaitingReason | null {
   return value && (AWAITING_REASONS as readonly string[]).includes(value)
@@ -909,6 +991,8 @@ export function normalizeAwaitingReason(value: string | null | undefined): Await
  * counts as waiting (per {@link isSessionAwaitingInput}) - a stale reason on a
  * finished/idle session is never surfaced.
  * @returns The normalized reason, or null when not waiting / reason unknown.
+ *
+ * @param session - Session row, or nothing.
  */
 export function sessionAwaitingReason(session: Session | undefined | null): AwaitingReason | null {
   if (!session || !isSessionAwaitingInput(session)) return null;
@@ -919,6 +1003,8 @@ export function sessionAwaitingReason(session: Session | undefined | null): Awai
  * The agent's {@link AwaitingReason}, gated on {@link isAgentAwaitingInput} the
  * same way {@link sessionAwaitingReason} gates on the session predicate.
  * @returns The normalized reason, or null when not waiting / reason unknown.
+ *
+ * @param agent - Agent row, or nothing.
  */
 export function agentAwaitingReason(agent: Agent | undefined | null): AwaitingReason | null {
   if (!agent || !isAgentAwaitingInput(agent)) return null;
@@ -1129,23 +1215,70 @@ export interface ModelPricing {
 /**
  * An editable OpenAI/Codex rate rule. The distinct price bands represent the
  * public GPT card: standard short context (<=272K input tokens), standard long
- * context (>272K), and Fast mode. All values are USD per million tokens.
+ * context (>272K), and short/long Fast mode. All values are USD per million tokens.
  */
 export interface GptModelPricing {
+  /**
+   * Model id pattern this rule prices. `%` is an SQL-style wildcard; when several rules match, the
+   * longest pattern wins.
+   */
   model_pattern: string;
+  /** Name shown in the pricing table and cost breakdowns. */
   display_name: string;
+  /** Fresh input rate for requests whose input is at most 272K tokens. */
   short_input_per_mtok: number;
+  /** Cached input rate for short-context requests. */
   short_cached_input_per_mtok: number;
+  /** Cache write rate for short-context requests. */
   short_cache_write_per_mtok: number;
+  /** Output rate for short-context requests. */
   short_output_per_mtok: number;
+  /** Fresh input rate for requests whose input exceeds 272K tokens. */
   long_input_per_mtok: number;
+  /** Cached input rate for long-context requests. */
   long_cached_input_per_mtok: number;
+  /** Cache write rate for long-context requests. */
   long_cache_write_per_mtok: number;
+  /** Output rate for long-context requests. */
   long_output_per_mtok: number;
+  /** Fresh input rate in Fast mode, short context. */
   fast_input_per_mtok: number;
+  /** Fresh input rate in Fast mode, long context. */
+  fast_long_input_per_mtok: number;
+  /** Cached input rate in Fast mode, long context. */
+  fast_long_cached_input_per_mtok: number;
+  /** Cache write rate in Fast mode, long context. */
+  fast_long_cache_write_per_mtok: number;
+  /** Output rate in Fast mode, long context. */
+  fast_long_output_per_mtok: number;
+  /** Cached input rate in Fast mode, short context. */
   fast_cached_input_per_mtok: number;
+  /** Cache write rate in Fast mode, short context. */
   fast_cache_write_per_mtok: number;
+  /** Output rate in Fast mode, short context. */
   fast_output_per_mtok: number;
+  /** ISO timestamp this rule was last created or updated. */
+  updated_at: string;
+}
+
+/** An editable Cursor rate-card row. All rates are USD per million tokens. */
+export interface CursorModelPricing {
+  /**
+   * Model id pattern this rule prices. `%` is an SQL-style wildcard. For Fast-mode usage, a
+   * `<model>-fast` rule is tried before the plain model id.
+   */
+  model_pattern: string;
+  /** Name shown in the Cursor pricing table and cost breakdowns. */
+  display_name: string;
+  /** Fresh input rate. */
+  input_per_mtok: number;
+  /** Cache write rate. */
+  cache_write_per_mtok: number;
+  /** Cache read rate. */
+  cache_read_per_mtok: number;
+  /** Output rate. */
+  output_per_mtok: number;
+  /** ISO timestamp this rule was last created or updated. */
   updated_at: string;
 }
 
@@ -1752,8 +1885,7 @@ export interface WebhookTestResult {
  */
 export interface WSMessage {
   /** Discriminant selecting which member of the `data` union applies:
-   *  session_created/updated → Session; session_removed → SessionRemovedPayload;
-   *  agent_created/updated → Agent;
+   *  session_created/updated → Session; agent_created/updated → Agent;
    *  new_event → DashboardEvent; import.progress → ImportProgressMessage;
    *  update_status → UpdateStatusPayload; run_stream/run_status/run_input_ack
    *  → their matching Run*Payload; cc_config_changed / codex_config_changed
@@ -1764,7 +1896,6 @@ export interface WSMessage {
   type:
     | "session_created"
     | "session_updated"
-    | "session_removed"
     | "agent_created"
     | "agent_updated"
     | "new_event"
@@ -1783,7 +1914,6 @@ export interface WSMessage {
   /** The message body, whose concrete shape is selected by `type` above. */
   data:
     | Session
-    | SessionRemovedPayload
     | Agent
     | DashboardEvent
     | ImportProgressMessage
@@ -2513,6 +2643,9 @@ export type TranscriptSender = "user" | "assistant" | "orchestrator" | "system" 
  * carrying its detail in `event_kind`/`title` rather than `content`.
  */
 export interface TranscriptMessage {
+  /** Stable provider-local identity used to merge live refresh windows. Cursor
+   *  supplies this while prompt history hands off to the canonical transcript. */
+  id?: string;
   /** Raw JSONL line type. "session_event" is a synthetic marker (see
    *  `event_kind`/`title`) injected by the server, not a real transcript line. */
   type: "user" | "assistant" | "session_event";
@@ -2563,6 +2696,9 @@ export interface TranscriptResult {
   last_line: number;
   /** JSONL line number of the first message in this page. */
   first_line: number;
+  /** When true, this is a latest-window refresh keyed by message `id`, not a
+   *  strict append-only page after `last_line`. */
+  refresh?: boolean;
 }
 
 /** One entry in a session's transcript picker (main agent, a subagent, or a

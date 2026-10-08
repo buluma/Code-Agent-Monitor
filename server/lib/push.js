@@ -1,6 +1,6 @@
 /**
  * @file Handles web push notifications using the `web-push` library, including generating/loading VAPID keys, sending notifications to all subscribed clients, and cleaning up invalid subscriptions. It provides a function to retrieve the public VAPID key for client registration and a function to broadcast notifications to all subscribers stored in the database.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const webpush = require("web-push");
@@ -25,7 +25,7 @@ function loadOrCreateVapidKeys() {
 const vapidKeys = loadOrCreateVapidKeys();
 
 webpush.setVapidDetails(
-  "https://github.com/buluma/Code-Agent-Monitor",
+  "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
   vapidKeys.publicKey,
   vapidKeys.privateKey
 );
@@ -54,6 +54,7 @@ function showNativeNotificationIfElectron(title, body) {
   try {
     // `require("electron")` only resolves inside the Electron runtime; in a
     // plain `node server/index.js` host it throws and we fall through.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { Notification: ElectronNotification } = require("electron");
     if (!ElectronNotification) return false;
     if (
@@ -93,9 +94,9 @@ async function sendPushToAll(db, title, body) {
   const payload = JSON.stringify({
     title,
     body,
-    icon: "https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/main/client/public/favicon.ico",
+    icon: "https://raw.githubusercontent.com/hoangsonww/Claude-Code-Agent-Monitor/main/client/public/favicon.ico",
     badge:
-      "https://raw.githubusercontent.com/buluma/Code-Agent-Monitor/main/client/public/favicon.ico",
+      "https://raw.githubusercontent.com/hoangsonww/Claude-Code-Agent-Monitor/main/client/public/favicon.ico",
     silent: false,
     sound: "default",
   });

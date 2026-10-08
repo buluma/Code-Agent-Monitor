@@ -1,10 +1,10 @@
 /**
- * @file Main extension file for Code Agent Monitor VSCode extension
+ * @file Main extension file for Claude Code Agent Monitor VSCode extension
  * Sets up the extension, registers commands, and manages the status bar item.
  * Implements a dynamic dashboard view that checks for active servers on ports 5173 and 4820.
  * Provides real-time status updates in the sidebar and status bar with background polling.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const vscode = require("vscode");
@@ -15,19 +15,19 @@ let statusBarItem;
 let outputChannel;
 
 function activate(context) {
-  outputChannel = vscode.window.createOutputChannel("Code Agent Monitor");
+  outputChannel = vscode.window.createOutputChannel("Claude Code Monitor");
   outputChannel.appendLine("[activate] " + new Date().toISOString());
   context.subscriptions.push(outputChannel);
 
   const statusProvider = new DashboardWebviewProvider(context, outputChannel);
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider("code-agent-monitor-view", statusProvider, {
+    vscode.window.registerWebviewViewProvider("claude-code-monitor-view", statusProvider, {
       webviewOptions: { retainContextWhenHidden: true },
     })
   );
 
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-  statusBarItem.command = "code-agent-monitor.openDashboard";
+  statusBarItem.command = "claude-code-agent-monitor.openDashboard";
   context.subscriptions.push(statusBarItem);
 
   updateStatusBar();
@@ -36,11 +36,11 @@ function activate(context) {
   }, 5000); // Auto-refresh every 5 seconds
 
   let openDashboard = vscode.commands.registerCommand(
-    "code-agent-monitor.openDashboard",
+    "claude-code-agent-monitor.openDashboard",
     async (target) => {
       const panel = vscode.window.createWebviewPanel(
         "agentMonitor",
-        "Code Agent Monitor",
+        "Claude Code Agent Monitor",
         vscode.ViewColumn.One,
         { enableScripts: true, retainContextWhenHidden: true }
       );
@@ -288,7 +288,7 @@ function getErrorHtml() {
                 <div class="timeline">
                     <div class="t-step">
                         <div class="t-label">Initialize Repository</div>
-                        <div class="t-code">git clone https://github.com/buluma/Code-Agent-Monitor.git
+                        <div class="t-code">git clone https://github.com/hoangsonww/Claude-Code-Agent-Monitor.git
 cd Claude-Code-Agent-Monitor
 npm run setup</div>
                     </div>
@@ -317,16 +317,16 @@ npm run setup</div>
                     Retry Connection
                 </button>
                 
-                <a href="https://buluma.github.io/Code-Agent-Monitor/" class="btn btn-secondary">
+                <a href="https://hoangsonww.github.io/Claude-Code-Agent-Monitor/" class="btn btn-secondary">
                     View Documentation
                 </a>
             </div>
         </div>
 
         <div class="footer">
-            <a href="https://github.com/buluma/Code-Agent-Monitor">GitHub</a>
-            <a href="https://buluma.github.io/Code-Agent-Monitor/">Wiki</a>
-            <a href="https://github.com/buluma/Code-Agent-Monitor/issues">Support</a>
+            <a href="https://github.com/hoangsonww/Claude-Code-Agent-Monitor">GitHub</a>
+            <a href="https://hoangsonww.github.io/Claude-Code-Agent-Monitor/">Wiki</a>
+            <a href="https://github.com/hoangsonww/Claude-Code-Agent-Monitor/issues">Support</a>
         </div>
     </div>
 </body>

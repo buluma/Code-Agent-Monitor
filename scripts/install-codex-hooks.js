@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Installs this dashboard's supported Codex lifecycle hooks without touching
 // unrelated user hooks in ~/.codex/hooks.json.
-// @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+// @author Son Nguyen <hoangson091104@gmail.com>
 
 const fs = require("fs");
 const path = require("path");

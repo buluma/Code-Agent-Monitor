@@ -2,12 +2,12 @@
  * @file Dashboard.tsx
  * @description Main dashboard page showing real-time stats, active agents with
  * session task-progress indicators, and recent activity for Claude and Codex.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/pages/Dashboard.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/pages/Dashboard.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -99,17 +99,32 @@ import {
 import { api } from "../lib/api";
 import { eventBus } from "../lib/eventBus";
 import { isRemoteDataRefreshMessage } from "../lib/remoteDataEvents";
+import { mergeFreshestById } from "../lib/merge-by-id";
 import { useDataScope } from "../lib/dataScope";
 import { StatCard } from "../components/StatCard";
 import { AgentCard } from "../components/AgentCard";
 import { AgentStatusBadge } from "../components/StatusBadge";
 import { EmptyState } from "../components/EmptyState";
 import { Tip } from "../components/Tip";
+import { useUrlTab } from "../hooks/usePageShortcuts";
+import { usePaletteAction } from "../components/PaletteActionProvider";
 import { timeAgo, fmt, fmtCost, formatModelName } from "../lib/format";
 import { activityStatusFromEvent } from "../lib/event-grouping";
 import type { Stats, Agent, DashboardEvent, WSMessage, WorkflowData, Session } from "../lib/types";
 
+/** Tab keys in render order — also the order `1`/`2` and `[`/`]` address them. */
+const DASHBOARD_TABS = ["monitor", "health"] as const;
+
+/**
+ * Response of `/api/settings/info` as used by the Health tab, which reads more of it than Settings
+ * does: SQLite pragmas and load, process memory and CPU, and transcript-cache statistics.
+ */
 interface SystemInfo {
+  /**
+   * Database file path and size, row counts per table, the SQLite pragmas in effect (journal mode,
+   * synchronous level, auto-vacuum, encoding, foreign keys, busy timeout), and the server's load
+   * averages over 5 minutes, 15 minutes, and 1 hour.
+   */
   db: {
     path: string;
     size: number;
@@ -124,7 +139,13 @@ interface SystemInfo {
     };
     load_stats: { m5: number; m15: number; h1: number };
   };
+  /** Claude Code hook installation status. */
   hooks: { installed: boolean; path: string; hooks: Record<string, boolean> };
+  /**
+   * Server process and host details: uptime, Node.js version, platform and architecture, open
+   * WebSocket connections, process memory, CPU load averages, total and free host memory, and CPU
+   * count.
+   */
   server: {
     uptime: number;
     node_version: string;
@@ -137,6 +158,9 @@ interface SystemInfo {
     free_mem: number;
     cpus: number;
   };
+  /**
+   * Transcript parse cache: current and maximum entries, hit and miss counts, and the cached keys.
+   */
   transcript_cache: {
     size: number;
     maxSize: number;
@@ -146,12 +170,24 @@ interface SystemInfo {
   };
 }
 
+/**
+ * Human-readable size in B, KB, or MB.
+ *
+ * @param bytes - Size in bytes.
+ * @returns The formatted size.
+ */
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/**
+ * Compact uptime, for example `3d 4h 12m`, `5h 2m`, or `17m`.
+ *
+ * @param seconds - Uptime in seconds.
+ * @returns The formatted duration.
+ */
 function formatUptime(seconds: number): string {
   const d = Math.floor(seconds / 86400);
   const h = Math.floor((seconds % 86400) / 3600);
@@ -161,11 +197,20 @@ function formatUptime(seconds: number): string {
   return `${m}m`;
 }
 
+/**
+ * Health tab of the Dashboard: database, server, hook, and cache health, plus workflow-derived
+ * figures, built from `/api/settings/info` and `/api/workflows`. Refreshed every 30 seconds and
+ * when the data scope changes.
+ */
 function SystemHealthTab() {
   const [info, setInfo] = useState<SystemInfo | null>(null);
   const [workflow, setWorkflow] = useState<WorkflowData | null>(null);
   const [scope] = useDataScope();
 
+  /**
+   * Fetch system info and workflow data together for the Health tab. Errors are logged and leave
+   * the previous figures on screen.
+   */
   const loadData = useCallback(async () => {
     try {
       const [infoRes, workflowRes] = await Promise.all([api.settings.info(), api.workflows.get()]);
@@ -182,6 +227,10 @@ function SystemHealthTab() {
     return () => clearInterval(int);
   }, [loadData]);
 
+  /**
+   * Derived figures for the Health tab, such as the share of sessions, agents, and events among
+   * stored rows. Null until both requests have loaded.
+   */
   const stats = useMemo(() => {
     if (!info || !workflow) return null;
 
@@ -958,18 +1007,23 @@ function SystemHealthTab() {
   );
 }
 
+/**
+ * Dashboard page (`/`). The Monitor tab shows overview stat cards, live agent cards with
+ * collapsible subagent trees, and a recent activity feed whose item counts adapt to the available
+ * height. The Health tab is {@link SystemHealthTab}. The tab is mirrored in the URL. Data follows
+ * the global data scope, reloads on live WebSocket updates (throttled to at most one load every 2
+ * seconds), and is polled every 10 seconds as a backstop.
+ */
 export function Dashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation("dashboard");
 
-  // Persistent Tab State
-  const [activeTab, setActiveTab] = useState<"monitor" | "health">(() => {
-    return (localStorage.getItem("dashboard_tab") as "monitor" | "health") || "monitor";
+  // Tab state lives in the URL so the command palette can address either view
+  // directly; `dashboard_tab` still mirrors the last choice, so an unqualified
+  // visit lands where the user left off.
+  const [activeTab, setActiveTab] = useUrlTab(DASHBOARD_TABS, "monitor", {
+    storageKey: "dashboard_tab",
   });
-
-  useEffect(() => {
-    localStorage.setItem("dashboard_tab", activeTab);
-  }, [activeTab]);
 
   const [stats, setStats] = useState<Stats | null>(null);
   const [activeAgents, setActiveAgents] = useState<Agent[]>([]);
@@ -1014,6 +1068,10 @@ export function Dashboard() {
   // source-machine and provider params into the calls below).
   const [scope] = useDataScope();
 
+  /**
+   * Load everything the Monitor tab shows in parallel: stats, working agents, waiting agents
+   * (including transient rows), recent events, costs, and sessions.
+   */
   const load = useCallback(async () => {
     try {
       const [statsRes, workingRes, waitingRes, eventsRes, costRes, sessionsRes] = await Promise.all(
@@ -1032,7 +1090,9 @@ export function Dashboard() {
         ]
       );
       setStats(statsRes);
-      const active = [...workingRes.agents, ...waitingRes.agents];
+      // The two lanes are fetched in parallel, so an agent that flips status
+      // between the responses lands in both. Merge to one card per agent id.
+      const active = mergeFreshestById(workingRes.agents, waitingRes.agents);
       setActiveAgents(active);
       setRecentEvents(eventsRes.events);
       setTotalCost(costRes.total_cost);
@@ -1052,6 +1112,10 @@ export function Dashboard() {
       setError(err instanceof Error ? err.message : t("failedLoad"));
     }
   }, [t, scope]);
+
+  usePaletteAction("page.refresh", () => {
+    void load();
+  });
 
   useEffect(() => {
     load();
@@ -1096,6 +1160,10 @@ export function Dashboard() {
     // the view eventually consistent and the 10s poll remains the backstop.
     const THROTTLE_MS = 2_000;
     const throttleRef = { timer: null as ReturnType<typeof setTimeout> | null, lastRun: 0 };
+    /**
+     * Schedule a throttled reload: at most one load per 2-second window, with a trailing call so
+     * the view still catches up after a burst of WebSocket messages.
+     */
     const scheduleLoad = () => {
       if (throttleRef.timer) return; // trailing run already scheduled
       const wait = Math.max(0, THROTTLE_MS - (Date.now() - throttleRef.lastRun));
@@ -1111,7 +1179,6 @@ export function Dashboard() {
         msg.type === "agent_updated" ||
         msg.type === "session_created" ||
         msg.type === "session_updated" ||
-        msg.type === "session_removed" ||
         isRemoteDataRefreshMessage(msg)
       ) {
         scheduleLoad();
@@ -1224,7 +1291,7 @@ export function Dashboard() {
                   : "text-gray-500 hover:text-gray-300"
               }`}
             >
-              <Activity className="w-3.5 h-3.5" /> Monitor
+              <Activity className="w-3.5 h-3.5" /> {t("tabs.monitor")}
             </button>
             <button
               onClick={() => setActiveTab("health")}
@@ -1234,7 +1301,7 @@ export function Dashboard() {
                   : "text-gray-500 hover:text-gray-300"
               }`}
             >
-              <Server className="w-3.5 h-3.5" /> Health
+              <Server className="w-3.5 h-3.5" /> {t("tabs.health")}
             </button>
           </div>
           <button onClick={load} className="btn-ghost flex-shrink-0">
@@ -1332,6 +1399,7 @@ export function Dashboard() {
                       const { total: totalDesc, active: activeDesc } = hasChildren
                         ? getDescendants(agent.id)
                         : { total: 0, active: 0 };
+                      /** Expand or collapse this agent's subagent tree. */
                       const toggleExpanded = () =>
                         setExpandedAgents((prev) => {
                           const next = new Set(prev);

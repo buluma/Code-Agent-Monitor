@@ -4,7 +4,7 @@
  * never persisted a rollout (`codex exec --ephemeral`). The server marks those
  * sessions `hook_only` in metadata; the page must explain the missing
  * transcript instead of showing the generic "transcript not found" warning.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -64,12 +64,6 @@ vi.mock("../../lib/api", () => ({
         Promise.resolve({ events: [] as DashboardEvent[], limit: 50, offset: 0, total: 0 })
       ),
       facets: vi.fn(() => Promise.resolve({ event_types: [], tool_names: [] })),
-    },
-    linear: {
-      getConfig: vi.fn(() => Promise.resolve({ configured: false })),
-      getLink: vi.fn(() => Promise.resolve({ link: null })),
-      link: vi.fn(() => Promise.resolve({ link: null })),
-      unlink: vi.fn(() => Promise.resolve({ ok: true })),
     },
   },
 }));

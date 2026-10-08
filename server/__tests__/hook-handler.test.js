@@ -6,7 +6,7 @@
  * lock in that non-blocking contract so a future refactor can't reintroduce the
  * "stuck running hooks" stall (handler waiting up to the per-request timeout for
  * a slow/busy/wedged dashboard to reply).
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { describe, it } = require("node:test");
@@ -116,13 +116,13 @@ describe("hook-handler non-blocking delivery", () => {
         port,
         payload: { session_id: "hh-remote", stop_reason: "end_turn" },
         env: {
-          CAM_DASHBOARD_URL: `http://127.0.0.1:${port}`,
-          CAM_HOOK_TOKEN: "hook-secret",
+          CCAM_DASHBOARD_URL: `http://127.0.0.1:${port}`,
+          CCAM_HOOK_TOKEN: "hook-secret",
         },
       });
       assert.equal(code, 0);
       await new Promise((resolve) => setTimeout(resolve, 100));
-      assert.equal(receivedHeaders[0]["x-cam-hook-token"], "hook-secret");
+      assert.equal(receivedHeaders[0]["x-ccam-hook-token"], "hook-secret");
     } finally {
       server.close();
     }

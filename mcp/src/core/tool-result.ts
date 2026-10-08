@@ -1,12 +1,12 @@
 /**
  * @file tool-result.ts
  * @description Utility functions for formatting tool results in the MCP server. This module provides helper functions to create standardized result objects for successful tool calls (jsonResult) and error cases (errorResult). The jsonResult function formats the output with a title and pretty-printed JSON payload, while the errorResult function handles both known API errors and generic errors, ensuring that error information is consistently structured for the MCP client to display. These utilities help maintain a clear contract for tool handlers when returning results or errors.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/core/tool-result.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/core/tool-result.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -67,6 +67,10 @@ import { ApiError } from "../clients/dashboard-api-client.js";
  * The result is a single `text` block: the tool name as a title, then the
  * payload pretty-printed as JSON — a display convenience, not a
  * machine-readable envelope.
+ *
+ * @param title - Heading for the text content.
+ * @param payload - Data to return; serialized as JSON.
+ * @returns The tool result.
  */
 export function jsonResult(title: string, payload: unknown): CallToolResult {
   return {
@@ -87,6 +91,9 @@ export function jsonResult(title: string, payload: unknown): CallToolResult {
  * failure) surfaces its own `code`/`status`/`details`; any other error
  * (including policy-guard failures) collapses to a generic `INTERNAL_ERROR`
  * with just the message.
+ *
+ * @param error - Thrown value.
+ * @returns An error tool result.
  */
 export function errorResult(error: unknown): CallToolResult {
   if (error instanceof ApiError) {

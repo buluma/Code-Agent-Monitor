@@ -1,12 +1,12 @@
 /**
  * @file tool-registry.ts
  * @description Core functions for registering tools in the MCP server. This module defines the ToolRegistrar type, which is a function that can be used to register a tool with a name, description, input schema, and handler function. It also provides factory functions to create different types of registrars: one that registers tools directly with the MCP server and collects entries for REPL mode, and another that only collects entries without registering with the MCP server (for pure REPL mode). The registrars handle error logging and result formatting to ensure consistent behavior across different tool implementations.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/core/tool-registry.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/core/tool-registry.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -88,6 +88,7 @@ import { z } from "zod";
 import type { Logger } from "./logger.js";
 import { errorResult, jsonResult } from "./tool-result.js";
 
+/** Tool input as passed to handlers: a plain object, validated by each tool's own schema. */
 type GenericInput = Record<string, unknown>;
 
 /** Signature every domain tool handler implements. Receives the
@@ -117,8 +118,11 @@ export interface ToolRegistrar {
  * Consumed by `transports/tool-collector.ts`/`transports/repl.ts` to invoke
  * tools directly, bypassing the MCP protocol. */
 export interface ToolEntry {
+  /** Tool name. */
   name: string;
+  /** Tool description. */
   description: string;
+  /** Function that runs the tool. */
   handler: ToolHandler;
 }
 
@@ -129,6 +133,10 @@ export interface ToolEntry {
  * success into a `CallToolResult` via {@link jsonResult}, and catches any
  * thrown error — converting it via {@link errorResult} — so a failing call
  * always resolves rather than rejects the MCP request.
+ *
+ * @param server - MCP server to register tools on.
+ * @param logger - Logger for tool start, completion, and failure.
+ * @returns The registrar.
  */
 export function createToolRegistrar(server: McpServer, logger: Logger): ToolRegistrar {
   return (name, description, inputSchema, handler) => {
@@ -155,6 +163,11 @@ export function createToolRegistrar(server: McpServer, logger: Logger): ToolRegi
  * {@link ToolEntry}, so one call would both register a tool AND make it
  * directly invokable. Not currently used — `index.ts` builds REPL entries
  * via {@link createCollectorRegistrar} instead.
+ *
+ * @param server - MCP server to register tools on.
+ * @param logger - Logger for tool calls.
+ * @param collector - List that also receives each tool.
+ * @returns The registrar.
  */
 export function createDualRegistrar(
   server: McpServer,
@@ -172,6 +185,9 @@ export function createDualRegistrar(
  * Registrar that only collects (no MCP server, for pure REPL mode). Used by
  * `collectAllTools` to build the REPL tool list with no protocol overhead —
  * thrown errors propagate as real exceptions to the REPL's own try/catch.
+ *
+ * @param collector - List that receives each tool.
+ * @returns The registrar.
  */
 export function createCollectorRegistrar(collector: ToolEntry[]): ToolRegistrar {
   return (name, description, inputSchema, handler) => {
@@ -188,10 +204,16 @@ export function createCollectorRegistrar(collector: ToolEntry[]): ToolRegistrar 
  * Resolve the registrar for one tool domain. Protocol transports provide a
  * live MCP server, while the REPL injects a collector registrar. Keeping this
  * decision here lets every domain declaration run unchanged in both surfaces.
+ *
+ * @param context - Shared tool context: either a server or a custom registrar, plus the logger.
+ * @returns The registrar for the context.
  */
 export function registrarFor(context: {
+  /** MCP server to register tools on, for the server transports. */
   server?: McpServer;
+  /** Custom registrar used instead of a server, for example by the REPL's tool collector. */
   register?: ToolRegistrar;
+  /** Logger for registration messages. */
   logger: Logger;
 }): ToolRegistrar {
   if (context.register) return context.register;

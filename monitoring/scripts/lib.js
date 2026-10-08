@@ -1,6 +1,6 @@
 /**
  * @file Shared helpers for starting and stopping the npm-managed monitoring stack.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 const fs = require("node:fs");
 const path = require("node:path");
@@ -89,7 +89,7 @@ function writeGrafanaProvisioning() {
     "apiVersion: 1",
     "",
     "providers:",
-    "  - name: CAM",
+    "  - name: CCAM",
     "    orgId: 1",
     "    type: file",
     "    disableDeletion: false",

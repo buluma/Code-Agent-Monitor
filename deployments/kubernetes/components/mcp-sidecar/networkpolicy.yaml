@@ -18,7 +18,7 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              cam.dev/mcp-client: "true"
+              ccam.dev/mcp-client: "true"
       ports:
         - protocol: TCP
           port: 8819

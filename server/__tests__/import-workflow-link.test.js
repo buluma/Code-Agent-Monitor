@@ -5,7 +5,7 @@
  * A Claude Code Workflow-tool run (dynamic workflow / fleet of sub-agents)
  * emits NO hooks, so in a headless `claude -p` run, a CI job, or an HPC/cluster
  * compute node its per-run journal is never ingested live. Before this fix the
- * CLI import path (`cam import rescan` → importAllSessions, `cam import path`
+ * CLI import path (`ccam import rescan` → importAllSessions, `ccam import path`
  * → importFromDirectory) never called the workflow-journal ingest, so the
  * nested inner-agent transcripts under
  * `<sid>/subagents/workflows/<runId>/agent-*.jsonl` were imported with
@@ -17,7 +17,7 @@
  * the CLI import path (never the server), and assert every inner agent ends up
  * with `workflow_run_id = <runId>` and the workflows row reports the full fleet.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { describe, it, before, after } = require("node:test");
@@ -28,7 +28,7 @@ const path = require("path");
 
 // Scope the importer at a throwaway CLAUDE_HOME and DB before any server module
 // loads — import-history captures PROJECTS_DIR from CLAUDE_HOME at require time.
-const TMP_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), `cam-wf-link-${process.pid}-`));
+const TMP_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), `ccam-wf-link-${process.pid}-`));
 process.env.CLAUDE_HOME = TMP_ROOT;
 process.env.DASHBOARD_DATA_DIR = path.join(TMP_ROOT, "data");
 process.env.DASHBOARD_DB_PATH = path.join(TMP_ROOT, "dashboard.db");
@@ -148,7 +148,7 @@ after(() => {
 });
 
 describe("offline CLI import links Workflow-tool inner agents", () => {
-  it("importFromDirectory (cam import path) links every inner agent to its run", async () => {
+  it("importFromDirectory (ccam import path) links every inner agent to its run", async () => {
     const SID = "aaaa1111-0000-4000-8000-000000000001";
     const RUN = "wf_dirimport01";
     const AGENTS = ["d1", "d2", "d3"];
@@ -171,7 +171,7 @@ describe("offline CLI import links Workflow-tool inner agents", () => {
     );
   });
 
-  it("importAllSessions (cam import rescan) links every inner agent to its run", async () => {
+  it("importAllSessions (ccam import rescan) links every inner agent to its run", async () => {
     const SID = "bbbb2222-0000-4000-8000-000000000002";
     const RUN = "wf_rescan02";
     const AGENTS = ["r1", "r2", "r3", "r4"];

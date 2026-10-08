@@ -2,7 +2,7 @@
  * @file Verifies incremental Codex rollout ingestion: session metadata, token
  * deltas, context bands, duplicate safety, native live-thread startup cards,
  * transcript-derived prompt context, and transcript-driven card lifecycle.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { after, describe, it } = require("node:test");
@@ -12,7 +12,7 @@ const os = require("os");
 const path = require("path");
 const Database = require("better-sqlite3");
 
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "cam-codex-ingest-"));
+const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "ccam-codex-ingest-"));
 process.env.DASHBOARD_DB_PATH = path.join(TMP, "dashboard.db");
 process.env.DASHBOARD_CODEX_HOME = path.join(TMP, "codex");
 
@@ -220,6 +220,143 @@ describe("Codex rollout ingestor", () => {
     assert.equal(short.output_tokens, 20);
   });
 
+  it("reads modern response-item prompts without counting injected user-role context", () => {
+    const sessionId = "01a07a11-e708-7ab3-b943-7d5e0d84c0de";
+    const rollout = path.join(
+      process.env.DASHBOARD_CODEX_HOME,
+      "sessions",
+      "2026",
+      "09",
+      "06",
+      `rollout-2026-09-06T22-00-00-${sessionId}.jsonl`
+    );
+    const responseMessage = (text, turnId, kind = "user.text") =>
+      record("response_item", {
+        type: "message",
+        role: "user",
+        content: [{ type: "input_text", text }],
+        internal_chat_message_metadata_passthrough: {
+          turn_id: turnId,
+          content_item_kinds: [kind],
+        },
+      });
+    fs.mkdirSync(path.dirname(rollout), { recursive: true });
+    fs.writeFileSync(
+      rollout,
+      [
+        record("session_meta", { id: sessionId, cwd: "/workspace/modern-codex" }),
+        responseMessage("repository instructions", "turn-1", "agents_md.instructions"),
+        responseMessage("Review PR 321", "turn-1"),
+        responseMessage("Post detailed comments", "turn-1"),
+        record("event_msg", { type: "task_started" }),
+        responseMessage("Fix this current branch", "turn-2"),
+        record("event_msg", { type: "task_started" }),
+      ]
+        .map(JSON.stringify)
+        .join("\n") + "\n"
+    );
+
+    const first = ingestCodexTranscript(rollout);
+    assert.equal(first.changed, true);
+    assert.equal(first.agent.task, "Fix this current branch");
+    assert.equal(
+      first.session.card_prompt_preview,
+      "Post detailed comments\nFix this current branch"
+    );
+    assert.equal(JSON.parse(first.session.metadata).turn_count, 2);
+    assert.deepEqual(
+      stmts.listEventsBySession
+        .all(sessionId)
+        .filter((event) => event.event_type === "codex_user_message")
+        .map((event) => event.summary),
+      ["Fix this current branch", "Post detailed comments", "Review PR 321"]
+    );
+
+    // Simulate a pre-fix database whose byte cursor has already consumed the
+    // rollout. An unchanged-file pass repairs the card from prior bytes once.
+    db.prepare("DELETE FROM events WHERE session_id = ? AND event_type = 'codex_user_message'").run(
+      sessionId
+    );
+    db.prepare("UPDATE sessions SET card_prompt_preview = NULL, metadata = ? WHERE id = ?").run(
+      JSON.stringify({ provider: "codex" }),
+      sessionId
+    );
+    db.prepare("UPDATE agents SET task = NULL WHERE id = ?").run(`codex:${sessionId}`);
+    const repaired = ingestCodexTranscript(rollout);
+    assert.equal(repaired.changed, true);
+    assert.equal(repaired.agent.task, "Fix this current branch");
+    assert.equal(
+      repaired.session.card_prompt_preview,
+      "Post detailed comments\nFix this current branch"
+    );
+    assert.equal(JSON.parse(repaired.session.metadata).turn_count, 2);
+    assert.equal(ingestCodexTranscript(rollout).changed, false, "the repair is one-shot");
+    stmts.updateSession.run(null, "completed", new Date().toISOString(), null, sessionId);
+    stmts.updateAgent.run(
+      null,
+      "completed",
+      null,
+      null,
+      new Date().toISOString(),
+      null,
+      `codex:${sessionId}`
+    );
+  });
+
+  it("deduplicates legacy and modern prompt copies across incremental reads", () => {
+    const sessionId = "01b18b22-f819-7bc4-ca54-8e6f1e95d1ef";
+    const rollout = path.join(
+      process.env.DASHBOARD_CODEX_HOME,
+      "sessions",
+      "2026",
+      "09",
+      "07",
+      `rollout-2026-09-07T00-00-00-${sessionId}.jsonl`
+    );
+    const modernPrompt = (message, turnId) =>
+      record("response_item", {
+        type: "message",
+        role: "user",
+        content: [{ type: "input_text", text: message }],
+        internal_chat_message_metadata_passthrough: {
+          turn_id: turnId,
+          content_item_kinds: ["user.text"],
+        },
+      });
+    const write = (entry) => fs.appendFileSync(rollout, `${JSON.stringify(entry)}\n`);
+    fs.mkdirSync(path.dirname(rollout), { recursive: true });
+
+    write(record("session_meta", { id: sessionId, cwd: "/workspace/incremental-prompts" }));
+    write(record("event_msg", { type: "user_message", message: "Legacy arrives first" }));
+    ingestCodexTranscript(rollout);
+    write(modernPrompt("Legacy arrives first", "turn-1"));
+    ingestCodexTranscript(rollout);
+
+    write(modernPrompt("Modern arrives first", "turn-2"));
+    ingestCodexTranscript(rollout);
+    write(record("event_msg", { type: "user_message", message: "Modern arrives first" }));
+    const result = ingestCodexTranscript(rollout);
+
+    const promptEvents = stmts.listEventsBySession
+      .all(sessionId)
+      .filter((event) => event.event_type === "codex_user_message");
+    assert.deepEqual(
+      promptEvents.map((event) => event.summary),
+      ["Modern arrives first", "Legacy arrives first"]
+    );
+    assert.equal(result.session.card_prompt_preview, "Legacy arrives first\nModern arrives first");
+    stmts.updateSession.run(null, "completed", new Date().toISOString(), null, sessionId);
+    stmts.updateAgent.run(
+      null,
+      "completed",
+      null,
+      null,
+      new Date().toISOString(),
+      null,
+      `codex:${sessionId}`
+    );
+  });
+
   it("maps task completion, resumed work, and interrupted work to Claude-equivalent card states", () => {
     append(record("event_msg", { type: "task_complete" }));
     ingestCodexTranscript(ROLLOUT);
@@ -404,6 +541,75 @@ describe("Codex rollout ingestor", () => {
     assert.equal(stmts.getAgent.get(`codex:${SESSION_ID}`).status, "working");
   });
 
+  it("zeroes the delta when cumulative token counters regress, then resumes from the lower baseline", () => {
+    const sessionId = "019fde70-aaaa-7b71-8c90-000000000001";
+    const rollout = path.join(
+      process.env.DASHBOARD_CODEX_HOME,
+      "sessions",
+      "2026",
+      "08",
+      "06",
+      `rollout-2026-08-06T09-00-00-${sessionId}.jsonl`
+    );
+    const appendLocal = (entry) => {
+      fs.mkdirSync(path.dirname(rollout), { recursive: true });
+      fs.appendFileSync(rollout, `${JSON.stringify(entry)}\n`);
+    };
+    const tokenCount = (usage) =>
+      record("event_msg", { type: "token_count", info: { total_token_usage: usage } });
+
+    appendLocal(record("session_meta", { id: sessionId, cwd: "/workspace/regression" }));
+    appendLocal(
+      tokenCount({
+        input_tokens: 300_000,
+        cached_input_tokens: 100_000,
+        cache_write_input_tokens: 20_000,
+        output_tokens: 1_000,
+        reasoning_output_tokens: 250,
+      })
+    );
+    assert.equal(ingestCodexTranscript(rollout).changed, true);
+    const rowsAfterFirst = stmts.getTokensBySession.all(sessionId);
+    assert.equal(rowsAfterFirst.length, 1);
+    assert.equal(rowsAfterFirst[0].input_tokens, 180_000);
+    assert.equal(rowsAfterFirst[0].output_tokens, 1_250);
+
+    // A rewritten or resumed rollout can re-open with lower cumulative counters.
+    // The regressed snapshot itself must contribute nothing…
+    appendLocal(
+      tokenCount({
+        input_tokens: 50_000,
+        cached_input_tokens: 10_000,
+        cache_write_input_tokens: 0,
+        output_tokens: 200,
+        reasoning_output_tokens: 50,
+      })
+    );
+    assert.equal(ingestCodexTranscript(rollout).changed, true);
+    assert.deepEqual(
+      stmts.getTokensBySession.all(sessionId),
+      rowsAfterFirst,
+      "a regressed cumulative snapshot must not emit a token delta"
+    );
+
+    // …and growth after the regression is measured against the lower baseline.
+    appendLocal(
+      tokenCount({
+        input_tokens: 50_100,
+        cached_input_tokens: 10_000,
+        cache_write_input_tokens: 0,
+        output_tokens: 205,
+        reasoning_output_tokens: 50,
+      })
+    );
+    assert.equal(ingestCodexTranscript(rollout).changed, true);
+    const resumed = stmts.getTokensBySession
+      .all(sessionId)
+      .find((row) => row.context_size === "short");
+    assert.equal(resumed.input_tokens, 100);
+    assert.equal(resumed.output_tokens, 5);
+  });
+
   it("imports an inactive historical rollout as completed without replaying task_started", () => {
     const sessionId = "019fd086-d75c-7a91-9743-2788d849c224";
     const rollout = path.join(
@@ -488,14 +694,14 @@ describe("Codex rollout ingestor", () => {
         ...own,
         turn_id: TURN_ID,
         hook_event_name: "UserPromptSubmit",
-        prompt: "Run the shell command 'echo hello-cam' and then reply DONE.",
+        prompt: "Run the shell command 'echo hello-ccam' and then reply DONE.",
       });
       ingestCodexHook(null, "PreToolUse", {
         ...own,
         turn_id: TURN_ID,
         hook_event_name: "PreToolUse",
         tool_name: "Bash",
-        tool_input: { command: "echo hello-cam" },
+        tool_input: { command: "echo hello-ccam" },
         tool_use_id: "exec-3c2ba208-b1e2-4980-8d9e-756175454f02",
       });
       ingestCodexHook(null, "PostToolUse", {
@@ -503,8 +709,8 @@ describe("Codex rollout ingestor", () => {
         turn_id: TURN_ID,
         hook_event_name: "PostToolUse",
         tool_name: "Bash",
-        tool_input: { command: "echo hello-cam" },
-        tool_response: "hello-cam\n",
+        tool_input: { command: "echo hello-ccam" },
+        tool_response: "hello-ccam\n",
         tool_use_id: "exec-3c2ba208-b1e2-4980-8d9e-756175454f02",
       });
       if (stop) {
@@ -540,13 +746,13 @@ describe("Codex rollout ingestor", () => {
         ...base,
         turn_id: TURN_ID,
         hook_event_name: "UserPromptSubmit",
-        prompt: "Run the shell command 'echo hello-cam' and then reply DONE.",
+        prompt: "Run the shell command 'echo hello-ccam' and then reply DONE.",
       });
       assert.equal(prompted.session.status, "active");
       assert.equal(stmts.getAgent.get(`codex:${EPHEMERAL_ID}`).status, "working");
       assert.equal(
         prompted.session.name,
-        "Run the shell command 'echo hello-cam' and then reply DONE.",
+        "Run the shell command 'echo hello-ccam' and then reply DONE.",
         "the hook prompt names the session exactly as a rollout user_message would"
       );
 
@@ -555,7 +761,7 @@ describe("Codex rollout ingestor", () => {
         turn_id: TURN_ID,
         hook_event_name: "PreToolUse",
         tool_name: "Bash",
-        tool_input: { command: "echo hello-cam" },
+        tool_input: { command: "echo hello-ccam" },
         tool_use_id: "exec-3c2ba208-b1e2-4980-8d9e-756175454f02",
       });
       ingestCodexHook(null, "PostToolUse", {
@@ -563,8 +769,8 @@ describe("Codex rollout ingestor", () => {
         turn_id: TURN_ID,
         hook_event_name: "PostToolUse",
         tool_name: "Bash",
-        tool_input: { command: "echo hello-cam" },
-        tool_response: "hello-cam\n",
+        tool_input: { command: "echo hello-ccam" },
+        tool_response: "hello-ccam\n",
         tool_use_id: "exec-3c2ba208-b1e2-4980-8d9e-756175454f02",
       });
 
@@ -603,10 +809,10 @@ describe("Codex rollout ingestor", () => {
         ]
       );
       const [prompt, call, end, complete] = rows;
-      assert.equal(prompt.summary, "Run the shell command 'echo hello-cam' and then reply DONE.");
+      assert.equal(prompt.summary, "Run the shell command 'echo hello-ccam' and then reply DONE.");
       assert.equal(call.tool_name, "Bash");
       assert.equal(call.summary, "Called Bash");
-      assert.equal(end.summary, "echo hello-cam");
+      assert.equal(end.summary, "echo hello-ccam");
       assert.equal(complete.summary, "DONE");
       for (const row of rows) {
         assert.equal(JSON.parse(row.data).source, "hook", "every synthesized row is tagged");
@@ -875,25 +1081,23 @@ describe("Codex rollout ingestor", () => {
         return response.json();
       };
 
-      try {
-        const accepted = await post({
-          hook_type: "SessionEnd",
-          data: {
-            session_id: "01a04300-3333-7000-8000-333333333333",
-            transcript_path: null,
-            hook_event_name: "SessionEnd",
-          },
-        });
-        assert.equal(accepted.queued, true, "a thread id is enough to identify the session");
+      const accepted = await post({
+        hook_type: "SessionEnd",
+        data: {
+          session_id: "01a04300-3333-7000-8000-333333333333",
+          transcript_path: null,
+          hook_event_name: "SessionEnd",
+        },
+      });
+      assert.equal(accepted.queued, true, "a thread id is enough to identify the session");
 
-        const rejected = await post({
-          hook_type: "SessionEnd",
-          data: { hook_event_name: "SessionEnd" },
-        });
-        assert.equal(rejected.queued, false, "a payload identifying nothing is still a no-op");
-      } finally {
-        await new Promise((resolve) => server.close(resolve));
-      }
+      const rejected = await post({
+        hook_type: "SessionEnd",
+        data: { hook_event_name: "SessionEnd" },
+      });
+      assert.equal(rejected.queued, false, "a payload identifying nothing is still a no-op");
+
+      await new Promise((resolve) => server.close(resolve));
     });
 
     it("leaves a rollout-backed session out of the hook-only fallback", () => {

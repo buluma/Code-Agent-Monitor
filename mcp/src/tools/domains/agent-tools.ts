@@ -1,12 +1,12 @@
 /**
  * @file agent-tools.ts
  * @description Defines and registers tools for managing agents in the dashboard, including listing agents with filters, retrieving agent details, creating new agents, and updating existing agents. Each tool includes input validation using Zod schemas and interacts with the dashboard API to perform the necessary operations. The tools also check for mutation permissions before allowing changes to agent data, ensuring that the application configuration is respected.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/tools/domains/agent-tools.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/tools/domains/agent-tools.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -67,6 +67,8 @@ import type { ToolContext } from "../../types/tool-context.js";
  * {@link assertMutationsEnabled} first. Agents mirror Claude Code's own
  * main-agent/subagent model: one main agent plus zero or more subagents
  * (`type: "subagent"`, optional `subagent_type`, linked via `parent_agent_id`).
+ *
+ * @param context - Shared tool context.
  */
 export function registerAgentTools(context: ToolContext): void {
   const { api, config } = context;
@@ -88,7 +90,7 @@ export function registerAgentTools(context: ToolContext): void {
       session_id: z.string().min(1).max(256).optional(),
       sources: z.array(z.string().min(1).max(256)).max(100).optional(),
       providers: z
-        .array(z.enum(["claude", "codex", "helmcode", "t3"]))
+        .array(z.enum(["claude", "codex"]))
         .max(2)
         .optional(),
     },

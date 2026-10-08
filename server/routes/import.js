@@ -12,7 +12,7 @@
  *
  * Progress is broadcast over the existing websocket as `import.progress`.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { Router } = require("express");
@@ -40,20 +40,14 @@ const router = Router();
 const { getClaudeHome, getProjectsDir } = require("../lib/claude-home");
 const { getCodexHome, getCodexSessionsDir } = require("../lib/codex-home");
 const { findCodexTranscripts } = require("../lib/codex-ingest");
-const {
-  getHelmcodeHome,
-  getHelmcodeUserDataDir,
-  getHelmcodeStateDbPath,
-} = require("../lib/helmcode-home");
-const { ingestHelmcodeSnapshot } = require("../lib/helmcode-ingest");
 
 // Upload limits — deliberately generous because transcripts can be large.
 // Configurable at runtime via env for deployments that need tighter bounds.
 const MAX_UPLOAD_BYTES = parseInt(
-  process.env.CAM_IMPORT_MAX_BYTES || String(1024 * 1024 * 1024), // 1 GB default
+  process.env.CCAM_IMPORT_MAX_BYTES || String(1024 * 1024 * 1024), // 1 GB default
   10
 );
-const MAX_UPLOAD_FILES = parseInt(process.env.CAM_IMPORT_MAX_FILES || "2000", 10);
+const MAX_UPLOAD_FILES = parseInt(process.env.CCAM_IMPORT_MAX_FILES || "2000", 10);
 
 /**
  * Lazily build a multer upload middleware. Kept lazy so the server still
@@ -74,8 +68,8 @@ function getUploader() {
   }
   const storage = multer.diskStorage({
     destination: (req, _file, cb) => {
-      if (!req._camUploadDir) req._camUploadDir = mkTempDir("cam-upload-");
-      cb(null, req._camUploadDir);
+      if (!req._ccamUploadDir) req._ccamUploadDir = mkTempDir("ccam-upload-");
+      cb(null, req._ccamUploadDir);
     },
     filename: (_req, file, cb) => {
       // Preserve the original name for kind-detection later, but prefix with
@@ -97,8 +91,8 @@ function getUploader() {
       if (kind === "unknown") {
         // Track rejected filenames on the request so we can surface the count
         // in the response — users wonder why their upload "partially worked".
-        if (!req._camRejected) req._camRejected = [];
-        req._camRejected.push(file.originalname);
+        if (!req._ccamRejected) req._ccamRejected = [];
+        req._ccamRejected.push(file.originalname);
         cb(null, false);
       } else {
         cb(null, true);
@@ -134,14 +128,14 @@ function countsSummary(counters) {
 
 function requestedProvider(req) {
   const value = req.body?.provider ?? req.query?.provider ?? "claude";
-  return value === "claude" || value === "codex" || value === "helmcode" ? value : null;
+  return value === "claude" || value === "codex" ? value : null;
 }
 
 function rejectUnsupportedProvider(res) {
   return res.status(400).json({
     error: {
       code: "INVALID_PROVIDER",
-      message: "`provider` must be either `claude`, `codex`, or `helmcode`",
+      message: "`provider` must be either `claude` or `codex`",
     },
   });
 }
@@ -151,23 +145,6 @@ function countCodexHistory(root) {
   return {
     projects: new Set(files.map((file) => path.dirname(file))).size,
     jsonl_files: files.length,
-  };
-}
-
-function countHelmcodeHistory(root) {
-  // Helm Code uses a SQLite database, not JSONL files.
-  // We can check if the state.db exists and report that.
-  const stateDbPath = path.join(root, "state.sqlite");
-  let exists = false;
-  try {
-    exists = fs.existsSync(stateDbPath);
-  } catch {
-    // ignore
-  }
-  return {
-    projects: exists ? 1 : 0,
-    jsonl_files: 0,
-    state_db_exists: exists,
   };
 }
 
@@ -412,8 +389,8 @@ router.post("/upload", uploadMiddleware, async (req, res) => {
   const importId = `upload-${Date.now()}`;
   const provider = requestedProvider(req);
   const files = Array.isArray(req.files) ? req.files : [];
-  const rejectedNames = Array.isArray(req._camRejected) ? req._camRejected : [];
-  const reqUploadDir = req._camUploadDir || null;
+  const rejectedNames = Array.isArray(req._ccamRejected) ? req._ccamRejected : [];
+  const reqUploadDir = req._ccamUploadDir || null;
   // Multer runs before provider validation. Reclaim its request directory even
   // when a manually constructed request supplies an unsupported provider.
   if (!provider) {
@@ -451,7 +428,7 @@ router.post("/upload", uploadMiddleware, async (req, res) => {
     });
   }
 
-  const workDir = mkTempDir("cam-import-work-");
+  const workDir = mkTempDir("ccam-import-work-");
   let extractedCount = 0;
   let skippedEntries = 0;
 

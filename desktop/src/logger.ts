@@ -5,12 +5,12 @@
  * so all diagnostics go to a per-user log file under app.getPath('logs').
  * We deliberately avoid the `electron-log` dependency — the project keeps a
  * small dependency tree and this file does the only three things we need.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/desktop/src/logger.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/desktop/src/logger.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -57,7 +57,9 @@ import { app } from "electron";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
+/** Append-mode stream to `desktop.log`, opened lazily on the first write. */
 let stream: fs.WriteStream | null = null;
+/** Path of the log file, set when the stream opens. */
 let logPath = "";
 
 /**
@@ -79,11 +81,14 @@ function ensureStream(): fs.WriteStream {
  * Format one log line (ISO timestamp + level + space-joined parts) and fan it
  * out to the log file and, conditionally, to the process streams:
  *   - `error` always echoes to `stderr`, so a crash is visible even without
- *     `CAM_DESKTOP_VERBOSE` (e.g. when Electron is launched from a terminal).
- *   - `info`/`warn` only echo to `stdout` when `CAM_DESKTOP_VERBOSE` is set,
+ *     `CCAM_DESKTOP_VERBOSE` (e.g. when Electron is launched from a terminal).
+ *   - `info`/`warn` only echo to `stdout` when `CCAM_DESKTOP_VERBOSE` is set,
  *     keeping a normal launch quiet.
  * The file write is wrapped in try/catch — a logging failure (e.g. a full
  * disk) must never take down the app.
+ *
+ * @param level - Severity.
+ * @param parts - Values to log, stringified and joined with spaces.
  */
 function write(level: "info" | "warn" | "error", parts: unknown[]): void {
   const line = `${new Date().toISOString()} [${level}] ${parts
@@ -96,13 +101,17 @@ function write(level: "info" | "warn" | "error", parts: unknown[]): void {
   }
   if (level === "error") {
     process.stderr.write(line);
-  } else if (process.env.CAM_DESKTOP_VERBOSE) {
+  } else if (process.env.CCAM_DESKTOP_VERBOSE) {
     process.stdout.write(line);
   }
 }
 
 /** `JSON.stringify` a non-string log argument, falling back to `String()` for
- * values it can't serialize (e.g. circular objects or `BigInt`). */
+ * values it can't serialize (e.g. circular objects or `BigInt`).
+ *
+ * @param value - Any value.
+ * @returns The value as JSON, or `String(value)` when it cannot be serialized.
+ */
 function safeStringify(value: unknown): string {
   try {
     return JSON.stringify(value);

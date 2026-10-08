@@ -2,7 +2,7 @@
  * @file Express router for the rules-based alerting engine: CRUD for alert
  * rules, the fired-alert feed with pagination and unacked filtering, and
  * acknowledge endpoints. Rule evaluation itself lives in server/lib/alerts.js.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { Router } = require("express");
@@ -133,7 +133,7 @@ router.get("/", (req, res) => {
 });
 
 // POST /api/alerts/:id/ack - Acknowledge one alert
-router.post("/:id/ack", (req, res) => {
+router.post("/:id(\\d+)/ack", (req, res) => {
   const alert = stmts.getAlertEvent.get(req.params.id);
   if (!alert) {
     return res.status(404).json({ error: { code: "NOT_FOUND", message: "Alert not found" } });

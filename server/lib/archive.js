@@ -9,7 +9,7 @@
  * All functions are async and never throw on unknown formats — they return
  * `{ extracted: number, skipped: number }` so routes can surface counts.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const fs = require("fs");
@@ -26,7 +26,7 @@ const crypto = require("crypto");
  * bundles but low enough to stop most zip-bomb attacks from filling disk.
  */
 const MAX_EXTRACT_BYTES = parseInt(
-  process.env.CAM_IMPORT_MAX_EXTRACT_BYTES || String(4 * 1024 * 1024 * 1024),
+  process.env.CCAM_IMPORT_MAX_EXTRACT_BYTES || String(4 * 1024 * 1024 * 1024),
   10
 );
 
@@ -63,7 +63,7 @@ function safeJoin(root, entryName) {
  * Create a unique temp directory for extraction under the OS tmpdir.
  * Caller is responsible for cleanup via `rmTempDir`.
  */
-function mkTempDir(prefix = "cam-import-") {
+function mkTempDir(prefix = "ccam-import-") {
   const dir = path.join(os.tmpdir(), prefix + crypto.randomBytes(6).toString("hex"));
   fs.mkdirSync(dir, { recursive: true });
   return dir;

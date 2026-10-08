@@ -5,12 +5,12 @@
  * compactions, duration), top-tool usage bars, subagent-type breakdown, and a token
  * flow strip. Live-refreshes on `new_event` (debounced) so counters track the running
  * session without spamming the backend.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/components/SessionOverview.tsx`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/SessionOverview.tsx`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -78,8 +78,11 @@ import { fmt, formatDuration } from "../lib/format";
 import { styleForTool } from "./conversation/toolStyle";
 import type { Agent, Session, SessionStats } from "../lib/types";
 
+/** Props for {@link SessionOverview}. */
 interface SessionOverviewProps {
+  /** Session to summarize. */
   session: Session;
+  /** Agents of the session, for the agent counts. */
   agents: Agent[];
 }
 
@@ -94,10 +97,15 @@ function StatTile({
   icon,
   tone = "default",
 }: {
+  /** Tile label. */
   label: string;
+  /** Value to show. */
   value: React.ReactNode;
+  /** Optional helper line under the value. */
   hint?: string;
+  /** Icon element. */
   icon: React.ReactNode;
+  /** Accent color of the tile; defaults to neutral. */
   tone?: "default" | "violet" | "emerald" | "amber" | "rose" | "cyan" | "blue";
 }) {
   const palette = {
@@ -134,6 +142,10 @@ function StatTile({
   );
 }
 
+/**
+ * One tool in the tool-usage list: tool icon and name, a bar scaled against the most used tool (at
+ * least 2% wide), and the count.
+ */
 function ToolUsageRow({ toolName, count, max }: { toolName: string; count: number; max: number }) {
   const style = styleForTool(toolName);
   const Icon = style.Icon;
@@ -164,6 +176,12 @@ function ToolUsageRow({ toolName, count, max }: { toolName: string; count: numbe
   );
 }
 
+/**
+ * Overview card at the top of Session Detail: duration (ticking every 30 seconds while the session
+ * is active), agent and tool-call counts, token totals with a breakdown bar, and the most used
+ * tools. Stats come from `/api/sessions/:id/stats` and refresh on matching WebSocket messages,
+ * debounced.
+ */
 export function SessionOverview({ session, agents }: SessionOverviewProps) {
   const [stats, setStats] = useState<SessionStats | null>(null);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -177,6 +195,10 @@ export function SessionOverview({ session, agents }: SessionOverviewProps) {
     return () => window.clearInterval(id);
   }, [session.status]);
 
+  /**
+   * Fetch session stats, skipping the call when one is already in flight. Failures leave the
+   * previous figures in place.
+   */
   const fetchStats = async () => {
     if (fetchingRef.current) return;
     fetchingRef.current = true;
@@ -238,6 +260,7 @@ export function SessionOverview({ session, agents }: SessionOverviewProps) {
     return Math.round(total / 2);
   }, [stats]);
 
+  /** Count of the most used tool, which fills the tool bars. */
   const maxToolCount = useMemo(() => {
     if (!stats) return 0;
     return stats.tools_used.reduce((m, t) => Math.max(m, t.count), 0);
@@ -505,6 +528,10 @@ export function SessionOverview({ session, agents }: SessionOverviewProps) {
   );
 }
 
+/**
+ * Stacked bar splitting the session's tokens into cache read, cache write, input, and output, with
+ * a legend.
+ */
 function TokenFlowBar({ tokens, total }: { tokens: SessionStats["tokens"]; total: number }) {
   const segments = [
     {

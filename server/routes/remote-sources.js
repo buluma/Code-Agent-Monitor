@@ -15,7 +15,7 @@
  * host's SSH stack. All inputs are validated in remote-sync.validateSourceInput
  * before touching the DB or any command.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { Router } = require("express");
@@ -33,6 +33,7 @@ const {
   syncAllEnabled,
   stagingDir,
 } = require("../lib/remote-sync");
+const { deleteSnapshotsForSessions } = require("../lib/snapshot-retention");
 
 const router = Router();
 
@@ -173,9 +174,18 @@ router.delete("/:id", (req, res) => {
   const purge = req.query.purge === "true" || req.query.purge === "1";
   let purged = 0;
   if (purge) {
+    const purgedRows = db
+      .prepare("SELECT id, transcript_path FROM sessions WHERE source = ?")
+      .all(req.params.id);
     // FK ON DELETE CASCADE removes the sessions' agents/events/token_usage too.
     const info = db.prepare("DELETE FROM sessions WHERE source = ?").run(req.params.id);
     purged = info.changes || 0;
+    // Remote imports snapshot into the same dirs as local ones; without the
+    // session rows those snapshots are unreachable, so reclaim them as well.
+    deleteSnapshotsForSessions(
+      purgedRows.map((row) => row.id),
+      purgedRows.map((row) => row.transcript_path)
+    );
   } else {
     // Keep the imported rows but detach them from the (now gone) source id so
     // they fall back to the local view instead of a dangling filter value.

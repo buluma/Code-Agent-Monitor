@@ -1,8 +1,8 @@
 /**
  * @file AgentCard.test.tsx
- * @description Unit tests for the AgentCard component, including Codex-native
- * titles and transcript-derived prompt context alongside standard agent details.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @description Unit tests for the AgentCard component, including consistent
+ * Claude Code/Cursor/Codex titles, subtitles, and transcript-derived context.
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 import { describe, it, expect, vi } from "vitest";
@@ -179,6 +179,35 @@ describe("AgentCard", () => {
     expect(screen.getAllByText(formatModelName("claude-opus-4-8")!)).toHaveLength(1);
   });
 
+  it("keeps the full subtitle and a subagent's session name available on hover", () => {
+    const session = {
+      id: "s",
+      name: "Refactor the ingestion pipeline for very large rollouts",
+      status: "active",
+      cwd: "/Users/dev/proj",
+      agent_count: 4,
+      metadata: JSON.stringify({ turn_count: 12 }),
+    } as never;
+    const { unmount } = renderCard(
+      <AgentCard agent={makeAgent({ type: "main", name: "Main" })} session={session} />
+    );
+    // The single-line subtitle truncates in a 288px column; hover shows it all.
+    const subtitle = screen.getByText("proj · 3 subagents · 12 turns");
+    expect(subtitle).toHaveAttribute("title", "proj · 3 subagents · 12 turns");
+    unmount();
+
+    renderCard(
+      <AgentCard
+        agent={makeAgent({ type: "subagent", subagent_type: "qa", session_id: "s" })}
+        session={session}
+      />
+    );
+    // A subagent card's footer keeps the (max-width truncated) session name.
+    expect(
+      screen.getByTitle("Refactor the ingestion pipeline for very large rollouts")
+    ).toBeInTheDocument();
+  });
+
   it("shows a subagent's OWN cost, not the session total (avoids misleading spend)", () => {
     renderCard(
       <AgentCard
@@ -229,17 +258,18 @@ describe("AgentCard", () => {
     expect(screen.queryByText(fmtCost(646.5))).not.toBeInTheDocument();
   });
 
-  it("swaps the real session title into the hook-style placeholder (Session <id8>)", () => {
+  it("titles a hook-style placeholder with the native session title, tool in the subtitle", () => {
     renderCard(
       <AgentCard
         agent={makeAgent({ type: "main", name: "Main Agent - Session 329c4d24" })}
         session={{ id: "s", name: "Resumable runs UI", status: "active" } as never}
       />
     );
-    expect(screen.getByText("Main Agent - Resumable runs UI")).toBeInTheDocument();
+    expect(screen.getByText("Resumable runs UI")).toBeInTheDocument();
+    expect(screen.getByText("Claude Code")).toBeInTheDocument();
   });
 
-  it("swaps the real session title into the import-style placeholder (<folder> - <id8>)", () => {
+  it("uses the native Claude Code title for an import-style placeholder", () => {
     // Regression: imported / background-synced main agents are named
     // "Main Agent - <cwd-folder> - <id8>", which the old Session-only regex
     // could not rewrite, so they kept showing "work - e3f8e613" forever even
@@ -252,21 +282,21 @@ describe("AgentCard", () => {
         }
       />
     );
-    expect(
-      screen.getByText("Main Agent - Implement in-process libdocs MCP server")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Implement in-process libdocs MCP server")).toBeInTheDocument();
     expect(screen.queryByText("Main Agent - work - e3f8e613")).not.toBeInTheDocument();
   });
 
-  it("keeps the placeholder when the session name is still auto-generated", () => {
+  it("falls back to an untitled label while a native Claude title is unavailable", () => {
     renderCard(
       <AgentCard
         agent={makeAgent({ type: "main", name: "Main Agent - work - e3f8e613" })}
         session={{ id: "s", name: "Session e3f8e613", status: "active" } as never}
       />
     );
-    // "Session <id8>" is suppressed as a non-name, so nothing to swap in.
-    expect(screen.getByText("Main Agent - work - e3f8e613")).toBeInTheDocument();
+    // "Session <id8>" is suppressed as a non-name, matching Cursor/Codex cards;
+    // the short session ID stays in the footer.
+    expect(screen.getByText("Untitled session")).toBeInTheDocument();
+    expect(screen.getByText("sess-1")).toBeInTheDocument();
   });
 
   it("uses a native Codex title instead of a bare Codex agent name", () => {
@@ -283,11 +313,13 @@ describe("AgentCard", () => {
         }
       />
     );
-    expect(screen.getByText("Codex · hehe")).toBeInTheDocument();
-    expect(screen.queryByText("Codex")).not.toBeInTheDocument();
+    expect(screen.getByText("hehe")).toBeInTheDocument();
+    // The bare agent name never becomes the title; "Codex" leads the subtitle.
+    expect(screen.getByText("Codex")).toBeInTheDocument();
+    expect(screen.getByText("hehe").className).toContain("line-clamp-3");
   });
 
-  it("uses the stable Codex session ID while a native title is unavailable", () => {
+  it("falls back to an untitled label while a native Codex title is unavailable", () => {
     renderCard(
       <AgentCard
         agent={makeAgent({ name: "Codex", session_id: "019fbb99-bd87-7c80-afec-ee65e2ebbe1c" })}
@@ -301,7 +333,8 @@ describe("AgentCard", () => {
         }
       />
     );
-    expect(screen.getByText("Codex · 019fbb99")).toBeInTheDocument();
+    expect(screen.getByText("Untitled session")).toBeInTheDocument();
+    expect(screen.getByText("019fbb99")).toBeInTheDocument();
   });
 
   it("uses the session prompt fallback to make an imported renamed Codex card informative", () => {
@@ -321,7 +354,7 @@ describe("AgentCard", () => {
       />
     );
 
-    expect(screen.getByText("Codex · hehe")).toBeInTheDocument();
+    expect(screen.getByText("hehe")).toBeInTheDocument();
     expect(
       screen.getByText("Fix the real-time Codex discovery path and add coverage.")
     ).toBeInTheDocument();
@@ -350,8 +383,10 @@ describe("AgentCard", () => {
     expect(screen.queryByText("original task")).not.toBeInTheDocument();
   });
 
-  it("should not render subagent_type when null", () => {
-    const { container } = renderCard(<AgentCard agent={makeAgent({ subagent_type: null })} />);
+  it("should not render a subtitle for a subagent with no type or project", () => {
+    const { container } = renderCard(
+      <AgentCard agent={makeAgent({ type: "subagent", subagent_type: null })} />
+    );
     // Only the name should be in the name container, no subagent type
     expect(container.querySelectorAll(".text-\\[11px\\].text-gray-500.truncate")).toHaveLength(0);
   });
@@ -398,7 +433,7 @@ describe("AgentCard", () => {
   it("should call onClick when clicked", () => {
     const onClick = vi.fn();
     renderCard(<AgentCard agent={makeAgent()} onClick={onClick} />);
-    fireEvent.click(screen.getByText("Main Agent"));
+    fireEvent.click(screen.getByText("Untitled session"));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
@@ -431,9 +466,31 @@ describe("AgentCard", () => {
       </MemoryRouter>
     );
 
-    fireEvent.click(screen.getByText("Codex · codex-pr"));
+    fireEvent.click(screen.getByText("Untitled session"));
     expect(screen.getByTestId("location")).toHaveTextContent("/kanban");
     expect(container.querySelector(".card-hover")?.className).toContain("cursor-default");
+  });
+
+  it("gives Cursor main cards a native title and an always-visible subtitle", () => {
+    renderCard(
+      <AgentCard
+        agent={makeAgent({ name: "Main Agent - Session 1bace4f0" })}
+        session={
+          {
+            id: "1bace4f0-506a-436b-badd-16209a514803",
+            name: "Ship the backend",
+            status: "active",
+            cwd: "/Users/example/project",
+            model: "grok-4.6",
+            provider: "cursor",
+            agent_count: 2,
+            metadata: JSON.stringify({ turn_count: 4 }),
+          } as Session
+        }
+      />
+    );
+    expect(screen.getByText("Ship the backend")).toBeInTheDocument();
+    expect(screen.getByText("Cursor · project · 1 subagent · 4 turns")).toBeInTheDocument();
   });
 
   it("renders waiting badge and yellow accent when awaiting_input_since is set", () => {
@@ -505,5 +562,64 @@ describe("AgentCard", () => {
       />
     );
     expect(screen.getByText(/ran 5m 30s/)).toBeInTheDocument();
+  });
+
+  it("clamps very long titles to three lines and keeps the full title on hover", () => {
+    const longTitle =
+      "Investigate why the remote source sync stalls on large Codex rollouts and add a regression test that covers resumed sessions plus the retry budget";
+    renderCard(
+      <AgentCard
+        agent={makeAgent({ name: "Main Agent - Session 1bace4f0" })}
+        session={{ id: "s", name: longTitle, status: "active" } as never}
+      />
+    );
+    const title = screen.getByText(longTitle);
+    expect(title.className).toContain("line-clamp-3");
+    expect(title.className).toContain("[overflow-wrap:anywhere]");
+    expect(title.className).not.toContain("truncate");
+    expect(title).toHaveAttribute("title", longTitle);
+  });
+
+  it("leads every provider's main-card subtitle with the tool name", () => {
+    for (const [provider, label] of [
+      ["claude", "Claude Code"],
+      ["cursor", "Cursor"],
+      ["codex", "Codex"],
+    ] as const) {
+      const { unmount } = renderCard(
+        <AgentCard
+          agent={makeAgent({ name: provider === "codex" ? "Codex" : "Main Agent - x" })}
+          session={{ id: "s", name: "T", status: "active", cwd: "/w/repo", provider } as never}
+        />
+      );
+      expect(screen.getByText(`${label} · repo`)).toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  it("drops the duplicate session name from a main card's footer but keeps it for subagents", () => {
+    const session = { id: "s", name: "Ship the backend", status: "active" } as never;
+    const { unmount } = renderCard(
+      <AgentCard agent={makeAgent({ name: "Main Agent - x" })} session={session} />
+    );
+    expect(screen.getAllByText(/Ship the backend/)).toHaveLength(1); // title only
+    unmount();
+    renderCard(
+      <AgentCard
+        agent={makeAgent({ type: "subagent", subagent_type: "Explore", name: "explorer" })}
+        session={session}
+      />
+    );
+    expect(screen.getByText("Ship the backend ·")).toBeInTheDocument();
+  });
+
+  it("renders status as a dot with a tooltip label when statusDisplay is dot", () => {
+    const { container } = renderCard(
+      <AgentCard agent={makeAgent({ status: "working" })} statusDisplay="dot" />
+    );
+    expect(container.querySelector("[data-status-dot]")).not.toBeNull();
+    expect(container.querySelector(".badge")).toBeNull();
+    // Still announced to screen readers.
+    expect(screen.getByText("Working").className).toContain("sr-only");
   });
 });

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# rollback.sh – Rollback deployments for Code Agent Monitor
+# rollback.sh – Rollback deployments for Claude Code Agent Monitor
 #
 # Usage:
 #   ./rollback.sh --env production --method helm --revision 5
 #   ./rollback.sh --env staging --method kustomize
 #   ./rollback.sh --help
 # ─────────────────────────────────────────────────────────────────────────────
-# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+# @author Son Nguyen <hoangson091104@gmail.com>
 set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -100,8 +100,8 @@ discover_resources() {
   SERVICE_NAME=$(kubectl get service -n "${NAMESPACE}" \
     -l "app.kubernetes.io/name=${APP_NAME}" \
     -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
-  [[ -n "$DEPLOYMENT_NAME" ]] || fatal "No CAM Deployment found in ${NAMESPACE}"
-  [[ -n "$SERVICE_NAME" ]] || fatal "No CAM Service found in ${NAMESPACE}"
+  [[ -n "$DEPLOYMENT_NAME" ]] || fatal "No CCAM Deployment found in ${NAMESPACE}"
+  [[ -n "$SERVICE_NAME" ]] || fatal "No CCAM Service found in ${NAMESPACE}"
 }
 
 backup_current() {
@@ -237,7 +237,7 @@ run_health_check() {
 main() {
   echo ""
   echo -e "${BOLD}${YELLOW}╔══════════════════════════════════════════════════╗${NC}"
-  echo -e "${BOLD}${YELLOW}║   Code Agent Monitor – Rollback                 ║${NC}"
+  echo -e "${BOLD}${YELLOW}║   Claude Code Agent Monitor – Rollback          ║${NC}"
   echo -e "${BOLD}${YELLOW}╚══════════════════════════════════════════════════╝${NC}"
   echo ""
 

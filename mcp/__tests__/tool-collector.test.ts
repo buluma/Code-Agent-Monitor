@@ -1,7 +1,7 @@
 /**
  * @file tool-collector.test.ts
  * @description Unit tests for the tool-collector module, which is responsible for collecting and registering all tools available in the application. The tests cover the presence of expected tools, their properties, uniqueness of tool names, adherence to naming conventions, inclusion of tools from all domains, and proper handling of mutation and destructive tools based on configuration. The tests use Node's built-in test runner and assert module for assertions.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 import { describe, it } from "node:test";
@@ -64,7 +64,7 @@ describe("collectAllTools", () => {
         tool.name.startsWith("dashboard_"),
         `Tool ${tool.name} should start with 'dashboard_'`
       );
-      assert.ok(/^[a-z0-9_]+$/.test(tool.name), `Tool ${tool.name} should be lowercase snake_case`);
+      assert.ok(/^[a-z_]+$/.test(tool.name), `Tool ${tool.name} should be lowercase snake_case`);
     }
   });
 
@@ -126,6 +126,9 @@ describe("collectAllTools", () => {
     assert.ok(names.has("dashboard_reimport_history"));
     assert.ok(names.has("dashboard_reinstall_hooks"));
     assert.ok(names.has("dashboard_clear_all_data"));
+    assert.ok(names.has("dashboard_get_snapshot_storage"));
+    assert.ok(names.has("dashboard_compress_snapshots"));
+    assert.ok(names.has("dashboard_prune_snapshots"));
 
     // Remote Data Sources
     assert.ok(names.has("dashboard_list_remote_sources"));
@@ -184,6 +187,55 @@ describe("collectAllTools", () => {
     );
   });
 
+  it("snapshot prune requires criteria and gates applying as destructive", async () => {
+    const readOnly = fakeConfig({ allowMutations: false, allowDestructive: false });
+    const prune = collectAllTools(readOnly, api, logger).find(
+      (t) => t.name === "dashboard_prune_snapshots"
+    );
+    assert.ok(prune);
+    await assert.rejects(() => prune.handler({}), /At least one of max_age_days/);
+    await assert.rejects(
+      () => prune.handler({ max_age_days: 30, dry_run: false }),
+      /Mutating tools are disabled/
+    );
+
+    const destructive = fakeConfig({ allowMutations: true, allowDestructive: true });
+    const armed = collectAllTools(destructive, api, logger).find(
+      (t) => t.name === "dashboard_prune_snapshots"
+    );
+    assert.ok(armed);
+    await assert.rejects(
+      () =>
+        armed.handler({ max_age_days: 30, dry_run: false, confirmation_token: "CLEAR_ALL_DATA" }),
+      /Expected exact value: "PRUNE_SNAPSHOTS"/
+    );
+  });
+
+  it("snapshot prune accepts a byte count or a size string for max_bytes", async () => {
+    // Collected handlers validate input with the declared schema first, so a
+    // valid size gets past validation and stops at the mutation gate, while an
+    // invalid one fails validation before any request is made.
+    const readOnly = fakeConfig({ allowMutations: false });
+    const prune = collectAllTools(readOnly, api, logger).find(
+      (t) => t.name === "dashboard_prune_snapshots"
+    );
+    assert.ok(prune);
+    for (const size of [5368709120, "5GB", "1.5 GiB", "500mb"]) {
+      await assert.rejects(
+        () => prune.handler({ max_bytes: size, dry_run: false }),
+        /Mutating tools are disabled/,
+        `max_bytes=${size} should pass validation`
+      );
+    }
+    for (const bad of ["lots", -1, 0]) {
+      await assert.rejects(
+        () => prune.handler({ max_bytes: bad, dry_run: false }),
+        (err: Error) => !/Mutating tools are disabled/.test(err.message),
+        `max_bytes=${bad} should fail validation`
+      );
+    }
+  });
+
   it("cleanup tool requires at least one parameter", async () => {
     const mutConfig = fakeConfig({ allowMutations: true });
     const tools = collectAllTools(mutConfig, api, logger);
@@ -194,17 +246,5 @@ describe("collectAllTools", () => {
       () => cleanup.handler({}),
       /At least one of abandon_hours or purge_days is required/
     );
-  });
-
-  it("run tools reject providers that the Run API cannot launch", async () => {
-    const tools = collectAllTools(config, api, logger);
-    const getRunBinary = tools.find((tool) => tool.name === "dashboard_get_run_binary");
-    assert.ok(getRunBinary);
-
-    await assert.rejects(
-      () => getRunBinary.handler({ provider: "helmcode" }),
-      /Invalid enum value/
-    );
-    await assert.rejects(() => getRunBinary.handler({ provider: "t3" }), /Invalid enum value/);
   });
 });

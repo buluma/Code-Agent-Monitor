@@ -2,12 +2,12 @@
 # check-headers.sh — audit the repo for applicable source files missing the
 # mandatory copyright/authorship header (see .claude/skills/file-headers).
 # Prints each non-compliant file; exits 0 when fully compliant, 1 otherwise.
-# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+# @author Son Nguyen <hoangson091104@gmail.com>
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
-AUTHOR_MARK="@author Michael Buluma"
+AUTHOR_MARK="@author Son Nguyen"
 
 missing=0
 while IFS= read -r f; do
@@ -23,7 +23,7 @@ done < <(
        -o -path "$ROOT/monitoring/.data" -o -name "__snapshots__" \) -prune -o \
     -type f \( -name "*.js" -o -name "*.ts" -o -name "*.tsx" -o -name "*.cjs" \
        -o -name "*.mjs" -o -name "*.py" -o -name "*.sh" -o -name "*.css" \) \
-    ! -name "*.min.js" -print
+    ! -name "*.min.js" ! -path "$ROOT/wiki/i18n-content.js" ! -path "*/wiki/i18n-content.js" -print
 )
 
 if [ "$missing" -eq 0 ]; then

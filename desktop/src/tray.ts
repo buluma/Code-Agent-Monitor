@@ -5,14 +5,16 @@
  * menu showing live status snapshots from the embedded server plus an Open
  * Dashboard action.
  *
- * The image is a black "template" PNG so macOS tints it for light/dark
- * menu bars.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * The image is platform-specific: macOS uses a black "template" PNG so the OS
+ * tints it for light/dark menu bars; Windows uses the colored `icon.ico`,
+ * because a black template glyph would be invisible on the (usually dark)
+ * Windows taskbar notification area.
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/desktop/src/tray.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/desktop/src/tray.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -35,7 +37,6 @@
  * ## Internal dependencies
  * - `./constants`
  * - `./logger`
- * - `./updaterState`
  *
  * ## Public surface
  * - `TrayActions` — exported API; see TSDoc on the symbol for behavior.
@@ -77,7 +78,6 @@ import * as path from "node:path";
 
 import { APP_NAME } from "./constants";
 import { log } from "./logger";
-import { updaterStatusLabel, type UpdaterState } from "./updaterState";
 
 /** Callbacks the tray menu wires to its rows. `main.ts` supplies these —
  * several are shared verbatim with `installApplicationMenu`'s `MenuActions`
@@ -103,14 +103,6 @@ export interface TrayActions {
   refreshSnapshot: () => void;
   /** Prompt the same quit-confirmation dialog ⌘Q triggers. */
   requestQuit: () => void;
-  /** Current auto-updater state — see `updaterState.ts`. */
-  getUpdaterState: () => UpdaterState;
-  /** Run one update check now. */
-  checkForUpdates: () => void;
-  /** Download the update a check found (`status === "available"` only). */
-  downloadUpdate: () => void;
-  /** Apply a downloaded update and relaunch (`status === "downloaded"` only). */
-  installUpdateAndRestart: () => void;
 }
 
 /**
@@ -121,8 +113,11 @@ export interface TrayActions {
  * two types must stay in sync by hand if the stats API response shape changes.
  */
 export interface ServerSnapshot {
+  /** Sessions currently active. */
   activeSessions: number;
+  /** Agents currently working. */
   workingAgents: number;
+  /** Events recorded today. */
   eventsToday: number;
 }
 
@@ -134,12 +129,14 @@ export interface ServerSnapshot {
  * asar can yield empty `nativeImage` results, which is why we keep them
  * unpacked.
  *
- * The black template PNG the menu bar tints automatically for light/dark.
+ * Windows gets the colored `icon.ico`; macOS gets the black template PNG that
+ * the menu bar tints automatically.
  */
-/** The tray image filename — the black "template" PNG the menu bar
- * auto-tints for light/dark. */
+/** Pick the platform-appropriate tray image filename — a colored `.ico` on
+ * Windows (a black glyph would vanish on the usually-dark taskbar), or the
+ * black "template" PNG on macOS (the menu bar auto-tints it for light/dark). */
 function trayImageFile(): string {
-  return "tray-icon-Template.png";
+  return process.platform === "win32" ? "icon.ico" : "tray-icon-Template.png";
 }
 
 /** Resolve `trayImageFile()` to an absolute path, branching on dev vs
@@ -167,13 +164,18 @@ function trayImagePath(): string {
  * `Tray#setContextMenu` — a static, pre-assigned menu that Electron shows
  * automatically on click, with no hook for the `refreshSnapshot()` call that
  * needs to run first so the dropdown reflects the very latest counts.
+ *
+ * @param actions - Callbacks the tray menu items trigger.
+ * @returns The tray icon.
  */
 export function createTray(actions: TrayActions): Tray {
   const imagePath = trayImagePath();
   const image = nativeImage.createFromPath(imagePath);
   if (image.isEmpty()) {
     log.warn("tray image is empty; falling back to in-memory placeholder", imagePath);
-  } else {
+  } else if (process.platform === "darwin") {
+    // Template tinting is a macOS concept; on Windows the icon is colored and
+    // must be shown as-is.
     image.setTemplateImage(true);
   }
 
@@ -195,6 +197,7 @@ export function createTray(actions: TrayActions): Tray {
     const port = actions.serverPort();
     const portLabel = port ? `🟢  Listening on :${port}` : "🔴  Server not running";
     const snap = actions.getSnapshot();
+    /** Open the dashboard window. */
     const open = (): void => actions.showDashboard();
     const snapshotItems: Electron.MenuItemConstructorOptions[] = snap
       ? [
@@ -204,28 +207,6 @@ export function createTray(actions: TrayActions): Tray {
           { label: `📥   ${plural(snap.eventsToday, "event")} today`, click: open },
         ]
       : [{ type: "separator" }, { label: "Snapshot unavailable", enabled: false }];
-
-    // The row's click action depends on what state the updater is in: an
-    // "available" update downloads on click, a "downloaded" one installs +
-    // relaunches, and every other state (including no row at all — `idle`,
-    // `disabled`, `up-to-date`) either checks again or does nothing. Hidden
-    // entirely rather than shown-disabled while idle/up-to-date/disabled —
-    // same "don't dim rows next to actionable ones" reasoning as the
-    // snapshot rows above.
-    const updaterState = actions.getUpdaterState();
-    const updaterLabel = updaterStatusLabel(updaterState);
-    const updaterItems: Electron.MenuItemConstructorOptions[] = updaterLabel
-      ? [
-          {
-            label: updaterLabel,
-            enabled: updaterState.status === "available" || updaterState.status === "downloaded",
-            click: () => {
-              if (updaterState.status === "available") actions.downloadUpdate();
-              else if (updaterState.status === "downloaded") actions.installUpdateAndRestart();
-            },
-          },
-        ]
-      : [];
 
     return Menu.buildFromTemplate([
       { label: APP_NAME, enabled: false },
@@ -238,16 +219,6 @@ export function createTray(actions: TrayActions): Tray {
       { label: "Restart Server", click: () => actions.restartServer() },
       { label: "Show Logs", click: () => actions.openLogs() },
       { type: "separator" },
-      ...updaterItems,
-      {
-        label: "Check for Updates…",
-        enabled:
-          updaterState.status !== "checking" &&
-          updaterState.status !== "downloading" &&
-          updaterState.status !== "disabled",
-        click: () => actions.checkForUpdates(),
-      },
-      { type: "separator" },
       {
         label: "Open at Login",
         type: "checkbox",
@@ -257,7 +228,7 @@ export function createTray(actions: TrayActions): Tray {
       { type: "separator" },
       { label: `Version ${app.getVersion()}`, enabled: false },
       {
-        label: "Quit Code Agent Monitor",
+        label: "Quit Claude Code Monitor",
         accelerator: "CmdOrCtrl+Q",
         click: () => actions.requestQuit(),
       },

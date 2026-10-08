@@ -7,13 +7,13 @@
 #   check-headers-pr.sh [<base-sha> <head-sha>]
 #
 # When omitted, compares the current branch against origin/master (or master).
-# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+# @author Son Nguyen <hoangson091104@gmail.com>
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
-AUTHOR_MARK="@author Michael Buluma"
-AUTHOR_EMAIL="1452922+buluma@users.noreply.github.com"
+AUTHOR_MARK="@author Son Nguyen"
+AUTHOR_EMAIL="hoangson091104@gmail.com"
 
 usage() {
   cat <<'EOF'
@@ -66,6 +66,12 @@ is_applicable_file() {
   esac
 
   case "$f" in
+    wiki/i18n-content.js|*/wiki/i18n-content.js)
+      return 1
+      ;;
+  esac
+
+  case "$f" in
     *.js|*.ts|*.tsx|*.cjs|*.mjs|*.py|*.sh|*.css)
       return 0
       ;;
@@ -80,16 +86,16 @@ header_hint_for() {
   local f="$1"
   case "$f" in
     *.py)
-      echo '  expected: module docstring with @author Michael Buluma <1452922+buluma@users.noreply.github.com>'
+      echo '  expected: module docstring with @author Son Nguyen <hoangson091104@gmail.com>'
       ;;
     *.sh)
-      echo '  expected: # block after shebang with @author Michael Buluma <1452922+buluma@users.noreply.github.com>'
+      echo '  expected: # block after shebang with @author Son Nguyen <hoangson091104@gmail.com>'
       ;;
     *.css)
-      echo '  expected: /** @file ... @author Michael Buluma <1452922+buluma@users.noreply.github.com> */'
+      echo '  expected: /** @file ... @author Son Nguyen <hoangson091104@gmail.com> */'
       ;;
     *)
-      echo '  expected: /** @file ... @author Michael Buluma <1452922+buluma@users.noreply.github.com> */'
+      echo '  expected: /** @file ... @author Son Nguyen <hoangson091104@gmail.com> */'
       ;;
   esac
 }

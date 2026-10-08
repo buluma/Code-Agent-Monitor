@@ -1,12 +1,12 @@
 /**
  * @file event-tools.ts
  * @description Defines tools related to event management in the dashboard, including listing events with optional filters and ingesting hook events from Claude Code. The tools are registered with the tool registry and include input validation using Zod schemas. The event listing tool supports pagination and session filtering, while the hook event ingestion tool allows for adding new events into the dashboard pipeline, with a guard to ensure that mutations are enabled in the configuration.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/mcp/src/tools/domains/event-tools.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/mcp/src/tools/domains/event-tools.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -68,6 +68,8 @@ import type { ToolContext } from "../../types/tool-context.js";
  * where a tool can inject data into the dashboard's real-time pipeline
  * (websocket broadcast + alert evaluation), useful for testing hook
  * behavior without a live Claude Code session.
+ *
+ * @param context - Shared tool context.
  */
 export function registerEventTools(context: ToolContext): void {
   const { api, config } = context;
@@ -92,7 +94,7 @@ export function registerEventTools(context: ToolContext): void {
       to: z.string().max(128).optional(),
       sources: z.array(z.string().min(1).max(256)).min(1).max(100).optional(),
       providers: z
-        .array(z.enum(["claude", "codex", "helmcode", "t3"]))
+        .array(z.enum(["claude", "codex"]))
         .min(1)
         .max(2)
         .optional(),

@@ -2,7 +2,7 @@
  * @file App.test.ts
  * @description Verifies that dashboard-only onboarding never renders over
  * Express-served API reference paths.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 import { describe, expect, it } from "vitest";

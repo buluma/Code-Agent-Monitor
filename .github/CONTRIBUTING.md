@@ -1,7 +1,6 @@
-# Contributing to Code Agent Monitor
+# Contributing to Agent Dashboard
 
-Thanks for taking the time to contribute. Please read this guide before opening
-a PR or issue.
+Thanks for taking the time to contribute. Please read this guide before opening a PR or issue.
 
 ---
 
@@ -13,7 +12,9 @@ a PR or issue.
 - [Development Workflow](#development-workflow)
 - [Branching and Commits](#branching-and-commits)
 - [Pull Requests](#pull-requests)
+- [Labels](#labels)
 - [Testing](#testing)
+- [Translations and Internationalization](#translations-and-internationalization)
 - [Reporting Bugs](#reporting-bugs)
 - [Requesting Features](#requesting-features)
 
@@ -21,33 +22,24 @@ a PR or issue.
 
 ## Code of Conduct
 
-This project follows the
-[Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating,
-you agree to uphold it.
+This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to uphold it.
 
 ---
 
 ## Contributor License Agreement (CLA)
 
-All contributions require a signed
-**[Contributor License Agreement](../CLA.md)**. This is enforced automatically —
-there is nothing to set up ahead of time.
+All contributions require a signed **[Contributor License Agreement](../CLA.md)**. This is enforced automatically — there is nothing to set up ahead of time.
 
 1. Open your pull request as normal.
-2. On your **first** PR, the `🖋️ CLA Assistant` bot comments asking you to sign.
-   Read [`CLA.md`](../CLA.md), then post this comment on the PR, verbatim:
+2. On your **first** PR, the `🖋️ CLA Assistant` bot comments asking you to sign. Read [`CLA.md`](../CLA.md), then post this comment on the PR, verbatim:
 
    ```
    I have read the CLA Document and I hereby sign the CLA
    ```
 
-3. The bot records your signature and turns the **CLA Assistant** status check
-   green. The PR cannot be merged until it is green.
+3. The bot records your signature and turns the **CLA Assistant** status check green. The PR cannot be merged until it is green.
 
-You sign **once** — the signature covers all of your current and future
-contributions, so returning contributors are never asked again. If you
-contribute **on behalf of a company**, contact the maintainer
-([@buluma](https://github.com/buluma)) to arrange a Corporate CLA first.
+You sign **once** — the signature covers all of your current and future contributions, so returning contributors are never asked again. If you contribute **on behalf of a company**, contact the maintainer ([@hoangsonww](https://github.com/hoangsonww)) to arrange a Corporate CLA first.
 
 ---
 
@@ -61,14 +53,13 @@ contribute **on behalf of a company**, contact the maintainer
 ### Setup
 
 ```bash
-git clone https://github.com/buluma/Code-Agent-Monitor.git
+git clone https://github.com/hoangsonww/Claude-Code-Agent-Monitor.git
 cd Claude-Code-Agent-Monitor
 npm run setup
 npm run dev
 ```
 
-The Express server runs on `http://localhost:4820` and the Vite dev server on
-`http://localhost:5173`.
+The Express server runs on `http://localhost:4820` and the Vite dev server on `http://localhost:5173`.
 
 ---
 
@@ -76,10 +67,10 @@ The Express server runs on `http://localhost:4820` and the Vite dev server on
 
 The repo has two packages:
 
-| Package | Path      | Description                             |
-| ------- | --------- | --------------------------------------- |
-| Server  | `server/` | Express 4 REST API + WebSocket + SQLite |
-| Client  | `client/` | React 18 + Vite + Tailwind CSS SPA      |
+| Package | Path | Description |
+| --- | --- | --- |
+| Server | `server/` | Express 4 REST API + WebSocket + SQLite |
+| Client | `client/` | React 18 + Vite + Tailwind CSS SPA |
 
 **Adding a new API endpoint:**
 
@@ -129,8 +120,46 @@ bash .claude/skills/file-headers/scripts/check-headers-pr.sh origin/master HEAD
 ```
 
 Applicable source files (`.js`, `.ts`, `.tsx`, `.py`, `.sh`, `.css`, etc.) must
-include the `@author Michael Buluma <1452922+buluma@users.noreply.github.com>`
-header — CI enforces this on every PR via the **File Headers** workflow.
+include the `@author Son Nguyen <hoangson091104@gmail.com>` header — CI enforces
+this on every PR via the **File Headers** workflow.
+
+---
+
+## Labels
+
+Labels are applied automatically by the **Auto-Triage** workflow
+(`.github/workflows/triage.yml`), from rules in `.github/scripts/label-rules.js`.
+You never need to add them by hand, and they are re-evaluated on every push to a
+PR — so a PR that grows loses `size/S` and gains `size/L`, and `needs-tests`
+disappears as soon as a test lands.
+
+| Namespace | Applied from |
+| --- | --- |
+| `size/XS` … `size/XL` | Lines changed, ignoring lockfiles, build output, snapshots and generated manifests — so a version bump reads as the small change it is |
+| `area/*` | The directories touched, ranked by how many meaningful lines each got (at most four). On issues, from the form's **Area** dropdown |
+| `type/*` | Your **Type of Change** checkbox first, then a conventional-commit title (`fix(server): …`), then the branch prefix (`feat/`, `docs/`), then what the files imply |
+| `priority/*` | The feature form's "How important is this to you?" answer |
+| `breaking-change` | A `!` in the title (`feat!:`), a `BREAKING CHANGE:` footer, or the template checkbox |
+| `release` | A version bump: the root `package.json` moves and the title names the release |
+| `dependencies` | Only manifests and lockfiles changed |
+| `needs-tests` | Product source changed with no test alongside it (docs, CI, dependency and release PRs are exempt) |
+| `i18n` / `needs-i18n-parity` | A localized surface changed — and, for `needs-i18n-parity`, its siblings did not (see [Translations](#translations-and-internationalization)) |
+
+Two consequences worth knowing:
+
+- **Your title, branch name and template checkbox are what drive `type/*`.** The
+  conventions in [Branching and Commits](#branching-and-commits) are not
+  decorative — filling in the template accurately is what makes the labels true.
+- **Labels a human applies are never removed.** The workflow only reconciles the
+  namespaces above; `good first issue`, `help wanted`, `question` and anything a
+  maintainer sets by hand survive every re-run.
+
+Changing a rule means changing `.github/scripts/label-rules.js` and its tests in
+`server/__tests__/label-rules.test.js`. Because the workflow runs from the base
+branch, those tests are what proves a rules change before it merges. Maintainers
+can re-label everything open by running the workflow manually with
+`backfill: true` (pair it with `dry_run: true` first to preview the diff in the
+job summary).
 
 ---
 
@@ -153,6 +182,66 @@ npm run test:client         # client unit tests only
 
 ---
 
+## Translations and Internationalization
+
+The dashboard ships in **English (`en`), Simplified Chinese (`zh`), Vietnamese
+(`vi`), Korean (`ko`), and Spanish (`es`)** across five independent surfaces.
+English is the source of truth on all of them, and **a change is not merged
+until every supported language carries it in the same PR** — falling back to
+English is a safety net, not a completed translation.
+
+| Surface | English source | Translations live in |
+|---|---|---|
+| Dashboard UI | `client/src/i18n/locales/en/*.json` | `client/src/i18n/locales/<xx>/*.json` |
+| Wiki page | English text in the `wiki/index.html` DOM | `wiki/script.js` + `wiki/i18n-content.js` |
+| Mirrored READMEs | `README.md` | `README-CN.md`, `README-VN.md`, `README-KO.md`, `README-ES.md` |
+| Language switchers | — | `Sidebar.tsx`, `paletteCommands.ts`, `nav.json`, `wiki/index.html` |
+| Locale-aware formatting | — | `client/src/lib/format.ts` |
+
+**If you add or change a UI string**, add the key to `en` *and every other
+locale*, with the same key path, value type, and `{{interpolation}}` tokens.
+
+**If you edit `README.md`**, mirror the same edit into all four translated
+READMEs. They are full mirrors, not summaries.
+
+**If you edit user-visible text in `wiki/index.html`**, add `zh` + `vi` + `ko` +
+`es` entries and bump the wiki cache versions (`CACHE_NAME` in `wiki/sw.js` plus
+the matching `?v=` query strings).
+
+**If you are adding a new language**, three things must be complete: a full
+`README-<XX>.md` mirror of `README.md` (every section, in order — not a
+summary), every key in all 15 UI namespaces plus the language-switcher entry,
+and a complete wiki translation (body content, headings, attributes, and page
+metadata). Work through the step-by-step checklist:
+
+- Guide: [`docs/I18N.md` §9](../docs/I18N.md#9-contributing-translations-and-adding-a-language)
+- Checklist: [`.claude/skills/i18n-parity/references/new-language-checklist.md`](../.claude/skills/i18n-parity/references/new-language-checklist.md)
+- Glossary and style: [`.claude/skills/i18n-parity/references/translation-style.md`](../.claude/skills/i18n-parity/references/translation-style.md)
+
+Never translate code, commands, paths, URLs, env-var names, CLI flags,
+identifiers, HTTP methods and status codes (`GET`, `POST`, `404`), numbers with
+units, brand names, Claude Code hook event names (`PreToolUse`, `Stop`), or
+Claude Code tool names (`Bash`, `Agent`, `Read`, `Edit`). Translate only the
+prose around them.
+
+Note that the Claude Code **tool** named `Agent` and the **UI noun** for an
+agent are different things. The tool name stays literal in every locale; the UI
+noun (`common:agent` / `common:subagent`) is literal in `zh`, `vi`, and `ko` but
+deliberately `agente` / `subagente` in `es`. The Spanish exception never applies
+to the tool name.
+
+Before opening the PR:
+
+```bash
+bash .claude/skills/i18n-parity/scripts/i18n-audit.sh   # must exit 0 — names every gap
+npm run test:client
+```
+
+If you use an AI coding agent, point it at `.claude/skills/i18n-parity/` — the
+skill, its checklist, and the audit script are written to be followed directly.
+
+---
+
 ## Reporting Bugs
 
 Open an issue and include:
@@ -166,5 +255,4 @@ Open an issue and include:
 
 ## Requesting Features
 
-Open an issue. Explain the problem you're solving, not just the solution you
-want.
+Open an issue. Explain the problem you're solving, not just the solution you want.

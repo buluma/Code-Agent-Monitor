@@ -34,12 +34,12 @@
  * JSON, missing fields, and unexpected types degrade to a plain label instead of
  * throwing, because this code runs on live hook data of varying vintage.
  *
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
- * **Path:** `/Users/buluma/Documents/GitHub/Claude-Code-Agent-Monitor/client/src/lib/event-grouping.ts`
+ * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/lib/event-grouping.ts`
  * **Purpose:** Dashboard module consumed by the React client, MCP tools, or desktop shell depending on deployment mode.
  *
  * ## Design constraints
@@ -165,6 +165,7 @@ export function statusFromEventType(type: string): "working" | "waiting" | "comp
     // began, or a tool is about to run.
     case "PreToolUse":
     case "UserPromptSubmit":
+    case "cursor_user_message":
     case "codex_user_message":
     case "codex_task_started":
     case "codex_tool_call":
@@ -203,9 +204,15 @@ export function statusFromEventType(type: string): "working" | "waiting" | "comp
 /** Row status for the Dashboard's Recent Activity feed: {@link
  *  statusFromEventType} plus the one heuristic that surface has always applied
  *  — a summary that reports an error is an error, whatever the event type says
- *  (a failed Stop, for instance). */
+ *  (a failed Stop, for instance).
+ *
+ * @param event - Event type and summary.
+ * @returns The row status.
+ */
 export function activityStatusFromEvent(event: {
+  /** Event type to classify. */
   event_type: string;
+  /** Event summary; a summary that mentions an error marks the row as an error. */
   summary?: string | null;
 }): "working" | "waiting" | "completed" | "error" {
   if (event.summary?.toLowerCase().includes("error")) return "error";

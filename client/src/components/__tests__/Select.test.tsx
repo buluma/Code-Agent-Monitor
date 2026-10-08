@@ -2,7 +2,7 @@
  * @file Select.test.tsx
  * @description Tests keyboard navigation and ARIA relationships for the
  * themed custom select component used across dashboard filter forms.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 import { describe, expect, it, vi } from "vitest";

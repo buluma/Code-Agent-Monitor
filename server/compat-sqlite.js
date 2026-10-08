@@ -8,7 +8,7 @@
  * handle the error (e.g. show an informative message).
  *
  * @file This module exports a Database class that wraps node:sqlite's DatabaseSync to provide a better-sqlite3-like API.
- * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
+ * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const { DatabaseSync } = require("node:sqlite");
@@ -36,14 +36,7 @@ class Database {
   }
 
   prepare(sql) {
-    const stmt = this._db.prepare(sql);
-    const origRun = stmt.run.bind(stmt);
-    stmt.run = function (...args) {
-      // better-sqlite3 accepts an array of params; node:sqlite expects spread args
-      if (args.length === 1 && Array.isArray(args[0])) return origRun(...args[0]);
-      return origRun(...args);
-    };
-    return stmt;
+    return this._db.prepare(sql);
   }
 
   transaction(fn) {

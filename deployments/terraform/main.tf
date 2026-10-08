@@ -91,7 +91,7 @@ provider "helm" {
   }
 }
 
-resource "kubernetes_namespace_v1" "cam" {
+resource "kubernetes_namespace_v1" "ccam" {
   metadata {
     name = var.namespace
     labels = {
@@ -102,9 +102,9 @@ resource "kubernetes_namespace_v1" "cam" {
   }
 }
 
-resource "helm_release" "cam" {
+resource "helm_release" "ccam" {
   name        = var.release_name
-  namespace   = kubernetes_namespace_v1.cam.metadata[0].name
+  namespace   = kubernetes_namespace_v1.ccam.metadata[0].name
   chart       = local.chart_path
   atomic      = true
   wait        = true
@@ -116,15 +116,15 @@ resource "helm_release" "cam" {
   lifecycle {
     precondition {
       condition     = try(local.values.replicaCount, 0) == 1
-      error_message = "CAM requires replicaCount=1 while SQLite is the persistence backend."
+      error_message = "CCAM requires replicaCount=1 while SQLite is the persistence backend."
     }
     precondition {
       condition     = try(local.values.autoscaling.enabled, true) == false
-      error_message = "CAM does not support HPA while SQLite is the persistence backend."
+      error_message = "CCAM does not support HPA while SQLite is the persistence backend."
     }
     precondition {
       condition     = try(local.values.persistence.enabled, false) == true
-      error_message = "Persistent storage is required for production CAM deployments."
+      error_message = "Persistent storage is required for production CCAM deployments."
     }
     precondition {
       condition     = !(var.ingress_enabled && var.gateway_api_enabled)
