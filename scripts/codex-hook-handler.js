@@ -17,19 +17,26 @@ function resolvePorts() {
 }
 
 let input = "";
-process.stdin.setEncoding("utf8");
-process.stdin.on("data", (chunk) => {
-  input += chunk;
-});
-process.stdin.on("end", () => {
-  let data;
-  try {
-    data = JSON.parse(input);
-  } catch {
-    data = { raw: input };
-  }
+let sent = false;
+
+function deliver(data) {
+  if (sent) return;
+  sent = true;
   sendHook(resolvePorts, "/api/hooks/codex", { hook_type: hookType, data }).finally(() =>
     setImmediate(() => process.exit(0))
   );
+}
+
+process.stdin.setEncoding("utf8");
+process.stdin.on("data", (chunk) => {
+  input += chunk;
+  // Codex may leave stdin open after writing the payload, so deliver as soon as
+  // the buffer parses instead of idling until EOF and the safety net below.
+  try {
+    deliver(JSON.parse(input));
+  } catch {
+    /* payload incomplete — keep reading */
+  }
 });
+process.stdin.on("end", () => deliver({ raw: input }));
 setTimeout(() => process.exit(0), 2500);
