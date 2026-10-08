@@ -592,3 +592,7 @@ all future contributions.
 ## License
 
 MIT. See [LICENSE](LICENSE) for details.
+
+Dashboard refreshes pause while the window is hidden and load only the selected
+Monitor or Health tab. Visible refreshes are coalesced without overlapping
+batches; background monitoring continues.

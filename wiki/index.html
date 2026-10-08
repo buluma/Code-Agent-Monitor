@@ -910,9 +910,12 @@
                     <strong>Monitor</strong> combines overview stats, active agent cards, collapsible
                     subagent trees, recent activity, and the same task-progress previews used by
                     Sessions. <strong>Health</strong> summarizes system score, storage, cache, errors,
-                    tool use, subagent effectiveness, model tokens, and compactions. Both tabs refresh
-                    every 5 seconds through WebSocket push, while the activity feed adapts its item
-                    count to the available viewport height.
+                    tool use, subagent effectiveness, model tokens, and compactions. Only the selected
+                    tab refreshes while the window is visible: Monitor coalesces WebSocket updates
+                    with a ten-second polling backstop; Health polls every 30 seconds. Batches do
+                    not overlap, and returning to the window refreshes current data. Background
+                    monitoring continues while hidden. The activity feed adapts its item count
+                    to the available viewport height.
                   </p>
                 </div>
                 <div class="feature-card">

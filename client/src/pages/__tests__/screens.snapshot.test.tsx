@@ -524,6 +524,45 @@ describe("screen snapshots", () => {
       include_task_progress: true,
     });
   });
+  it("Dashboard skips Monitor requests when Health is selected", async () => {
+    localStorage.setItem("dashboard_tab", "health");
+    try {
+      render(
+        <MemoryRouter>
+          <Dashboard />
+        </MemoryRouter>
+      );
+      await settle();
+      expect(api.settings.info).toHaveBeenCalledTimes(1);
+      expect(api.stats.get).not.toHaveBeenCalled();
+      expect(api.pricing.totalCost).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByRole("button", { name: /Monitor/ }));
+      await settle();
+      expect(api.stats.get).toHaveBeenCalledTimes(1);
+      expect(api.pricing.totalCost).toHaveBeenCalledTimes(1);
+    } finally {
+      localStorage.removeItem("dashboard_tab");
+    }
+  });
+  it("Dashboard makes no initial requests while hidden", async () => {
+    const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    try {
+      render(
+        <MemoryRouter>
+          <Dashboard />
+        </MemoryRouter>
+      );
+      await settle();
+      expect(api.stats.get).not.toHaveBeenCalled();
+      expect(api.pricing.totalCost).not.toHaveBeenCalled();
+      visibility.mockReturnValue("visible");
+      act(() => document.dispatchEvent(new Event("visibilitychange")));
+      await settle();
+      expect(api.stats.get).toHaveBeenCalledTimes(1);
+    } finally {
+      visibility.mockRestore();
+    }
+  });
   it("Kanban board", async () => {
     await snapshot(<KanbanBoard />, "/kanban");
   });

@@ -484,6 +484,12 @@ function SessionDetailPage() {
 
 ---
 
+## Database status labels
+
+The dashboard's Auto-Vacuum indicator displays SQLite mode `0` as `OFF`, `1` as
+`FULL`, and `2` as `INCREMENTAL`. This indicator reports the database setting;
+it does not change the mode or delete records.
+
 ## WebSocket Integration
 
 ### Reload Throttling
@@ -491,16 +497,18 @@ function SessionDetailPage() {
 Implemented in [`src/pages/Dashboard.tsx`](src/pages/Dashboard.tsx) and
 [`src/pages/Sessions.tsx`](src/pages/Sessions.tsx).
 
-`session_updated` fires on essentially every hook event of every active session,
-and the list requests it triggers are expensive server-side
-(`include_task_progress` re-parses live transcripts). Both pages therefore
-collapse WebSocket-driven reloads through a **2 s trailing throttle** rather
-than reloading per frame — Sessions previously reloaded un-debounced and
-Dashboard on a 300 ms debounce, which together produced a continuous parse storm
-with a few chatty sessions and one open tab. The trailing call keeps the list
-current, the existing periodic polls remain the backstop, and effect cleanup
-clears any pending reload so a stale closure cannot overwrite newer state after
-a filter change or unmount.
+`session_updated` fires on nearly every hook event. Dashboard refreshes use a
+shared two-second trailing throttle with at most one batch running. Monitor
+loads only while its tab is selected and the document is visible; Health uses
+its own visibility-gated 30-second poll. Returning to the window or selecting
+Monitor triggers a full refresh. Hidden events do not update the activity feed.
+
+WebSocket agent/session updates refresh live stats, agents, and task progress,
+while event-list and historical cost queries run on the visible ten-second
+polling backstop. Remote-data refreshes request a full batch. Pending requests
+merge, and responses from an old scope or visibility state are discarded.
+Sessions retains its separate two-second WebSocket throttle. Background server
+ingestion and the shared WebSocket connection continue while the window is hidden.
 
 Validate with:
 

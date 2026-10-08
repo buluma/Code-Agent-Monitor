@@ -3805,3 +3805,13 @@ agent-dashboard/
     +-- dashboard.db             # SQLite database (gitignored)
 ```
 ---
+
+### Dashboard refresh scheduling
+
+`client/src/hooks/useDashboardRefresh.ts` coordinates polling and event refreshes
+with a two-second throttle and a single in-flight batch per mounted view. Hidden
+documents and inactive Monitor tabs issue no dashboard requests. Visibility and
+scope changes invalidate old responses; returning triggers a full refresh.
+Monitor events refresh live data, with cost and event-list queries refreshed by
+the ten-second visible backstop. Health polls every 30 seconds while visible.
+The backend ingestion lifecycle is independent of window visibility.

@@ -99,6 +99,7 @@ import {
 import { api } from "../lib/api";
 import { eventBus } from "../lib/eventBus";
 import { isRemoteDataRefreshMessage } from "../lib/remoteDataEvents";
+import { useDashboardRefresh } from "../hooks/useDashboardRefresh";
 import { useDataScope } from "../lib/dataScope";
 import { StatCard } from "../components/StatCard";
 import { AgentCard } from "../components/AgentCard";
@@ -161,26 +162,29 @@ function formatUptime(seconds: number): string {
   return `${m}m`;
 }
 
-function SystemHealthTab() {
+function SystemHealthTab({ refreshRevision }: { refreshRevision: number }) {
   const [info, setInfo] = useState<SystemInfo | null>(null);
   const [workflow, setWorkflow] = useState<WorkflowData | null>(null);
   const [scope] = useDataScope();
 
-  const loadData = useCallback(async () => {
-    try {
-      const [infoRes, workflowRes] = await Promise.all([api.settings.info(), api.workflows.get()]);
-      setInfo(infoRes as any);
-      setWorkflow(workflowRes);
-    } catch (e) {
-      console.error(e);
-    }
-  }, [scope]);
+  const loadData = useCallback(
+    async (_full: boolean, isCurrent: () => boolean) => {
+      try {
+        const [infoRes, workflowRes] = await Promise.all([
+          api.settings.info(),
+          api.workflows.get(),
+        ]);
+        if (!isCurrent()) return;
+        setInfo(infoRes as any);
+        setWorkflow(workflowRes);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [scope, refreshRevision]
+  );
 
-  useEffect(() => {
-    loadData();
-    const int = setInterval(loadData, 30000); // 30s is sufficient for health metrics
-    return () => clearInterval(int);
-  }, [loadData]);
+  useDashboardRefresh(true, 30000, loadData);
 
   const stats = useMemo(() => {
     if (!info || !workflow) return null;
@@ -934,7 +938,15 @@ function SystemHealthTab() {
                       ? "NORMAL"
                       : "OFF",
               },
-              { label: "Auto-Vacuum", value: info.db.pragmas?.auto_vacuum > 0 ? "FULL" : "OFF" },
+              {
+                label: "Auto-Vacuum",
+                value:
+                  info.db.pragmas?.auto_vacuum === 2
+                    ? "INCREMENTAL"
+                    : info.db.pragmas?.auto_vacuum === 1
+                      ? "FULL"
+                      : "OFF",
+              },
               { label: "Foreign Keys", value: info.db.pragmas?.foreign_keys ? "ON" : "OFF" },
               { label: "Busy Timeout", value: `${info.db.pragmas?.busy_timeout || 5000}ms` },
               { label: "Platform", value: `${info.server.platform} / ${info.server.arch}` },
@@ -971,6 +983,7 @@ export function Dashboard() {
     localStorage.setItem("dashboard_tab", activeTab);
   }, [activeTab]);
 
+  const [healthRefreshRevision, setHealthRefreshRevision] = useState(0);
   const [stats, setStats] = useState<Stats | null>(null);
   const [activeAgents, setActiveAgents] = useState<Agent[]>([]);
   const [recentEvents, setRecentEvents] = useState<DashboardEvent[]>([]);
@@ -1014,50 +1027,49 @@ export function Dashboard() {
   // source-machine and provider params into the calls below).
   const [scope] = useDataScope();
 
-  const load = useCallback(async () => {
-    try {
-      const [statsRes, workingRes, waitingRes, eventsRes, costRes, sessionsRes] = await Promise.all(
-        [
-          api.stats.get(),
-          api.agents.list({ status: "working", limit: 20 }),
-          api.agents.list({ status: "waiting", limit: 20, include_transient: true }),
-          api.events.list({ limit: 30 }),
-          api.pricing.totalCost(),
-          api.sessions.list({
-            status: "active",
-            limit: 100,
-            include_transient: true,
-            include_task_progress: true,
-          }),
-        ]
-      );
-      setStats(statsRes);
-      const active = [...workingRes.agents, ...waitingRes.agents];
-      setActiveAgents(active);
-      setRecentEvents(eventsRes.events);
-      setTotalCost(costRes.total_cost);
-      setSessionsById(new Map(sessionsRes.sessions.map((s) => [s.id, s])));
-      setError(null);
+  const fetchData = useCallback(
+    async (full: boolean, isCurrent: () => boolean) => {
+      try {
+        const [statsRes, workingRes, waitingRes, eventsRes, costRes, sessionsRes] =
+          await Promise.all([
+            api.stats.get(),
+            api.agents.list({ status: "working", limit: 20 }),
+            api.agents.list({ status: "waiting", limit: 20, include_transient: true }),
+            full ? api.events.list({ limit: 30 }) : Promise.resolve(null),
+            full ? api.pricing.totalCost() : Promise.resolve(null),
+            api.sessions.list({
+              status: "active",
+              limit: 100,
+              include_transient: true,
+              include_task_progress: true,
+            }),
+          ]);
+        if (!isCurrent()) return;
+        setStats(statsRes);
+        const active = [...workingRes.agents, ...waitingRes.agents];
+        setActiveAgents(active);
+        if (eventsRes) setRecentEvents(eventsRes.events);
+        if (costRes) setTotalCost(costRes.total_cost);
+        setSessionsById(new Map(sessionsRes.sessions.map((s) => [s.id, s])));
+        setError(null);
 
-      // Fetch all subagents for each active main agent's session
-      const activeSessionIds = [
-        ...new Set(active.filter((a) => a.type === "main").map((a) => a.session_id)),
-      ];
-      const subagentResults = await Promise.all(
-        activeSessionIds.map((sid) => api.agents.list({ session_id: sid, limit: 100 }))
-      );
-      const subs = subagentResults.flatMap((r) => r.agents).filter((a) => a.type === "subagent");
-      setAllSubagents(subs);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("failedLoad"));
-    }
-  }, [t, scope]);
+        // Fetch all subagents for each active main agent's session
+        const activeSessionIds = [
+          ...new Set(active.filter((a) => a.type === "main").map((a) => a.session_id)),
+        ];
+        const subagentResults = await Promise.all(
+          activeSessionIds.map((sid) => api.agents.list({ session_id: sid, limit: 100 }))
+        );
+        const subs = subagentResults.flatMap((r) => r.agents).filter((a) => a.type === "subagent");
+        if (isCurrent()) setAllSubagents(subs);
+      } catch (err) {
+        if (isCurrent()) setError(err instanceof Error ? err.message : t("failedLoad"));
+      }
+    },
+    [t, scope]
+  );
 
-  useEffect(() => {
-    load();
-    const interval = setInterval(load, 10000);
-    return () => clearInterval(interval);
-  }, [load]);
+  const load = useDashboardRefresh(activeTab === "monitor", 10000, fetchData);
 
   // Auto-expand agents with active subagents (walk up the full parent chain)
   useEffect(() => {
@@ -1088,24 +1100,11 @@ export function Dashboard() {
   }, [allSubagents]);
 
   useEffect(() => {
-    // Trailing throttle, NOT a debounce: with several chatty sessions a
-    // session_updated arrives on nearly every hook event, and a debounce that
-    // re-arms per message either fires once per hook (>300ms apart) or starves.
-    // Each reload is expensive server-side (task-progress recomputation), so
-    // collapse bursts to at most one load per window; the trailing call keeps
-    // the view eventually consistent and the 10s poll remains the backstop.
-    const THROTTLE_MS = 2_000;
-    const throttleRef = { timer: null as ReturnType<typeof setTimeout> | null, lastRun: 0 };
-    const scheduleLoad = () => {
-      if (throttleRef.timer) return; // trailing run already scheduled
-      const wait = Math.max(0, THROTTLE_MS - (Date.now() - throttleRef.lastRun));
-      throttleRef.timer = setTimeout(() => {
-        throttleRef.timer = null;
-        throttleRef.lastRun = Date.now();
-        load();
-      }, wait);
-    };
+    // Event refreshes omit historical cost aggregation and the event list;
+    // the visible polling backstop refreshes both every ten seconds.
+    const scheduleLoad = () => load(false);
     const unsubscribe = eventBus.subscribe((msg: WSMessage) => {
+      if (activeTab !== "monitor" || document.visibilityState !== "visible") return;
       if (
         msg.type === "agent_created" ||
         msg.type === "agent_updated" ||
@@ -1114,7 +1113,8 @@ export function Dashboard() {
         msg.type === "session_removed" ||
         isRemoteDataRefreshMessage(msg)
       ) {
-        scheduleLoad();
+        if (isRemoteDataRefreshMessage(msg)) load();
+        else scheduleLoad();
       }
       if (msg.type === "new_event") {
         const newEvent = msg.data as DashboardEvent;
@@ -1130,11 +1130,8 @@ export function Dashboard() {
     });
     return () => {
       unsubscribe();
-      // Drop any pending trailing reload: after cleanup its closure is stale
-      // (old filters/scope) and its response could overwrite newer state.
-      if (throttleRef.timer) clearTimeout(throttleRef.timer);
     };
-  }, [load]);
+  }, [load, activeTab]);
 
   const wsConnected = useSyncExternalStore(eventBus.onConnection, () => eventBus.connected);
 
@@ -1181,7 +1178,7 @@ export function Dashboard() {
       <div className="text-center py-20">
         <p className="text-red-400 mb-2">{t("failedConnect")}</p>
         <p className="text-sm text-gray-500">{error}</p>
-        <button onClick={load} className="btn-primary mt-4">
+        <button onClick={() => load()} className="btn-primary mt-4">
           {t("common:retry")}
         </button>
       </div>
@@ -1237,7 +1234,12 @@ export function Dashboard() {
               <Server className="w-3.5 h-3.5" /> Health
             </button>
           </div>
-          <button onClick={load} className="btn-ghost flex-shrink-0">
+          <button
+            onClick={() =>
+              activeTab === "monitor" ? load() : setHealthRefreshRevision((value) => value + 1)
+            }
+            className="btn-ghost flex-shrink-0"
+          >
             <RefreshCw className="w-4 h-4" /> {t("common:refresh")}
           </button>
         </div>
@@ -1529,7 +1531,7 @@ export function Dashboard() {
           </div>
         </div>
       ) : (
-        <SystemHealthTab />
+        <SystemHealthTab refreshRevision={healthRefreshRevision} />
       )}
     </div>
   );
