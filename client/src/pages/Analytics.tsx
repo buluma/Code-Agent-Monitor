@@ -59,6 +59,7 @@
  *
  * ----------------------------------------------------------------------------- */
 
+import { useDashboardRefresh } from "../hooks/useDashboardRefresh";
 import { useEffect, useState, useCallback, useMemo, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -743,7 +744,7 @@ const ANALYTICS_TAB_LABEL_KEYS: Record<(typeof ANALYTICS_TABS)[number], string> 
 /**
  * Analytics page (`/analytics`). Four tabs, mirrored in the URL: cost (spend by model and over
  * time), tokens, productivity (activity heatmap and tool usage), and workflow. Follows the global
- * data scope and refreshes every 15 seconds and on live WebSocket updates.
+ * data scope and refreshes while visible every 15 seconds and on throttled live WebSocket updates.
  */
 export function Analytics() {
   // Start at the newest week on mount, without overriding later manual scrolling.
@@ -765,29 +766,26 @@ export function Analytics() {
    * Load analytics and total cost in parallel. A failed cost request leaves cost empty instead of
    * failing the whole page.
    */
-  const load = useCallback(async () => {
-    try {
-      const [result, cost] = await Promise.all([
-        api.analytics.get(),
-        api.pricing.totalCost().catch(() => null),
-      ]);
-      setData(result);
-      setCostData(cost);
-      setLastUpdate(new Date());
-    } finally {
-      setLoading(false);
-    }
-  }, [scope]);
+  const fetchData = useCallback(
+    async (_full: boolean, isCurrent: () => boolean) => {
+      try {
+        const [result, cost] = await Promise.all([
+          api.analytics.get(),
+          api.pricing.totalCost().catch(() => null),
+        ]);
+        if (!isCurrent()) return;
+        setData(result);
+        setCostData(cost);
+        setLastUpdate(new Date());
+      } finally {
+        if (isCurrent()) setLoading(false);
+      }
+    },
+    [scope]
+  );
 
-  usePaletteAction("page.refresh", () => {
-    void load();
-  });
-
-  useEffect(() => {
-    load();
-    const interval = setInterval(load, 15000);
-    return () => clearInterval(interval);
-  }, [load]);
+  const load = useDashboardRefresh(true, 15000, fetchData);
+  usePaletteAction("page.refresh", () => load());
 
   useEffect(() => {
     return eventBus.subscribe((msg) => {
@@ -1026,7 +1024,7 @@ export function Analytics() {
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button onClick={load} className="btn-ghost" disabled={loading}>
+          <button onClick={() => load()} className="btn-ghost" disabled={loading}>
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             {t("common:refresh")}
           </button>

@@ -4,13 +4,15 @@
  * agent lanes in two parallel requests and concatenated the results, so an agent
  * that flipped status between the responses — routine for Codex, which toggles
  * working/waiting every turn — rendered twice, once per status. The merged list
- * must hold one card per agent id, showing the freshest status.
+ * must hold one card per agent id, showing the freshest status. Also verifies
+ * that Health selection and manual refresh do not fetch Monitor data.
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
+import { api } from "../../lib/api";
 import { Dashboard } from "../Dashboard";
 import type { Agent, Session } from "../../lib/types";
 
@@ -118,6 +120,15 @@ vi.mock("../../lib/eventBus", () => ({
   },
 }));
 
+beforeEach(() => {
+  vi.clearAllMocks();
+  localStorage.removeItem("dashboard_tab");
+});
+afterEach(() => {
+  cleanup();
+  localStorage.removeItem("dashboard_tab");
+});
+
 describe("Dashboard - active agent lanes", () => {
   it("renders one card for an agent caught in both the working and waiting lanes", async () => {
     render(
@@ -131,5 +142,21 @@ describe("Dashboard - active agent lanes", () => {
     // than the stale Waiting copy.
     expect(screen.getAllByText("Working").length).toBeGreaterThan(0);
     expect(screen.queryByText("Waiting")).toBeNull();
+  });
+  it("fetches only Health data and sends manual refresh to Health", async () => {
+    vi.mocked(api.settings.info).mockImplementation(() => new Promise(() => {}));
+    render(
+      <MemoryRouter initialEntries={["/?tab=health"]}>
+        <Dashboard />
+      </MemoryRouter>
+    );
+    await waitFor(() => expect(api.settings.info).toHaveBeenCalledTimes(1));
+    expect(api.stats.get).not.toHaveBeenCalled();
+    expect(api.agents.list).not.toHaveBeenCalled();
+    expect(api.pricing.totalCost).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: /^Refresh$/i }));
+    // The existing batch is intentionally unresolved: manual refresh must not overlap it.
+    expect(api.settings.info).toHaveBeenCalledTimes(1);
+    expect(api.stats.get).not.toHaveBeenCalled();
   });
 });
