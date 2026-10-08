@@ -9,7 +9,7 @@
  * All db operations are wrapped in try/catch so a failure here can never
  * take down a live run — persistence is a side benefit, not a blocker.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { db } = require("../db");

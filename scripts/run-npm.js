@@ -13,7 +13,7 @@
  * executable, forwarding all args verbatim without a shell (e.g. `node
  * scripts/run-npm.js --prefix client ci`). Used by the lifecycle `setup` /
  * `mcp:install` scripts and by scripts/postinstall.js.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { spawnSync } = require("child_process");

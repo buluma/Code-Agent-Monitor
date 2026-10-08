@@ -17,7 +17,7 @@
  * the CLI import path (never the server), and assert every inner agent ends up
  * with `workflow_run_id = <runId>` and the workflows row reports the full fleet.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

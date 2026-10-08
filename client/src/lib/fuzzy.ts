@@ -19,7 +19,7 @@
  * an early match — which is what makes short queries land on the obvious command
  * instead of an incidental deep one.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

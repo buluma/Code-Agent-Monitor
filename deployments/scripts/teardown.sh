@@ -6,7 +6,7 @@
 #   ./teardown.sh --env dev --method helm
 #   ./teardown.sh --help
 # ─────────────────────────────────────────────────────────────────────────────
-# @author Son Nguyen <hoangson091104@gmail.com>
+# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
 set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

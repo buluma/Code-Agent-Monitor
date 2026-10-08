@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Forwards a Codex lifecycle hook to each live dashboard without waiting for a
 // response, so monitoring never delays the Codex CLI.
-// @author Son Nguyen <hoangson091104@gmail.com>
+// @author Michael Buluma <1452922+buluma@users.noreply.github.com>
 
 const { sendHook } = require("./hook-transport");
 

@@ -9,7 +9,7 @@
  * guidance + the no-toolchain alternative commands, then exits non-zero so the
  * normal command still fails loudly rather than silently leaving a half-set-up
  * `node_modules`.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { spawnSync } = require("node:child_process");

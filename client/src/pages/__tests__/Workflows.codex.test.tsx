@@ -1,7 +1,7 @@
 /**
  * @file Verifies that the Claude-only on-disk Workflow-run panel is absent
  * when the global dashboard data scope is set to Codex alone.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";

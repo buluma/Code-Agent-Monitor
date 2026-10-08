@@ -1,7 +1,7 @@
 /**
  * @file HTTP routes for dashboard upstream-update detection. The dashboard never
  * restarts itself — users copy the printed command and run it in their terminal.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { Router } = require("express");

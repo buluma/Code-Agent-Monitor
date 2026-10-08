@@ -14,7 +14,7 @@
 # Exits 0 when every surface is in parity, 1 otherwise, printing one FAIL line
 # per gap with the exact file and locale. Requires node (already a dev
 # dependency of this repo).
-# @author Son Nguyen <hoangson091104@gmail.com>
+# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
 
 set -uo pipefail
 

@@ -13,7 +13,7 @@
  *
  * Resolved through the REAL path of this file so the global symlink `npm
  * link` creates still finds the checkout's cli/ and node_modules/.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

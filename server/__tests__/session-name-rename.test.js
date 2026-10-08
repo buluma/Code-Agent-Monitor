@@ -12,7 +12,7 @@
  *   - GET /:id/transcript-image serving a transcript-referenced Claude image
  *     without returning its absolute local path in conversation JSON.
  * Uses Node's built-in test runner with temp CLAUDE_HOME / DASHBOARD_DATA_DIR.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

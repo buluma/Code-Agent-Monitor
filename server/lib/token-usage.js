@@ -11,7 +11,7 @@
  * price; anything unknown collapses to the standard/global default so old
  * transcripts (which lack `speed` / `inference_geo` / `cache_creation`
  * breakdown / `server_tool_use`) price exactly as they did before.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 // Separator for composite bucket keys — U+0001 (SOH) cannot occur in a model id.

@@ -4,7 +4,7 @@
  * `${sessionId}-jsonl-<agentId>` id scheme, idempotency, running→completed
  * detection with launch-time preservation, and folding inner-agent token usage
  * into the session cost under a namespaced `workflow` service_tier.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

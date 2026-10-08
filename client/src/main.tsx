@@ -14,7 +14,7 @@
  * page is controlled; when a new SW takes over we reload once so hashed bundle
  * URLs update without a manual hard refresh.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

@@ -6,7 +6,7 @@
  * exact criteria shown, editing any criterion invalidates that preview, and
  * applying takes a second confirming click and sends the server's confirm
  * token.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, expect, it, vi, beforeEach } from "vitest";

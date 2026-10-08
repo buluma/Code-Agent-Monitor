@@ -7,7 +7,7 @@
  * a lossless "compress now" action, and a prune flow that must be previewed
  * (server dry run) before it can be applied, because a pruned snapshot may be
  * the only remaining copy of a conversation.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { useState } from "react";

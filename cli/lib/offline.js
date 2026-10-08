@@ -10,7 +10,7 @@
  * its dead-session reap is not running, so sessions quit after it stopped
  * still read active/waiting. The same process-liveness probe the server's
  * watchdog uses corrects the DISPLAYED status; the database is never written.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

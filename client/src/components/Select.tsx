@@ -10,7 +10,7 @@
  * Used on the Run Claude page and webhook settings form wherever a compact
  * enum picker is needed.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

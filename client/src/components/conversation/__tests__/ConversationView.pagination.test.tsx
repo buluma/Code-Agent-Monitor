@@ -1,7 +1,7 @@
 /**
  * @file Verifies ConversationView history pagination and stable-id merging for
  * Cursor prompt-history refreshes triggered by session updates.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";

@@ -5,7 +5,7 @@
  *   current cat mood from that model plus the wall clock. Kept side-effect free
  *   so it can be unit-tested without React, timers, or the DOM. The React hook
  *   (`useTabbyBrain`) wires this to the event bus and to real timers.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

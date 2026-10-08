@@ -10,7 +10,7 @@
  *
  * Like ccam-cli.test.js, the CLI is spawned ASYNCHRONOUSLY against a live
  * in-test server (a synchronous spawn would deadlock the in-process server).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

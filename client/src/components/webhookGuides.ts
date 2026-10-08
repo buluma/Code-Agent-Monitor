@@ -4,7 +4,7 @@
  * step-by-step setup guide in the webhook form. The steps themselves are
  * localized in the i18n `settings` namespace (`webhookGuides.<type>.steps`);
  * URLs aren't translated so they live here.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

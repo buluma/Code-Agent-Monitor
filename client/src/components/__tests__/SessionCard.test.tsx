@@ -3,7 +3,7 @@
  * @description Regression tests for the compact Kanban session card, including
  * preserving provider-native session titles, two-turn human task context,
  * no redundant ID badge, and hover titles for single-line truncated fields.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, expect, it } from "vitest";

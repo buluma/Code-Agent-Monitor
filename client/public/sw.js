@@ -1,6 +1,6 @@
 /**
  * @description Service Worker for caching static assets and handling push notifications.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 // Bump this any time the SW logic changes - old clients will install the new

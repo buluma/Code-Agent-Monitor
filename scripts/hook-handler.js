@@ -16,7 +16,7 @@
  * for the response is what made Claude Code sit at "running hooks" for seconds
  * whenever a dashboard was busy, slow, or wedged.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { sendHook } = require("./hook-transport");

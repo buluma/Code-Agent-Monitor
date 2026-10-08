@@ -1,7 +1,7 @@
 /**
  * @file Tabby.test.tsx
  * @description Render tests for the Tabby companion component — mounting, mood rendering, the hover greeting state, the ⌘B panel toggle, and accessibility attributes.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";

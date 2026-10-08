@@ -3,7 +3,7 @@
  * config.toml, profile overlays, hooks.json, user rules, user skills, and
  * instruction files. Every overwrite and allowed deletion is path-whitelisted
  * and backup-backed; writes are size-bounded and atomic.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("node:fs");

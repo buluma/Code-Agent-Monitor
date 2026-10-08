@@ -4,7 +4,7 @@
  * transcripts, discovers companion chat metadata, and locates durable dashboard
  * snapshots without depending on Cursor's retention policy. Transcript helpers
  * validate path segments and contain every resolved file to its expected root.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("fs");

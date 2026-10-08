@@ -1,7 +1,7 @@
 /**
  * @file Central OpenAPI 3.0 specification for the dashboard HTTP API.
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const pkg = require("../package.json");
@@ -53,8 +53,8 @@ function createOpenApiSpec() {
       description:
         "HTTP API for real-time Claude Code, Cursor, and Codex session monitoring, agent lifecycle tracking, analytics, provider-specific pricing, hooks ingestion, and workflow intelligence.",
       contact: {
-        name: "Son Nguyen",
-        email: "hoangson091104@gmail.com",
+        name: "Michael Buluma",
+        email: "1452922+buluma@users.noreply.github.com",
         ...(repositoryUrl ? { url: repositoryUrl } : {}),
       },
       license: {

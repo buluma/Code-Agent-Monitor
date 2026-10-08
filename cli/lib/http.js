@@ -8,7 +8,7 @@
  * DASHBOARD_PORT (matching the hook handler's contract), then the live-server
  * discovery file ~/.claude/.agent-dashboard.json (PID-liveness-checked on
  * read), then the default http://127.0.0.1:4820.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

@@ -13,7 +13,7 @@
  * as reliably as successes. Exit codes are stable and backward compatible:
  * 0 success, 1 any failure; the failure *kind* is carried by the JSON
  * `error.code` (USAGE, SERVER_DOWN, CONFIRMATION_REQUIRED, HTTP_404, …).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

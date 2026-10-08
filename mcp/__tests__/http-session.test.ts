@@ -1,7 +1,7 @@
 /**
  * @file http-session.test.ts
  * @description End-to-end regression tests for Streamable HTTP session tracking. These start a real listener because the defect they guard against was in the wiring rather than in any pure helper: the session id handed to the client in the `mcp-session-id` response header must be the key the server tracks the transport under, so every follow-up request routes back to the same session instead of falling through to "Bad Request: No valid session or initialization". Also covers session release on DELETE, rejection of unknown session ids, and the legacy SSE endpoint continuing to hand out its own session.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import assert from "node:assert/strict";

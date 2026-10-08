@@ -1,6 +1,6 @@
 /**
  * @file Exercises release upload retries, recovery, and publication safeguards.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 const { test } = require("node:test");
 const assert = require("node:assert/strict");

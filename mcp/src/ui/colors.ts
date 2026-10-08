@@ -1,7 +1,7 @@
 /**
  * @file colors.ts
  * @description Provides utility functions for applying ANSI color codes to text in the terminal. This module defines a set of functions for styling text with various colors and modifiers such as bold, italic, underline, and strikethrough. It also includes support for 256-color mode and a function to strip ANSI codes from text. The color functions are designed to be composable, allowing for easy combination of styles. The module checks for color support in the terminal environment and gracefully degrades if colors are not supported.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

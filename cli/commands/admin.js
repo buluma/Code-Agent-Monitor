@@ -10,7 +10,7 @@
  * a TTY); the destructive clear-data needs a literal --yes and the generic
  * `api` route to it additionally needs --confirm CLEAR_ALL_DATA; `snapshots
  * prune` is a dry run unless given --apply --confirm PRUNE_SNAPSHOTS.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

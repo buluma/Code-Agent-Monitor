@@ -12,7 +12,7 @@
  * JSON output for subsequent commands), history, banner, clear, exit.
  * Tab-completion is driven by the same Commander command tree that powers
  * `ccam completion`, so it knows every subcommand, option, and choice.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

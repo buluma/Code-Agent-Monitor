@@ -5,7 +5,7 @@
  * `type:"user"` line as the human. Cases mirror real Claude Code transcripts:
  * tool results, harness task-notifications, /loop (isMeta) re-injections, and a
  * subagent's orchestrator-assigned task. (Reported transcript mis-attribution.)
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, after } = require("node:test");

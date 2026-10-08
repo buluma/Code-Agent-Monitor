@@ -21,7 +21,7 @@
  * the "already in the desired state" case, so callers can invoke them freely (e.g. on every
  * app load, or on a settings toggle) without tracking prior state themselves.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

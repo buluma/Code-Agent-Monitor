@@ -1,7 +1,7 @@
 /**
  * @file Workflows.tsx
  * @description Displays comprehensive analytics on agent orchestration patterns, including DAGs of agent spawning, tool usage flows, collaboration networks, and session complexity metrics, with real-time updates and interactive filtering.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

@@ -5,7 +5,7 @@
  * server this CLI talks to via the discovery file and sends SIGTERM,
  * escalating to SIGKILL after 5 s; `logs` tails that log file; `open` opens
  * the dashboard (optionally a specific page or session) in the browser.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

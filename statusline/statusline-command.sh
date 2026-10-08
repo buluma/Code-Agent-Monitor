@@ -2,7 +2,7 @@
 #
 # @file statusline-command.sh — wrapper that Claude Code invokes for its custom statusline;
 # pipes the JSON event payload into statusline.py (update the path to match your install).
-# @author Son Nguyen <hoangson091104@gmail.com>
+# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
 #
 PYTHONUTF8=1 python3 "C:/Users/nguyens6/.claude/statusline.py"
 # IMPORTANT:

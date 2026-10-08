@@ -10,7 +10,7 @@
  * JSON output mode, and force-enabled by FORCE_COLOR / CCAM_COLOR=1. Every
  * helper degrades to plain text, so piped output stays grep/script-friendly
  * byte-for-byte and machine consumers never see escape codes.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

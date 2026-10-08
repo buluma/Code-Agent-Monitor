@@ -1,7 +1,7 @@
 /**
  * @file Analytics.tsx
  * @description Provides a comprehensive analytics dashboard for monitoring Claude Code sessions, agents, token usage, and events in real-time. Features include an activity heatmap, token distribution charts, paginated chart legends, session outcome breakdowns, and more, all with interactive tooltips and live updates via WebSocket.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================

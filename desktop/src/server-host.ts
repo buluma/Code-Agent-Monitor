@@ -11,7 +11,7 @@
  * process answers `/api/health` with `{ status: "ok" }`, we adopt it instead
  * of starting a second server. This covers the case where the user already
  * runs `npm start` in a terminal — we should not double-bind.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

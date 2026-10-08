@@ -3,7 +3,7 @@
  * @description Provider- and source-scoped variants of the dashboard aggregate
  * queries. They keep all statistics aligned with the global data selectors
  * without changing the fast prepared-statement path when no scope is active.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 function placeholders(values) {

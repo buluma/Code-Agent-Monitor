@@ -1,7 +1,7 @@
 /**
  * @file tool-guards.ts
  * @description Guard functions to check if mutating and destructive tools are enabled based on the application configuration. These functions throw errors with informative messages if the required permissions are not granted, guiding developers to enable the necessary environment variables to use these tools. The assertMutationsEnabled function checks for general mutation permissions, while the assertDestructiveEnabled function checks for both mutation and destructive permissions, as well as validating a confirmation token to prevent accidental use of destructive tools.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

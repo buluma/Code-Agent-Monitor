@@ -13,7 +13,7 @@
  * "init" commits, one of which staged the deletion of 200k+ lines. The fake
  * runner removes the failure mode at the source; see server/lib/git-env.js and
  * server/__tests__/no-mutating-git-in-tests.test.js for the other two layers.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

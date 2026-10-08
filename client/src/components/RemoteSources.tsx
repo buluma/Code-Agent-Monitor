@@ -11,7 +11,7 @@
  * port / identity file / remote home). Live status/sync updates arrive over the
  * `remote_source.status` WebSocket message.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

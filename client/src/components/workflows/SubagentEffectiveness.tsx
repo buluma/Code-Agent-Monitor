@@ -1,7 +1,7 @@
 /**
  * @file SubagentEffectiveness.tsx
  * @description Defines the SubagentEffectiveness React component that visualizes the effectiveness of subagents in a workflow. It displays a success rate as a circular progress ring, key metrics such as total sessions and average duration, and a sparkline showing weekly activity trends. The component is designed to handle cases with no data gracefully and uses a consistent color scheme for clarity.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

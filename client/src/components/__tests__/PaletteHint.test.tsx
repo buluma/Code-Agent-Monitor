@@ -5,7 +5,7 @@
  * palette has been opened, and that it stays out of the accessibility tree — it
  * decorates an input, so it must not add a tab stop or a screen-reader
  * announcement in front of the field the user is trying to type into.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";

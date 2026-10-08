@@ -20,7 +20,7 @@
  * never leaks operational data to an unexpected origin. The turnkey Prometheus +
  * Grafana bundle in `monitoring/` documents the exact setup.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { Router } = require("express");

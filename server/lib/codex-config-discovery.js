@@ -3,7 +3,7 @@
  * enumerate safe metadata, account-visible model catalogs, installed-plugin
  * state, and redacted file previews beneath CODEX_HOME; a separate tightly
  * scoped mutation helper owns edits.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("node:fs");

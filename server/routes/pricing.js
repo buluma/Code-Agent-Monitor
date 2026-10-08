@@ -2,7 +2,7 @@
  * @file Express router for managing Claude, Cursor, and Codex pricing rules and
  * calculating provider-correct costs from token usage. Each provider's rate
  * card remains isolated and uses its own published cache/speed dimensions.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { Router } = require("express");

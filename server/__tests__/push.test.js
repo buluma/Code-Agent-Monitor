@@ -1,6 +1,6 @@
 /**
  * @file Tests for push notification API endpoints, covering subscription management and sending notifications. It verifies that the server correctly handles subscription creation, deletion, and sending push messages, ensuring proper validation and response formats.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

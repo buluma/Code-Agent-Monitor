@@ -8,7 +8,7 @@
  * chrome for a fact the user already knows, and a hint that never appears leaves
  * the palette undiscoverable, which is the bug this exists to fix. A storage
  * failure must therefore fall toward *showing* it.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";

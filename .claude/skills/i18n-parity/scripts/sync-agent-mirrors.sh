@@ -16,7 +16,7 @@
 #   bash .claude/skills/i18n-parity/scripts/sync-agent-mirrors.sh --check  # verify only
 #
 # --check exits 1 and names each stale file instead of writing. Requires node.
-# @author Son Nguyen <hoangson091104@gmail.com>
+# @author Michael Buluma <1452922+buluma@users.noreply.github.com>
 
 set -uo pipefail
 

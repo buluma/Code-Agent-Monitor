@@ -23,7 +23,7 @@
  *      nothing to reclaim. Every prune can be previewed as a dry run.
  *
  * All filesystem work goes through snapshot-store.js (pure Node, OS-neutral).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const fs = require("fs");

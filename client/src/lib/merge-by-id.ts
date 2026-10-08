@@ -4,7 +4,7 @@
  * whose status flips mid-flight (a Codex agent going working → waiting) comes back
  * in two responses at once and would otherwise render as two cards for the same
  * session. The freshest copy wins, so the merged row shows the current status.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

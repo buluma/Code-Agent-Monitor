@@ -21,7 +21,7 @@ The two coexist — install whichever fits your workflow.
 
 **Option A — download a pre-built installer** (recommended):
 
-1. Open [**Releases → latest**](https://github.com/hoangsonww/Claude-Code-Agent-Monitor/releases/latest) and grab the asset for your platform. Every `master` commit that bumps the version in `package.json` cuts a new `vX.Y.Z` release automatically (CI publishes it), so this link always lands on the current build — no GitHub sign-in required.
+1. Open [**Releases → latest**](https://github.com/buluma/Claude-Code-Agent-Monitor/releases/latest) and grab the asset for your platform. Every `master` commit that bumps the version in `package.json` cuts a new `vX.Y.Z` release automatically (CI publishes it), so this link always lands on the current build — no GitHub sign-in required.
 
    | Platform | Asset | Notes |
    |---|---|---|
@@ -32,7 +32,7 @@ The two coexist — install whichever fits your workflow.
 
 2. Want a **per-commit build** instead of waiting for a release? Every green CI run uploads a workflow artifact (sign-in required, 14-day retention) — `ClaudeCodeMonitor-dmg` from the `🍎 macOS Desktop (DMG)` job and `ClaudeCodeMonitor-win` from the `🪟 Windows Desktop (EXE)` job:
    ```bash
-   gh run download <run-id> -R hoangsonww/Claude-Code-Agent-Monitor -n ClaudeCodeMonitor-dmg   # or ClaudeCodeMonitor-win
+   gh run download <run-id> -R buluma/Claude-Code-Agent-Monitor -n ClaudeCodeMonitor-dmg   # or ClaudeCodeMonitor-win
    ```
 3. **macOS:** double-click the DMG → drag `Claude Code Monitor.app` into your `Applications` folder. Open it; macOS may show a Gatekeeper warning the first time — see [Gatekeeper & SmartScreen](#gatekeeper--smartscreen-first-launch) below.
 4. **Windows:** run `ClaudeCodeMonitor-Setup-<ver>-x64.exe` (per-user, no admin) and follow the wizard, or just run the `*-portable.exe` to launch without installing. Windows **SmartScreen** may show *"Windows protected your PC"* the first time — see [Gatekeeper & SmartScreen](#gatekeeper--smartscreen-first-launch) below.
@@ -92,7 +92,7 @@ open desktop/release/ClaudeCodeMonitor-*-arm64.dmg   # …-x64.dmg for the Intel
 - **Logs** live at `~/Library/Logs/Claude Code Monitor/desktop.log` on macOS and `%APPDATA%\Claude Code Monitor\logs\desktop.log` on Windows (use *Show Logs* in the tray menu to open the folder).
 - **Your data** (the SQLite database and VAPID keys) lives outside the app bundle / install dir, so it **survives app reinstalls and updates** — `~/Library/Application Support/Claude Code Monitor/data/` on macOS, `%APPDATA%\Claude Code Monitor\data\` on Windows. The Windows NSIS uninstaller **keeps this data by default** (`deleteAppDataOnUninstall: false`), mirroring how dragging the `.app` to the Trash on macOS never touches your data.
 - **The `claude` CLI on PATH.** On **macOS** the app resolves it using your login-shell `PATH`, recovered at startup — so "Run Claude" works even though a Finder/Dock-launched app would otherwise only inherit a minimal `PATH`. On **Windows** the inherited user `PATH` already includes it, so no recovery is needed.
-- **Notifications** (including the in-dashboard *Send test notification* button) are delivered as **native OS toasts** on both platforms when running inside the app — the embedded server calls Electron's `Notification` API directly. On Windows the app sets an `AppUserModelId` (`com.hoangsonww.ccam.desktop`, matching the electron-builder `appId`) so toasts attribute to the app and its taskbar windows group correctly. Web Push doesn't work reliably inside Electron (Chromium-in-Electron ships without Firebase Cloud Messaging credentials, so `pushManager.subscribe` returns endpoints nothing can deliver to), and this path bypasses it entirely. The web dashboard at `npm start` continues to use Web Push as before.
+- **Notifications** (including the in-dashboard *Send test notification* button) are delivered as **native OS toasts** on both platforms when running inside the app — the embedded server calls Electron's `Notification` API directly. On Windows the app sets an `AppUserModelId` (`com.buluma.ccam.desktop`, matching the electron-builder `appId`) so toasts attribute to the app and its taskbar windows group correctly. Web Push doesn't work reliably inside Electron (Chromium-in-Electron ships without Firebase Cloud Messaging credentials, so `pushManager.subscribe` returns endpoints nothing can deliver to), and this path bypasses it entirely. The web dashboard at `npm start` continues to use Web Push as before.
 - **Coexists with the web dashboard.** You can run the desktop app and `npm run dev` (or `npm start`) at the same time. Each server writes its `{port, pid, startedAt, dataDir}` entry to a shared discovery file at `~/.claude/.agent-dashboard.json`, and the Claude Code hook handler POSTs to **one ingest target per unique SQLite data directory** (lowest port wins when both share `~/.claude/agent-dashboard`, so events are never double-ingested). Servers with **different** databases (e.g. the desktop app's Application Support dir alongside `npm run dev`) still each receive hooks and stay real-time.
 
 ## File layout (for contributors)

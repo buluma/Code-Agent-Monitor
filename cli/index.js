@@ -10,7 +10,7 @@
  *   --server <url>     target a specific dashboard (env CCAM_URL)
  *   --token <token>    API bearer token (env DASHBOARD_API_TOKEN / CCAM_API_TOKEN)
  *   --no-color         plain text (also NO_COLOR=1); colors are off when piped
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

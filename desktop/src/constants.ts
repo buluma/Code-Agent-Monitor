@@ -5,7 +5,7 @@
  * documented default dashboard port, and the embedded server health probe in
  * `server-host.ts`.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
@@ -93,7 +93,7 @@ export const APP_NAME = "Claude Code Monitor";
  * of appearing as a generic "electron.app" toast — and so taskbar windows group
  * under one icon. Ignored on macOS/Linux.
  */
-export const APP_ID = "com.hoangsonww.ccam.desktop";
+export const APP_ID = "com.buluma.ccam.desktop";
 
 /**
  * Preferred dashboard port — matches the project's documented default. Also

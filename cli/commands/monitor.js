@@ -4,7 +4,7 @@
  * Activity Feed in the terminal, polling /api/events), stream (the raw
  * real-time WebSocket feed — pretty for humans, NDJSON for machines), and
  * watch (re-run any ccam command on an interval).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

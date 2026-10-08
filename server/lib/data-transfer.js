@@ -29,7 +29,7 @@
  *     columns (PRAGMA table_info) with the keys present on each row, so older
  *     or newer bundles import cleanly without a migration step.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 "use strict";

@@ -41,7 +41,7 @@
  * PageUp/PageDown jump, Tab moves between groups, Enter runs, Escape closes, and
  * focus returns to the previously focused element on close.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

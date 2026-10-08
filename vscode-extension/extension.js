@@ -4,7 +4,7 @@
  * Implements a dynamic dashboard view that checks for active servers on ports 5173 and 4820.
  * Provides real-time status updates in the sidebar and status bar with background polling.
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const vscode = require("vscode");
@@ -288,7 +288,7 @@ function getErrorHtml() {
                 <div class="timeline">
                     <div class="t-step">
                         <div class="t-label">Initialize Repository</div>
-                        <div class="t-code">git clone https://github.com/hoangsonww/Claude-Code-Agent-Monitor.git
+                        <div class="t-code">git clone https://github.com/buluma/Claude-Code-Agent-Monitor.git
 cd Claude-Code-Agent-Monitor
 npm run setup</div>
                     </div>
@@ -317,16 +317,16 @@ npm run setup</div>
                     Retry Connection
                 </button>
                 
-                <a href="https://hoangsonww.github.io/Claude-Code-Agent-Monitor/" class="btn btn-secondary">
+                <a href="https://buluma.github.io/Claude-Code-Agent-Monitor/" class="btn btn-secondary">
                     View Documentation
                 </a>
             </div>
         </div>
 
         <div class="footer">
-            <a href="https://github.com/hoangsonww/Claude-Code-Agent-Monitor">GitHub</a>
-            <a href="https://hoangsonww.github.io/Claude-Code-Agent-Monitor/">Wiki</a>
-            <a href="https://github.com/hoangsonww/Claude-Code-Agent-Monitor/issues">Support</a>
+            <a href="https://github.com/buluma/Claude-Code-Agent-Monitor">GitHub</a>
+            <a href="https://buluma.github.io/Claude-Code-Agent-Monitor/">Wiki</a>
+            <a href="https://github.com/buluma/Claude-Code-Agent-Monitor/issues">Support</a>
         </div>
     </div>
 </body>

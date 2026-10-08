@@ -7,7 +7,7 @@
  * rule the 5.1 patterns depend on, and the in-place correction that reaches
  * databases created before the fix. Rates are transcribed from Anthropic's
  * published rate card, not derived from the code under test.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const { describe, it, before, after } = require("node:test");

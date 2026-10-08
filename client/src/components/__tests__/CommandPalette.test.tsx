@@ -6,7 +6,7 @@
  * query fails and the guarantee that a slow response never leaves a previous
  * query's sessions on screen), the programmatic open event used by the sidebar
  * trigger, and dismissal behavior.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";

@@ -29,7 +29,7 @@
  * ingestion pipeline (every spawned `claude` fires hooks like any other
  * session, so the run shows up in /sessions automatically).
  *
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 // cross-spawn (not node:child_process): on Windows the npm-installed `claude`

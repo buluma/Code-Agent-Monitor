@@ -1,7 +1,7 @@
 /**
  * @file WorkflowStats.tsx
  * @description Six headline statistics rendered as cards. Each card has the accent icon top-right and an info popover (i icon) bottom-right that explains how the metric is calculated and gives a deterministic, value-dependent interpretation. The popover is fixed-positioned and clamped to the viewport so it never gets clipped by the sidebar or screen edges. All copy is i18n-driven (workflows.stats.tooltip.*).
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 /* =============================================================================
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)

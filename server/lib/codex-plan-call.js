@@ -1,7 +1,7 @@
 /**
  * @file Locates executable `tools.update_plan(...)` calls inside Codex unified
  * exec wrappers while ignoring matching text in strings and comments.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 const MARKER = "tools.update_plan";

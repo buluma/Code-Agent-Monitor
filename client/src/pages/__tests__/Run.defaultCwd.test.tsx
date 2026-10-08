@@ -5,7 +5,7 @@
  * cwd, which would make ad-hoc runs inherit this repo's project context
  * (.claude/agents, skills, rules, CLAUDE.md, .mcp.json) — issue #202. Falls
  * back to the dashboard cwd only when no home suggestion is available.
- * @author Son Nguyen <hoangson091104@gmail.com>
+ * @author Michael Buluma <1452922+buluma@users.noreply.github.com>
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
