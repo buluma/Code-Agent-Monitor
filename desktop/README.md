@@ -460,7 +460,7 @@ desktop/
 │   ├── main.ts          # main process entry — lifecycle, dialogs, wiring
 │   ├── server-host.ts   # ★ in-process Express boot, port discovery, adoption,
 │   │                    #   better-sqlite3 ABI patch, DB + discovery-file close,
-│   │                    #   /api/stats snapshot poller for the tray dropdown
+│   │                    #   on-demand /api/stats snapshots for the tray dropdown
 │   ├── window.ts        # BrowserWindow + persisted geometry; native macOS
 │   │                    #   titleBarStyle: 'default' (clear traffic-light row)
 │   ├── menu.ts          # native application menu
@@ -831,3 +831,5 @@ yourself wanting to edit those, that belongs in a separate PR.
 
 *User-facing docs: [`../DESKTOP.md`](../DESKTOP.md) · Project architecture:
 [`../ARCHITECTURE.md`](../ARCHITECTURE.md) · Setup: [`../SETUP.md`](../SETUP.md)*
+
+Tray statistics refresh only when the menu opens. Overlapping requests share one fetch; the menu waits up to 150 ms, then uses the last successful snapshot if the server is slow or unavailable. There is no continuous tray statistics polling.

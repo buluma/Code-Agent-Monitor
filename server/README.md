@@ -1618,9 +1618,9 @@ DASHBOARD_DB_PATH=./data/dashboard.db  # SQLite database path
 DASHBOARD_SESSION_SYNC_MS=30000    # Continuous project-sync poll interval (ms); 0 disables the poll (watcher stays)
 DASHBOARD_CURSOR_HOME=             # Optional Cursor home; defaults to ~/.cursor for native history and chat metadata
 DASHBOARD_CURSOR_STATE_DB=         # Optional Cursor IDE state.vscdb (read-only, chat titles); defaults to the per-platform User/globalStorage path
-DASHBOARD_CURSOR_SYNC_MS=5000      # Cursor chat/transcript safety-net poll (ms); 0 keeps watchers but disables polling
+DASHBOARD_CURSOR_SYNC_MS=60000      # Cursor chat/transcript safety-net poll (ms); 0 keeps watchers but disables polling
 DASHBOARD_CODEX_HOME=              # Optional Codex home; Settings saves this dashboard-only override and immediately re-arms live watching
-DASHBOARD_CODEX_SYNC_MS=4000       # Codex rollout safety-net poll (ms); 0 disables poll (watcher stays)
+DASHBOARD_CODEX_SYNC_MS=30000       # Codex rollout safety-net poll (ms); 0 disables poll (watcher stays)
 DASHBOARD_CODEX_MAX_ATTEMPTS=5     # Consecutive failed ingest attempts per unchanged rollout, including the first attempt
 DASHBOARD_CODEX_HOOK_IDLE_SECONDS=60 # Wait for a lost SessionEnd on a hook-only (rollout-less) Codex session
 DASHBOARD_TASK_SUMMARY_TTL_MS=2000 # Serve-stale window (ms) for task-progress summaries of actively-growing transcripts; 0 re-parses on every change
@@ -1758,3 +1758,5 @@ The server is production-ready with:
 - 📈 **Scalable** - Handles 1000s of sessions, 100+ concurrent clients
 
 For client documentation, see [client/README.md](../client/README.md).
+
+Local ingestion uses filesystem notifications for prompt updates and periodic full discovery for recovery. Codex processes changed rollout paths directly, with a 30-second full-scan fallback; new Claude transcript paths are imported without walking the full project tree. Known Claude files retain their normal polling and hook behavior. Cursor full discovery defaults to 60 seconds. Codex rollout liveness probes run asynchronously, share in-flight work, and reuse results for at most five seconds; cached absence never completes a session, and full discovery requests fresh evidence. Explicit sync interval overrides remain supported.

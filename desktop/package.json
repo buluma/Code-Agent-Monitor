@@ -25,7 +25,7 @@
     "dmg:universal": "rm -rf release && npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --universal --publish never --config.dmg.title='Claude Code Monitor (Universal)'",
     "win": "npm run build && electron-builder --win nsis --x64 --publish never",
     "win:portable": "npm run build && electron-builder --win portable --x64 --publish never",
-    "test": "npm run build && node --test --test-reporter=spec tests/smoke.test.mjs",
+    "test": "npm run build && node --test --test-reporter=spec tests/*.test.mjs",
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {

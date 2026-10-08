@@ -68,7 +68,6 @@ import {
   getServerSnapshot,
   refreshServerSnapshot,
   startEmbeddedServer,
-  startSnapshotPolling,
   type ServerHandle,
 } from "./server-host";
 import { ensureUserPath } from "./shell-path";
@@ -304,13 +303,9 @@ async function boot(): Promise<void> {
     isOpenAtLogin,
     serverPort: () => state.serverHandle?.port ?? null,
     getSnapshot: () => getServerSnapshot(),
-    refreshSnapshot: () => void refreshServerSnapshot(state.serverHandle?.port ?? null),
+    refreshSnapshot: () => refreshServerSnapshot(state.serverHandle?.port ?? null),
     requestQuit,
   });
-
-  // Keep the tray's live counts fresh by polling the running server's stats
-  // API on an interval (and on each menu open via refreshSnapshot above).
-  startSnapshotPolling(() => state.serverHandle?.port ?? null);
 
   // Skip the dashboard window when macOS launched us at login — the user just
   // logged in, they don't want a window jumping in their face. Tray only.

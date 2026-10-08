@@ -610,6 +610,29 @@ describe("Codex rollout ingestor", () => {
     assert.equal(resumed.output_tokens, 5);
   });
 
+  it("does not complete a session based on cached negative liveness evidence", () => {
+    const sessionId = "019affff-0000-7000-8000-000000000099";
+    const rollout = path.join(path.dirname(ROLLOUT), `rollout-cached-${sessionId}.jsonl`);
+    fs.mkdirSync(path.dirname(rollout), { recursive: true });
+    fs.writeFileSync(
+      rollout,
+      [
+        record("session_meta", { id: sessionId, cwd: "/workspace/cache" }),
+        record("event_msg", { type: "task_started" }),
+      ]
+        .map(JSON.stringify)
+        .join("\n") + "\n"
+    );
+    ingestCodexTranscript(rollout, { liveTranscripts: new Set(), liveProbeFresh: false });
+    assert.equal(stmts.getSession.get(sessionId).status, "active");
+    fs.appendFileSync(
+      rollout,
+      JSON.stringify(record("event_msg", { type: "task_started" })) + "\n"
+    );
+    ingestCodexTranscript(rollout, { liveTranscripts: new Set(), liveProbeFresh: true });
+    assert.equal(stmts.getSession.get(sessionId).status, "completed");
+  });
+
   it("imports an inactive historical rollout as completed without replaying task_started", () => {
     const sessionId = "019fd086-d75c-7a91-9743-2788d849c224";
     const rollout = path.join(
