@@ -101,4 +101,4 @@ export const HookTypeSchema = z.enum([
  * `metadata` field on session/agent tools and the hook `data` payload in
  * `dashboard_ingest_hook_event`, whose actual shape varies by `hook_type`
  * and is validated by the dashboard server itself, not this MCP layer. */
-export const JsonObjectSchema = z.record(z.unknown());
+export const JsonObjectSchema = z.record(z.string(), z.unknown());
