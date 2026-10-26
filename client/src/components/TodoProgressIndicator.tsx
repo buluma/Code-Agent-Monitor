@@ -217,8 +217,7 @@ export function ProgressDonut({
 }: {
   /** Progress to draw: a summary or snapshot. */
   progress:
-    | SessionTodoSummary
-    | { completed: number; total: number; percentComplete: number | null };
+    SessionTodoSummary | { completed: number; total: number; percentComplete: number | null };
   /** Diameter in pixels. */
   size: number;
   /** Ring thickness in pixels. */

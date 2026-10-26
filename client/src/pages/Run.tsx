@@ -2688,13 +2688,7 @@ function ProviderChooser({
 
 /** Status filter in the runs modal: `all` or one run lifecycle state. */
 type RunStatusFilter =
-  | "all"
-  | "running"
-  | "spawning"
-  | "completed"
-  | "error"
-  | "killed"
-  | "abandoned";
+  "all" | "running" | "spawning" | "completed" | "error" | "killed" | "abandoned";
 /** Mode filter in the runs modal. */
 type RunModeFilter = "all" | "conversation" | "headless";
 
