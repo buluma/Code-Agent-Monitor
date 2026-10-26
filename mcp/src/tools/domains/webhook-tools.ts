@@ -82,7 +82,7 @@ const WebhookTypeSchema = z.enum([
 ]);
 
 /** String-to-string map, for headers and provider settings. */
-const StringMapSchema = z.record(z.string());
+const StringMapSchema = z.record(z.string(), z.string());
 
 /**
  * Register the webhook tools: list providers, targets, and deliveries, and create, update, delete,
