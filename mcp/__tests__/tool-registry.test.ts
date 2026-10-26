@@ -60,7 +60,21 @@ describe("createCollectorRegistrar", () => {
 
     register("number_tool", "Requires a number", { count: z.number().int() }, async (args) => args);
 
-    await assert.rejects(() => collector[0].handler({ count: "three" }), /Expected number/);
+    await assert.rejects(
+      () => collector[0].handler({ count: "three" }),
+      (error: unknown) => {
+        assert(error instanceof z.ZodError);
+        assert.deepEqual(
+          error.issues.map((issue) => ({
+            code: issue.code,
+            expected: issue.code === "invalid_type" ? issue.expected : undefined,
+            path: issue.path,
+          })),
+          [{ code: "invalid_type", expected: "number", path: ["count"] }]
+        );
+        return true;
+      }
+    );
   });
 });
 
