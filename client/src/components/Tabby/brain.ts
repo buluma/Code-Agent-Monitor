@@ -144,14 +144,7 @@ import type { WSMessage, Session, Agent, RunStatusPayload, DashboardEvent } from
 
 /** All moods Tabby can express, highest priority first (see `deriveMood`). */
 export type Mood =
-  | "disconnected"
-  | "worried"
-  | "stuck"
-  | "happy"
-  | "thinking"
-  | "watching"
-  | "sleeping"
-  | "idle";
+  "disconnected" | "worried" | "stuck" | "happy" | "thinking" | "watching" | "sleeping" | "idle";
 
 /**
  * A one-shot signal describing what just happened, emitted by `reduceTabby`.
@@ -159,13 +152,7 @@ export type Mood =
  * was irrelevant or non-notable.
  */
 export type TabbyPulse =
-  | "session_done"
-  | "session_start"
-  | "subagent_spawn"
-  | "waiting"
-  | "error"
-  | "run_done"
-  | null;
+  "session_done" | "session_start" | "subagent_spawn" | "waiting" | "error" | "run_done" | null;
 
 /**
  * Counts shown in Tabby's panel and status line, derived from {@link TabbyState} by {@link

@@ -1027,15 +1027,7 @@ function CodexTab({
 
 /** Accent tones for the Codex overview tiles. */
 type CodexTone =
-  | "violet"
-  | "sky"
-  | "amber"
-  | "teal"
-  | "fuchsia"
-  | "orange"
-  | "rose"
-  | "emerald"
-  | "indigo";
+  "violet" | "sky" | "amber" | "teal" | "fuchsia" | "orange" | "rose" | "emerald" | "indigo";
 
 /**
  * Tailwind classes for each {@link CodexTone}: icon background and color, left accent bar, and

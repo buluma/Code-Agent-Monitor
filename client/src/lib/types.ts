@@ -1494,10 +1494,7 @@ export interface UpdateStatusPayload {
    * shape (e.g. show "Restart after running" only when the command
    * actually rewrites the working tree). */
   situation?:
-    | "tracking_canonical"
-    | "fork_or_diverged_tracking"
-    | "feature_branch"
-    | "detached_head";
+    "tracking_canonical" | "fork_or_diverged_tracking" | "feature_branch" | "detached_head";
   /** Plain-language explanation when the user is *not* on the canonical
    * default branch, so the manual command makes sense in context. */
   situation_note?: string | null;
