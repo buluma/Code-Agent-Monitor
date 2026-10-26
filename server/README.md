@@ -469,13 +469,15 @@ The OpenAPI spec is generated from `server/openapi.js` (`createOpenApiSpec()`), 
 | `POST`  | `/api/agents`       | Create agent (idempotent by `id`)               |
 | `PATCH` | `/api/agents/:id`   | Update agent                                     |
 | `GET`   | `/api/events`       | List events (`session_id`, `limit`, `offset`)   |
-| `GET`   | `/api/stats`        | Dashboard aggregate counters                     |
+| `GET`   | `/api/stats`        | Dashboard counters; `day_start` gives DST-safe local-day event counts |
 | `GET`   | `/api/analytics`    | Analytics aggregates for charts/trends           |
 | `GET`   | `/api/metrics`      | Prometheus / OpenMetrics exposition (text; v0.0.4) |
 
 **Prometheus metrics (`GET /api/metrics`).** Exposes the dashboard's live counters — `ccam_sessions`/`ccam_agents` by status, `ccam_events_total`, `ccam_tokens_total` by kind, `ccam_websocket_clients`, `ccam_remote_sources` by enabled state, `ccam_process_uptime_seconds`/`ccam_process_resident_memory_bytes`, and `ccam_build_info{version}` — in the Prometheus v0.0.4 text-exposition format for scraping into Prometheus / Grafana (`server/routes/metrics.js`). Values come from the same `server/db.js` prepared statements the REST API uses, so they match the UI; status series are enumerated so a gauge never drops out of the exposition at zero. The route is read-only and, being under `/api`, sits behind both the Host-header (DNS-rebinding) guard and the optional `DASHBOARD_TOKEN` guard: a non-loopback scraper (e.g. Prometheus in Docker via `host.docker.internal`) must be allowlisted with `DASHBOARD_ALLOWED_HOSTS` or it gets `403 EBADHOST`, and must send the token when one is set. A ready-to-run Prometheus + Grafana stack with four auto-provisioned dashboards (default home **CCAM — Overview**) lives in [`monitoring/`](../monitoring/README.md).
 
 **Data scope (`?sources=` and `?providers=`).** `GET /api/sessions`, `/api/events`, `/api/agents`, `/api/stats`, `/api/analytics`, `/api/workflows`, workflow drill-ins, and pricing cost endpoints accept an optional source list and provider list (`claude`, `cursor`, `codex`, or a comma-separated combination). The `claude` product scope intentionally expands to Claude Code + Cursor; direct `cursor` requests remain available for stored-provider drill-ins. The filters compose, so a single Settings choice immediately scopes every page by both machine and product. `server/lib/source-filter.js` and `server/lib/provider-filter.js` build the SQL predicates; `/api/stats` and `/api/analytics` use their scoped aggregates only when a filter is present. `GET /api/sessions/facets` returns both `sources` and `providers`.
+
+For `/api/stats`, `events_today` uses the caller's local midnight. Send `day_start` as an ISO 8601 UTC instant for exact results on daylight-saving transition days; older clients may continue to send `tz_offset`.
 
 **Session project filter (`cwd=`).** `GET /api/sessions` accepts one or more exact working directories. Repeat the query key (`?cwd=/work/a&cwd=/work/b`) to include sessions from any selected project; this OR filter composes with `status`, `q`, `sources`, pagination, and `sort_by` / `sort_desc`. The Sessions page uses it for its searchable checkbox project picker, so multi-project filtering stays server-paginated.
 

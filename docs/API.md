@@ -12,6 +12,7 @@ Complete REST API and WebSocket documentation for Agent Dashboard.
 - [REST API](#rest-api)
   - [Sessions](#sessions)
   - [Agents](#agents)
+  - [Stats](#stats)
   - [Tools](#tools)
   - [Metrics](#metrics)
   - [Pricing](#pricing)
@@ -113,6 +114,27 @@ https://dashboard.example.com
 ---
 
 ## REST API
+
+### Stats
+
+#### Dashboard Stats
+
+```http
+GET /api/stats
+```
+
+Returns aggregate dashboard counters, including `events_today` for the caller's local calendar day.
+Send `day_start` as the caller's local midnight expressed as an ISO 8601 UTC instant to keep the
+count accurate on daylight-saving transition days. If it is omitted or invalid, the server falls
+back to `tz_offset`; offsets outside ±14 hours fall back to UTC.
+
+```bash
+curl "http://localhost:4820/api/stats?tz_offset=420&day_start=2026-03-08T08%3A00%3A00.000Z"
+```
+
+`day_start` can be generated in JavaScript with
+`new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()`. `tz_offset` is the
+minutes value from `Date.prototype.getTimezoneOffset()` and remains supported for older clients.
 
 ### Sessions
 
