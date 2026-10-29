@@ -368,7 +368,7 @@ The dashboard offers a comprehensive set of features to monitor and analyze your
 
 ### Prerequisites
 
-- **Node.js** >= 22.22.0 (24 LTS recommended)
+- **Node.js** >= 22.23.4 (24 LTS recommended)
 - **npm** >= 9.0.0
 
 ### 1. Install

@@ -366,7 +366,7 @@ Bảng điều khiển cung cấp một bộ tính năng toàn diện để giá
 
 ### Điều kiện tiên quyết
 
-- **Node.js** >= 22.22.0 (khuyến nghị Node 24 LTS)
+- **Node.js** >= 22.23.4 (khuyến nghị Node 24 LTS)
 - **npm** >= 9.0.0
 
 ### 1. Cài đặt

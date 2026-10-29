@@ -367,7 +367,7 @@ El panel de control ofrece un conjunto completo de funciones para monitorear y a
 
 ### Prerequisitos
 
-- **Node.js** >= 22.22.0 (se recomienda Node 24 LTS)
+- **Node.js** >= 22.23.4 (se recomienda Node 24 LTS)
 - **npm** >= 9.0.0
 
 ### 1. instalar
