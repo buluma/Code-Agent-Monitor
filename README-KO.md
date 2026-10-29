@@ -366,7 +366,7 @@ flowchart LR
 
 ### 사전 요구 사항
 
-- **Node.js** >= 22.22.0 (Node 24 LTS 권장)
+- **Node.js** >= 22.23.4 (Node 24 LTS 권장)
 - **npm** >= 9.0.0
 
 ### 1. 설치

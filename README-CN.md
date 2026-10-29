@@ -368,7 +368,7 @@ Dashboard 提供全面的功能来监控和分析你的 Claude Code 会话和 Ag
 
 ### 前置条件
 
-- **Node.js** >= 22.22.0（推荐 Node 24 LTS）
+- **Node.js** >= 22.23.4（推荐 Node 24 LTS）
 - **npm** >= 9.0.0
 
 ### 1. 安装

@@ -1185,7 +1185,7 @@ graph TB
 
 ### Prerequisites
 
-- Node.js >= 22.22.0 (Node 24 LTS recommended)
+- Node.js >= 22.23.4 (Node 24 LTS recommended)
 - npm >= 9.0.0
 
 ### Setup
